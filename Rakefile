@@ -26,7 +26,7 @@ require_relative 'objects/dynamo'
 
 ENV['RACK_ENV'] = 'test'
 
-task default: %i[clean test rubocop xcop copyright check_outdated_gems]
+task default: %i[clean test rubocop xcop copyright]
 
 require 'rake/testtask'
 desc 'Run all unit tests'
@@ -91,10 +91,4 @@ task :copyright do
     --include '*.txt' \
     --include 'Rakefile' \
     ."
-end
-
-task :check_outdated_gems do
-  sh 'bundle outdated' do |ok, _|
-    raise 'Some dependencies are outdated' unless ok
-  end
 end

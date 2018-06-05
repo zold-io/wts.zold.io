@@ -30,19 +30,16 @@ class AppTest < Minitest::Test
     Sinatra::Application
   end
 
-  def test_renders_version
-    get('/version')
-    assert(last_response.ok?)
-  end
-
-  def test_robots_txt
-    get('/robots.txt')
-    assert(last_response.ok?)
-  end
-
-  def test_it_renders_home_page
-    get('/')
-    assert(last_response.ok?)
+  def test_renders_pages
+    [
+      '/version',
+      '/robots.txt',
+      '/',
+      '/css/main.css'
+    ].each do |p|
+      get(p)
+      assert(last_response.ok?)
+    end
   end
 
   def test_not_found

@@ -26,14 +26,14 @@ gem 'codecov', '0.1.10'
 gem 'glogin', '0.2.1'
 gem 'haml', '5.0.4'
 gem 'minitest', '5.11.3'
-gem 'rack', '~> 2.0.4'
+gem 'rack', '2.0.5'
 gem 'rack-test', '1.0.0'
 gem 'rake', '12.3.1', require: false
 gem 'rspec-rails', '3.7.2', require: false
 gem 'rubocop', '0.56.0', require: false
 gem 'rubocop-rspec', '1.25.1', require: false
 gem 'sass', '3.5.6'
-gem 'sentry-raven', '~>2.7.2'
-gem 'sinatra', '2.0.1'
-gem 'sinatra-contrib', '~>2.0.1'
+gem 'sentry-raven', '2.7.3'
+gem 'sinatra', '2.0.2'
+gem 'sinatra-contrib', '2.0.2'
 gem 'xcop', '0.6'
