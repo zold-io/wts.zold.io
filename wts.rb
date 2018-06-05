@@ -95,8 +95,8 @@ get '/logout' do
 end
 
 get '/' do
-  haml :index, layout: :layout, locals: @locals.merge(
-    title: 'out'
+  haml :index, layout: :layout, locals: merged(
+    title: 'wts'
   )
 end
 
@@ -117,7 +117,7 @@ end
 not_found do
   status 404
   content_type 'text/html', charset: 'utf-8'
-  haml :not_found, layout: :layout, locals: @locals.merge(
+  haml :not_found, layout: :layout, locals: merged(
     title: 'Page not found'
   )
 end
@@ -134,4 +134,12 @@ error do
       error: "#{e.message}\n\t#{e.backtrace.join("\n\t")}"
     )
   )
+end
+
+private
+
+def merged(hash)
+  out = @locals.merge(hash)
+  out[:local_assigns] = out
+  out
 end
