@@ -2,6 +2,7 @@ coverage/
 target/
 Gemfile.lock
 .idea/
+.sass-cache/
 *.gem
 .bundle/
 .DS_Store
