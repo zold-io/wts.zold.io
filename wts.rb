@@ -24,6 +24,7 @@ require 'haml'
 require 'sinatra'
 require 'sinatra/cookies'
 require 'sass'
+require 'raven'
 require 'glogin'
 
 require_relative 'version'
