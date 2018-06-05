@@ -130,7 +130,7 @@ error do
     :error,
     layout: :layout,
     locals: merged(
-      title: 'error',
+      title: 'Error',
       error: "#{e.message}\n\t#{e.backtrace.join("\n\t")}"
     )
   )
