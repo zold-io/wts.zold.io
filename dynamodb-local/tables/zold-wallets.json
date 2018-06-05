@@ -1,0 +1,19 @@
+{
+  "TableName": "zold-wallets",
+  "AttributeDefinitions": [
+    {
+      "AttributeName": "login",
+      "AttributeType": "S"
+    }
+  ],
+  "KeySchema": [
+    {
+      "AttributeName": "login",
+      "KeyType": "HASH"
+    }
+  ],
+  "ProvisionedThroughput": {
+    "ReadCapacityUnits": "1",
+    "WriteCapacityUnits": "1"
+  }
+}

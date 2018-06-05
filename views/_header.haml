@@ -1,0 +1,9 @@
+%p
+  - if defined? user
+    = "@#{user[:login]}"
+    = '|'
+    %a{href: '/logout'}
+      Logout
+  - else
+    %a{href: login_link}
+      Login
