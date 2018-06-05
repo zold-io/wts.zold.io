@@ -3,11 +3,13 @@ set -e
 
 cd $(dirname $0)
 bundle update
-rake
-trap 'git reset HEAD~1 && git checkout -- .gitignore' EXIT
+# rake
 sed -i -s 's|Gemfile.lock||g' .gitignore
+cp /code/home/assets/zold/wts-config.yml config.yml
+git add config.yml
 git add Gemfile.lock
 git add .gitignore
-git commit -m 'configs for heroku'
+git commit -m 'config.yml for heroku'
+trap 'git reset HEAD~1 && rm config.yml && git checkout -- .gitignore' EXIT
 git push heroku master -f
 
