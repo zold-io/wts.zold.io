@@ -1,0 +1,30 @@
+= Haml::Engine.new(File.read('views/_header.haml')).render(Object.new, local_assigns)
+
+%form{method: 'POST', action: '/pay'}
+  %fieldset
+    %input{type: 'text', name: 'pass', placeholder: 'Your secret...'}
+    %input{type: 'text', name: 'bnf', placeholder: 'The beneficiary'}
+    %input{type: 'text', name: 'amount', placeholder: 'Amount, in ZLD'}
+    %input{type: 'text', name: 'details', placeholder: 'Payment details'}
+    %input{type: 'submit'}
+
+%p
+  Balance:
+  - if user.wallet.exists?
+    = user.wallet.balance
+  - else
+    not available, click "pull"
+
+%a{href: '/pull'}
+  Pull
+
+%p
+  History:
+  - if user.wallet.exists?
+    - user.wallet.txns.sort_by(&:time).reverse.each do |t|
+      = t
+      %br
+  - else
+    not available, click "pull"
+
+= Haml::Engine.new(File.read('views/_footer.haml')).render(Object.new, local_assigns)

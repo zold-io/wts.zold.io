@@ -26,6 +26,12 @@ require 'sinatra/cookies'
 require 'sass'
 require 'raven'
 require 'glogin'
+require 'tempfile'
+require 'zold/log'
+require 'zold/id'
+require 'zold/amount'
+require 'zold/wallets'
+require 'zold/remotes'
 
 require_relative 'version'
 require_relative 'objects/dynamo'
@@ -62,6 +68,10 @@ configure do
     config['github']['client_secret'],
     'https://wts.zold.io/github-callback'
   )
+  set :wallets, Zold::Wallets.new('wallets')
+  set :remotes, Zold::Remotes.new('remotes')
+  set :copies, File.join(settings.root, 'copies')
+  set :log, Zold::Log::Verbose.new
 end
 
 before '/*' do
@@ -71,10 +81,19 @@ before '/*' do
   }
   if cookies[:glogin]
     begin
-      @locals[:user] = GLogin::Cookie::Closed.new(
+      @locals[:guser] = GLogin::Cookie::Closed.new(
         cookies[:glogin],
         settings.config['github']['encryption_secret']
       ).to_user
+      @locals[:user] = User.new(
+        @locals[:guser],
+        Item.new(@locals[:guser], settings.dynamo),
+        settings.wallets,
+        settings.remotes,
+        settings.copies,
+        log: settings.log
+      )
+      @locals[:user].create
     rescue OpenSSL::Cipher::CipherError => _
       @locals.delete(:user)
     end
@@ -95,9 +114,42 @@ get '/logout' do
 end
 
 get '/' do
+  redirect '/home' if @locals[:user]
   haml :index, layout: :layout, locals: merged(
     title: 'wts'
   )
+end
+
+get '/home' do
+  redirect '/confirm' unless @locals[:user].confirmed?
+  haml :home, layout: :layout, locals: merged(
+    title: '@' + @locals[:guser][:login]
+  )
+end
+
+get '/confirm' do
+  redirect '/' if @locals[:user].confirmed?
+  haml :index, layout: :layout, locals: merged(
+    title: 'ATTENTION!'
+  )
+end
+
+post '/do-confirm' do
+  @locals[:user].confirm(params[:pass])
+  redirect '/'
+end
+
+post '/pay' do
+  bnf = Zold::Id.new(params[:bnf])
+  amount = Zold::Amount.new(zld: params[:amount].to_f)
+  details = params[:details]
+  @locals[:user].pay(params[:pass], bnf, amount, details)
+  redirect '/'
+end
+
+get '/pull' do
+  @locals[:user].pull
+  redirect '/'
 end
 
 get '/robots.txt' do
@@ -131,7 +183,7 @@ error do
     layout: :layout,
     locals: merged(
       title: 'Error',
-      error: "#{e.message}\n\t#{e.backtrace.join("\n\t")}"
+      error: "#{e.class.name}: #{e.message}\n\t#{e.backtrace.join("\n\t")}"
     )
   )
 end

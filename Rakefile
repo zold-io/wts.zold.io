@@ -34,7 +34,7 @@ Rake::TestTask.new(test: :dynamo) do |test|
   Rake::Cleaner.cleanup_files(['coverage'])
   test.libs << 'lib' << 'test'
   test.pattern = 'test/**/test_*.rb'
-  test.verbose = false
+  test.verbose = true
   test.warning = false
 end
 

@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2018 Yegor Bugayenko
+# Copyright (c) 2018 Yegor Bugayenko
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the 'Software'), to deal
@@ -18,21 +18,38 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-ENV['RACK_ENV'] = 'test'
-
-require 'simplecov'
-SimpleCov.start
-if ENV['CI'] == 'true'
-  require 'codecov'
-  SimpleCov.formatter = SimpleCov::Formatter::Codecov
-end
-
 require 'minitest/autorun'
-module Minitest
-  class Test
-    def log
-      # $log = Zold::Log::Quiet.new
-      @log ||= Zold::Log::Verbose.new
+require 'tmpdir'
+require 'zold/amount'
+require 'zold/wallets'
+require 'zold/remotes'
+require 'zold/id'
+require_relative 'test__helper'
+require_relative '../objects/dynamo'
+require_relative '../objects/user'
+
+class UserTest < Minitest::Test
+  def test_make_payment
+    Dir.mktmpdir 'test' do |dir|
+      wallets = Zold::Wallets.new(File.join(dir, 'wallets'))
+      remotes = Zold::Remotes.new(File.join(dir, 'remotes.csv'))
+      copies = File.join(dir, 'copies')
+      remotes.clean
+      login = 'jeff01'
+      user = User.new(
+        login, Item.new(login, Dynamo.new.aws, log: log),
+        wallets, remotes, copies, log: log
+      )
+      user.create
+      assert(!user.confirmed?)
+      pass = user.pass
+      user.confirm(pass)
+      friend = User.new(
+        'friend', Item.new('friend', Dynamo.new.aws, log: log),
+        wallets, remotes, copies, log: log
+      )
+      friend.create
+      user.pay(pass, friend.wallet.id, Zold::Amount.new(zld: 19.99), 'for fun')
     end
   end
 end

@@ -1,6 +1,13 @@
 %p
-  - if defined? user
-    = "@#{user[:login]}"
+  %a{href: '/'}
+    %img{src: 'https://www.zold.io/images/logo.svg', style: 'width:92px;height:92px;'}
+
+%p
+  Zold Web Wallets
+
+%p
+  - if defined? guser
+    = "@#{guser[:login]}"
     = '|'
     %a{href: '/logout'}
       Logout
