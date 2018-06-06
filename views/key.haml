@@ -1,5 +1,3 @@
-= Haml::Engine.new(File.read('views/_header.haml')).render(Object.new, local_assigns)
-
 %p
   This is the private RSA key for your wallet
   =' '
@@ -15,5 +13,3 @@
   That part has been given to you as a pass code.
   Every time you make a new payment we ask you to provide it.
   Thus, even if our database gets hacked and/or stolen, your wallet is safe.
-
-= Haml::Engine.new(File.read('views/_footer.haml')).render(Object.new, local_assigns)

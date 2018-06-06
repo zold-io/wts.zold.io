@@ -10,4 +10,26 @@
     %link{type:'text/css', href:url('css/main.css'), rel:'stylesheet'}
     %link{rel:'shortcut icon', href:'https://www.zold.io/images/logo.png'}
   %body
-    = yield
+    %section
+      %header
+        %p
+          %a{href: '/'}
+            %img.logo{src: 'https://www.zold.io/images/logo.svg'}
+        %p
+          Zold Web Wallets
+        %p
+          - if defined? guser
+            = "@#{guser[:login]}"
+            = '|'
+            %a{href: '/logout'}
+              Logout
+          - else
+            %a{href: login_link}
+              Login
+      %article
+        = yield
+      %footer
+        %p
+          ='--'
+        %p
+          =ver
