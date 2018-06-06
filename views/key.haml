@@ -1,0 +1,19 @@
+= Haml::Engine.new(File.read('views/_header.haml')).render(Object.new, local_assigns)
+
+%p
+  This is the private RSA key for your wallet
+  =' '
+  = succeed ':' do
+    =user.wallet.id
+
+%pre
+  =item.raw_key.gsub(/\*/, '<span style="color:red">*</span>')
+
+%p
+  Even though we keep it in our database, it can't be used to send out money from your wallet,
+  because a small and important part of it has been extracted (marked with red stars).
+  That part has been given to you as a pass code.
+  Every time you make a new payment we ask you to provide it.
+  Thus, even if our database gets hacked and/or stolen, your wallet is safe.
+
+= Haml::Engine.new(File.read('views/_footer.haml')).render(Object.new, local_assigns)

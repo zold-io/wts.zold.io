@@ -34,6 +34,8 @@ require 'zold/wallets'
 require 'zold/remotes'
 
 require_relative 'version'
+require_relative 'objects/item'
+require_relative 'objects/user'
 require_relative 'objects/dynamo'
 
 configure do
@@ -43,7 +45,8 @@ configure do
       'testing' => true,
       'github' => {
         'client_id' => '?',
-        'client_secret' => '?'
+        'client_secret' => '?',
+        'encryption_secret' => ''
       },
       'sentry' => '',
       'dynamo' => {
@@ -68,9 +71,9 @@ configure do
     config['github']['client_secret'],
     'https://wts.zold.io/github-callback'
   )
-  set :wallets, Zold::Wallets.new('wallets')
-  set :remotes, Zold::Remotes.new('remotes')
-  set :copies, File.join(settings.root, 'copies')
+  set :wallets, Zold::Wallets.new('.zold-wts/wallets')
+  set :remotes, Zold::Remotes.new('.zold-wts/remotes')
+  set :copies, File.join(settings.root, '.zold-wts/copies')
   set :log, Zold::Log::Verbose.new
 end
 
@@ -79,15 +82,17 @@ before '/*' do
     ver: VERSION,
     login_link: settings.glogin.login_uri
   }
+  cookies[:glogin] = params[:glogin] if params[:glogin]
   if cookies[:glogin]
     begin
       @locals[:guser] = GLogin::Cookie::Closed.new(
         cookies[:glogin],
         settings.config['github']['encryption_secret']
       ).to_user
+      @locals[:item] = Item.new(@locals[:guser][:login], settings.dynamo)
       @locals[:user] = User.new(
-        @locals[:guser],
-        Item.new(@locals[:guser], settings.dynamo),
+        @locals[:guser][:login],
+        @locals[:item],
         settings.wallets,
         settings.remotes,
         settings.copies,
@@ -123,23 +128,25 @@ end
 get '/home' do
   redirect '/confirm' unless @locals[:user].confirmed?
   haml :home, layout: :layout, locals: merged(
-    title: '@' + @locals[:guser][:login]
+    title: '@' + @locals[:guser][:login],
+    start: params[:start] ? Time.parse(params[:start]) : Time.now
   )
 end
 
 get '/confirm' do
   redirect '/' if @locals[:user].confirmed?
-  haml :index, layout: :layout, locals: merged(
-    title: 'ATTENTION!'
+  haml :confirm, layout: :layout, locals: merged(
+    title: '@' + @locals[:guser][:login] + '/pass'
   )
 end
 
-post '/do-confirm' do
+get '/do-confirm' do
   @locals[:user].confirm(params[:pass])
   redirect '/'
 end
 
 post '/pay' do
+  redirect '/confirm' unless @locals[:user].confirmed?
   bnf = Zold::Id.new(params[:bnf])
   amount = Zold::Amount.new(zld: params[:amount].to_f)
   details = params[:details]
@@ -148,8 +155,16 @@ post '/pay' do
 end
 
 get '/pull' do
+  redirect '/confirm' unless @locals[:user].confirmed?
   @locals[:user].pull
   redirect '/'
+end
+
+get '/key' do
+  redirect '/confirm' unless @locals[:user].confirmed?
+  haml :key, layout: :layout, locals: merged(
+    title: '@' + @locals[:guser][:login] + '/key'
+  )
 end
 
 get '/robots.txt' do

@@ -30,6 +30,7 @@ gem 'minitest', '~>5.11'
 gem 'rack', '~>2.0'
 gem 'rack-test', '~>1.0'
 gem 'rake', '~>12.3', require: false
+gem 'rerun', '~>0.11', require: false
 gem 'rubocop', '~>0.52', require: false
 gem 'rubocop-rspec', '~>1.25', require: false
 gem 'sass', '~>3.5'

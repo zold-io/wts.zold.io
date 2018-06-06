@@ -15,16 +15,29 @@
   - else
     not available, click "pull"
 
-%a{href: '/pull'}
-  Pull
+%p
+  %a{href: '/pull'}
+    Pull
+  %a{href: '/key'}
+    RSA private key
 
 %p
-  History:
+  History
+  - if start
+    ='(since ' + start.utc.iso8601 + ')'
+  %br
   - if user.wallet.exists?
     - user.wallet.txns.sort_by(&:time).reverse.each do |t|
-      = t
-      %br
+      - if t.time < start
+        = t
+        %br
+        - @last = t.time
   - else
-    not available, click "pull"
+    ='(not available, click "pull")'
+
+- if @last
+  %p
+    %a{href: '?start=' + @last.utc.iso8601}
+      Older
 
 = Haml::Engine.new(File.read('views/_footer.haml')).render(Object.new, local_assigns)

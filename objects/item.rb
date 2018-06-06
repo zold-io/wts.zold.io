@@ -49,8 +49,7 @@ class Item
     raise 'Length can\'t be nil' if length.nil?
     raise "Item already exists for @#{login}" if exists?
     pem = key.to_s
-    start = Random.new.rand(pem.length - length)
-    pass = pem[start..(start + length - 1)]
+    pass = extract(pem, length)
     @aws.put_item(
       table_name: 'zold-wallets',
       item: {
@@ -71,6 +70,13 @@ class Item
     raise "There is no key for some reason for user @#{@login}" if key.nil?
     key = Zold::Key.new(text: key.sub('*' * pass.length, pass))
     @log.debug("The private key of @#{@login} reassembled: #{key.to_s.length} chars")
+    key
+  end
+
+  # Return private key as text
+  def raw_key
+    key = read['key']
+    raise "There is no key for some reason for user @#{@login}" if key.nil?
     key
   end
 
@@ -110,9 +116,18 @@ class Item
 
   private
 
+  def extract(text, length)
+    pass = ''
+    until pass =~ /^[a-zA-Z0-9]+$/
+      start = Random.new.rand(text.length - length)
+      pass = text[start..(start + length - 1)]
+    end
+    pass
+  end
+
   def read
     item = items[0]
-    raise "There is no item in DynamoDB for @#{login}" if item.nil?
+    raise "There is no item in DynamoDB for @#{@login}" if item.nil?
     item
   end
 
