@@ -89,7 +89,7 @@ class User
   def pull
     require 'zold/commands/pull'
     Zold::Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
-      ['pull', wallet.id.to_s]
+      ['pull', @item.id.to_s]
     )
   end
 
