@@ -26,6 +26,7 @@ require 'sinatra/cookies'
 require 'sass'
 require 'raven'
 require 'glogin'
+require 'concurrent'
 require 'tempfile'
 require 'zold/log'
 require 'zold/id'
@@ -38,6 +39,7 @@ require_relative 'objects/item'
 require_relative 'objects/user'
 require_relative 'objects/dynamo'
 require_relative 'objects/ops'
+require_relative 'objects/async_ops'
 
 configure do
   Haml::Options.defaults[:format] = :xhtml
@@ -76,6 +78,7 @@ configure do
   set :remotes, Zold::Remotes.new('.zold-wts/remotes')
   set :copies, File.join(settings.root, '.zold-wts/copies')
   set :log, Zold::Log::Verbose.new
+  set :pool, Concurrent::FixedThreadPool.new(16)
 end
 
 before '/*' do
@@ -99,12 +102,15 @@ before '/*' do
         settings.wallets,
         log: settings.log
       )
-      @locals[:ops] = Ops.new(
-        @locals[:item], @locals[:user],
-        settings.wallets,
-        settings.remotes,
-        settings.copies,
-        log: settings.log
+      @locals[:ops] = AsyncOps.new(
+        settings.pool,
+        Ops.new(
+          @locals[:item], @locals[:user],
+          settings.wallets,
+          settings.remotes,
+          settings.copies,
+          log: settings.log
+        )
       )
       @locals[:user].create
       @locals[:ops].push
