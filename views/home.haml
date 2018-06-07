@@ -1,16 +1,16 @@
 %p
   Wallet ID:
   %code
-  - if user.wallet.exists?
-    = user.wallet.id
-  - else
-    ???
+    - if user.wallet.exists?
+      = user.wallet.id
+    - else
+      ???
   = ' | '
   Balance:
   - if user.wallet.exists?
     = user.wallet.balance
   - else
-    not available, click "pull"
+    ???
   = ' | '
   %a{href: '/pay'}
     Pay
