@@ -40,6 +40,7 @@ require_relative 'objects/user'
 require_relative 'objects/dynamo'
 require_relative 'objects/ops'
 require_relative 'objects/async_ops'
+require_relative 'objects/file_log'
 
 configure do
   Haml::Options.defaults[:format] = :xhtml
@@ -74,10 +75,9 @@ configure do
     config['github']['client_secret'],
     'https://wts.zold.io/github-callback'
   )
-  set :wallets, Zold::Wallets.new('.zold-wts/wallets')
-  set :remotes, Zold::Remotes.new('.zold-wts/remotes')
+  set :wallets, Zold::Wallets.new(File.join(settings.root, '.zold-wts/wallets'))
+  set :remotes, Zold::Remotes.new(File.join(settings.root, '.zold-wts/remotes'))
   set :copies, File.join(settings.root, '.zold-wts/copies')
-  set :log, Zold::Log::Verbose.new
   set :pool, Concurrent::FixedThreadPool.new(16)
 end
 
@@ -95,12 +95,13 @@ before '/*' do
         cookies[:glogin],
         settings.config['github']['encryption_secret']
       ).to_user
-      @locals[:item] = Item.new(@locals[:guser][:login], settings.dynamo)
+      @locals[:log] = FileLog.new(File.join(settings.root, ".zold-wts/logs/#{@locals[:guser][:login]}"))
+      @locals[:item] = Item.new(@locals[:guser][:login], settings.dynamo, log: @locals[:log])
       @locals[:user] = User.new(
         @locals[:guser][:login],
         @locals[:item],
         settings.wallets,
-        log: settings.log
+        log: @locals[:log]
       )
       @locals[:ops] = AsyncOps.new(
         settings.pool,
@@ -109,7 +110,7 @@ before '/*' do
           settings.wallets,
           settings.remotes,
           settings.copies,
-          log: settings.log
+          log: @locals[:log]
         )
       )
       @locals[:user].create
@@ -180,14 +181,12 @@ post '/do-pay' do
       settings.wallets,
       settings.remotes,
       settings.copies,
-      log: settings.log
+      log: @locals[:log]
     )
     friend.create
     bnf = friend.wallet.id
   end
   amount = Zold::Amount.new(zld: params[:amount].to_f)
-  settings.log.info('AMOJNT: ' + amount.to_s)
-  settings.log.info('hehrejfldskjfkdslj')
   details = params[:details]
   @locals[:ops].pay(params[:pass], bnf, amount, details)
   redirect '/'
@@ -210,6 +209,12 @@ get '/key' do
   haml :key, layout: :layout, locals: merged(
     title: '@' + @locals[:guser][:login] + '/key'
   )
+end
+
+get '/log' do
+  redirect '/confirm' unless @locals[:user].confirmed?
+  content_type 'text/plain', charset: 'utf-8'
+  @locals[:log].content
 end
 
 get '/robots.txt' do
