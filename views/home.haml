@@ -1,39 +1,58 @@
-%form{method: 'POST', action: '/pay'}
-  %fieldset
-    %input{type: 'text', name: 'pass', placeholder: 'Your secret...'}
-    %input{type: 'text', name: 'bnf', placeholder: 'The beneficiary'}
-    %input{type: 'text', name: 'amount', placeholder: 'Amount, in ZLD'}
-    %input{type: 'text', name: 'details', placeholder: 'Payment details'}
-    %input{type: 'submit'}
-
 %p
   Balance:
   - if user.wallet.exists?
     = user.wallet.balance
   - else
     not available, click "pull"
-
-%p
+  = ' | '
+  %a{href: '/pay'}
+    Pay
+  = ' | '
   %a{href: '/pull'}
     Pull
+  = ' | '
   %a{href: '/key'}
     RSA private key
 
-%p
-  History
-  - if start
-    ='(since ' + start.utc.iso8601 + ')'
-  %br
-  - if user.wallet.exists?
-    - user.wallet.txns.sort_by(&:time).reverse.each do |t|
-      - if t.time < start
-        = t
-        %br
-        - @last = t.time
-  - else
-    ='(not available, click "pull")'
-
-- if @last
+- if user.wallet.exists?
+  %table{style: 'width:100%'}
+    %thead
+      %tr
+        %th
+          ID
+        %th
+          Amount
+        %th
+          Date
+        %th
+          Beneficiary
+        %th
+          Details
+    %tbody
+      - if start
+        %tr
+          %td{colspan: 5, style: 'text-align:center'}
+            = 'Since ' + start.utc.iso8601
+      - user.wallet.txns.sort_by(&:date).reverse.select { |t| start.nil? || t.date < start }.each do |t|
+        - @last = t.date
+        %tr
+          %td
+            = '#' + t.id.to_s
+          %td{style: 'text-align:right'}
+            %span{title: t.amount.to_i}
+              = t.amount.to_zld
+          %td
+            = t.date.utc.iso8601
+          %td
+            %code
+              = t.bnf
+          %td
+            = t.details
+      - if @last
+        %tr
+          %td{colspan: 5, style: 'text-align:center'}
+            %a{href: '?start=' + @last.utc.iso8601}
+              Show more
+- else
   %p
-    %a{href: '?start=' + @last.utc.iso8601}
-      Older
+    The wallet doesn't exist, pull it.

@@ -28,7 +28,7 @@ require 'zold/log'
 class User
   def initialize(login, item, wallets, remotes, copies, log: Zold::Log::Quiet.new)
     raise 'Login can\'t be nil' if login.nil?
-    @login = login
+    @login = login.downcase
     raise 'Item can\'t be nil' if item.nil?
     @item = item
     raise 'Wallets can\'t be nil' if wallets.nil?
@@ -98,6 +98,8 @@ class User
     raise 'Beneficiary can\'t be nil' if bnf.nil?
     raise 'Beneficiary must be of type Id' unless bnf.is_a?(Zold::Id)
     raise 'Amount can\'t be nil' if amount.nil?
+    raise 'Payment amount can\'t be zero' if amount.zero?
+    raise 'Payment amount can\'t be negative' if amount.negative?
     raise 'Amount must be of type Amount' unless amount.is_a?(Zold::Amount)
     raise 'Details can\'t be nil' if details.nil?
     raise 'The account is not confirmed yet' unless confirmed?
@@ -106,7 +108,7 @@ class User
       w = wallet
       require 'zold/commands/pay'
       Zold::Pay.new(wallets: @wallets, remotes: @remotes, log: @log).run(
-        ['pay', '--private-key=' + f.path, w.id.to_s, bnf.to_s, amount.to_zld, details, '--force']
+        ['pay', '--private-key=' + f.path, w.id.to_s, bnf.to_s, amount.to_zld(8), details, '--force']
       )
       require 'zold/commands/push'
       Zold::Push.new(wallets: @wallets, remotes: @remotes, log: @log).run(

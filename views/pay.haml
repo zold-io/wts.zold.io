@@ -1,0 +1,15 @@
+%form{method: 'POST', action: '/do-pay'}
+  %fieldset
+    %label
+      Your pass code:
+    %input{type: 'text', name: 'pass', placeholder: 'Your secret...', autocomplete: 'off'}
+    %label
+      Send ZLD to (either wallet ID or GitHub login):
+    %input{type: 'text', name: 'bnf', maxlength: 16, size: 25, placeholder: 'e.g. "@yegor256"', autocomplete: 'off'}
+    %label
+      The amount to pay, ZLD:
+    %input{type: 'text', name: 'amount', maxlength: 32, size: 15, placeholder: 'e.g. "14.95"', autocomplete: 'off'}
+    %label
+      Payment details:
+    %input{type: 'text', name: 'details', maxlength: 512, style: 'width:100%', placeholder: 'e.g. "For services"', autocomplete: 'off'}
+    %input{type: 'submit', onclick: "return confirm('Are you sure? This operation is not reversable!')"}

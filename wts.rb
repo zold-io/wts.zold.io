@@ -129,7 +129,7 @@ get '/home' do
   redirect '/confirm' unless @locals[:user].confirmed?
   haml :home, layout: :layout, locals: merged(
     title: '@' + @locals[:guser][:login],
-    start: params[:start] ? Time.parse(params[:start]) : Time.now
+    start: params[:start] ? Time.parse(params[:start]) : nil
   )
 end
 
@@ -145,10 +145,34 @@ get '/do-confirm' do
   redirect '/'
 end
 
-post '/pay' do
+get '/pay' do
   redirect '/confirm' unless @locals[:user].confirmed?
-  bnf = Zold::Id.new(params[:bnf])
+  haml :pay, layout: :layout, locals: merged(
+    title: '@' + @locals[:guser][:login] + '/pay'
+  )
+end
+
+post '/do-pay' do
+  redirect '/confirm' unless @locals[:user].confirmed?
+  if params[:bnf] =~ /[a-f0-9]{16}/
+    bnf = Zold::Id.new(params[:bnf])
+  else
+    login = params[:bnf].strip.downcase.gsub(/^@/, '')
+    raise "Invalid GitHub user name: '#{params[:bnf]}'" unless login =~ /^[a-z0-9]{3,32}$/
+    friend = User.new(
+      login,
+      Item.new(login, settings.dynamo),
+      settings.wallets,
+      settings.remotes,
+      settings.copies,
+      log: settings.log
+    )
+    friend.create
+    bnf = friend.wallet.id
+  end
   amount = Zold::Amount.new(zld: params[:amount].to_f)
+  settings.log.info('AMOJNT: ' + amount.to_s)
+  settings.log.info('hehrejfldskjfkdslj')
   details = params[:details]
   @locals[:user].pay(params[:pass], bnf, amount, details)
   redirect '/'

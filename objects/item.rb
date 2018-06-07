@@ -21,6 +21,7 @@
 require 'zold/key'
 require 'zold/id'
 require 'zold/log'
+require_relative 'pass'
 
 #
 # Item in AWS DynamoDB.
@@ -28,7 +29,7 @@ require 'zold/log'
 class Item
   def initialize(login, aws, log: Zold::Log::Quiet.new)
     raise 'Login can\'t be nil' if login.nil?
-    @login = login
+    @login = login.downcase
     raise 'AWS can\'t be nil' if aws.nil?
     @aws = aws
     raise 'Log can\'t be nil' if log.nil?
@@ -48,14 +49,13 @@ class Item
     raise 'Key can\'t be nil' if key.nil?
     raise 'Length can\'t be nil' if length.nil?
     raise "Item already exists for @#{login}" if exists?
-    pem = key.to_s
-    pass = extract(pem, length)
+    pem, pass = Pass.new.extract(key.to_s, length)
     @aws.put_item(
       table_name: 'zold-wallets',
       item: {
         'login' => @login,
         'id' => id.to_s,
-        'key' => pem.sub(pass, '*' * length),
+        'pem' => pem,
         'pass' => pass
       }
     )
@@ -66,16 +66,16 @@ class Item
   # Return private key as Zold::Key
   def key(pass)
     raise 'Pass can\'t be nil' if pass.nil?
-    key = read['key']
+    key = read['pem']
     raise "There is no key for some reason for user @#{@login}" if key.nil?
-    key = Zold::Key.new(text: key.sub('*' * pass.length, pass))
+    key = Pass.new.merge(key, pass)
     @log.debug("The private key of @#{@login} reassembled: #{key.to_s.length} chars")
     key
   end
 
   # Return private key as text
   def raw_key
-    key = read['key']
+    key = read['pem']
     raise "There is no key for some reason for user @#{@login}" if key.nil?
     key
   end
@@ -108,22 +108,13 @@ class Item
       item: {
         'login' => @login,
         'id' => item['id'],
-        'key' => item['key']
+        'pem' => item['pem']
       }
     )
     @log.debug("The pass code of @#{@login} was destroyed")
   end
 
   private
-
-  def extract(text, length)
-    pass = ''
-    until pass =~ /^[a-zA-Z0-9]+$/
-      start = Random.new.rand(text.length - length)
-      pass = text[start..(start + length - 1)]
-    end
-    pass
-  end
 
   def read
     item = items[0]
