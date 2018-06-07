@@ -42,18 +42,23 @@ class Ops
   end
 
   def pull
+    id = @item.id
     require 'zold/commands/pull'
     Zold::Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
-      ['pull', @item.id.to_s]
+      ['pull', id.to_s]
     )
+    wallet = @wallets.find(id)
+    @log.info("Wallet #{wallet.id} pulled successfully, the balance is #{wallet.balance}")
   end
 
   def push
     return unless @user.wallet.exists?
+    wallet = @user.wallet
     require 'zold/commands/push'
     Zold::Push.new(wallets: @wallets, remotes: @remotes, log: @log).run(
-      ['pull', @user.wallet.id.to_s]
+      ['pull', wallet.id.to_s]
     )
+    @log.info("Wallet #{wallet.id} pushed successfully, the balance is #{wallet.balance}")
   end
 
   def pay(pass, bnf, amount, details)
@@ -78,5 +83,6 @@ class Ops
         ['push', w.id.to_s, bnf.to_s]
       )
     end
+    @log.info("Paid #{amount} from #{w.id} to #{bnf}: #{details}")
   end
 end
