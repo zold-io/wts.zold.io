@@ -37,6 +37,7 @@ require_relative 'version'
 require_relative 'objects/item'
 require_relative 'objects/user'
 require_relative 'objects/dynamo'
+require_relative 'objects/ops'
 
 configure do
   Haml::Options.defaults[:format] = :xhtml
@@ -96,11 +97,17 @@ before '/*' do
         @locals[:guser][:login],
         @locals[:item],
         settings.wallets,
+        log: settings.log
+      )
+      @locals[:ops] = Ops.new(
+        @locals[:item], @locals[:user],
+        settings.wallets,
         settings.remotes,
         settings.copies,
         log: settings.log
       )
       @locals[:user].create
+      @locals[:user].push
     rescue OpenSSL::Cipher::CipherError => _
       @locals.delete(:user)
     end
@@ -176,19 +183,19 @@ post '/do-pay' do
   settings.log.info('AMOJNT: ' + amount.to_s)
   settings.log.info('hehrejfldskjfkdslj')
   details = params[:details]
-  @locals[:user].pay(params[:pass], bnf, amount, details)
+  @locals[:ops].pay(params[:pass], bnf, amount, details)
   redirect '/'
 end
 
 get '/pull' do
   redirect '/confirm' unless @locals[:user].confirmed?
-  @locals[:user].pull
+  @locals[:ops].pull
   redirect '/'
 end
 
 get '/push' do
   redirect '/confirm' unless @locals[:user].confirmed?
-  @locals[:user].push
+  @locals[:ops].push
   redirect '/'
 end
 

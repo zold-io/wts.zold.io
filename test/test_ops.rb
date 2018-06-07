@@ -27,22 +27,26 @@ require 'zold/id'
 require_relative 'test__helper'
 require_relative '../objects/dynamo'
 require_relative '../objects/user'
-require_relative '../objects/item'
+require_relative '../objects/ops'
 
-class UserTest < Minitest::Test
-  def test_creates
+class OpsTest < Minitest::Test
+  def test_make_payment
     Dir.mktmpdir 'test' do |dir|
       wallets = Zold::Wallets.new(File.join(dir, 'wallets'))
-      login = 'jeffrey'
-      user = User.new(
-        login, Item.new(login, Dynamo.new.aws, log: log),
-        wallets, log: log
-      )
+      remotes = Zold::Remotes.new(File.join(dir, 'remotes.csv'))
+      copies = File.join(dir, 'copies')
+      remotes.clean
+      login = 'jeff01'
+      item = Item.new(login, Dynamo.new.aws, log: log)
+      user = User.new(login, item, wallets, log: log)
       user.create
-      assert(!user.confirmed?)
       pass = user.pass
       user.confirm(pass)
-      assert(user.confirmed?)
+      friend = User.new('friend', Item.new('friend', Dynamo.new.aws, log: log), wallets, log: log)
+      friend.create
+      Ops.new(item, user, wallets, remotes, copies, log: log).pay(
+        pass, friend.wallet.id, Zold::Amount.new(zld: 19.99), 'for fun'
+      )
     end
   end
 end

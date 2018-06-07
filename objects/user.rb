@@ -26,17 +26,13 @@ require 'zold/log'
 # The user.
 #
 class User
-  def initialize(login, item, wallets, remotes, copies, log: Zold::Log::Quiet.new)
+  def initialize(login, item, wallets, log: Zold::Log::Quiet.new)
     raise 'Login can\'t be nil' if login.nil?
     @login = login.downcase
     raise 'Item can\'t be nil' if item.nil?
     @item = item
     raise 'Wallets can\'t be nil' if wallets.nil?
     @wallets = wallets
-    raise 'Remotes can\'t be nil' if remotes.nil?
-    @remotes = remotes
-    raise 'Copies can\'t be nil' if copies.nil?
-    @copies = copies
     raise 'Log can\'t be nil' if log.nil?
     @log = log
   end
@@ -49,17 +45,11 @@ class User
     wallet = Tempfile.open do |f|
       File.write(f, rsa.public_key.to_pem)
       require 'zold/commands/create'
-      wallet = Zold::Create.new(wallets: @wallets, log: @log).run(
+      Zold::Create.new(wallets: @wallets, log: @log).run(
         ['create', '--public-key=' + f.path]
       )
-      require 'zold/commands/push'
-      Zold::Push.new(wallets: @wallets, remotes: @remotes, log: @log).run(
-        ['push', wallet.id.to_s]
-      )
-      wallet
     end
     @item.create(wallet.id, pvt)
-    # Here we should pay the sign-up bonus
   end
 
   # The user has already confirmed that he saved the pass
@@ -84,43 +74,5 @@ class User
   # Return user's Wallet (as Zold::Wallet)
   def wallet
     @wallets.find(@item.id)
-  end
-
-  def pull
-    require 'zold/commands/pull'
-    Zold::Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
-      ['pull', @item.id.to_s]
-    )
-  end
-
-  def push
-    require 'zold/commands/push'
-    Zold::Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
-      ['pull', wallet.id.to_s]
-    )
-  end
-
-  def pay(pass, bnf, amount, details)
-    raise 'Pass can\'t be nil' if pass.nil?
-    raise 'Beneficiary can\'t be nil' if bnf.nil?
-    raise 'Beneficiary must be of type Id' unless bnf.is_a?(Zold::Id)
-    raise 'Amount can\'t be nil' if amount.nil?
-    raise 'Payment amount can\'t be zero' if amount.zero?
-    raise 'Payment amount can\'t be negative' if amount.negative?
-    raise 'Amount must be of type Amount' unless amount.is_a?(Zold::Amount)
-    raise 'Details can\'t be nil' if details.nil?
-    raise 'The account is not confirmed yet' unless confirmed?
-    Tempfile.open do |f|
-      File.write(f, @item.key(pass))
-      w = wallet
-      require 'zold/commands/pay'
-      Zold::Pay.new(wallets: @wallets, remotes: @remotes, log: @log).run(
-        ['pay', '--private-key=' + f.path, w.id.to_s, bnf.to_s, amount.to_zld(8), details, '--force']
-      )
-      require 'zold/commands/push'
-      Zold::Push.new(wallets: @wallets, remotes: @remotes, log: @log).run(
-        ['push', w.id.to_s, bnf.to_s]
-      )
-    end
   end
 end
