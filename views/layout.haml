@@ -26,7 +26,8 @@
           %ul
             %li
               - if defined? guser
-                = "@#{guser[:login]}"
+                %a{href: '/home'}
+                  = "@#{guser[:login]}"
               - else
                 %a{href: login_link}
                   Login
