@@ -2,28 +2,21 @@
   Wallet ID:
   %code
     = item.id
-  = ' | '
-  Balance:
   - if user.wallet.exists?
-    = user.wallet.balance
-  - else
-    ???
-  = ' | '
-  %a{href: '/pay'}
-    Pay
-  = ' | '
-  - if user.wallet.exists?
-    %a{href: '/push'}
-      Push
     = ' | '
-  %a{href: '/pull'}
-    Pull
+    Balance:
+      = user.wallet.balance
   = ' | '
-  %a{href: '/log'}
-    Log
+  %a{href: '/pay'} Pay
+  - if user.wallet.exists?
+    = ' | '
+    %a{href: '/push'} Push
   = ' | '
-  %a{href: '/key'}
-    RSA private key
+  %a{href: '/pull'} Pull
+  = ' | '
+  %a{href: '/log'} Log
+  = ' | '
+  %a{href: '/key'} RSA private key
 
 - if user.wallet.exists?
   %table{style: 'width:100%;display:table;'}
@@ -71,11 +64,9 @@
         - if @last
           %tr
             %td{colspan: 5, style: 'text-align:center'}
-              %a{href: '?start=' + @last.utc.iso8601}
-                Show more
+              %a{href: '?start=' + @last.utc.iso8601} Show more
 - else
   %p
     Your wallet doesn't exist on our server,
     = succeed '.' do
-      %a{href: '/pull'}
-        pull it
+      %a{href: '/pull'} pull it

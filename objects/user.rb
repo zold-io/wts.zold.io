@@ -37,9 +37,9 @@ class User
     @log = log
   end
 
-  # Create it, if it's absent
+  # Create it, if it's absent (returns TRUE if it was created just now)
   def create
-    return if @item.exists?
+    return false if @item.exists?
     rsa = OpenSSL::PKey::RSA.new(2048)
     pvt = Zold::Key.new(text: rsa.to_pem)
     wallet = Tempfile.open do |f|
@@ -50,6 +50,7 @@ class User
       )
     end
     @item.create(wallet.id, pvt)
+    true
   end
 
   # The user has already confirmed that he saved the pass

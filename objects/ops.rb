@@ -52,7 +52,6 @@ class Ops
   end
 
   def push
-    return unless @user.wallet.exists?
     wallet = @user.wallet
     require 'zold/commands/push'
     Zold::Push.new(wallets: @wallets, remotes: @remotes, log: @log).run(
@@ -71,18 +70,18 @@ class Ops
     raise 'Amount must be of type Amount' unless amount.is_a?(Zold::Amount)
     raise 'Details can\'t be nil' if details.nil?
     raise 'The account is not confirmed yet' unless @user.confirmed?
+    w = @user.wallet
     Tempfile.open do |f|
       File.write(f, @item.key(pass))
-      w = @user.wallet
       require 'zold/commands/pay'
       Zold::Pay.new(wallets: @wallets, remotes: @remotes, log: @log).run(
         ['pay', '--private-key=' + f.path, w.id.to_s, bnf.to_s, amount.to_zld(8), details, '--force']
       )
-      require 'zold/commands/push'
-      Zold::Push.new(wallets: @wallets, remotes: @remotes, log: @log).run(
-        ['push', w.id.to_s, bnf.to_s]
-      )
     end
+    require 'zold/commands/push'
+    Zold::Push.new(wallets: @wallets, remotes: @remotes, log: @log).run(
+      ['push', w.id.to_s, bnf.to_s]
+    )
     @log.info("Paid #{amount} from #{w.id} to #{bnf}: #{details}")
   end
 end

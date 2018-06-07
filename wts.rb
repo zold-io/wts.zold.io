@@ -46,7 +46,10 @@ configure do
   Haml::Options.defaults[:format] = :xhtml
   config = if ENV['RACK_ENV'] == 'test'
     {
-      'testing' => true,
+      'rewards' => {
+        'login' => '0crat',
+        'pass' => '?'
+      },
       'github' => {
         'client_id' => '?',
         'client_secret' => '?',
@@ -113,8 +116,10 @@ before '/*' do
           log: @locals[:log]
         )
       )
-      @locals[:user].create
-      @locals[:ops].push
+      if @locals[:user].create
+        pay_bonus
+        @locals[:ops].push
+      end
     rescue OpenSSL::Cipher::CipherError => _
       @locals.delete(:user)
     end
@@ -259,4 +264,24 @@ def merged(hash)
   out = @locals.merge(hash)
   out[:local_assigns] = out
   out
+end
+
+def pay_bonus
+  iboss = Item.new(settings.config['rewards']['login'], settings.dynamo, log: @locals[:log])
+  boss = User.new(
+    settings.config['rewards']['login'],
+    iboss, settings.wallets, log: @locals[:log]
+  )
+  ops = AsyncOps.new(
+    settings.pool,
+    Ops.new(
+      iboss, boss,
+      settings.wallets,
+      settings.remotes,
+      settings.copies,
+      log: @locals[:log]
+    )
+  )
+  ops.pull
+  ops.pay(settings.config['rewards']['pass'], @locals[:item].id, Zold::Amount.new(zld: 8.0), 'WTS signup bonus')
 end
