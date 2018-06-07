@@ -5,7 +5,7 @@
   - if user.wallet.exists?
     = ' | '
     Balance:
-      = user.wallet.balance
+    = user.wallet.balance
   = ' | '
   %a{href: '/pay'} Pay
   - if user.wallet.exists?
