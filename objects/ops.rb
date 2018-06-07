@@ -50,7 +50,7 @@ class Ops
 
   def push
     require 'zold/commands/push'
-    Zold::Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
+    Zold::Push.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
       ['pull', @user.wallet.id.to_s]
     )
   end
