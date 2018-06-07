@@ -59,4 +59,10 @@
               Show more
 - else
   %p
-    The wallet doesn't exist, pull it.
+    The wallet
+    %code
+      = item.id
+    doesn't exist on our server,
+    = succeed '.' do
+      %a{href: '/pull'}
+        pull it
