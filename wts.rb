@@ -186,6 +186,12 @@ get '/pull' do
   redirect '/'
 end
 
+get '/push' do
+  redirect '/confirm' unless @locals[:user].confirmed?
+  @locals[:user].push
+  redirect '/'
+end
+
 get '/key' do
   redirect '/confirm' unless @locals[:user].confirmed?
   haml :key, layout: :layout, locals: merged(

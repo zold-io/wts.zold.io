@@ -93,6 +93,13 @@ class User
     )
   end
 
+  def push
+    require 'zold/commands/push'
+    Zold::Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
+      ['pull', wallet.id.to_s]
+    )
+  end
+
   def pay(pass, bnf, amount, details)
     raise 'Pass can\'t be nil' if pass.nil?
     raise 'Beneficiary can\'t be nil' if bnf.nil?
