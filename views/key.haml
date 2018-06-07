@@ -1,8 +1,12 @@
 %p
-  This is the private RSA key for your wallet
+  This is the private
+  %a{href: 'https://en.wikipedia.org/wiki/RSA_(cryptosystem)'}
+    RSA key
+  for your wallet
   =' '
   = succeed ':' do
-    =user.wallet.id
+    %code
+      =user.wallet.id
 
 %pre
   =item.raw_key.gsub(/\*/, '<span style="color:red">*</span>')
