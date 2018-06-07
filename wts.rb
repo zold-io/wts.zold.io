@@ -107,7 +107,7 @@ before '/*' do
         log: settings.log
       )
       @locals[:user].create
-      @locals[:user].push
+      @locals[:ops].push
     rescue OpenSSL::Cipher::CipherError => _
       @locals.delete(:user)
     end
