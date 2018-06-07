@@ -54,7 +54,10 @@
           - @last = t.date
           %tr
             %td
-              = '#' + t.id.to_s
+              - if t.amount.negative?
+                = '#' + t.id.to_s
+              - else
+                = '-'
             %td{style: 'text-align:right'}
               %span{title: t.amount.to_i}
                 = t.amount.to_zld
