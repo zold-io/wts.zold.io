@@ -1,10 +1,7 @@
 %p
   Wallet ID:
   %code
-    - if user.wallet.exists?
-      = user.wallet.id
-    - else
-      ???
+    = item.id
   = ' | '
   Balance:
   - if user.wallet.exists?
