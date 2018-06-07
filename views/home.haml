@@ -12,9 +12,10 @@
   %a{href: '/pay'}
     Pay
   = ' | '
-  %a{href: '/push'}
-    Push
-  = ' | '
+  - if user.wallet.exists?
+    %a{href: '/push'}
+      Push
+    = ' | '
   %a{href: '/pull'}
     Pull
   = ' | '
