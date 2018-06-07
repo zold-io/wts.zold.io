@@ -37,26 +37,32 @@
         %tr
           %td{colspan: 5, style: 'text-align:center'}
             = 'Since ' + start.utc.iso8601
-      - user.wallet.txns.sort_by(&:date).reverse.select { |t| start.nil? || t.date < start }.each do |t|
-        - @last = t.date
-        %tr
-          %td
-            = '#' + t.id.to_s
-          %td{style: 'text-align:right'}
-            %span{title: t.amount.to_i}
-              = t.amount.to_zld
-          %td
-            = t.date.utc.iso8601
-          %td
-            %code
-              = t.bnf
-          %td
-            = t.details
-      - if @last
+      - txns = user.wallet.txns.sort_by(&:date).reverse.select { |t| start.nil? || t.date < start }.take(50)
+      - if txns.empty?
         %tr
           %td{colspan: 5, style: 'text-align:center'}
-            %a{href: '?start=' + @last.utc.iso8601}
-              Show more
+            No transactions in the wallet as of yet.
+      - else
+        - txns.each do |t|
+          - @last = t.date
+          %tr
+            %td
+              = '#' + t.id.to_s
+            %td{style: 'text-align:right'}
+              %span{title: t.amount.to_i}
+                = t.amount.to_zld
+            %td
+              = t.date.utc.iso8601
+            %td
+              %code
+                = t.bnf
+            %td
+              = t.details
+        - if @last
+          %tr
+            %td{colspan: 5, style: 'text-align:center'}
+              %a{href: '?start=' + @last.utc.iso8601}
+                Show more
 - else
   %p
     The wallet

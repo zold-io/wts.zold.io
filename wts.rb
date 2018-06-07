@@ -80,7 +80,9 @@ end
 before '/*' do
   @locals = {
     ver: VERSION,
-    login_link: settings.glogin.login_uri
+    login_link: settings.glogin.login_uri,
+    wallets: settings.wallets,
+    remotes: settings.remotes
   }
   cookies[:glogin] = params[:glogin] if params[:glogin]
   if cookies[:glogin]

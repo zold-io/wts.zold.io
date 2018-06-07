@@ -27,12 +27,19 @@
             %li
               - if defined? guser
                 = "@#{guser[:login]}"
-                = '|'
-                %a{href: '/logout'}
-                  Logout
               - else
                 %a{href: login_link}
                   Login
+            %li
+              Wallets:
+              = wallets.all.count
+            %li
+              Remotes:
+              = remotes.all.count
+            - if defined? guser
+              %li
+                %a{href: '/logout'}
+                  Logout
       %article
         = yield
       %footer
