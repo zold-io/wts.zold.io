@@ -49,6 +49,7 @@ class Ops
   end
 
   def push
+    return unless @user.wallet.exists?
     require 'zold/commands/push'
     Zold::Push.new(wallets: @wallets, remotes: @remotes, log: @log).run(
       ['pull', @user.wallet.id.to_s]
