@@ -28,7 +28,11 @@ class FileLog
   end
 
   def content
-    File.read(@file)
+    if File.exists?(@file)
+      File.read(@file)
+    else
+      'There is no log as of yet...'
+    end
   end
 
   def debug(msg)
