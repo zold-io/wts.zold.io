@@ -39,7 +39,6 @@ class User
 
   # Create it, if it's absent (returns TRUE if it was created just now)
   def create
-    return false if @item.exists?
     rsa = OpenSSL::PKey::RSA.new(2048)
     pvt = Zold::Key.new(text: rsa.to_pem)
     wallet = Tempfile.open do |f|

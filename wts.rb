@@ -108,10 +108,7 @@ before '/*' do
         log: @locals[:log]
       )
       @locals[:ops] = ops(@locals[:item], @locals[:user])
-      if @locals[:user].create
-        pay_bonus
-        @locals[:ops].push
-      end
+      redirect '/create' unless @locals[:item].exists?
     rescue OpenSSL::Cipher::CipherError => _
       @locals.delete(:user)
     end
@@ -139,6 +136,7 @@ get '/' do
 end
 
 get '/home' do
+  redirect '/' unless @locals[:user]
   redirect '/confirm' unless @locals[:user].confirmed?
   haml :home, layout: :layout, locals: merged(
     title: '@' + @locals[:guser][:login],
@@ -146,19 +144,30 @@ get '/home' do
   )
 end
 
+get '/create' do
+  redirect '/' unless @locals[:user]
+  @locals[:user].create
+  pay_bonus
+  @locals[:ops].push
+  redirect '/'
+end
+
 get '/confirm' do
-  redirect '/' if @locals[:user].confirmed?
+  redirect '/' unless @locals[:user]
+  redirect '/home' if @locals[:user].confirmed?
   haml :confirm, layout: :layout, locals: merged(
     title: '@' + @locals[:guser][:login] + '/pass'
   )
 end
 
 get '/do-confirm' do
+  redirect '/' unless @locals[:user]
   @locals[:user].confirm(params[:pass])
   redirect '/'
 end
 
 get '/pay' do
+  redirect '/' unless @locals[:user]
   redirect '/confirm' unless @locals[:user].confirmed?
   haml :pay, layout: :layout, locals: merged(
     title: '@' + @locals[:guser][:login] + '/pay'
@@ -166,6 +175,7 @@ get '/pay' do
 end
 
 post '/do-pay' do
+  redirect '/' unless @locals[:user]
   redirect '/confirm' unless @locals[:user].confirmed?
   if params[:bnf] =~ /[a-f0-9]{16}/
     bnf = Zold::Id.new(params[:bnf])
@@ -190,18 +200,21 @@ post '/do-pay' do
 end
 
 get '/pull' do
+  redirect '/' unless @locals[:user]
   redirect '/confirm' unless @locals[:user].confirmed?
   @locals[:ops].pull
   redirect '/'
 end
 
 get '/push' do
+  redirect '/' unless @locals[:user]
   redirect '/confirm' unless @locals[:user].confirmed?
   @locals[:ops].push
   redirect '/'
 end
 
 get '/key' do
+  redirect '/' unless @locals[:user]
   redirect '/confirm' unless @locals[:user].confirmed?
   haml :key, layout: :layout, locals: merged(
     title: '@' + @locals[:guser][:login] + '/key'
@@ -209,6 +222,7 @@ get '/key' do
 end
 
 get '/log' do
+  redirect '/' unless @locals[:user]
   redirect '/confirm' unless @locals[:user].confirmed?
   content_type 'text/plain', charset: 'utf-8'
   @locals[:log].content
