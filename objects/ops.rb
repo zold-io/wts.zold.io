@@ -48,7 +48,7 @@ class Ops
       ['pull', id.to_s]
     )
     wallet = @wallets.find(id)
-    @log.info("Wallet #{wallet.id} pulled successfully, the balance is #{wallet.balance}\n")
+    @log.info("#{Time.now.utc.iso8601}: Wallet #{wallet.id} pulled successfully, the balance is #{wallet.balance}\n")
   end
 
   def push
@@ -57,7 +57,7 @@ class Ops
     Zold::Push.new(wallets: @wallets, remotes: @remotes, log: @log).run(
       ['pull', wallet.id.to_s]
     )
-    @log.info("Wallet #{wallet.id} pushed successfully, the balance is #{wallet.balance}\n")
+    @log.info("#{Time.now.utc.iso8601}: Wallet #{wallet.id} pushed successfully, the balance is #{wallet.balance}\n")
   end
 
   def pay(pass, bnf, amount, details)
@@ -82,6 +82,6 @@ class Ops
     Zold::Push.new(wallets: @wallets, remotes: @remotes, log: @log).run(
       ['push', w.id.to_s, bnf.to_s]
     )
-    @log.info("Paid #{amount} from #{w.id} to #{bnf}: #{details}\n")
+    @log.info("#{Time.now.utc.iso8601}: Paid #{amount} from #{w.id} to #{bnf}: #{details}\n")
   end
 end
