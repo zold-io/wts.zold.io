@@ -50,6 +50,7 @@ class User
       )
     end
     @item.create(wallet.id, pvt)
+    @log.info("Wallet #{wallet.id} created successfully\n")
     true
   end
 
