@@ -40,6 +40,7 @@ require_relative 'objects/user'
 require_relative 'objects/dynamo'
 require_relative 'objects/ops'
 require_relative 'objects/async_ops'
+require_relative 'objects/safe_ops'
 require_relative 'objects/file_log'
 
 configure do
@@ -106,16 +107,7 @@ before '/*' do
         settings.wallets,
         log: @locals[:log]
       )
-      @locals[:ops] = AsyncOps.new(
-        settings.pool,
-        Ops.new(
-          @locals[:item], @locals[:user],
-          settings.wallets,
-          settings.remotes,
-          settings.copies,
-          log: @locals[:log]
-        )
-      )
+      @locals[:ops] = ops(@locals[:item], @locals[:user])
       if @locals[:user].create
         pay_bonus
         @locals[:ops].push
@@ -266,22 +258,31 @@ def merged(hash)
   out
 end
 
+def ops(item, user)
+  AsyncOps.new(
+    settings.pool,
+    SafeOps.new(
+      @locals[:log],
+      Ops.new(
+        item, user,
+        settings.wallets,
+        settings.remotes,
+        settings.copies,
+        log: @locals[:log]
+      )
+    )
+  )
+end
+
 def pay_bonus
   iboss = Item.new(settings.config['rewards']['login'], settings.dynamo, log: @locals[:log])
   boss = User.new(
     settings.config['rewards']['login'],
     iboss, settings.wallets, log: @locals[:log]
   )
-  ops = AsyncOps.new(
-    settings.pool,
-    Ops.new(
-      iboss, boss,
-      settings.wallets,
-      settings.remotes,
-      settings.copies,
-      log: @locals[:log]
-    )
+  ops(iboss, boss).pull
+  ops(iboss, boss).pay(
+    settings.config['rewards']['pass'], @locals[:item].id,
+    Zold::Amount.new(zld: 8.0), 'WTS signup bonus'
   )
-  ops.pull
-  ops.pay(settings.config['rewards']['pass'], @locals[:item].id, Zold::Amount.new(zld: 8.0), 'WTS signup bonus')
 end
