@@ -48,7 +48,6 @@ class Item
     raise 'ID can\'t be nil' if id.nil?
     raise 'Key can\'t be nil' if key.nil?
     raise 'Length can\'t be nil' if length.nil?
-    raise "Item already exists for @#{login}" if exists?
     pem, pass = Pass.new.extract(key.to_s, length)
     @aws.put_item(
       table_name: 'zold-wallets',
