@@ -24,7 +24,12 @@
 class TeeLog
   def initialize(first, second)
     @first = first
+    raise 'Second log has to be of type FileLog' unless second.is_a?(FileLog)
     @second = second
+  end
+
+  def content
+    @second.content
   end
 
   def debug(msg)

@@ -60,4 +60,14 @@ class AppTest < Minitest::Test
     get('/home')
     assert_equal(200, last_response.status, last_response.body)
   end
+
+  def test_user_logs
+    set_cookie('glogin=tester')
+    get('/create')
+    assert_equal(302, last_response.status, last_response.body)
+    get('/do-confirm?pass=')
+    assert_equal(302, last_response.status, last_response.body)
+    get('/log')
+    assert_equal(200, last_response.status, last_response.body)
+  end
 end
