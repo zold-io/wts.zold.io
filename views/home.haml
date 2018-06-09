@@ -6,7 +6,8 @@
     = ' | '
     Balance:
     = user.wallet.balance
-  = ' | '
+
+%p
   %a{href: '/pay'} Pay
   - if user.wallet.exists?
     = ' | '
@@ -17,6 +18,8 @@
   %a{href: '/log'} Log
   = ' | '
   %a{href: '/key'} RSA private key
+  = ' | '
+  %a{href: '/create', onclick: "return confirm('The wallet will be re-created, the existing RSA private key will be deleted from our database, are you sure?')"} Restart
 
 - if user.wallet.exists?
   %table{style: 'width:100%;display:table;'}
