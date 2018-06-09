@@ -185,7 +185,7 @@ post '/do-pay' do
     login = params[:bnf].strip.downcase.gsub(/^@/, '')
     raise "Invalid GitHub user name: '#{params[:bnf]}'" unless login =~ /^[a-z0-9]{3,32}$/
     friend = user(login)
-    friend.create
+    friend.create unless friend.item.exists?
     ops(friend).push
     bnf = friend.wallet.id
   end
