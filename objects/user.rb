@@ -26,6 +26,7 @@ require 'zold/log'
 # The user.
 #
 class User
+  attr_reader :item
   def initialize(login, item, wallets, log: Zold::Log::Quiet.new)
     raise 'Login can\'t be nil' if login.nil?
     @login = login.downcase

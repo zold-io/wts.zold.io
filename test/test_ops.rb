@@ -44,6 +44,7 @@ class OpsTest < Minitest::Test
       user.confirm(pass)
       friend = User.new('friend', Item.new('friend', Dynamo.new.aws, log: log), wallets, log: log)
       friend.create
+      puts wallets.all
       Ops.new(item, user, wallets, remotes, copies, log: log).pay(
         pass, friend.wallet.id, Zold::Amount.new(zld: 19.99), 'for fun'
       )

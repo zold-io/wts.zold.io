@@ -73,6 +73,10 @@ class Ops
     raise 'Amount must be of type Amount' unless amount.is_a?(Zold::Amount)
     raise 'Details can\'t be nil' if details.nil?
     raise 'The account is not confirmed yet' unless @user.confirmed?
+    require 'zold/commands/pull'
+    Zold::Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
+      ['pull', bnf.to_s]
+    )
     w = @user.wallet
     Tempfile.open do |f|
       File.write(f, @item.key(pass))

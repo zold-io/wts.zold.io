@@ -100,15 +100,9 @@ before '/*' do
         settings.config['github']['encryption_secret']
       ).to_user
       @locals[:log] = FileLog.new(File.join(settings.root, ".zold-wts/logs/#{@locals[:guser][:login]}"))
-      @locals[:item] = Item.new(@locals[:guser][:login], settings.dynamo, log: @locals[:log])
-      @locals[:user] = User.new(
-        @locals[:guser][:login],
-        @locals[:item],
-        settings.wallets,
-        log: @locals[:log]
-      )
-      @locals[:ops] = ops(@locals[:item], @locals[:user])
-      redirect '/create' unless @locals[:item].exists?
+      @locals[:user] = user(@locals[:guser][:login])
+      @locals[:ops] = ops(@locals[:user])
+      redirect '/create' unless @locals[:user].item.exists?
     rescue OpenSSL::Cipher::CipherError => _
       @locals.delete(:user)
     end
@@ -182,15 +176,9 @@ post '/do-pay' do
   else
     login = params[:bnf].strip.downcase.gsub(/^@/, '')
     raise "Invalid GitHub user name: '#{params[:bnf]}'" unless login =~ /^[a-z0-9]{3,32}$/
-    friend = User.new(
-      login,
-      Item.new(login, settings.dynamo),
-      settings.wallets,
-      settings.remotes,
-      settings.copies,
-      log: @locals[:log]
-    )
+    friend = user(login)
     friend.create
+    friend.push
     bnf = friend.wallet.id
   end
   amount = Zold::Amount.new(zld: params[:amount].to_f)
@@ -272,31 +260,36 @@ def merged(hash)
   out
 end
 
-def ops(item, user)
-  AsyncOps.new(
-    settings.pool,
-    SafeOps.new(
-      @locals[:log],
-      Ops.new(
-        item, user,
-        settings.wallets,
-        settings.remotes,
-        settings.copies,
-        log: @locals[:log]
-      )
-    )
+def user(login)
+  User.new(
+    login, Item.new(login, settings.dynamo),
+    settings.wallets,
+    settings.remotes,
+    settings.copies,
+    log: @locals[:log]
   )
 end
 
-def pay_bonus
-  iboss = Item.new(settings.config['rewards']['login'], settings.dynamo, log: @locals[:log])
-  boss = User.new(
-    settings.config['rewards']['login'],
-    iboss, settings.wallets, log: @locals[:log]
+def ops(user, async: true)
+  ops = SafeOps.new(
+    @locals[:log],
+    Ops.new(
+      user.item, user,
+      settings.wallets,
+      settings.remotes,
+      settings.copies,
+      log: @locals[:log]
+    )
   )
-  ops(iboss, boss).pull
-  ops(iboss, boss).pay(
-    settings.config['rewards']['pass'], @locals[:item].id,
+  ops = AsyncOps.new(settings.pool, ops) if async
+  ops
+end
+
+def pay_bonus
+  boss = user(settings.config['rewards']['login'])
+  ops(boss).pull
+  ops(boss).pay(
+    settings.config['rewards']['pass'], @locals[:user].item.id,
     Zold::Amount.new(zld: 8.0), 'WTS signup bonus'
   )
 end
