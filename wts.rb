@@ -263,10 +263,7 @@ end
 def user(login)
   User.new(
     login, Item.new(login, settings.dynamo),
-    settings.wallets,
-    settings.remotes,
-    settings.copies,
-    log: @locals[:log]
+    settings.wallets, log: @locals[:log]
   )
 end
 

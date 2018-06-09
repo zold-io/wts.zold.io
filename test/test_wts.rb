@@ -47,4 +47,10 @@ class AppTest < Minitest::Test
     assert(last_response.status == 404)
     assert(last_response.content_type == 'text/html;charset=utf-8')
   end
+
+  def test_user_home_page
+    get('/home')
+    assert(last_response.status == 404)
+    assert(last_response.content_type == 'text/html;charset=utf-8')
+  end
 end
