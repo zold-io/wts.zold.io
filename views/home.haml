@@ -70,6 +70,7 @@
               %a{href: '?start=' + @last.utc.iso8601} Show more
 - else
   %p
-    Your wallet doesn't exist on our server,
-    = succeed '.' do
-      %a{href: '/pull'} pull it
+    Your wallet
+    doesn't exist on our server yet,
+    %a{href: '/pull'} pull it
+    please from the network!
