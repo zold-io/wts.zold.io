@@ -149,7 +149,7 @@ get '/create' do
   @locals[:user].create
   pay_bonus
   @locals[:ops].push
-  @locals[:log].info("Wallet #{@locals[:user].item.id} created and pushed by @#{@locals[:guser][:login]}")
+  @locals[:log].info("Wallet #{@locals[:user].item.id} created and pushed by @#{@locals[:guser][:login]}\n")
   redirect '/'
 end
 
@@ -164,7 +164,7 @@ end
 get '/do-confirm' do
   redirect '/' unless @locals[:user]
   @locals[:user].confirm(params[:pass])
-  @locals[:log].info("Account confirimed for @#{@locals[:guser][:login]}")
+  @locals[:log].info("Account confirimed for @#{@locals[:guser][:login]}\n")
   redirect '/'
 end
 
@@ -192,7 +192,7 @@ post '/do-pay' do
   amount = Zold::Amount.new(zld: params[:amount].to_f)
   details = params[:details]
   @locals[:ops].pay(params[:pass], bnf, amount, details)
-  @locals[:log].info("Payment made by @#{@locals[:guser][:login]} to #{bnf} for #{amount}")
+  @locals[:log].info("Payment made by @#{@locals[:guser][:login]} to #{bnf} for #{amount}\n")
   redirect '/'
 end
 
@@ -200,7 +200,7 @@ get '/pull' do
   redirect '/' unless @locals[:user]
   redirect '/confirm' unless @locals[:user].confirmed?
   @locals[:ops].pull
-  @locals[:log].info("Wallet #{@locals[:user].item.id} pulled by @#{@locals[:guser][:login]}")
+  @locals[:log].info("Wallet #{@locals[:user].item.id} pulled by @#{@locals[:guser][:login]}\n")
   redirect '/'
 end
 
@@ -208,7 +208,7 @@ get '/push' do
   redirect '/' unless @locals[:user]
   redirect '/confirm' unless @locals[:user].confirmed?
   @locals[:ops].push
-  @locals[:log].info("Wallet #{@locals[:user].item.id} pushed by @#{@locals[:guser][:login]}")
+  @locals[:log].info("Wallet #{@locals[:user].item.id} pushed by @#{@locals[:guser][:login]}\n")
   redirect '/'
 end
 

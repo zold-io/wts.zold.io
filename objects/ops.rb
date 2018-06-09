@@ -85,6 +85,8 @@ class Ops
         ['pay', '--private-key=' + f.path, w.id.to_s, bnf.to_s, amount.to_zld(8), details, '--force']
       )
     end
+    require 'zold/commands/propagate'
+    Zold::Propagate.new(wallets: @wallets, log: @log).run(['propagate', w.id.to_s])
     require 'zold/commands/push'
     Zold::Push.new(wallets: @wallets, remotes: @remotes, log: @log).run(
       ['push', w.id.to_s, bnf.to_s]
