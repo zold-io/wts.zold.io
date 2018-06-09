@@ -51,23 +51,27 @@ class AppTest < Minitest::Test
     assert_equal('text/html;charset=utf-8', last_response.content_type)
   end
 
-  def test_user_home_page
+  def test_200_user_pages
     set_cookie('glogin=tester')
     get('/create')
     assert_equal(302, last_response.status, last_response.body)
     get('/do-confirm?pass=')
     assert_equal(302, last_response.status, last_response.body)
-    get('/home')
-    assert_equal(200, last_response.status, last_response.body)
+    ['/home', '/key', '/log'].each do |p|
+      get(p)
+      assert_equal(200, last_response.status, "#{p} fails: #{last_response.body}")
+    end
   end
 
-  def test_user_logs
+  def test_302_user_pages
     set_cookie('glogin=tester')
     get('/create')
     assert_equal(302, last_response.status, last_response.body)
     get('/do-confirm?pass=')
     assert_equal(302, last_response.status, last_response.body)
-    get('/log')
-    assert_equal(200, last_response.status, last_response.body)
+    ['/pull', '/push'].each do |p|
+      get(p)
+      assert_equal(302, last_response.status, "#{p} fails: #{last_response.body}")
+    end
   end
 end

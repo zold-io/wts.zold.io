@@ -5,7 +5,10 @@
   = user.pass
 
 %p
-  You have to save it right now.
+  You have to save it right now, together with your wallet ID
+  = succeed '.' do
+    %code
+    =user.item.id
   Once you confirm that you saved it, we will destroy it from our database
   and will not be able to restore access to your wallet without this code.
   Click,
