@@ -7,7 +7,7 @@
     Balance:
     = user.wallet.balance
 
-- if user.wallet.balance.negative?
+- if user.wallet.exists? && user.wallet.balance.negative?
   %p{style: 'color: darkred'}
     Your balance is negative, which means that some of your
     transactions will be rolled back in the nearest future!
