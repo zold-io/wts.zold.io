@@ -42,6 +42,7 @@ require_relative 'objects/ops'
 require_relative 'objects/async_ops'
 require_relative 'objects/safe_ops'
 require_relative 'objects/file_log'
+require_relative 'objects/tee_log'
 
 configure do
   Haml::Options.defaults[:format] = :xhtml
@@ -72,6 +73,7 @@ configure do
     end
   end
   set :config, config
+  set :logging, true
   set :server_settings, timeout: 25
   set :dynamo, Dynamo.new(config).aws
   set :glogin, GLogin::Auth.new(
@@ -82,7 +84,8 @@ configure do
   set :wallets, Zold::Wallets.new(File.join(settings.root, '.zold-wts/wallets'))
   set :remotes, Zold::Remotes.new(File.join(settings.root, '.zold-wts/remotes'))
   set :copies, File.join(settings.root, '.zold-wts/copies')
-  set :pool, Concurrent::FixedThreadPool.new(16)
+  set :pool, Concurrent::FixedThreadPool.new(16, max_queue: 64, fallback_policy: :abort)
+  set :log, Zold::Log::Quiet.new
 end
 
 before '/*' do
@@ -99,10 +102,12 @@ before '/*' do
         cookies[:glogin],
         settings.config['github']['encryption_secret']
       ).to_user
-      @locals[:log] = FileLog.new(File.join(settings.root, ".zold-wts/logs/#{@locals[:guser][:login]}"))
+      @locals[:log] = TeeLog.new(
+        settings.log,
+        FileLog.new(File.join(settings.root, ".zold-wts/logs/#{@locals[:guser][:login]}"))
+      )
       @locals[:user] = user(@locals[:guser][:login])
       @locals[:ops] = ops(@locals[:user])
-      redirect '/create' unless @locals[:user].item.exists?
     rescue OpenSSL::Cipher::CipherError => _
       @locals.delete(:user)
     end
@@ -131,6 +136,7 @@ end
 
 get '/home' do
   redirect '/' unless @locals[:user]
+  redirect '/create' unless @locals[:user].item.exists?
   redirect '/confirm' unless @locals[:user].confirmed?
   haml :home, layout: :layout, locals: merged(
     title: '@' + @locals[:guser][:login],
@@ -143,6 +149,7 @@ get '/create' do
   @locals[:user].create
   pay_bonus
   @locals[:ops].push
+  @locals[:log].info("Wallet #{@locals[:user].item.id} created and pushed by @#{@locals[:guser][:login]}")
   redirect '/'
 end
 
@@ -157,6 +164,7 @@ end
 get '/do-confirm' do
   redirect '/' unless @locals[:user]
   @locals[:user].confirm(params[:pass])
+  @locals[:log].info("Account confirimed for @#{@locals[:guser][:login]}")
   redirect '/'
 end
 
@@ -184,6 +192,7 @@ post '/do-pay' do
   amount = Zold::Amount.new(zld: params[:amount].to_f)
   details = params[:details]
   @locals[:ops].pay(params[:pass], bnf, amount, details)
+  @locals[:log].info("Payment made by @#{@locals[:guser][:login]} to #{bnf} for #{amount}")
   redirect '/'
 end
 
@@ -191,6 +200,7 @@ get '/pull' do
   redirect '/' unless @locals[:user]
   redirect '/confirm' unless @locals[:user].confirmed?
   @locals[:ops].pull
+  @locals[:log].info("Wallet #{@locals[:user].item.id} pulled by @#{@locals[:guser][:login]}")
   redirect '/'
 end
 
@@ -198,6 +208,7 @@ get '/push' do
   redirect '/' unless @locals[:user]
   redirect '/confirm' unless @locals[:user].confirmed?
   @locals[:ops].push
+  @locals[:log].info("Wallet #{@locals[:user].item.id} pushed by @#{@locals[:guser][:login]}")
   redirect '/'
 end
 

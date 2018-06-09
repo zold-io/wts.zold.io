@@ -20,6 +20,7 @@
 
 require 'minitest/autorun'
 require 'rack/test'
+require 'zold/log'
 require_relative 'test__helper'
 require_relative '../wts'
 
@@ -27,6 +28,8 @@ class AppTest < Minitest::Test
   include Rack::Test::Methods
 
   def app
+    Sinatra::Application.set(:log, Zold::Log::Verbose.new)
+    Sinatra::Application.set(:pool, Concurrent::FixedThreadPool.new(1, max_queue: 0, fallback_policy: :caller_runs))
     Sinatra::Application
   end
 
@@ -44,13 +47,17 @@ class AppTest < Minitest::Test
 
   def test_not_found
     get('/unknown_path')
-    assert(last_response.status == 404)
-    assert(last_response.content_type == 'text/html;charset=utf-8')
+    assert_equal(404, last_response.status)
+    assert_equal('text/html;charset=utf-8', last_response.content_type)
   end
 
   def test_user_home_page
+    set_cookie('glogin=tester')
+    get('/create')
+    assert_equal(302, last_response.status, last_response.body)
+    get('/do-confirm?pass=')
+    assert_equal(302, last_response.status, last_response.body)
     get('/home')
-    assert(last_response.status == 404)
-    assert(last_response.content_type == 'text/html;charset=utf-8')
+    assert_equal(200, last_response.status, last_response.body)
   end
 end
