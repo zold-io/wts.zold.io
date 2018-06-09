@@ -75,7 +75,7 @@ class Ops
     raise 'The account is not confirmed yet' unless @user.confirmed?
     require 'zold/commands/pull'
     Zold::Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
-      ['pull', bnf.to_s]
+      ['pull', @user.item.id.to_s, bnf.to_s]
     )
     w = @user.wallet
     Tempfile.open do |f|
