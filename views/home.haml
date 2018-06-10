@@ -16,12 +16,19 @@
     in a few minutes to get it back to the normal state.
 
 %p
-  %a{href: '/pay'} Pay
   - if user.wallet.exists?
-    = ' | '
+    %a{href: '/pay'} Pay
+  - else
+    %span{style: 'color: gray'} Pay
+  = ' | '
+  - if user.wallet.exists?
     %a{href: '/push'} Push
+  - else
+    %span{style: 'color: gray'} Push
   = ' | '
   %a{href: '/pull'} Pull
+  = ' | '
+  %a{href: '/invoice'} Invoice
   = ' | '
   %a{href: '/log'} Log
   = ' | '
