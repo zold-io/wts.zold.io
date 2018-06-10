@@ -220,6 +220,14 @@ get '/key' do
   )
 end
 
+get '/invoice' do
+  redirect '/' unless @locals[:user]
+  redirect '/confirm' unless @locals[:user].confirmed?
+  haml :invoice, layout: :layout, locals: merged(
+    title: '@' + @locals[:guser][:login] + '/invoice'
+  )
+end
+
 get '/log' do
   redirect '/' unless @locals[:user]
   redirect '/confirm' unless @locals[:user].confirmed?

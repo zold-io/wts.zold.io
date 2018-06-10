@@ -54,6 +54,13 @@ class User
     true
   end
 
+  def invoice
+    require 'zold/commands/invoice'
+    Zold::Invoice.new(wallets: @wallets, log: @log).run(
+      ['invoice', wallet.id.to_s]
+    )
+  end
+
   # The user has already confirmed that he saved the pass
   # code in a safe place.
   def confirmed?

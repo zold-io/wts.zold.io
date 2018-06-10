@@ -57,7 +57,7 @@ class AppTest < Minitest::Test
     assert_equal(302, last_response.status, last_response.body)
     get('/do-confirm?pass=')
     assert_equal(302, last_response.status, last_response.body)
-    ['/home', '/key', '/log'].each do |p|
+    ['/home', '/key', '/log', '/invoice'].each do |p|
       get(p)
       assert_equal(200, last_response.status, "#{p} fails: #{last_response.body}")
     end
