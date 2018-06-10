@@ -28,7 +28,10 @@
   = ' | '
   %a{href: '/pull'} Pull
   = ' | '
-  %a{href: '/invoice'} Invoice
+  - if user.wallet.exists?
+    %a{href: '/invoice'} Invoice
+  - else
+    %span{style: 'color: gray'} Invoice
   = ' | '
   %a{href: '/log'} Log
   = ' | '
