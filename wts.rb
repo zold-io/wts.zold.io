@@ -237,6 +237,12 @@ get '/log' do
   @locals[:log].content
 end
 
+get '/remotes' do
+  haml :remotes, layout: :layout, locals: merged(
+    title: '/remotes'
+  )
+end
+
 get '/robots.txt' do
   'User-agent: *'
 end

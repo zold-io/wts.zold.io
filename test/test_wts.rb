@@ -38,7 +38,8 @@ class AppTest < Minitest::Test
       '/version',
       '/robots.txt',
       '/',
-      '/css/main.css'
+      '/css/main.css',
+      '/remotes'
     ].each do |p|
       get(p)
       assert(last_response.ok?)

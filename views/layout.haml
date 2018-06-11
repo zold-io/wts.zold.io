@@ -32,7 +32,7 @@
               = wallets.all.count
             %li
               Remotes:
-              = remotes.all.count
+              %a{href: '/remotes'} = remotes.all.count
             - if defined? guser
               %li
                 %a{href: '/logout'}

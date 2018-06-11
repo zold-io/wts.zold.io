@@ -1,0 +1,23 @@
+%p
+  Here is the full list of remote nodes we see now:
+
+%table
+  %thead
+    %tr
+      %th Host
+      %th Score
+      %th Errors
+  %tbody
+    - remotes.all.each do |r|
+      %tr
+        %td
+          %a{href: "http://#{r[:host]}:#{r[:port]}/"}
+            = "#{r[:host]}:#{r[:port]}"
+        %td
+          = r[:score]
+        %td
+          = r[:errors]
+
+%p
+  The list is being updated regularly.
+  To see its fresh version just reload the page.

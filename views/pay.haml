@@ -19,9 +19,8 @@
     %input{type: 'submit', onclick: "return confirm('Are you sure? This operation is not reversable!')"}
 
 %p
-  = succeed '.' do
-    %span{style: 'color: red'}
-      ATTENTION
+  = succeed ':' do
+    %span{style: 'color: red'} ATTENTION
   This operation is not reversable.
   Once you send the payment, you will not be able to get it back, ever.
   Do this at your own risk.
