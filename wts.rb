@@ -107,6 +107,7 @@ before '/*' do
         settings.log,
         FileLog.new(File.join(settings.root, ".zold-wts/logs/#{@locals[:guser][:login]}"))
       )
+      @locals[:latch] = File.join(settings.root, "latch/#{cookies[:glogin]}")
       @locals[:user] = user(@locals[:guser][:login])
       @locals[:ops] = ops(@locals[:user])
     rescue OpenSSL::Cipher::CipherError => _
@@ -298,12 +299,15 @@ end
 def ops(user, async: true)
   ops = SafeOps.new(
     @locals[:log],
-    Ops.new(
-      user.item, user,
-      settings.wallets,
-      settings.remotes,
-      settings.copies,
-      log: @locals[:log]
+    LatchOps.new(
+      @locals[:latch],
+      Ops.new(
+        user.item, user,
+        settings.wallets,
+        settings.remotes,
+        settings.copies,
+        log: @locals[:log]
+      )
     )
   )
   ops = AsyncOps.new(settings.pool, ops) if async

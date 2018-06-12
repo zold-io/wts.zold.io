@@ -42,6 +42,33 @@
               %li
                 %a{href: '/logout'}
                   Logout
+        - if defined? guser
+          %nav
+            %ul
+              %li
+                - if user.wallet.exists?
+                  %a{href: '/pay'} Pay
+                - else
+                  %span{style: 'color: gray'} Pay
+              %li
+                - if user.wallet.exists?
+                  %a{href: '/push'} Push
+                - else
+                  %span{style: 'color: gray'} Push
+              %li
+                %a{href: '/pull'} Pull
+              %li
+                - if user.wallet.exists?
+                  %a{href: '/invoice'} Invoice
+                - else
+                  %span{style: 'color: gray'} Invoice
+              %li
+                %a{href: '/log', style: (File.exist?(latch) ? 'color:red' : '')} Log
+              %li
+                %a{href: '/key'} Key
+              %li
+                %a{style: 'color:red', href: '/create', onclick: "return confirm('The wallet will be re-created, the existing RSA private key will be deleted from our database, are you sure?')"} Restart
+
       %article
         = yield
       %footer
