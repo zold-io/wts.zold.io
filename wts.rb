@@ -41,6 +41,7 @@ require_relative 'objects/dynamo'
 require_relative 'objects/ops'
 require_relative 'objects/async_ops'
 require_relative 'objects/safe_ops'
+require_relative 'objects/latch_ops'
 require_relative 'objects/file_log'
 require_relative 'objects/tee_log'
 
