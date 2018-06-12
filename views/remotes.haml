@@ -1,5 +1,7 @@
 %p
-  Here is the full list of remote nodes we see now:
+  Here is the full list of
+  = remotes.all.count
+  remote node(s) we see now:
 
 %table
   %thead
@@ -13,11 +15,13 @@
         %td
           %a{href: "http://#{r[:host]}:#{r[:port]}/"}
             = "#{r[:host]}:#{r[:port]}"
-        %td
+        %td{style: 'color:' + (r[:score] < 4 ? 'red' : (r[:score] < 16 ? 'orange' : 'green'))}
           = r[:score]
-        %td
+        %td{style: 'color:' + (r[:errors] > 25 ? 'red' : 'inherit')}
           = r[:errors]
 
 %p
   The list is being updated regularly.
-  To see its fresh version just reload the page.
+  To see its fresh version just reload the page or
+  %a{href: '/pull'} pull
+  your wallet to update it.
