@@ -26,7 +26,7 @@ require_relative '../objects/latch_ops'
 class LatchOpsTest < Minitest::Test
   def test_turn_latch_on_and_off
     Dir.mktmpdir 'test' do |dir|
-      file = File.join(dir, 'latch.txt')
+      file = File.join(dir, 'a/a/a/a/latch.txt')
       LatchOps.new(file, FakeOps.new(file)).push
     end
   end

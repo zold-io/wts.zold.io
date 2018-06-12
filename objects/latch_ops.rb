@@ -30,23 +30,34 @@ class LatchOps
   end
 
   def pull
-    FileUtils.touch(@file)
+    start
     @ops.pull
   ensure
-    FileUtils.rm_f(@file)
+    stop
   end
 
   def push
-    FileUtils.touch(@file)
+    start
     @ops.push
   ensure
-    FileUtils.rm_f(@file)
+    stop
   end
 
   def pay(pass, bnf, amount, details)
-    FileUtils.touch(@file)
+    start
     @ops.pay(pass, bnf, amount, details)
   ensure
+    stop
+  end
+
+  private
+
+  def start
+    FileUtils.mkdir_p(File.dirname(@file))
+    FileUtils.touch(@file)
+  end
+
+  def stop
     FileUtils.rm_f(@file)
   end
 end
