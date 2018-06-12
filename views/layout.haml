@@ -27,13 +27,16 @@
               - else
                 %a{href: login_link}
                   Login
-            %li
+            %li{title: 'All wallets available in the local directory'}
               Wallets:
               = wallets.all.count
-            %li
+            %li{title: 'All visible remote nodes'}
               Remotes:
               %a{href: '/remotes'}
                 = remotes.all.count
+            %li{title: 'Currently running jobs vs. jobs waiting in the line'}
+              Pool:
+              = "#{pool.length}/#{pool.queue_length}"
             - if defined? guser
               %li
                 %a{href: '/logout'}
