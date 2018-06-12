@@ -63,6 +63,9 @@
       - if start
         %tr
           %td{colspan: 5, style: 'text-align:center'}
+            %a{href: '/home'} Show most recent transactions
+        %tr
+          %td{colspan: 5, style: 'text-align:center'}
             = 'Since ' + start.utc.iso8601
       - txns = user.wallet.txns.sort_by(&:date).reverse.select { |t| start.nil? || t.date < start }.take(50)
       - if txns.empty?
