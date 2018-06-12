@@ -36,7 +36,8 @@
                 = remotes.all.count
             %li{title: 'Currently running jobs vs. jobs waiting in the line'}
               Pool:
-              = "#{pool.length}/#{pool.queue_length}"
+              %a{href: '/log'}
+                = "#{pool.length}/#{pool.queue_length}"
             - if defined? guser
               %li
                 %a{href: '/logout'}
