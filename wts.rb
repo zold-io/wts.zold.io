@@ -105,7 +105,8 @@ before '/*' do
     begin
       @locals[:guser] = GLogin::Cookie::Closed.new(
         cookies[:glogin],
-        settings.config['github']['encryption_secret']
+        settings.config['github']['encryption_secret'],
+        context
       ).to_user
       @locals[:log] = TeeLog.new(
         settings.log,
@@ -123,7 +124,8 @@ end
 get '/github-callback' do
   cookies[:glogin] = GLogin::Cookie::Open.new(
     settings.glogin.user(params[:code]),
-    settings.config['github']['encryption_secret']
+    settings.config['github']['encryption_secret'],
+    context
   ).to_s
   redirect to('/')
 end
@@ -286,6 +288,10 @@ error do
 end
 
 private
+
+def context
+  "#{request.env['REMOTE_ADDR']} #{request.ip} #{request.user_agent}"
+end
 
 def merged(hash)
   out = @locals.merge(hash)
