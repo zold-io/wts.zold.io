@@ -29,6 +29,7 @@ gem 'glogin', '~>0.2'
 gem 'haml', '~>5.0'
 gem 'minitest', '~>5.11'
 gem 'rack', '~>2.0'
+gem 'rack-ssl', '~>1.4'
 gem 'rack-test', '~>1.0'
 gem 'rake', '~>12.3', require: false
 gem 'rerun', '~>0.11', require: false

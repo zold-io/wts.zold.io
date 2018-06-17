@@ -28,8 +28,9 @@ require 'raven'
 require 'glogin'
 require 'concurrent'
 require 'tempfile'
+require 'rack/ssl'
 require 'zold/log'
-require 'zold/id'
+require 'zold/remotes'
 require 'zold/amount'
 require 'zold/wallets'
 require 'zold/remotes'
@@ -44,6 +45,8 @@ require_relative 'objects/safe_ops'
 require_relative 'objects/latch_ops'
 require_relative 'objects/file_log'
 require_relative 'objects/tee_log'
+
+use Rack::SSL
 
 configure do
   Haml::Options.defaults[:format] = :xhtml

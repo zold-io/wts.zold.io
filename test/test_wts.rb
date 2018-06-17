@@ -24,6 +24,16 @@ require 'zold/log'
 require_relative 'test__helper'
 require_relative '../wts'
 
+module Rack
+  module Test
+    class Session
+      def default_env
+        { 'REMOTE_ADDR' => '127.0.0.1', 'HTTPS' => 'on' }.merge(headers_for_env)
+      end
+    end
+  end
+end
+
 class AppTest < Minitest::Test
   include Rack::Test::Methods
 
