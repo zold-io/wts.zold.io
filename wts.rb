@@ -294,7 +294,7 @@ end
 private
 
 def context
-  "#{request.env['REMOTE_ADDR']} #{request.ip} #{request.user_agent} #{VERSION}"
+  "#{request.ip} #{request.user_agent} #{VERSION}"
 end
 
 def merged(hash)
