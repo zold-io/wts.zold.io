@@ -259,6 +259,10 @@ get '/version' do
   VERSION
 end
 
+get '/context' do
+  context
+end
+
 get '/css/*.css' do
   content_type 'text/css', charset: 'utf-8'
   file = params[:splat].first
@@ -290,7 +294,7 @@ end
 private
 
 def context
-  "#{request.env['REMOTE_ADDR']} #{request.ip} #{request.user_agent}"
+  "#{request.env['REMOTE_ADDR']} #{request.ip} #{request.user_agent} #{VERSION}"
 end
 
 def merged(hash)

@@ -49,6 +49,7 @@ class AppTest < Minitest::Test
       '/robots.txt',
       '/',
       '/css/main.css',
+      '/context',
       '/remotes'
     ].each do |p|
       get(p)
