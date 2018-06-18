@@ -53,7 +53,7 @@ class Ops
     )
     wallet = @wallets.find(id)
     @log.info("#{Time.now.utc.iso8601}: Wallet #{wallet.id} pulled successfully \
-in #{(Time.now - start)}s, the balance is #{wallet.balance}\n \n ")
+in #{(Time.now - start).round}s, the balance is #{wallet.balance}\n \n ")
   end
 
   def push
@@ -64,7 +64,7 @@ in #{(Time.now - start)}s, the balance is #{wallet.balance}\n \n ")
       ['pull', wallet.id.to_s]
     )
     @log.info("#{Time.now.utc.iso8601}: Wallet #{wallet.id} pushed successfully \
-in #{(Time.now - start)}s, the balance is #{wallet.balance}\n \n ")
+in #{(Time.now - start).round}s, the balance is #{wallet.balance}\n \n ")
   end
 
   def pay(pass, bnf, amount, details)
@@ -99,6 +99,6 @@ in #{(Time.now - start)}s, the balance is #{wallet.balance}\n \n ")
       ['push', w.id.to_s, bnf.to_s]
     )
     @log.info("#{Time.now.utc.iso8601}: Paid #{amount} from #{w.id} to #{bnf} \
-in #{(Time.now - start)}s: #{details}\n \n ")
+in #{(Time.now - start).round}s: #{details}\n \n ")
   end
 end
