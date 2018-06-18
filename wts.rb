@@ -331,6 +331,6 @@ end
 def pay_bonus
   ops(user(settings.config['rewards']['login'])).pay(
     settings.config['rewards']['pass'], @locals[:user].item.id,
-    Zold::Amount.new(zld: 8.0), "WTS signup bonus to #{@locals[:user]}"
+    Zold::Amount.new(zld: 8.0), "WTS signup bonus to #{@locals[:guser][:login]}"
   )
 end
