@@ -42,6 +42,7 @@ class Ops
   end
 
   def pull
+    start = Time.now
     require 'zold/commands/remote'
     Zold::Remote.new(remotes: @remotes, log: @log).run(%w[remote update])
     Zold::Remote.new(remotes: @remotes, log: @log).run(%w[remote trim])
@@ -51,16 +52,19 @@ class Ops
       ['pull', id.to_s]
     )
     wallet = @wallets.find(id)
-    @log.info("#{Time.now.utc.iso8601}: Wallet #{wallet.id} pulled successfully, the balance is #{wallet.balance}\n")
+    @log.info("#{Time.now.utc.iso8601}: Wallet #{wallet.id} pulled successfully \
+in #{(Time.now - start)}s, the balance is #{wallet.balance}\n \n ")
   end
 
   def push
+    start = Time.now
     wallet = @user.wallet
     require 'zold/commands/push'
     Zold::Push.new(wallets: @wallets, remotes: @remotes, log: @log).run(
       ['pull', wallet.id.to_s]
     )
-    @log.info("#{Time.now.utc.iso8601}: Wallet #{wallet.id} pushed successfully, the balance is #{wallet.balance}\n")
+    @log.info("#{Time.now.utc.iso8601}: Wallet #{wallet.id} pushed successfully \
+in #{(Time.now - start)}s, the balance is #{wallet.balance}\n \n ")
   end
 
   def pay(pass, bnf, amount, details)
@@ -73,10 +77,13 @@ class Ops
     raise 'Amount must be of type Amount' unless amount.is_a?(Zold::Amount)
     raise 'Details can\'t be nil' if details.nil?
     raise 'The account is not confirmed yet' unless @user.confirmed?
-    require 'zold/commands/pull'
-    Zold::Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
-      ['pull', @user.item.id.to_s, bnf.to_s]
-    )
+    start = Time.now
+    unless @wallets.find(@user.item.id).exists?
+      require 'zold/commands/pull'
+      Zold::Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
+        ['pull', @user.item.id.to_s, bnf.to_s]
+      )
+    end
     w = @user.wallet
     Tempfile.open do |f|
       File.write(f, @item.key(pass))
@@ -91,6 +98,7 @@ class Ops
     Zold::Push.new(wallets: @wallets, remotes: @remotes, log: @log).run(
       ['push', w.id.to_s, bnf.to_s]
     )
-    @log.info("#{Time.now.utc.iso8601}: Paid #{amount} from #{w.id} to #{bnf}: #{details}\n")
+    @log.info("#{Time.now.utc.iso8601}: Paid #{amount} from #{w.id} to #{bnf} \
+in #{(Time.now - start)}s: #{details}\n \n ")
   end
 end

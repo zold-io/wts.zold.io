@@ -172,7 +172,7 @@ end
 get '/do-confirm' do
   redirect '/' unless @locals[:user]
   @locals[:user].confirm(params[:pass])
-  @locals[:log].info("Account confirimed for @#{@locals[:guser][:login]}\n")
+  @locals[:log].info("Account confirmed for @#{@locals[:guser][:login]}\n")
   redirect '/'
 end
 
@@ -329,10 +329,8 @@ def ops(user, async: true)
 end
 
 def pay_bonus
-  boss = user(settings.config['rewards']['login'])
-  ops(boss).pull
-  ops(boss).pay(
+  ops(user(settings.config['rewards']['login'])).pay(
     settings.config['rewards']['pass'], @locals[:user].item.id,
-    Zold::Amount.new(zld: 8.0), 'WTS signup bonus'
+    Zold::Amount.new(zld: 8.0), "WTS signup bonus to #{@locals[:user]}"
   )
 end
