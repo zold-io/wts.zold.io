@@ -43,9 +43,11 @@ class Ops
 
   def pull
     start = Time.now
-    require 'zold/commands/remote'
-    Zold::Remote.new(remotes: @remotes, log: @log).run(%w[remote update])
-    Zold::Remote.new(remotes: @remotes, log: @log).run(%w[remote trim])
+    if @remotes.all.count < 8
+      require 'zold/commands/remote'
+      Zold::Remote.new(remotes: @remotes, log: @log).run(%w[remote update])
+      Zold::Remote.new(remotes: @remotes, log: @log).run(%w[remote trim])
+    end
     id = @item.id
     require 'zold/commands/pull'
     Zold::Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
