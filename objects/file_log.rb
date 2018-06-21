@@ -36,11 +36,11 @@ class FileLog
   end
 
   def debug(msg)
-    # nothing
+    print(msg)
   end
 
   def debug?
-    false
+    true
   end
 
   def info(msg)
