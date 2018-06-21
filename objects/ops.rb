@@ -43,15 +43,19 @@ class Ops
 
   def pull
     start = Time.now
+    if @remotes.all.empty?
+      require 'zold/commands/remote'
+      Zold::Remote.new(remotes: @remotes, log: @log).run(%w[remote reset --network=zold])
+    end
     if @remotes.all.count < 8
       require 'zold/commands/remote'
-      Zold::Remote.new(remotes: @remotes, log: @log).run(%w[remote update])
+      Zold::Remote.new(remotes: @remotes, log: @log).run(%w[remote update --network=zold])
       Zold::Remote.new(remotes: @remotes, log: @log).run(%w[remote trim])
     end
     id = @item.id
     require 'zold/commands/pull'
     Zold::Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
-      ['pull', id.to_s]
+      ['pull', id.to_s, '--network=zold']
     )
     wallet = @wallets.find(id)
     @log.info("#{Time.now.utc.iso8601}: Wallet #{wallet.id} pulled successfully \
@@ -63,7 +67,7 @@ in #{(Time.now - start).round}s, the balance is #{wallet.balance}\n \n ")
     wallet = @user.wallet
     require 'zold/commands/push'
     Zold::Push.new(wallets: @wallets, remotes: @remotes, log: @log).run(
-      ['pull', wallet.id.to_s]
+      ['pull', wallet.id.to_s, '--network=zold']
     )
     @log.info("#{Time.now.utc.iso8601}: Wallet #{wallet.id} pushed successfully \
 in #{(Time.now - start).round}s, the balance is #{wallet.balance}\n \n ")
@@ -83,7 +87,7 @@ in #{(Time.now - start).round}s, the balance is #{wallet.balance}\n \n ")
     unless @wallets.find(@user.item.id).exists?
       require 'zold/commands/pull'
       Zold::Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
-        ['pull', @user.item.id.to_s, bnf.to_s]
+        ['pull', @user.item.id.to_s, bnf.to_s, '--network=zold']
       )
     end
     w = @user.wallet
@@ -98,7 +102,7 @@ in #{(Time.now - start).round}s, the balance is #{wallet.balance}\n \n ")
     Zold::Propagate.new(wallets: @wallets, log: @log).run(['propagate', w.id.to_s])
     require 'zold/commands/push'
     Zold::Push.new(wallets: @wallets, remotes: @remotes, log: @log).run(
-      ['push', w.id.to_s, bnf.to_s]
+      ['push', w.id.to_s, bnf.to_s, '--network=zold']
     )
     @log.info("#{Time.now.utc.iso8601}: Paid #{amount} from #{w.id} to #{bnf} \
 in #{(Time.now - start).round}s: #{details}\n \n ")
