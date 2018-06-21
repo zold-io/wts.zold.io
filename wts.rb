@@ -202,7 +202,7 @@ post '/do-pay' do
   amount = Zold::Amount.new(zld: params[:amount].to_f)
   details = params[:details]
   @locals[:ops].pay(params[:pass], bnf, amount, details)
-  @locals[:log].info("Payment made by @#{@locals[:guser][:login]} to #{bnf} for #{amount}\n")
+  @locals[:log].info("Payment made by @#{@locals[:guser][:login]} to #{bnf} for #{amount}\n \n")
   redirect '/'
 end
 
@@ -210,7 +210,7 @@ get '/pull' do
   redirect '/' unless @locals[:user]
   redirect '/confirm' unless @locals[:user].confirmed?
   @locals[:ops].pull
-  @locals[:log].info("Wallet #{@locals[:user].item.id} pulled by @#{@locals[:guser][:login]}\n")
+  @locals[:log].info("Wallet #{@locals[:user].item.id} pulled by @#{@locals[:guser][:login]}\n \n")
   redirect '/'
 end
 
@@ -218,7 +218,7 @@ get '/push' do
   redirect '/' unless @locals[:user]
   redirect '/confirm' unless @locals[:user].confirmed?
   @locals[:ops].push
-  @locals[:log].info("Wallet #{@locals[:user].item.id} pushed by @#{@locals[:guser][:login]}\n")
+  @locals[:log].info("Wallet #{@locals[:user].item.id} pushed by @#{@locals[:guser][:login]}\n \n")
   redirect '/'
 end
 
