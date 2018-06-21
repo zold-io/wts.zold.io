@@ -14,7 +14,7 @@
 [![Dependency Status](https://gemnasium.com/zold-io/out.svg)](https://gemnasium.com/zold-io/out)
 [![Maintainability](https://api.codeclimate.com/v1/badges/7489c1d2bacde40ffc09/maintainability)](https://codeclimate.com/github/zold-io/out/maintainability)
 
-Here is the [White Paper](https://github.com/zold-io/papers/raw/master/wp.pdf).
+Here is the [White Paper](https://papers.zold.io//wp.pdf).
 
 Join our [Telegram group](https://t.me/zold_io) to discuss it all live.
 
