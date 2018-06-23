@@ -55,7 +55,7 @@ class Ops
     id = @item.id
     require 'zold/commands/pull'
     Zold::Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
-      ['pull', id.to_s, '--network=zold', '--no-baseline']
+      ['pull', id.to_s, '--network=zold']
     )
     wallet = @wallets.find(id)
     @log.info("#{Time.now.utc.iso8601}: Wallet #{wallet.id} pulled successfully \
