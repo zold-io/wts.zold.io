@@ -87,7 +87,13 @@ in #{(Time.now - start).round}s, the balance is #{wallet.balance}\n \n ")
     unless @wallets.find(@user.item.id).exists?
       require 'zold/commands/pull'
       Zold::Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
-        ['pull', @user.item.id.to_s, bnf.to_s, '--network=zold']
+        ['pull', @user.item.id.to_s, '--network=zold']
+      )
+    end
+    unless @wallets.find(bnf).exists?
+      require 'zold/commands/pull'
+      Zold::Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
+        ['pull', bnf.to_s, '--network=zold']
       )
     end
     w = @user.wallet
