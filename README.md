@@ -5,20 +5,17 @@
 [![DevOps By Rultor.com](http://www.rultor.com/b/zold-io/out)](http://www.rultor.com/p/zold-io/out)
 [![We recommend RubyMine](http://www.elegantobjects.org/rubymine.svg)](https://www.jetbrains.com/ruby/)
 
-[![Build Status](https://travis-ci.org/zold-io/out.svg)](https://travis-ci.org/zold-io/out)
-[![Build status](https://ci.appveyor.com/api/projects/status/ypctxm5ohrtp2kr4?svg=true)](https://ci.appveyor.com/project/zold-io/out)
-[![PDD status](http://www.0pdd.com/svg?name=zold-io/out)](http://www.0pdd.com/p?name=zold-io/out)
-[![Gem Version](https://badge.fury.io/rb/zold.svg)](http://badge.fury.io/rb/zold)
-[![Test Coverage](https://img.shields.io/codecov/c/github/zold-io/out.svg)](https://codecov.io/github/zold-io/out?branch=master)
-
-[![Dependency Status](https://gemnasium.com/zold-io/out.svg)](https://gemnasium.com/zold-io/out)
-[![Maintainability](https://api.codeclimate.com/v1/badges/7489c1d2bacde40ffc09/maintainability)](https://codeclimate.com/github/zold-io/out/maintainability)
+[![Build Status](https://travis-ci.org/zold-io/wts.zold.io.svg)](https://travis-ci.org/zold-io/wts.zold.io)
+[![Build status](https://ci.appveyor.com/api/projects/status/ypctxm5ohrtp2kr4?svg=true)](https://ci.appveyor.com/project/zold-io/wts.zold.io)
+[![PDD status](http://www.0pdd.com/svg?name=zold-io/wts.zold.io)](http://www.0pdd.com/p?name=zold-io/wts.zold.io)
+[![Test Coverage](https://img.shields.io/codecov/c/github/zold-io/wts.zold.io.svg)](https://codecov.io/github/zold-io/wts.zold.io?branch=master)
+[![Maintainability](https://api.codeclimate.com/v1/badges/7489c1d2bacde40ffc09/maintainability)](https://codeclimate.com/github/zold-io/wts.zold.io/maintainability)
 
 Here is the [White Paper](https://papers.zold.io//wp.pdf).
 
 Join our [Telegram group](https://t.me/zold_io) to discuss it all live.
 
-The license is [MIT](https://github.com/zold-io/out/blob/master/LICENSE.txt).
+The license is [MIT](https://github.com/zold-io/wts.zold.io/blob/master/LICENSE.txt).
 
 ## How to Contribute
 
