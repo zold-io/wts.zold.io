@@ -245,7 +245,7 @@ post '/do-api' do
   redirect '/confirm' unless @locals[:user].confirmed?
   haml :api, layout: :layout, locals: merged(
     title: '@' + @locals[:guser][:login] + '/api',
-    code: settings.codec.encrypt(@locals[:guser][:login], params[:pass])
+    code: settings.codec.encrypt("#{@locals[:guser][:login]} #{params[:pass]}")
   )
 end
 
