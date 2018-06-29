@@ -1,0 +1,9 @@
+%p
+  Enter your payment pass code in order to get the API token:
+
+%form{method: 'POST', action: '/do-api'}
+  %fieldset
+    %input{type: 'text', name: 'pass', placeholder: 'Your secret...', autocomplete: 'off'}
+    %input{type: 'submit'}
+
+

@@ -1,0 +1,26 @@
+%p
+  This is the code you should send in
+  %code X-Zold-Wts
+  HTTP header in order to perform all API operations:
+
+%p
+  %code= code
+
+%p
+  To send money from @0crat GitHub account to @yegor256, do the
+  following HTTP request:
+
+%pre
+  POST /do-pay HTTP/1.1
+  Content-Type: application/x-www-form-urlencoded
+  Host: wts.zold.io
+  X-Zold-Wts: 7Ys6IIshow9YnskYYgwbsy...
+
+  bnf=yegor256&amount=19.99&details=For+the+pizza
+
+%p
+  You will get
+  %code 302
+  response no matter what. There is no way to check the status
+  of transaction right after its submission.
+  If everything goes well, the payment will be sent.

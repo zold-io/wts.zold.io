@@ -61,6 +61,7 @@ configure do
         'client_secret' => '?',
         'encryption_secret' => ''
       },
+      'api_secret' => '',
       'sentry' => '',
       'dynamo' => {
         'key' => '?',
@@ -88,6 +89,7 @@ configure do
   set :wallets, Zold::Wallets.new(File.join(settings.root, '.zold-wts/wallets'))
   set :remotes, Zold::Remotes.new(File.join(settings.root, '.zold-wts/remotes'), network: 'zold')
   set :copies, File.join(settings.root, '.zold-wts/copies')
+  set :codec, GLogin::Codec.new(config['api_secret'])
   set :pool, Concurrent::FixedThreadPool.new(16, max_queue: 64, fallback_policy: :abort)
   set :log, Zold::Log::Quiet.new
 end
@@ -227,6 +229,23 @@ get '/key' do
   redirect '/confirm' unless @locals[:user].confirmed?
   haml :key, layout: :layout, locals: merged(
     title: '@' + @locals[:guser][:login] + '/key'
+  )
+end
+
+get '/api' do
+  redirect '/' unless @locals[:user]
+  redirect '/confirm' unless @locals[:user].confirmed?
+  haml :api, layout: :layout, locals: merged(
+    title: '@' + @locals[:guser][:login] + '/api'
+  )
+end
+
+post '/do-api' do
+  redirect '/' unless @locals[:user]
+  redirect '/confirm' unless @locals[:user].confirmed?
+  haml :api, layout: :layout, locals: merged(
+    title: '@' + @locals[:guser][:login] + '/api',
+    code: settings.codec.encrypt(@locals[:user][:login], params[:pass])
   )
 end
 
