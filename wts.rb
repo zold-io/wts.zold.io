@@ -111,18 +111,29 @@ before '/*' do
         settings.config['github']['encryption_secret'],
         context
       ).to_user
-      @locals[:log] = TeeLog.new(
-        settings.log,
-        FileLog.new(File.join(settings.root, ".zold-wts/logs/#{@locals[:guser][:login]}"))
-      )
-      @locals[:latch] = File.join(settings.root, "latch/#{cookies[:glogin]}")
-      @locals[:user] = user(@locals[:guser][:login])
-      @locals[:ops] = ops(@locals[:user])
     rescue OpenSSL::Cipher::CipherError => _
       @locals.delete(:user)
     end
   end
-  if env
+  header = request.env['HTTP-X_ZOLD_WTS']
+  if header
+    begin
+      login, pass = settings.codec.decrypt(Base64.decode64(header)).split(' ')
+      @params[:pass] = pass
+      @locals[:guser] = { login: login }
+    rescue OpenSSL::Cipher::CipherError => _
+      error 400
+    end
+  end
+  if @locals[:guser]
+    @locals[:log] = TeeLog.new(
+      settings.log,
+      FileLog.new(File.join(settings.root, ".zold-wts/logs/#{@locals[:guser][:login]}"))
+    )
+    @locals[:latch] = File.join(settings.root, "latch/#{cookies[:glogin]}")
+    @locals[:user] = user(@locals[:guser][:login])
+    @locals[:ops] = ops(@locals[:user])
+  end
 end
 
 get '/github-callback' do
