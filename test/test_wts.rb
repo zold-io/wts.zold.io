@@ -69,7 +69,7 @@ class AppTest < Minitest::Test
     assert_equal(302, last_response.status, last_response.body)
     get('/do-confirm?pass=')
     assert_equal(302, last_response.status, last_response.body)
-    ['/home', '/key', '/log', '/invoice'].each do |p|
+    ['/home', '/key', '/log', '/invoice', '/api'].each do |p|
       get(p)
       assert_equal(200, last_response.status, "#{p} fails: #{last_response.body}")
     end
@@ -85,5 +85,16 @@ class AppTest < Minitest::Test
       get(p)
       assert_equal(302, last_response.status, "#{p} fails: #{last_response.body}")
     end
+  end
+
+  def test_api_code
+    set_cookie('glogin=tester')
+    get('/create')
+    assert_equal(302, last_response.status, last_response.body)
+    get('/do-confirm?pass=')
+    assert_equal(302, last_response.status, last_response.body)
+    post('/do-api', 'pass=')
+    assert_equal(200, last_response.status)
+    assert(last_response.body.include?('X-Zold-Wts:'), last_response.body)
   end
 end

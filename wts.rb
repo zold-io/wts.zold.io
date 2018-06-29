@@ -47,7 +47,10 @@ require_relative 'objects/latch_ops'
 require_relative 'objects/file_log'
 require_relative 'objects/tee_log'
 
-use Rack::SSL
+if ENV['RACK_ENV'] != 'test'
+  require 'rack/ssl'
+  use Rack::SSL
+end
 
 configure do
   Haml::Options.defaults[:format] = :xhtml
@@ -62,7 +65,7 @@ configure do
         'client_secret' => '?',
         'encryption_secret' => ''
       },
-      'api_secret' => '',
+      'api_secret' => 'test',
       'sentry' => '',
       'dynamo' => {
         'key' => '?',
@@ -115,10 +118,10 @@ before '/*' do
       @locals.delete(:user)
     end
   end
-  header = request.env['HTTP-X_ZOLD_WTS']
+  header = request.env['HTTP_X_ZOLD_WTS']
   if header
     begin
-      login, pass = settings.codec.decrypt(Base64.decode64(header)).split(' ')
+      login, pass = settings.codec.decrypt(header).split(' ')
       @params[:pass] = pass
       @locals[:guser] = { login: login }
     rescue OpenSSL::Cipher::CipherError => _
@@ -245,6 +248,20 @@ get '/key' do
   )
 end
 
+get '/id' do
+  redirect '/' unless @locals[:user]
+  redirect '/confirm' unless @locals[:user].confirmed?
+  content_type 'text/plain'
+  @locals[:user].item.id.to_s
+end
+
+get '/balance' do
+  redirect '/' unless @locals[:user]
+  redirect '/confirm' unless @locals[:user].confirmed?
+  content_type 'text/plain'
+  @locals[:user].wallet.balance.to_i
+end
+
 get '/api' do
   redirect '/' unless @locals[:user]
   redirect '/confirm' unless @locals[:user].confirmed?
@@ -258,7 +275,7 @@ post '/do-api' do
   redirect '/confirm' unless @locals[:user].confirmed?
   haml :do_api, layout: :layout, locals: merged(
     title: '@' + @locals[:guser][:login] + '/api',
-    code: Base64.encode64(settings.codec.encrypt("#{@locals[:guser][:login]} #{params[:pass]}"))
+    code: settings.codec.encrypt("#{@locals[:guser][:login]} #{params[:pass]}")
   )
 end
 
@@ -284,14 +301,17 @@ get '/remotes' do
 end
 
 get '/robots.txt' do
+  content_type 'text/plain'
   'User-agent: *'
 end
 
 get '/version' do
+  content_type 'text/plain'
   VERSION
 end
 
 get '/context' do
+  content_type 'text/plain'
   context
 end
 

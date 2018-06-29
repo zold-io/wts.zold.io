@@ -82,6 +82,7 @@ in #{(Time.now - start).round}s, the balance is #{wallet.balance}\n \n ")
     raise 'Payment amount can\'t be negative' if amount.negative?
     raise 'Amount must be of type Amount' unless amount.is_a?(Zold::Amount)
     raise 'Details can\'t be nil' if details.nil?
+    raise 'The user is not registered yet' unless @item.exists?
     raise 'The account is not confirmed yet' unless @user.confirmed?
     start = Time.now
     unless @wallets.find(@user.item.id).exists?
