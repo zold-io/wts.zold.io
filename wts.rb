@@ -26,6 +26,7 @@ require 'sinatra/cookies'
 require 'sass'
 require 'raven'
 require 'glogin'
+require 'base64'
 require 'concurrent'
 require 'tempfile'
 require 'rack/ssl'
@@ -121,6 +122,7 @@ before '/*' do
       @locals.delete(:user)
     end
   end
+  if env
 end
 
 get '/github-callback' do
@@ -245,7 +247,7 @@ post '/do-api' do
   redirect '/confirm' unless @locals[:user].confirmed?
   haml :do_api, layout: :layout, locals: merged(
     title: '@' + @locals[:guser][:login] + '/api',
-    code: settings.codec.encrypt("#{@locals[:guser][:login]} #{params[:pass]}")
+    code: Base64.encode64(settings.codec.encrypt("#{@locals[:guser][:login]} #{params[:pass]}"))
   )
 end
 
