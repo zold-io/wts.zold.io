@@ -19,6 +19,7 @@
 # SOFTWARE.
 
 require 'zold/log'
+require 'zold/commands/remote'
 
 #
 # Operations that update remotes before and after.
@@ -56,13 +57,10 @@ class UpdateOps
   private
 
   def update
-    if @remotes.all.empty?
-      require 'zold/commands/remote'
-      Zold::Remote.new(remotes: @remotes, log: @log).run(['remote', 'reset', "--network=#{@network}"])
-    end
+    cmd = Zold::Remote.new(remotes: @remotes, log: @log)
+    cmd.run(['remote', 'reset', "--network=#{@network}"]) if @remotes.all.empty?
     return if @remotes.all.count > 7
-    require 'zold/commands/remote'
-    Zold::Remote.new(remotes: @remotes, log: @log).run(['remote', 'update', "--network=#{@network}"])
-    Zold::Remote.new(remotes: @remotes, log: @log).run(%w[remote trim])
+    cmd.run(['remote', 'update', "--network=#{@network}"])
+    cmd.run(%w[remote trim])
   end
 end
