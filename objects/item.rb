@@ -58,13 +58,13 @@ class Item
         'pass' => pass
       }
     )
-    @log.debug("New user @#{@login} created, ID=#{id}")
+    @log.info("New user @#{@login} created, wallet ID is #{id}, pass is '#{pass[0, 2]}#{'.' * (pass.length - 2)}'")
     pass
   end
 
   # Return private key as Zold::Key
   def key(pass)
-    raise 'Pass can\'t be nil' if pass.nil?
+    raise "Pass can\'t be nil for @#{@login}" if pass.nil?
     key = read['pem']
     raise "There is no key for some reason for user @#{@login}" if key.nil?
     key = Pass.new.merge(key, pass)
@@ -100,8 +100,11 @@ class Item
 
   # Remove the pass code from DynamoDB
   def wipe(pass)
-    raise 'Pass can\'t be nil' if pass.nil?
+    raise "Pass can\'t be nil for @#{@login}" if pass.nil?
     item = read
+    if pass != item['pass']
+      raise "Pass '#{pass}' of @#{@login} doesn't match '#{item['pass'][0, 2]}#{'.' * (item['pass'].length - 2)}'"
+    end
     @aws.put_item(
       table_name: 'zold-wallets',
       item: {

@@ -26,7 +26,7 @@ require 'zold/log'
 # Operations with a user.
 #
 class Ops
-  def initialize(item, user, wallets, remotes, copies, log: Zold::Log::Quiet.new)
+  def initialize(item, user, wallets, remotes, copies, log: Zold::Log::Quiet.new, network: 'test')
     raise 'User can\'t be nil' if user.nil?
     @user = user
     raise 'Item can\'t be nil' if item.nil?
@@ -39,23 +39,25 @@ class Ops
     @copies = copies
     raise 'Log can\'t be nil' if log.nil?
     @log = log
+    raise 'Network can\'t be nil' if network.nil?
+    @network = network
   end
 
   def pull
     start = Time.now
     if @remotes.all.empty?
       require 'zold/commands/remote'
-      Zold::Remote.new(remotes: @remotes, log: @log).run(%w[remote reset --network=zold])
+      Zold::Remote.new(remotes: @remotes, log: @log).run(['remote', 'reset', "--network=#{@network}"])
     end
     if @remotes.all.count < 8
       require 'zold/commands/remote'
-      Zold::Remote.new(remotes: @remotes, log: @log).run(%w[remote update --network=zold])
+      Zold::Remote.new(remotes: @remotes, log: @log).run(['remote', 'update', "--network=#{@network}"])
       Zold::Remote.new(remotes: @remotes, log: @log).run(%w[remote trim])
     end
     id = @item.id
     require 'zold/commands/pull'
     Zold::Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
-      ['pull', id.to_s, '--network=zold']
+      ['pull', id.to_s, "--network=#{@network}"]
     )
     wallet = @wallets.find(id)
     @log.info("#{Time.now.utc.iso8601}: Wallet #{wallet.id} pulled successfully \
@@ -67,7 +69,7 @@ in #{(Time.now - start).round}s, the balance is #{wallet.balance}\n \n ")
     wallet = @user.wallet
     require 'zold/commands/push'
     Zold::Push.new(wallets: @wallets, remotes: @remotes, log: @log).run(
-      ['pull', wallet.id.to_s, '--network=zold']
+      ['push', wallet.id.to_s, "--network=#{@network}"]
     )
     @log.info("#{Time.now.utc.iso8601}: Wallet #{wallet.id} pushed successfully \
 in #{(Time.now - start).round}s, the balance is #{wallet.balance}\n \n ")
@@ -88,13 +90,13 @@ in #{(Time.now - start).round}s, the balance is #{wallet.balance}\n \n ")
     unless @wallets.find(@user.item.id).exists?
       require 'zold/commands/pull'
       Zold::Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
-        ['pull', @user.item.id.to_s, '--network=zold']
+        ['pull', @user.item.id.to_s, "--network=#{@network}"]
       )
     end
     unless @wallets.find(bnf).exists?
       require 'zold/commands/pull'
       Zold::Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
-        ['pull', bnf.to_s, '--network=zold']
+        ['pull', bnf.to_s, "--network=#{@network}"]
       )
     end
     w = @user.wallet
@@ -109,7 +111,7 @@ in #{(Time.now - start).round}s, the balance is #{wallet.balance}\n \n ")
     Zold::Propagate.new(wallets: @wallets, log: @log).run(['propagate', w.id.to_s])
     require 'zold/commands/push'
     Zold::Push.new(wallets: @wallets, remotes: @remotes, log: @log).run(
-      ['push', w.id.to_s, bnf.to_s, '--network=zold']
+      ['push', w.id.to_s, bnf.to_s, "--network=#{@network}"]
     )
     @log.info("#{Time.now.utc.iso8601}: Paid #{amount} from #{w.id} to #{bnf} \
 in #{(Time.now - start).round}s: #{details}\n \n ")

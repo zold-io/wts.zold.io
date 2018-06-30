@@ -28,7 +28,7 @@ class Pass
   def extract(key, length = 8)
     pem = key.to_s
     pass = ''
-    until pass =~ /^[a-zA-Z0-9]+$/
+    until pass =~ /^[a-zA-Z0-9]+$/ && !pass.include?("\n")
       start = Random.new.rand(pem.length - length)
       pass = pem[start..(start + length - 1)]
     end

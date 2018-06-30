@@ -122,8 +122,9 @@ before '/*' do
   if header
     begin
       login, pass = settings.codec.decrypt(header).split(' ')
-      @params[:pass] = pass
       @locals[:guser] = { login: login }
+      @locals[:pass] = pass
+      settings.log.info("HTTP authentication header of @#{login} detected from #{request.ip}")
     rescue OpenSSL::Cipher::CipherError => _
       error 400
     end
@@ -187,6 +188,13 @@ get '/confirm' do
   )
 end
 
+get '/pass' do
+  redirect '/' unless @locals[:user]
+  redirect '/' if @locals[:user].confirmed?
+  content_type 'text/plain'
+  @locals[:user].item.pass
+end
+
 get '/do-confirm' do
   redirect '/' unless @locals[:user]
   @locals[:user].confirm(params[:pass])
@@ -219,7 +227,8 @@ post '/do-pay' do
   end
   amount = Zold::Amount.new(zld: params[:amount].to_f)
   details = params[:details]
-  @locals[:ops].pay(params[:pass], bnf, amount, details)
+  pass = @locals[:pass].nil? ? params[:pass] : @locals[:pass]
+  @locals[:ops].pay(pass, bnf, amount, details)
   @locals[:log].info("Payment made by @#{@locals[:guser][:login]} to #{bnf} for #{amount}\n \n")
   redirect '/'
 end
@@ -248,6 +257,13 @@ get '/key' do
   )
 end
 
+get '/pass' do
+  redirect '/' unless @locals[:user]
+  redirect '/confirm' unless @locals[:user].confirmed?
+  content_type 'text/plain'
+  "hey: #{params[:pass]}"
+end
+
 get '/id' do
   redirect '/' unless @locals[:user]
   redirect '/confirm' unless @locals[:user].confirmed?
@@ -260,6 +276,14 @@ get '/balance' do
   redirect '/confirm' unless @locals[:user].confirmed?
   content_type 'text/plain'
   @locals[:user].wallet.balance.to_i
+end
+
+post '/id_rsa' do
+  redirect '/' unless @locals[:user]
+  redirect '/confirm' unless @locals[:user].confirmed?
+  content_type 'text/plain'
+  pass = @locals[:pass].nil? ? params[:pass] : @locals[:pass]
+  @locals[:user].item.key(pass).to_s
 end
 
 get '/api' do
@@ -277,6 +301,13 @@ post '/do-api' do
     title: '@' + @locals[:guser][:login] + '/api',
     code: settings.codec.encrypt("#{@locals[:guser][:login]} #{params[:pass]}")
   )
+end
+
+post '/do-api-token' do
+  redirect '/' unless @locals[:user]
+  redirect '/confirm' unless @locals[:user].confirmed?
+  content_type 'text/plain'
+  settings.codec.encrypt("#{@locals[:guser][:login]} #{params[:pass]}")
 end
 
 get '/invoice' do
@@ -372,7 +403,8 @@ def ops(user, async: true)
         settings.wallets,
         settings.remotes,
         settings.copies,
-        log: @locals[:log]
+        log: @locals[:log],
+        network: ENV['RACK_ENV'] == 'test' ? 'test' : 'zold'
       )
     )
   )
@@ -381,7 +413,9 @@ def ops(user, async: true)
 end
 
 def pay_bonus
-  ops(user(settings.config['rewards']['login'])).pay(
+  boss = user(settings.config['rewards']['login'])
+  return unless boss.item.exists?
+  ops(boss).pay(
     settings.config['rewards']['pass'], @locals[:user].item.id,
     Zold::Amount.new(zld: 8.0), "WTS signup bonus to #{@locals[:guser][:login]}"
   )

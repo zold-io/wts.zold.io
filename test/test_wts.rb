@@ -64,11 +64,7 @@ class AppTest < Minitest::Test
   end
 
   def test_200_user_pages
-    set_cookie('glogin=tester')
-    get('/create')
-    assert_equal(302, last_response.status, last_response.body)
-    get('/do-confirm?pass=')
-    assert_equal(302, last_response.status, last_response.body)
+    login('bill')
     ['/home', '/key', '/log', '/invoice', '/api'].each do |p|
       get(p)
       assert_equal(200, last_response.status, "#{p} fails: #{last_response.body}")
@@ -76,11 +72,7 @@ class AppTest < Minitest::Test
   end
 
   def test_302_user_pages
-    set_cookie('glogin=tester')
-    get('/create')
-    assert_equal(302, last_response.status, last_response.body)
-    get('/do-confirm?pass=')
-    assert_equal(302, last_response.status, last_response.body)
+    login('nick')
     ['/pull', '/push'].each do |p|
       get(p)
       assert_equal(302, last_response.status, "#{p} fails: #{last_response.body}")
@@ -88,13 +80,36 @@ class AppTest < Minitest::Test
   end
 
   def test_api_code
-    set_cookie('glogin=tester')
+    pass = login('poly')
+    post('/do-api', 'pass=' + pass)
+    assert_equal(200, last_response.status, last_response.body)
+    assert(last_response.body.include?('X-Zold-Wts:'), last_response.body)
+  end
+
+  def test_fetch_rsa_key_via_restful_api
+    pass = login('anna')
+    post('/do-api-token', 'pass=' + pass)
+    assert_equal(200, last_response.status, last_response.body)
+    token = last_response.body
+    set_cookie('glogin=')
+    header('X-Zold-WTS', token)
+    post('/id_rsa')
+    assert_equal(200, last_response.status, last_response.body)
+  end
+
+  private
+
+  def login(name)
+    set_cookie('glogin=' + name)
     get('/create')
     assert_equal(302, last_response.status, last_response.body)
-    get('/do-confirm?pass=')
+    get('/pass')
+    assert_equal(200, last_response.status, last_response.body)
+    pass = last_response.body
+    get('/do-confirm?pass=' + pass)
     assert_equal(302, last_response.status, last_response.body)
-    post('/do-api', 'pass=')
-    assert_equal(200, last_response.status)
-    assert(last_response.body.include?('X-Zold-Wts:'), last_response.body)
+    get('/id')
+    assert_equal(200, last_response.status, last_response.body)
+    pass
   end
 end
