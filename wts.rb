@@ -44,6 +44,7 @@ require_relative 'objects/ops'
 require_relative 'objects/async_ops'
 require_relative 'objects/safe_ops'
 require_relative 'objects/latch_ops'
+require_relative 'objects/update_ops'
 require_relative 'objects/file_log'
 require_relative 'objects/tee_log'
 
@@ -394,17 +395,23 @@ def user(login)
 end
 
 def ops(user, async: true)
+  network = ENV['RACK_ENV'] == 'test' ? 'test' : 'zold'
   ops = SafeOps.new(
     @locals[:log],
     LatchOps.new(
       @locals[:latch],
-      Ops.new(
-        user.item, user,
-        settings.wallets,
+      UpdateOps.new(
+        Ops.new(
+          user.item, user,
+          settings.wallets,
+          settings.remotes,
+          settings.copies,
+          log: @locals[:log],
+          network: network
+        ),
         settings.remotes,
-        settings.copies,
         log: @locals[:log],
-        network: ENV['RACK_ENV'] == 'test' ? 'test' : 'zold'
+        network: network
       )
     )
   )
