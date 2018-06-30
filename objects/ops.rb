@@ -45,15 +45,7 @@ class Ops
 
   def pull
     start = Time.now
-    if @remotes.all.empty?
-      require 'zold/commands/remote'
-      Zold::Remote.new(remotes: @remotes, log: @log).run(['remote', 'reset', "--network=#{@network}"])
-    end
-    if @remotes.all.count < 8
-      require 'zold/commands/remote'
-      Zold::Remote.new(remotes: @remotes, log: @log).run(['remote', 'update', "--network=#{@network}"])
-      Zold::Remote.new(remotes: @remotes, log: @log).run(%w[remote trim])
-    end
+    update
     id = @item.id
     require 'zold/commands/pull'
     Zold::Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
@@ -66,6 +58,7 @@ in #{(Time.now - start).round}s, the balance is #{wallet.balance}\n \n ")
 
   def push
     start = Time.now
+    update
     wallet = @user.wallet
     require 'zold/commands/push'
     Zold::Push.new(wallets: @wallets, remotes: @remotes, log: @log).run(
@@ -87,6 +80,7 @@ in #{(Time.now - start).round}s, the balance is #{wallet.balance}\n \n ")
     raise 'The user is not registered yet' unless @item.exists?
     raise 'The account is not confirmed yet' unless @user.confirmed?
     start = Time.now
+    update
     unless @wallets.find(@user.item.id).exists?
       require 'zold/commands/pull'
       Zold::Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
@@ -115,5 +109,18 @@ in #{(Time.now - start).round}s, the balance is #{wallet.balance}\n \n ")
     )
     @log.info("#{Time.now.utc.iso8601}: Paid #{amount} from #{w.id} to #{bnf} \
 in #{(Time.now - start).round}s: #{details}\n \n ")
+  end
+
+  private
+
+  def update
+    if @remotes.all.empty?
+      require 'zold/commands/remote'
+      Zold::Remote.new(remotes: @remotes, log: @log).run(['remote', 'reset', "--network=#{@network}"])
+    end
+    return if @remotes.all.count > 7
+    require 'zold/commands/remote'
+    Zold::Remote.new(remotes: @remotes, log: @log).run(['remote', 'update', "--network=#{@network}"])
+    Zold::Remote.new(remotes: @remotes, log: @log).run(%w[remote trim])
   end
 end
