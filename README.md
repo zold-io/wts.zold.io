@@ -1,5 +1,7 @@
 <img src="http://www.zold.io/logo.svg" width="92px" height="92px"/>
 
+[![Donate via Zerocracy](https://www.0crat.com/contrib-badge/CB28FH2NR.svg)](https://www.0crat.com/contrib/CB28FH2NR)
+
 [![EO principles respected here](http://www.elegantobjects.org/badge.svg)](http://www.elegantobjects.org)
 [![Managed by Zerocracy](https://www.0crat.com/badge/CAZPZR9FS.svg)](https://www.0crat.com/p/CAZPZR9FS)
 [![DevOps By Rultor.com](http://www.rultor.com/b/zold-io/out)](http://www.rultor.com/p/zold-io/out)
