@@ -69,7 +69,8 @@
               %li
                 %a{href: '/api'} API
               %li
-                %a{style: 'color:red', href: '/create', onclick: "return confirm('The wallet will be re-created, the existing RSA private key will be deleted from our database, are you sure?')"} Restart
+                %del
+                  %a{href: '/create', onclick: "return confirm('The wallet will be re-created, the existing RSA private key will be deleted from our database, are you sure?')"} Restart
           - if File.exist?(latch)
             %nav
               %ul
