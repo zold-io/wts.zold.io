@@ -6,6 +6,8 @@
     = ' | '
     Balance:
     = user.wallet.balance
+    = '/'
+    = "#{user.wallet.txns.count}t"
 
 - if user.wallet.exists? && user.wallet.balance.negative?
   %p{style: 'color: darkred'}
