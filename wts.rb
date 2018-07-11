@@ -403,14 +403,14 @@ end
 def user(login)
   User.new(
     login, Item.new(login, settings.dynamo),
-    settings.wallets, log: log
+    settings.wallets, log: log(login)
   )
 end
 
 def ops(user, async: true)
   network = ENV['RACK_ENV'] == 'test' ? 'test' : 'zold'
   ops = SafeOps.new(
-    log,
+    log(user.login),
     LatchOps.new(
       @locals[:latch],
       UpdateOps.new(
@@ -419,11 +419,11 @@ def ops(user, async: true)
           settings.wallets,
           settings.remotes,
           settings.copies,
-          log: log,
+          log: log(user.login),
           network: network
         ),
         settings.remotes,
-        log: log,
+        log: log(user.login),
         network: network
       )
     )
