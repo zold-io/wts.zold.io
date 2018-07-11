@@ -407,7 +407,7 @@ def user(login)
 end
 
 def latch(login = cookies[:glogin])
-  File.join(settings.root, "latch/#{}")
+  File.join(settings.root, "latch/#{login}")
 end
 
 def ops(user, async: true)
