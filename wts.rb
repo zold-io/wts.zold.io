@@ -103,7 +103,7 @@ configure do
       begin
         pay_hosting_bonuses
       rescue StandardError => e
-        settings.log.error("#{e.class.name}: #{e.message}\n\t#{e.backtrace.join("\n\t")}")
+        puts("#{e.class.name}: #{e.message}\n\t#{e.backtrace.join("\n\t")}")
       end
     end
   end
