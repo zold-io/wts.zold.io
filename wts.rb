@@ -97,6 +97,12 @@ configure do
   set :codec, GLogin::Codec.new(config['api_secret'])
   set :pool, Concurrent::FixedThreadPool.new(16, max_queue: 64, fallback_policy: :abort)
   set :log, Zold::Log::Quiet.new
+  Thread.new do
+    loop do
+      sleep 60
+      pay_hosting_bonuses
+    end
+  end
 end
 
 before '/*' do
@@ -131,10 +137,6 @@ before '/*' do
     end
   end
   if @locals[:guser]
-    @locals[:log] = TeeLog.new(
-      settings.log,
-      FileLog.new(File.join(settings.root, ".zold-wts/logs/#{@locals[:guser][:login]}"))
-    )
     @locals[:latch] = File.join(settings.root, "latch/#{cookies[:glogin]}")
     @locals[:user] = user(@locals[:guser][:login])
     @locals[:ops] = ops(@locals[:user])
@@ -177,7 +179,7 @@ get '/create' do
   @locals[:user].create
   pay_bonus
   @locals[:ops].push
-  @locals[:log].info("Wallet #{@locals[:user].item.id} created and pushed by @#{@locals[:guser][:login]}\n")
+  log.info("Wallet #{@locals[:user].item.id} created and pushed by @#{@locals[:guser][:login]}\n")
   redirect '/'
 end
 
@@ -199,7 +201,7 @@ end
 get '/do-confirm' do
   redirect '/' unless @locals[:user]
   @locals[:user].confirm(params[:pass])
-  @locals[:log].info("Account confirmed for @#{@locals[:guser][:login]}\n")
+  log.info("Account confirmed for @#{@locals[:guser][:login]}\n")
   redirect '/'
 end
 
@@ -230,7 +232,7 @@ post '/do-pay' do
   details = params[:details]
   pass = @locals[:pass].nil? ? params[:pass] : @locals[:pass]
   @locals[:ops].pay(pass, bnf, amount, details)
-  @locals[:log].info("Payment made by @#{@locals[:guser][:login]} to #{bnf} for #{amount}\n \n")
+  log.info("Payment made by @#{@locals[:guser][:login]} to #{bnf} for #{amount}\n \n")
   redirect '/'
 end
 
@@ -238,7 +240,7 @@ get '/pull' do
   redirect '/' unless @locals[:user]
   redirect '/confirm' unless @locals[:user].confirmed?
   @locals[:ops].pull
-  @locals[:log].info("Wallet #{@locals[:user].item.id} pulled by @#{@locals[:guser][:login]}\n \n")
+  log.info("Wallet #{@locals[:user].item.id} pulled by @#{@locals[:guser][:login]}\n \n")
   redirect '/'
 end
 
@@ -246,7 +248,7 @@ get '/push' do
   redirect '/' unless @locals[:user]
   redirect '/confirm' unless @locals[:user].confirmed?
   @locals[:ops].push
-  @locals[:log].info("Wallet #{@locals[:user].item.id} pushed by @#{@locals[:guser][:login]}\n \n")
+  log.info("Wallet #{@locals[:user].item.id} pushed by @#{@locals[:guser][:login]}\n \n")
   redirect '/'
 end
 
@@ -323,7 +325,7 @@ get '/log' do
   redirect '/' unless @locals[:user]
   redirect '/confirm' unless @locals[:user].confirmed?
   content_type 'text/plain', charset: 'utf-8'
-  @locals[:log].content
+  log.content
 end
 
 get '/remotes' do
@@ -387,17 +389,24 @@ def merged(hash)
   out
 end
 
+def log(user = @locals[:guser][:login])
+  TeeLog.new(
+    settings.log,
+    FileLog.new(File.join(settings.root, ".zold-wts/logs/#{user}"))
+  )
+end
+
 def user(login)
   User.new(
     login, Item.new(login, settings.dynamo),
-    settings.wallets, log: @locals[:log]
+    settings.wallets, log: log
   )
 end
 
 def ops(user, async: true)
   network = ENV['RACK_ENV'] == 'test' ? 'test' : 'zold'
   ops = SafeOps.new(
-    @locals[:log],
+    log,
     LatchOps.new(
       @locals[:latch],
       UpdateOps.new(
@@ -406,11 +415,11 @@ def ops(user, async: true)
           settings.wallets,
           settings.remotes,
           settings.copies,
-          log: @locals[:log],
+          log: log,
           network: network
         ),
         settings.remotes,
-        log: @locals[:log],
+        log: log,
         network: network
       )
     )
@@ -426,4 +435,17 @@ def pay_bonus
     settings.config['rewards']['pass'], @locals[:user].item.id,
     Zold::Amount.new(zld: 8.0), "WTS signup bonus to #{@locals[:guser][:login]}"
   )
+end
+
+def pay_hosting_bonuses
+  login = settings.config['rewards']['login']
+  boss = user(login)
+  return unless boss.item.exists?
+  Remote.new(remotes: settings.remotes, log: log(login)).run(%w[remote elect]).each do |score|
+    ops(boss).pay(
+      settings.config['rewards']['pass'], score.invoice,
+      Zold::Amount.new(zld: 1.0),
+      "Hosting bonus for #{score.host} #{score.port} #{score.value}"
+    )
+  end
 end
