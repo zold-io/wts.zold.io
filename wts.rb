@@ -96,14 +96,14 @@ configure do
   set :copies, File.join(settings.root, '.zold-wts/copies')
   set :codec, GLogin::Codec.new(config['api_secret'])
   set :pool, Concurrent::FixedThreadPool.new(16, max_queue: 64, fallback_policy: :abort)
-  set :log, Zold::Log::Quiet.new
+  set :log, Zold::Log::Regular.new
   Thread.new do
     loop do
       sleep 60
       begin
         pay_hosting_bonuses
       rescue StandardError => e
-        puts("#{e.class.name}: #{e.message}\n\t#{e.backtrace.join("\n\t")}")
+        settings.log.error("#{e.class.name}: #{e.message}\n\t#{e.backtrace.join("\n\t")}")
       end
     end
   end
