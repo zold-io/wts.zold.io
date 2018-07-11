@@ -35,6 +35,7 @@ require 'zold/remotes'
 require 'zold/amount'
 require 'zold/wallets'
 require 'zold/remotes'
+require 'zold/verbose_thread'
 
 require_relative 'version'
 require_relative 'objects/item'
@@ -100,7 +101,9 @@ configure do
   Thread.new do
     loop do
       sleep 60
-      pay_hosting_bonuses
+      Zold::VerboseThread.new(Zold::Log::Regular.new).run(true) do
+        pay_hosting_bonuses
+      end
     end
   end
 end
