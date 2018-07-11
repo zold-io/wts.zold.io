@@ -35,7 +35,6 @@ require 'zold/remotes'
 require 'zold/amount'
 require 'zold/wallets'
 require 'zold/remotes'
-require 'zold/verbose_thread'
 
 require_relative 'version'
 require_relative 'objects/item'
@@ -101,8 +100,10 @@ configure do
   Thread.new do
     loop do
       sleep 60
-      Zold::VerboseThread.new(Zold::Log::Verbose.new).run(true) do
+      begin
         pay_hosting_bonuses
+      rescue StandardError => e
+        settings.log.error("#{e.class.name}: #{e.message}\n\t#{e.backtrace.join("\n\t")}")
       end
     end
   end
