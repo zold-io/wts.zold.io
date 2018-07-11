@@ -141,7 +141,6 @@ before '/*' do
     end
   end
   if @locals[:guser]
-    @locals[:latch] = File.join(settings.root, "latch/#{cookies[:glogin]}")
     @locals[:user] = user(@locals[:guser][:login])
     @locals[:ops] = ops(@locals[:user])
   end
@@ -407,12 +406,16 @@ def user(login)
   )
 end
 
+def latch(login = cookies[:glogin])
+  File.join(settings.root, "latch/#{}")
+end
+
 def ops(user, async: true)
   network = ENV['RACK_ENV'] == 'test' ? 'test' : 'zold'
   ops = SafeOps.new(
     log(user.login),
     LatchOps.new(
-      @locals[:latch],
+      latch(user.login),
       UpdateOps.new(
         Ops.new(
           user.item, user,
