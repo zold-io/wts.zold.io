@@ -101,7 +101,7 @@ configure do
   Thread.new do
     loop do
       sleep 60
-      Zold::VerboseThread.new(Zold::Log::Regular.new).run(true) do
+      Zold::VerboseThread.new(Zold::Log::Verbose.new).run(true) do
         pay_hosting_bonuses
       end
     end
