@@ -446,7 +446,7 @@ def pay_hosting_bonuses
   boss = user(login)
   return unless boss.item.exists?
   require 'zold/commands/remote'
-  Remote.new(remotes: settings.remotes, log: log(login)).run(%w[remote elect]).each do |score|
+  Zold::Remote.new(remotes: settings.remotes, log: log(login)).run(%w[remote elect]).each do |score|
     ops(boss).pay(
       settings.config['rewards']['pass'], score.invoice,
       Zold::Amount.new(zld: 1.0),
