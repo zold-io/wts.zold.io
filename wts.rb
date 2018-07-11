@@ -453,7 +453,8 @@ def pay_hosting_bonuses
   cmd.run(%w[remote update])
   cmd.run(%w[remote elect]).each do |score|
     ops(boss).pay(
-      settings.config['rewards']['pass'], score.invoice,
+      settings.config['rewards']['pass'],
+      score.invoice,
       Zold::Amount.new(zld: 1.0),
       "Hosting bonus for #{score.host} #{score.port} #{score.value}"
     )
