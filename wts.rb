@@ -416,6 +416,7 @@ def ops(user, async: true)
   ops = SafeOps.new(
     log(user.login),
     VersionedOps.new(
+      log(user.login),
       LatchOps.new(
         latch(user.login),
         UpdateOps.new(
@@ -431,8 +432,7 @@ def ops(user, async: true)
           log: log(user.login),
           network: network
         )
-      ),
-      log(user.login)
+      )
     )
   )
   ops = AsyncOps.new(settings.pool, ops) if async
