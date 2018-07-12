@@ -413,12 +413,12 @@ end
 
 def ops(user, async: true)
   network = ENV['RACK_ENV'] == 'test' ? 'test' : 'zold'
-  ops = SafeOps.new(
-    log(user.login),
-    LatchOps.new(
-      latch(user.login),
-      UpdateOps.new(
-        VersionedOps.new(
+  ops = VersionedOps.new(
+    SafeOps.new(
+      log(user.login),
+      LatchOps.new(
+        latch(user.login),
+        UpdateOps.new(
           Ops.new(
             user.item, user,
             settings.wallets,
@@ -427,13 +427,12 @@ def ops(user, async: true)
             log: log(user.login),
             network: network
           ),
-          log(user.login)
-        ),
-        settings.remotes,
-        log: log(user.login),
-        network: network
+          settings.remotes,
+          log: log(user.login),
+          network: network
+        )
       )
-    )
+    ), log(user.login)
   )
   ops = AsyncOps.new(settings.pool, ops) if async
   ops
