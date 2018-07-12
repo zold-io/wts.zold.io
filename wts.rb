@@ -413,9 +413,9 @@ end
 
 def ops(user, async: true)
   network = ENV['RACK_ENV'] == 'test' ? 'test' : 'zold'
-  ops = VersionedOps.new(
-    SafeOps.new(
-      log(user.login),
+  ops = SafeOps.new(
+    log(user.login),
+    VersionedOps.new(
       LatchOps.new(
         latch(user.login),
         UpdateOps.new(
@@ -431,8 +431,9 @@ def ops(user, async: true)
           log: log(user.login),
           network: network
         )
-      )
-    ), log(user.login)
+      ),
+      log(user.login)
+    )
   )
   ops = AsyncOps.new(settings.pool, ops) if async
   ops
