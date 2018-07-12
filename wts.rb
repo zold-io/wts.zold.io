@@ -45,6 +45,7 @@ require_relative 'objects/async_ops'
 require_relative 'objects/safe_ops'
 require_relative 'objects/latch_ops'
 require_relative 'objects/update_ops'
+require_relative 'objects/versioned_ops'
 require_relative 'objects/file_log'
 require_relative 'objects/tee_log'
 
@@ -417,13 +418,16 @@ def ops(user, async: true)
     LatchOps.new(
       latch(user.login),
       UpdateOps.new(
-        Ops.new(
-          user.item, user,
-          settings.wallets,
-          settings.remotes,
-          settings.copies,
-          log: log(user.login),
-          network: network
+        VersionedOps.new(
+          Ops.new(
+            user.item, user,
+            settings.wallets,
+            settings.remotes,
+            settings.copies,
+            log: log(user.login),
+            network: network
+          ),
+          log(user.login)
         ),
         settings.remotes,
         log: log(user.login),
