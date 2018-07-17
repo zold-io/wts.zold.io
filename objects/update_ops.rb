@@ -58,9 +58,11 @@ class UpdateOps
 
   def update
     cmd = Zold::Remote.new(remotes: @remotes, log: @log)
-    cmd.run(['remote', 'reset', "--network=#{@network}"]) if @remotes.all.empty?
-    return if @remotes.all.count > 7
-    cmd.run(['remote', 'update', "--network=#{@network}"])
-    cmd.run(%w[remote trim])
+    args = ['remote', "--network=#{@network}"]
+    cmd.run(args + ['reset']) if @remotes.all.empty?
+    cmd.run(args + ['trim'])
+    cmd.run(args + ['select'])
+    return if @remotes.all.count >= 8 && @remotes.all.count <= 16
+    cmd.run(args + ['update'])
   end
 end
