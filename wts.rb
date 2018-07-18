@@ -60,7 +60,7 @@ configure do
     {
       'rewards' => {
         'login' => '0crat',
-        'pass' => '?'
+        'keygap' => '?'
       },
       'github' => {
         'client_id' => '?',
@@ -133,9 +133,9 @@ before '/*' do
   header = request.env['HTTP_X_ZOLD_WTS']
   if header
     begin
-      login, pass = settings.codec.decrypt(header).split(' ')
+      login, keygap = settings.codec.decrypt(header).split(' ')
       @locals[:guser] = { login: login }
-      @locals[:pass] = pass
+      @locals[:keygap] = keygap
       settings.log.info("HTTP authentication header of @#{login} detected from #{request.ip}")
     rescue OpenSSL::Cipher::CipherError => _
       error 400
@@ -191,20 +191,20 @@ get '/confirm' do
   redirect '/' unless @locals[:user]
   redirect '/home' if @locals[:user].confirmed?
   haml :confirm, layout: :layout, locals: merged(
-    title: '@' + @locals[:guser][:login] + '/pass'
+    title: '@' + @locals[:guser][:login] + '/keygap'
   )
 end
 
-get '/pass' do
+get '/keygap' do
   redirect '/' unless @locals[:user]
   redirect '/' if @locals[:user].confirmed?
   content_type 'text/plain'
-  @locals[:user].item.pass
+  @locals[:user].item.keygap
 end
 
 get '/do-confirm' do
   redirect '/' unless @locals[:user]
-  @locals[:user].confirm(params[:pass])
+  @locals[:user].confirm(params[:keygap])
   log.info("Account confirmed for @#{@locals[:guser][:login]}\n")
   redirect '/'
 end
@@ -234,8 +234,9 @@ post '/do-pay' do
   end
   amount = Zold::Amount.new(zld: params[:amount].to_f)
   details = params[:details]
-  pass = @locals[:pass].nil? ? params[:pass] : @locals[:pass]
-  @locals[:ops].pay(pass, bnf, amount, details)
+  params[:keygap] = params[:pass] if params[:pass]
+  keygap = @locals[:keygap].nil? ? params[:keygap] : @locals[:keygap]
+  @locals[:ops].pay(keygap, bnf, amount, details)
   log.info("Payment made by @#{@locals[:guser][:login]} to #{bnf} for #{amount}\n \n")
   redirect '/'
 end
@@ -264,11 +265,11 @@ get '/key' do
   )
 end
 
-get '/pass' do
+get '/keygap' do
   redirect '/' unless @locals[:user]
   redirect '/confirm' unless @locals[:user].confirmed?
   content_type 'text/plain'
-  "hey: #{params[:pass]}"
+  "hey: #{params[:keygap]}"
 end
 
 get '/id' do
@@ -289,8 +290,8 @@ post '/id_rsa' do
   redirect '/' unless @locals[:user]
   redirect '/confirm' unless @locals[:user].confirmed?
   content_type 'text/plain'
-  pass = @locals[:pass].nil? ? params[:pass] : @locals[:pass]
-  @locals[:user].item.key(pass).to_s
+  keygap = @locals[:keygap].nil? ? params[:keygap] : @locals[:keygap]
+  @locals[:user].item.key(keygap).to_s
 end
 
 get '/api' do
@@ -306,7 +307,7 @@ post '/do-api' do
   redirect '/confirm' unless @locals[:user].confirmed?
   haml :do_api, layout: :layout, locals: merged(
     title: '@' + @locals[:guser][:login] + '/api',
-    code: settings.codec.encrypt("#{@locals[:guser][:login]} #{params[:pass]}")
+    code: settings.codec.encrypt("#{@locals[:guser][:login]} #{params[:keygap]}")
   )
 end
 
@@ -314,7 +315,7 @@ post '/do-api-token' do
   redirect '/' unless @locals[:user]
   redirect '/confirm' unless @locals[:user].confirmed?
   content_type 'text/plain'
-  settings.codec.encrypt("#{@locals[:guser][:login]} #{params[:pass]}")
+  settings.codec.encrypt("#{@locals[:guser][:login]} #{params[:keygap]}")
 end
 
 get '/invoice' do
@@ -443,7 +444,7 @@ def pay_bonus
   boss = user(settings.config['rewards']['login'])
   return unless boss.item.exists?
   ops(boss).pay(
-    settings.config['rewards']['pass'], @locals[:user].item.id,
+    settings.config['rewards']['keygap'], @locals[:user].item.id,
     Zold::Amount.new(zld: 8.0), "WTS signup bonus to #{@locals[:guser][:login]}"
   )
 end
@@ -457,7 +458,7 @@ def pay_hosting_bonuses
   cmd.run(%w[remote update])
   cmd.run(%w[remote elect --min-score=8]).each do |score|
     ops(boss).pay(
-      settings.config['rewards']['pass'],
+      settings.config['rewards']['keygap'],
       score.invoice,
       Zold::Amount.new(zld: 1.0),
       "Hosting bonus for #{score.host} #{score.port} #{score.value}"

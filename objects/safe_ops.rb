@@ -41,8 +41,8 @@ class SafeOps
     print(e)
   end
 
-  def pay(pass, bnf, amount, details)
-    @ops.pay(pass, bnf, amount, details)
+  def pay(keygap, bnf, amount, details)
+    @ops.pay(keygap, bnf, amount, details)
   rescue StandardError => e
     print(e)
   end

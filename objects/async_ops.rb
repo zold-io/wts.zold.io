@@ -41,9 +41,9 @@ class AsyncOps
     end
   end
 
-  def pay(pass, bnf, amount, details)
+  def pay(keygap, bnf, amount, details)
     @pool.post do
-      @ops.pay(pass, bnf, amount, details)
+      @ops.pay(keygap, bnf, amount, details)
     end
   end
 end

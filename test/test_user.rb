@@ -40,8 +40,8 @@ class UserTest < Minitest::Test
       )
       user.create
       assert(!user.confirmed?)
-      pass = user.pass
-      user.confirm(pass)
+      keygap = user.keygap
+      user.confirm(keygap)
       assert(user.confirmed?)
     end
   end

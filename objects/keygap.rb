@@ -21,22 +21,22 @@
 require 'zold/key'
 
 #
-# Pass code.
+# Keygap code.
 #
-class Pass
-  # Extracts a random pass code and returns an array of [pem, pass]
+class Keygap
+  # Extracts a random keygap and returns an array of [pem, keygap]
   def extract(key, length = 8)
     pem = key.to_s
-    pass = ''
-    until pass =~ /^[a-zA-Z0-9]+$/ && !pass.include?("\n")
+    keygap = ''
+    until keygap =~ /^[a-zA-Z0-9]+$/ && !keygap.include?("\n")
       start = Random.new.rand(pem.length - length)
-      pass = pem[start..(start + length - 1)]
+      keygap = pem[start..(start + length - 1)]
     end
-    [pem.sub(pass, '*' * length), pass]
+    [pem.sub(keygap, '*' * length), keygap]
   end
 
   # Returns Zold::Key
-  def merge(pem, pass)
-    Zold::Key.new(text: pem.sub('*' * pass.length, pass))
+  def merge(pem, keygap)
+    Zold::Key.new(text: pem.sub('*' * keygap.length, keygap))
   end
 end

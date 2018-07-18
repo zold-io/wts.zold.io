@@ -39,14 +39,14 @@ class OpsTest < Minitest::Test
       item = Item.new(login, Dynamo.new.aws, log: log)
       user = User.new(login, item, wallets, log: log)
       user.create
-      pass = user.pass
-      user.confirm(pass)
+      keygap = user.keygap
+      user.confirm(keygap)
       friend = User.new('friend', Item.new('friend', Dynamo.new.aws, log: log), wallets, log: log)
       friend.create
       puts wallets.all
       # copies = File.join(dir, 'copies')
       # Ops.new(item, user, wallets, remotes, copies, log: log).pay(
-      #   pass, friend.wallet.id, Zold::Amount.new(zld: 19.99), 'for fun'
+      #   keygap, friend.wallet.id, Zold::Amount.new(zld: 19.99), 'for fun'
       # )
     end
   end

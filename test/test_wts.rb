@@ -80,15 +80,15 @@ class AppTest < Minitest::Test
   end
 
   def test_api_code
-    pass = login('poly')
-    post('/do-api', 'pass=' + pass)
+    keygap = login('poly')
+    post('/do-api', 'keygap=' + keygap)
     assert_equal(200, last_response.status, last_response.body)
     assert(last_response.body.include?('X-Zold-Wts:'), last_response.body)
   end
 
   def test_fetch_rsa_key_via_restful_api
-    pass = login('anna')
-    post('/do-api-token', 'pass=' + pass)
+    keygap = login('anna')
+    post('/do-api-token', 'keygap=' + keygap)
     assert_equal(200, last_response.status, last_response.body)
     token = last_response.body
     set_cookie('glogin=')
@@ -103,13 +103,13 @@ class AppTest < Minitest::Test
     set_cookie('glogin=' + name)
     get('/create')
     assert_equal(302, last_response.status, last_response.body)
-    get('/pass')
+    get('/keygap')
     assert_equal(200, last_response.status, last_response.body)
-    pass = last_response.body
-    get('/do-confirm?pass=' + pass)
+    keygap = last_response.body
+    get('/do-confirm?keygap=' + keygap)
     assert_equal(302, last_response.status, last_response.body)
     get('/id')
     assert_equal(200, last_response.status, last_response.body)
-    pass
+    keygap
   end
 end

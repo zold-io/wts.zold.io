@@ -66,8 +66,8 @@ in #{(Time.now - start).round}s, the balance is #{wallet.balance}\n \n ")
 in #{(Time.now - start).round}s, the balance is #{wallet.balance}\n \n ")
   end
 
-  def pay(pass, bnf, amount, details)
-    raise 'Pass can\'t be nil' if pass.nil?
+  def pay(keygap, bnf, amount, details)
+    raise 'Keygap can\'t be nil' if keygap.nil?
     raise 'Beneficiary can\'t be nil' if bnf.nil?
     raise 'Amount can\'t be nil' if amount.nil?
     raise 'Payment amount can\'t be zero' if amount.zero?
@@ -91,7 +91,7 @@ in #{(Time.now - start).round}s, the balance is #{wallet.balance}\n \n ")
     end
     w = @user.wallet
     Tempfile.open do |f|
-      File.write(f, @item.key(pass))
+      File.write(f, @item.key(keygap))
       require 'zold/commands/pay'
       Zold::Pay.new(wallets: @wallets, remotes: @remotes, log: @log).run(
         ['pay', '--private-key=' + f.path, w.id.to_s, bnf.to_s, amount.to_zld(8), details, '--force']

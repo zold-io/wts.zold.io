@@ -21,7 +21,7 @@
 require 'zold/key'
 require 'zold/id'
 require 'zold/log'
-require_relative 'pass'
+require_relative 'keygap'
 
 #
 # Item in AWS DynamoDB.
@@ -40,34 +40,35 @@ class Item
     !items.empty?
   end
 
-  # Creates a record in DynamoDB and generates a unique pass code.
+  # Creates a record in DynamoDB and generates a unique keygap.
   # +id+:: Wallet iD
   # +key+:: Private RSA key
-  # +length+:: Length of pass to use (don't change it without a necessity)
+  # +length+:: Length of keygap to use (don't change it without a necessity)
   def create(id, key, length: 8)
     raise 'ID can\'t be nil' if id.nil?
     raise 'Key can\'t be nil' if key.nil?
     raise 'Length can\'t be nil' if length.nil?
-    pem, pass = Pass.new.extract(key.to_s, length)
+    pem, keygap = Keygap.new.extract(key.to_s, length)
     @aws.put_item(
       table_name: 'zold-wallets',
       item: {
         'login' => @login,
         'id' => id.to_s,
         'pem' => pem,
-        'pass' => pass
+        'keygap' => keygap
       }
     )
-    @log.info("New user @#{@login} created, wallet ID is #{id}, pass is '#{pass[0, 2]}#{'.' * (pass.length - 2)}'")
-    pass
+    @log.info("New user @#{@login} created, wallet ID is #{id}, \
+keygap is '#{keygap[0, 2]}#{'.' * (keygap.length - 2)}'")
+    keygap
   end
 
   # Return private key as Zold::Key
-  def key(pass)
-    raise "Pass can\'t be nil for @#{@login}" if pass.nil?
+  def key(keygap)
+    raise "Keygap can\'t be nil for @#{@login}" if keygap.nil?
     key = read['pem']
     raise "There is no key for some reason for user @#{@login}" if key.nil?
-    key = Pass.new.merge(key, pass)
+    key = Keygap.new.merge(key, keygap)
     @log.debug("The private key of @#{@login} reassembled: #{key.to_s.length} chars")
     key
   end
@@ -86,24 +87,25 @@ class Item
     id
   end
 
-  def pass
-    pass = read['pass']
-    raise "The user @#{@login} doesn't have a pass anymore" if pass.nil?
-    @log.debug("The pass code of @#{@login} retrieved")
-    pass
+  def keygap
+    keygap = read['keygap']
+    raise "The user @#{@login} doesn't have a keygap anymore" if keygap.nil?
+    @log.debug("The keygap of @#{@login} retrieved")
+    keygap
   end
 
-  # Returns TRUE if the pass is absent in the item
+  # Returns TRUE if the keygap is absent in the item
   def wiped?
-    read['pass'].nil?
+    read['keygap'].nil?
   end
 
-  # Remove the pass code from DynamoDB
-  def wipe(pass)
-    raise "Pass can\'t be nil for @#{@login}" if pass.nil?
+  # Remove the keygap from DynamoDB
+  def wipe(keygap)
+    raise "Keygap can\'t be nil for @#{@login}" if keygap.nil?
     item = read
-    if pass != item['pass']
-      raise "Pass '#{pass}' of @#{@login} doesn't match '#{item['pass'][0, 2]}#{'.' * (item['pass'].length - 2)}'"
+    if keygap != item['keygap']
+      raise "Keygap '#{keygap}' of @#{@login} doesn't match \
+'#{item['keygap'][0, 2]}#{'.' * (item['keygap'].length - 2)}'"
     end
     @aws.put_item(
       table_name: 'zold-wallets',
@@ -113,7 +115,7 @@ class Item
         'pem' => item['pem']
       }
     )
-    @log.debug("The pass code of @#{@login} was destroyed")
+    @log.debug("The keygap of @#{@login} was destroyed")
   end
 
   private

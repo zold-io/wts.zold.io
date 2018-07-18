@@ -48,9 +48,9 @@ class UpdateOps
     update
   end
 
-  def pay(pass, bnf, amount, details)
+  def pay(keygap, bnf, amount, details)
     update
-    @ops.pay(pass, bnf, amount, details)
+    @ops.pay(keygap, bnf, amount, details)
     update
   end
 

@@ -61,23 +61,23 @@ class User
     )
   end
 
-  # The user has already confirmed that he saved the pass
+  # The user has already confirmed that he saved the keygap
   # code in a safe place.
   def confirmed?
     @item.wiped?
   end
 
-  # The user confirms that the pass code is stored.
-  def confirm(pass)
-    raise 'Pass can\'t be nil' if pass.nil?
-    @item.wipe(pass)
+  # The user confirms that the keygap is stored.
+  def confirm(keygap)
+    raise 'Keygap can\'t be nil' if keygap.nil?
+    @item.wipe(keygap)
   end
 
-  # Get user pass, if it's still available in the database. Otherwise,
+  # Get user keygap, if it's still available in the database. Otherwise,
   # raise an exception.
-  def pass
-    raise 'The user has already confirmed the pass, we don\'t keep it anymore' if confirmed?
-    @item.pass
+  def keygap
+    raise 'The user has already confirmed the keygap, we don\'t keep it anymore' if confirmed?
+    @item.keygap
   end
 
   # Return user's Wallet (as Zold::Wallet)

@@ -32,12 +32,12 @@ class ItemTest < Minitest::Test
     assert(!item.exists?)
     pvt = OpenSSL::PKey::RSA.new(2048)
     id = Zold::Id.new
-    pass = item.create(id, Zold::Key.new(text: pvt.to_pem))
+    keygap = item.create(id, Zold::Key.new(text: pvt.to_pem))
     assert(item.exists?)
-    assert_equal(Zold::Key.new(text: pvt.to_pem), item.key(pass))
+    assert_equal(Zold::Key.new(text: pvt.to_pem), item.key(keygap))
     assert_equal(id, item.id)
     assert(!item.wiped?)
-    item.wipe(pass)
+    item.wipe(keygap)
     assert(item.wiped?)
   end
 end

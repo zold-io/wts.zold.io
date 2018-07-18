@@ -43,9 +43,9 @@ class LatchOps
     stop
   end
 
-  def pay(pass, bnf, amount, details)
+  def pay(keygap, bnf, amount, details)
     start
-    @ops.pay(pass, bnf, amount, details)
+    @ops.pay(keygap, bnf, amount, details)
   ensure
     stop
   end
