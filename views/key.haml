@@ -13,6 +13,9 @@
 
 %p
   Even though we keep this private RSA key in our database, it can't be used to send out money from your wallet,
-  because a small and important part of it has been extracted (a keygap) and given to you (marked with red stars).
+  because the
+  = succeed ',' do
+    %a{href: 'https://blog.zold.io/2018/07/18/keygap.html'} keygap
+  a small and important part of it, has been extracted and given to you (marked with red stars).
   Every time you make a new payment we ask you to provide it.
   Thus, even if our database gets hacked and/or stolen, your wallet is safe.
