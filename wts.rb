@@ -93,7 +93,7 @@ configure do
     'https://wts.zold.io/github-callback'
   )
   set :wallets, Zold::Wallets.new(File.join(settings.root, '.zold-wts/wallets'))
-  set :remotes, Zold::Remotes.new(File.join(settings.root, '.zold-wts/remotes'), network: 'zold')
+  set :remotes, Zold::Remotes.new(file: File.join(settings.root, '.zold-wts/remotes'), network: 'zold')
   set :copies, File.join(settings.root, '.zold-wts/copies')
   set :codec, GLogin::Codec.new(config['api_secret'])
   set :pool, Concurrent::FixedThreadPool.new(16, max_queue: 64, fallback_policy: :abort)

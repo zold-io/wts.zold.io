@@ -33,7 +33,7 @@ class OpsTest < Minitest::Test
   def test_make_payment
     Dir.mktmpdir 'test' do |dir|
       wallets = Zold::Wallets.new(File.join(dir, 'wallets'))
-      remotes = Zold::Remotes.new(File.join(dir, 'remotes.csv'))
+      remotes = Zold::Remotes.new(file: File.join(dir, 'remotes.csv'))
       remotes.clean
       login = 'jeff01'
       item = Item.new(login, Dynamo.new.aws, log: log)
