@@ -189,7 +189,7 @@ end
 post '/do-fund' do
   redirect '/' unless @locals[:user]
   redirect '/confirm' unless @locals[:user].confirmed?
-  amount = params[:amount]
+  amount = params[:amount].to_i
   redirect [
     'https://indacoin.com/gw/payment_form?',
     [
