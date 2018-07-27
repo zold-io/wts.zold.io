@@ -203,6 +203,13 @@ post '/do-fund' do
   ].join
 end
 
+get '/indacoin' do
+  ops(user(settings.config['rewards']['login'])).pay(
+    settings.config['rewards']['keygap'], user(params[:user]).item.id,
+    Zold::Amount.new(zld: params[:amount].to_i), 'Purchase via Indacoin'
+  )
+end
+
 get '/create' do
   redirect '/' unless @locals[:user]
   @locals[:user].create

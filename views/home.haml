@@ -8,6 +8,9 @@
     = user.wallet.balance
     = '/'
     = "#{user.wallet.txns.count}t"
+    = ' | '
+    Tax debt:
+    = Zold::Tax.new(user.wallet).debt
 
 - if user.wallet.exists? && user.wallet.balance.negative?
   %p{style: 'color: darkred'}
