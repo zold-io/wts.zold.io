@@ -10,7 +10,9 @@
     = "#{user.wallet.txns.count}t"
     = ' | '
     Tax debt:
-    = Zold::Tax.new(user.wallet).debt
+    - tax = Zold::Tax.new(user.wallet)
+    %span{style: tax.in_debt? ? 'color:darkred' : ''}
+      = tax.debt
 
 - if user.wallet.exists? && user.wallet.balance.negative?
   %p{style: 'color: darkred'}
