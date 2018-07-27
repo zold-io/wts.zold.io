@@ -196,7 +196,7 @@ post '/do-fund' do
       'partner=zold',
       'cur_from=USD',
       'cur_to=BTC',
-      "amount=#{amount}",
+      "amount=#{(amount / 100).round(2)}",
       'address=0xFb96dc76d73bDBc2193919EC16bB3a6464f85BaA',
       "user_id=#{@locals[:guser][:login]}"
     ].join('&')
