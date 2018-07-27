@@ -1,0 +1,17 @@
+%p
+  You can fund your Zold wallet by your credit/debit card.
+  It is an experimental feature.
+
+%form{method: 'POST', action: '/do-fund'}
+  %fieldset
+    %select{name: 'amount'}
+      %option{value: '1600'} $16.00 (16 ZLD)
+      %option{value: '6400'} $64.00 (64 ZLD)
+      %option{value: '25600'} $256.00 (256 ZLD)
+      %option{value: '102400'} $1024.00 (1024 ZLD)
+    %input{type: 'submit', value: 'Proceed...'}
+
+%p
+  You will be redirected to the payment page, where you will
+  have to enter your Visa/MasterCard details.
+  When/if the payment goes through, you wallet will be funded.

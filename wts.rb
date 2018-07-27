@@ -178,6 +178,31 @@ get '/home' do
   )
 end
 
+get '/fund' do
+  redirect '/' unless @locals[:user]
+  redirect '/confirm' unless @locals[:user].confirmed?
+  haml :fund, layout: :layout, locals: merged(
+    title: '@' + @locals[:guser][:login] + '/fund'
+  )
+end
+
+post '/do-fund' do
+  redirect '/' unless @locals[:user]
+  redirect '/confirm' unless @locals[:user].confirmed?
+  amount = params[:amount]
+  redirect [
+    'https://indacoin.com/gw/payment_form?',
+    [
+      'partner=zold',
+      'cur_from=USD',
+      'cur_to=BTC',
+      "amount=#{amount}",
+      'address=0xFb96dc76d73bDBc2193919EC16bB3a6464f85BaA',
+      "user_id=#{@locals[:guser][:login]}"
+    ].join('&')
+  ].join
+end
+
 get '/create' do
   redirect '/' unless @locals[:user]
   @locals[:user].create
