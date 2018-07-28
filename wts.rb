@@ -204,6 +204,8 @@ post '/do-fund' do
 end
 
 get '/indacoin' do
+  puts params
+  p params
   ops(user(settings.config['rewards']['login'])).pay(
     settings.config['rewards']['keygap'], user(params[:user]).item.id,
     Zold::Amount.new(zld: params[:amount].to_i), 'Purchase via Indacoin'
