@@ -194,10 +194,10 @@ post '/do-fund' do
     'https://indacoin.com/gw/payment_form?',
     [
       'partner=zold',
-      'cur_from=USD',
-      'cur_to=BTC',
+      'cur_from=EUR',
+      'cur_to=ETH',
       "amount=#{(amount / 100).round(2)}",
-      'address=3HdjJ6EenJHRovBtzbiwZwoEUriHMgdFdT',
+      'address=0xFb96dc76d73bDBc2193919EC16bB3a6464f85BaA',
       "user_id=#{@locals[:guser][:login]}"
     ].join('&')
   ].join
