@@ -194,7 +194,7 @@ post '/do-fund' do
     'https://indacoin.com/gw/payment_form?',
     [
       'partner=zold',
-      'cur_from=EUR',
+      "cur_from=#{params[:currency]}",
       'cur_to=ETH',
       "amount=#{(amount / 100).round(2)}",
       'address=0xFb96dc76d73bDBc2193919EC16bB3a6464f85BaA',

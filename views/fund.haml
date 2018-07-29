@@ -4,11 +4,14 @@
 
 %form{method: 'POST', action: '/do-fund'}
   %fieldset
+    %select{name: 'currency'}
+      %option{value: 'USD'} USD
+      %option{value: 'EUR'} EUR
     %select{name: 'amount'}
-      %option{value: '6400'} €64.00 (64 ZLD)
-      %option{value: '25600'} €256.00 (256 ZLD)
-      %option{value: '51200'} €512.00 (512 ZLD)
-      %option{value: '102400'} €1024.00 (1024 ZLD)
+      %option{value: '6400'} 64 ZLD
+      %option{value: '25600'} 256 ZLD
+      %option{value: '51200'} 512 ZLD
+      %option{value: '102400'} 1024 ZLD
     %input{type: 'submit', value: 'Proceed...'}
 
 %p
