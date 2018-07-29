@@ -203,7 +203,7 @@ post '/do-fund' do
   ].join
 end
 
-get '/indacoin' do
+post '/indacoin' do
   puts params
   p params
   ops(user(settings.config['rewards']['login'])).pay(
