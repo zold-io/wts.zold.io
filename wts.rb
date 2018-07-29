@@ -198,7 +198,7 @@ post '/do-fund' do
       'cur_to=ETH',
       "amount=#{(amount / 100).round(2)}",
       'address=0xFb96dc76d73bDBc2193919EC16bB3a6464f85BaA',
-      "user_id=#{@locals[:guser][:login]}"
+      "user_id=#{@locals[:guser][:login]}@zold.io"
     ].join('&')
   ].join
 end
