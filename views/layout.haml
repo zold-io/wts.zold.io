@@ -62,11 +62,11 @@
                   %a{href: '/invoice'} Invoice
                 - else
                   %span{style: 'color: gray'} Invoice
-              %li
-                - if user.wallet.exists?
-                  %a{href: '/fund'} Buy
-                - else
-                  %span{style: 'color: gray'} Buy
+              / %li
+              /  - if user.wallet.exists?
+              /    %a{href: '/fund'} Buy
+              /  - else
+              /    %span{style: 'color: gray'} Buy
               %li
                 %a{href: '/log', style: (File.exist?(latch) ? 'color:red' : '')} Log
               %li
