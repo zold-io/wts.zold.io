@@ -24,6 +24,7 @@ require 'haml'
 require 'sinatra'
 require 'sinatra/cookies'
 require 'sass'
+require 'json'
 require 'raven'
 require 'glogin'
 require 'base64'
@@ -204,12 +205,14 @@ post '/do-fund' do
 end
 
 post '/indacoin' do
-  amount = Zold::Amount.new(zld: params[:amountIn])
-  login = params[:userId].split('@', 2)[0]
+  json = JSON.parse(@text)
+  amount = Zold::Amount.new(zld: json['amountIn'])
+  login = json['userId'].split('@', 2)[0]
   ops(user(settings.config['rewards']['login'])).pay(
     settings.config['rewards']['keygap'], user(login).item.id,
-    amount, 'Purchase via Indacoin'
+    amount, "Purchase of #{json['amountIn']} #{json['curIn']} via Indacoin"
   )
+  redirect '/'
 end
 
 get '/create' do
