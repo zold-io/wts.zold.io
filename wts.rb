@@ -445,7 +445,7 @@ def user(login)
   )
 end
 
-def latch(login = cookies[:glogin])
+def latch(login = @locals[:guser][:login])
   File.join(settings.root, "latch/#{login}")
 end
 
