@@ -62,11 +62,11 @@
                   %a{href: '/invoice'} Invoice
                 - else
                   %span{style: 'color: gray'} Invoice
-              / %li
-              /  - if user.wallet.exists?
-              /    %a{href: '/fund'} Buy
-              /  - else
-              /    %span{style: 'color: gray'} Buy
+              %li
+                - if user.wallet.exists?
+                  %a{href: '/fund'} Buy
+                - else
+                  %span{style: 'color: gray'} Buy
               %li
                 %a{href: '/log', style: (File.exist?(latch) ? 'color:red' : '')} Log
               %li
@@ -101,11 +101,14 @@
         %nav
           %ul
             %li
-              &copy; Zold.io
+              &copy;
+              %a{href: 'https://www.zerocracy.com'} Zerocracy
             %li
               = "v#{ver}"
             %li
               = request.ip
+            %li
+              = latch
         %nav
           %ul
             %a{href: 'https://github.com/zold-io/wts.zold.io/stargazers'}
