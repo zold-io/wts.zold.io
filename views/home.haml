@@ -11,7 +11,7 @@
     = ' | '
     Tax debt:
     - tax = Zold::Tax.new(user.wallet)
-    %span{style: tax.in_debt? ? 'color:darkred' : ''}
+    %span{style: 'color:' + (tax.in_debt? ? 'darkred' : 'darkgreen')}
       = tax.debt
 
 - if user.wallet.exists? && user.wallet.balance.negative?

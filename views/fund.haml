@@ -1,18 +1,25 @@
 %p
   You can fund your Zold wallet by your credit/debit card.
-  It is an experimental feature.
+  It is an experimental feature supported by the
+  %a{href: 'https://www.indacoin.com'} Indacoin
+  payment gateway.
+  All funds we collect through this payment methods are donated to our
+  %a{href: 'https://github.com/zold-io'} open source
+  project.
+  You may also
+  %a{href: 'https://www.0crat.com/contrib/CAZPZR9FS'} contribute
+  via Stripe.
 
 %form{method: 'POST', action: '/do-fund'}
-  %fieldset
-    %select{name: 'currency'}
-      %option{value: 'USD'} USD
-      %option{value: 'EUR'} EUR
-    %select{name: 'amount'}
-      %option{value: '6400'} 64 ZLD
-      %option{value: '25600'} 256 ZLD
-      %option{value: '51200'} 512 ZLD
-      %option{value: '102400'} 1024 ZLD
-    %input{type: 'submit', value: 'Proceed...'}
+  %select{name: 'currency'}
+    %option{value: 'USD'} USD
+    %option{value: 'EUR'} EUR
+  %select{name: 'amount'}
+    %option{value: '6400'} 64 ZLD
+    %option{value: '25600'} 256 ZLD
+    %option{value: '51200'} 512 ZLD
+    %option{value: '102400'} 1024 ZLD
+  %input{type: 'submit', value: 'Proceed...'}
 
 %p
   You will be redirected to the payment page, where you will

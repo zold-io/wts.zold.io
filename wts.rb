@@ -204,11 +204,11 @@ post '/do-fund' do
 end
 
 post '/indacoin' do
-  puts params
-  p params
+  amount = Zold::Amount.new(zld: params[:amountIn])
+  login = params[:userId].split('@', 2)[0]
   ops(user(settings.config['rewards']['login'])).pay(
-    settings.config['rewards']['keygap'], user(params[:user]).item.id,
-    Zold::Amount.new(zld: params[:amount].to_i), 'Purchase via Indacoin'
+    settings.config['rewards']['keygap'], user(login).item.id,
+    amount, 'Purchase via Indacoin'
   )
 end
 
