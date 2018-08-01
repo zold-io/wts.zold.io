@@ -261,7 +261,7 @@ post '/do-pay' do
     bnf = Zold::Id.new(params[:bnf])
   else
     login = params[:bnf].strip.downcase.gsub(/^@/, '')
-    raise "Invalid GitHub user name: '#{params[:bnf]}'" unless login =~ /^[a-z0-9]{3,32}$/
+    raise "Invalid GitHub user name: '#{params[:bnf]}'" unless login =~ /^[a-z0-9-]{3,32}$/
     friend = user(login)
     unless friend.item.exists?
       friend.create
