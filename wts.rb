@@ -493,11 +493,12 @@ def pay_hosting_bonuses
   require 'zold/commands/remote'
   cmd = Zold::Remote.new(remotes: settings.remotes, log: log(login))
   cmd.run(%w[remote update])
-  cmd.run(%w[remote elect --min-score=8]).each do |score|
+  winners = cmd.run(%w[remote elect --min-score=8 --max-winners=8])
+  winners.each do |score|
     ops(boss).pay(
       settings.config['rewards']['keygap'],
       score.invoice,
-      Zold::Amount.new(zld: 1.0),
+      Zold::Amount.new(zld: 1.0 / winners.count),
       "Hosting bonus for #{score.host} #{score.port} #{score.value}"
     )
   end
