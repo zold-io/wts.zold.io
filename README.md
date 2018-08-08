@@ -21,6 +21,8 @@ The license is [MIT](https://github.com/zold-io/wts.zold.io/blob/master/LICENSE.
 ## How to Contribute
 
 First, install
+[Java 8+](https://java.com/en/download/),
+[Maven 3.2+](https://maven.apache.org/),
 [Ruby 2.3+](https://www.ruby-lang.org/en/documentation/installation/),
 [Rubygems](https://rubygems.org/pages/download),
 and
