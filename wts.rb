@@ -36,6 +36,7 @@ require 'zold/remotes'
 require 'zold/amount'
 require 'zold/wallets'
 require 'zold/remotes'
+require 'cgi'
 
 require_relative 'version'
 require_relative 'objects/item'
@@ -270,7 +271,7 @@ post '/do-pay' do
     bnf = friend.item.id
   end
   amount = Zold::Amount.new(zld: params[:amount].to_f)
-  details = params[:details]
+  details = CGI.unescape(params[:details])
   params[:keygap] = params[:pass] if params[:pass]
   keygap = @locals[:keygap].nil? ? params[:keygap] : @locals[:keygap]
   @locals[:ops].pay(keygap, bnf, amount, details)

@@ -97,6 +97,17 @@ class AppTest < Minitest::Test
     assert_equal(200, last_response.status, last_response.body)
   end
 
+  def test_do_pay
+    keygap = login('anna')
+    post('/do-api-token', 'keygap=' + keygap)
+    assert_equal(200, last_response.status, last_response.body)
+    token = last_response.body
+    set_cookie('glogin=')
+    header('X-Zold-WTS', token)
+    post '/do-pay', bnf: 'yegor256', amount: '0.01', details: 'test+API'
+    assert_equal(302, last_response.status, last_response.body)
+  end
+
   private
 
   def login(name)
