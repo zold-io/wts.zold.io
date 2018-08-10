@@ -320,7 +320,7 @@ get '/balance' do
   redirect '/' unless @locals[:user]
   redirect '/confirm' unless @locals[:user].confirmed?
   content_type 'text/plain'
-  @locals[:user].wallet.balance.to_i
+  @locals[:user].wallet(&:balance).to_i
 end
 
 post '/id_rsa' do

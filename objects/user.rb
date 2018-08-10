@@ -49,15 +49,15 @@ class User
         ['create', '--public-key=' + f.path]
       )
     end
-    @item.create(wallet.id, pvt)
-    @log.info("Wallet #{wallet.id} created successfully\n")
+    @item.create(wallet, pvt)
+    @log.info("Wallet #{wallet} created successfully\n")
     true
   end
 
   def invoice
     require 'zold/commands/invoice'
     Zold::Invoice.new(wallets: @wallets, log: @log).run(
-      ['invoice', wallet.id.to_s]
+      ['invoice', @item.id.to_s]
     )
   end
 
@@ -80,8 +80,9 @@ class User
     @item.keygap
   end
 
-  # Return user's Wallet (as Zold::Wallet)
   def wallet
-    @wallets.find(@item.id)
+    @wallets.find(@item.id) do |wallet|
+      yield wallet
+    end
   end
 end
