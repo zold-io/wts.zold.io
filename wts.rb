@@ -35,6 +35,7 @@ require 'zold/log'
 require 'zold/remotes'
 require 'zold/amount'
 require 'zold/wallets'
+require 'zold/sync_wallets'
 require 'zold/remotes'
 
 require_relative 'version'
@@ -93,7 +94,10 @@ configure do
     config['github']['client_secret'],
     'https://wts.zold.io/github-callback'
   )
-  set :wallets, Zold::Wallets.new(File.join(settings.root, '.zold-wts/wallets'))
+  set :wallets, Zold::SyncWallets.new(
+    Zold::Wallets.new(File.join(settings.root, '.zold-wts/wallets')),
+    File.join(settings.root, '.zold-wts/sync-wallets')
+  )
   set :remotes, Zold::Remotes.new(file: File.join(settings.root, '.zold-wts/remotes'), network: 'zold')
   set :copies, File.join(settings.root, '.zold-wts/copies')
   set :codec, GLogin::Codec.new(config['api_secret'])
