@@ -328,12 +328,12 @@ get '/find' do
   @locals[:user].wallet do |wallet|
     wallet.txns.select do |t|
       matches = false
-      matches |= params[:id] && t.id.to_s =~ params[:id]
-      matches |= params[:date] && t.date.utc.iso8601 =~ params[:date]
-      matches |= params[:amount] && t.amount.to_i.to_s =~ params[:amount]
-      matches |= params[:prefix] && t.prefix =~ params[:prefix]
-      matches |= params[:bnf] && t.bnf.to_s =~ params[:bnf]
-      matches |= params[:details] && t.details =~ params[:details]
+      matches |= params[:id] && Regex.new(params[:id]).match(t.id.to_s)
+      matches |= params[:date] && Regex.new(params[:date]).match(t.date.utc.iso8601)
+      matches |= params[:amount] && Regex.new(params[:amount]).match(t.amount.to_i.to_s)
+      matches |= params[:prefix] && Regex.new(params[:prefix]).match(t.prefix)
+      matches |= params[:bnf] && Regex.new(params[:bnf]).match(t.bnf.to_s)
+      matches |= params[:details] && Regex.new(params[:details]).match(t.details)
       matches
     end
   end.join("\n")
