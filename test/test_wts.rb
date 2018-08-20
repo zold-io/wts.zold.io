@@ -73,7 +73,7 @@ class AppTest < Minitest::Test
 
   def test_302_user_pages
     login('nick')
-    ['/pull', '/push'].each do |p|
+    ['/pull'].each do |p|
       get(p)
       assert_equal(302, last_response.status, "#{p} fails: #{last_response.body}")
     end

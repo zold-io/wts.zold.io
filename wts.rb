@@ -290,14 +290,6 @@ get '/pull' do
   redirect '/'
 end
 
-get '/push' do
-  redirect '/' unless @locals[:user]
-  redirect '/confirm' unless @locals[:user].confirmed?
-  @locals[:ops].push
-  log.info("Wallet #{@locals[:user].item.id} pushed by @#{@locals[:guser][:login]}\n \n")
-  redirect '/'
-end
-
 get '/key' do
   redirect '/' unless @locals[:user]
   redirect '/confirm' unless @locals[:user].confirmed?
@@ -323,8 +315,28 @@ end
 get '/balance' do
   redirect '/' unless @locals[:user]
   redirect '/confirm' unless @locals[:user].confirmed?
+  error 404 unless @locals[:user].wallet(&:exists?)
   content_type 'text/plain'
   @locals[:user].wallet(&:balance).to_i
+end
+
+get '/find' do
+  redirect '/' unless @locals[:user]
+  redirect '/confirm' unless @locals[:user].confirmed?
+  error 404 unless @locals[:user].wallet(&:exists?)
+  content_type 'text/plain'
+  @locals[:user].wallet do |wallet|
+    wallet.txns.select do |t|
+      matches = false
+      matches |= params[:id] && t.id.to_s =~ params[:id]
+      matches |= params[:date] && t.date.utc.iso8601 =~ params[:date]
+      matches |= params[:amount] && t.amount.to_i.to_s =~ params[:amount]
+      matches |= params[:prefix] && t.prefix =~ params[:prefix]
+      matches |= params[:bnf] && t.bnf.to_s =~ params[:bnf]
+      matches |= params[:details] && t.details =~ params[:details]
+      matches
+    end
+  end.join("\n")
 end
 
 post '/id_rsa' do

@@ -22,3 +22,33 @@
   response no matter what. There is no way to check the status
   of transaction right after its submission.
   If everything goes well, the payment will be sent.
+
+%p
+  There are more entry points:
+
+%p
+  %code GET /id
+  returns your wallet ID.
+
+%p
+  %code GET /balance
+  returns the current balance of the wallet.
+  If the wallet is absent on the server, there will be a 404 response code.
+
+%p
+  %code GET /pull
+  asks the server to pull your wallet from the network.
+
+%p
+  %code GET /find
+  finds and returns all transactions in the wallet that match the criteria.
+  You can specify the criteria in the query string. For example,
+  to find all transactions that were sent from the wallet
+  %code 012345670.+
+  with the details
+  %code Hello!
+  (they both are regular expressions):
+  %code /find?bnf=012345670.%2B&details=Hello!
+  You can match by all transaction fields (see the White Paper).
+
+
