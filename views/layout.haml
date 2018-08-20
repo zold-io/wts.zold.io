@@ -51,11 +51,6 @@
                 - else
                   %span{style: 'color: gray'} Pay
               %li
-                - if user.wallet(&:exists?)
-                  %a{href: '/push'} Push
-                - else
-                  %span{style: 'color: gray'} Push
-              %li
                 %a{href: '/pull'} Pull
               %li
                 - if user.wallet(&:exists?)
