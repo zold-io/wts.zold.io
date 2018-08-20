@@ -56,7 +56,7 @@ class User
 
   def invoice
     require 'zold/commands/invoice'
-    Zold::Invoice.new(wallets: @wallets, log: @log).run(
+    Zold::Invoice.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
       ['invoice', @item.id.to_s]
     )
   end
