@@ -156,7 +156,7 @@ class Stress
   def refetch
     @wallets.all.each do |id|
       Zold::Remove.new(wallets: @wallets, log: @log).run(
-        ['remove']
+        ['remove', id.to_s]
       )
       pull(Zold::Id.new(id))
     end
