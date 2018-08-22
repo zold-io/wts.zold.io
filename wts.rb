@@ -193,7 +193,7 @@ end
 
 get '/stress' do
   content_type 'application/json'
-  settings.stress.to_json
+  settings.stress.to_json.to_s
 end
 
 get '/home' do
