@@ -147,6 +147,7 @@ class Stress
         )
       end
       push(Zold::Id.new(first))
+      push(Zold::Id.new(second))
       @stats.put('paid', Stress::AMOUNT.to_zld.to_f)
       @payments[details] = Time.now
       break
@@ -170,6 +171,7 @@ class Stress
           next unless @payments[t.details]
           @stats.put('arrived', Time.now - @payments[t.details])
           @payments.delete(t.details)
+          @log.info("Payment arrived to #{id} at ##{t.id}: #{t.details}")
         end
       end
     end
