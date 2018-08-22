@@ -81,8 +81,10 @@ class Stress
         start = Time.now
         Zold::VerboseThread.new(@log).run(true) do
           reload
+          @log.info("Reloaded, #{@wallets.all.count} wallets in the pool")
           pay
           refetch
+          @log.info("#{@wallets.all.count} wallets remained after re-fetch")
           match
           @log.info("Cycle done in #{Time.now - start}s, #{@wallets.all.count} wallets in the pool")
           sleep(Stress::DELAY)
