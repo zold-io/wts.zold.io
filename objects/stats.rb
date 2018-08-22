@@ -12,38 +12,42 @@
 #
 # THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFINGEMENT. IN NO EVENT SHALL THE
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 # AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'minitest/autorun'
-require 'zold/key'
-require 'zold/id'
-require 'zold/log'
-require 'zold/wallets'
-require 'zold/remotes'
-require 'tmpdir'
-require_relative 'test__helper'
-require_relative '../objects/stress'
+#
+# The stats.
+#
+class Stats
+  # Max length of the line
+  MAX = 512
 
-class StressTest < Minitest::Test
-  def test_pulls_wallets
-    skip
-    Dir.mktmpdir do |dir|
-      wallets = Zold::Wallets.new(dir)
-      remotes = Zold::Remotes.new(file: File.join(dir, 'remotes'))
-      stress = Stress.new(
-        id: Zold::Id.new('221255bc9af7baec'),
-        pub: Zold::Key.new(text: ''),
-        pvt: Zold::Key.new(text: ''),
-        wallets: wallets,
-        remotes: remotes,
-        copies: File.join(dir, 'copies'),
-        log: Zold::Log::Regular.new
-      )
-      stress.reload
+  def initialize
+    @history = {}
+    @mutex = Mutex.new
+  end
+
+  def to_json
+    @history.map do |m, h|
+      [
+        m,
+        {
+          'total': h.count,
+          'sum': h.inject(&:+),
+          'avg': (h.empty? ? 0 : (h.inject(&:+) / h.count))
+        }
+      ]
+    end.to_h
+  end
+
+  def put(metric, value)
+    @mutex.synchronize do
+      @history[metric] = [] unless @history[metric]
+      @history[metric] << value
+      @history[metric].shift while @history[metric].count > Stats::MAX
     end
   end
 end

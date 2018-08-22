@@ -25,6 +25,7 @@ require 'zold/commands/pull'
 require 'zold/commands/push'
 require 'zold/commands/pay'
 require 'zold/commands/remove'
+require_relative 'stats'
 
 #
 # The stress tester.
@@ -36,7 +37,10 @@ class Stress
   # Amount to send in each payment
   AMOUNT = Zold::Amount.new(zld: 0.01)
 
-  def initialize(id:, pub:, pvt:, wallets:, remotes:, copies:, log: Zold::Log::Quiet.new)
+  # Delay between payment cycles, in seconds
+  DELAY = 60
+
+  def initialize(id:, pub:, pvt:, wallets:, remotes:, copies:, network: 'test', log: Zold::Log::Quiet.new)
     raise 'Wallet ID can\'t be nil' if id.nil?
     raise 'Wallet ID must be of type Id' unless id.is_a?(Zold::Id)
     @id = id
@@ -52,36 +56,45 @@ class Stress
     @remotes = remotes
     raise 'Copies can\'t be nil' if copies.nil?
     @copies = copies
+    raise 'Network can\'t be nil' if network.nil?
+    @network = network
     raise 'Log can\'t be nil' if log.nil?
     @log = log
-
+    @stats = Stats.new
   end
 
   def to_json
     {
       'wallets': @wallets.all.count
-    }
+    } + @stats.to_json
   end
 
   def start
     Thread.new do
-      wallets.all.count
+      loop do
+        VerboseThread.new(@log).run(true) do
+          reload
+          pay
+          sleep(Stress::DELAY)
+        end
+      end
     end
   end
 
   def pay
     raise 'Too few wallets in the pool' if @wallets.all.count < 2
-    first = @wallets.all.shuffle[0]
-    second = @wallets.all.shuffle[0] while second == first
+    first = @wallets.all.sample(0)
+    second = @wallets.all.sample(0) while second == first
+    details = SecureRandom.uuid
     Zold::Pay.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
-      ['pay', first, second, Stress::AMOUNT.to_zld(, '', '--network=zold']
+      ['pay', first, second, Stress::AMOUNT.to_zld, details, "--network=#{@network}"]
     )
     push(Zold::Id.new(first))
   end
 
   def reload
     Zold::Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
-      ['pull', @id.to_s, '--network=zold']
+      ['pull', @id.to_s, "--network=#{@network}"]
     )
     loop do
       pulled = 0
@@ -100,17 +113,17 @@ class Stress
     @wallets.all.each do |id|
       next if @wallets.find(Zold::Id.new(id), &:balance) > Stress::AMOUNT * 4
       Zold::Remove.new(wallets: @wallets, log: @log).run(
-        ['remove', '--network=zold']
+        ['remove', "--network=#{@network}"]
       )
     end
     while @wallets.all.count < Stress::POOL_SIZE
       Zold::Create.new(wallets: @wallets, log: @log).run(
-        ['create', '--network=zold']
+        ['create', "--network=#{@network}"]
       )
     end
     while @wallets.all.count > Stress::POOL_SIZE
       Zold::Remove.new(wallets: @wallets, log: @log).run(
-        ['remove', @wallets.all.shuffle[0].to_s]
+        ['remove', @wallets.all.sample(0).to_s]
       )
     end
     @log.info("There are #{@wallets.all.count} wallets in the pool")
@@ -119,22 +132,28 @@ class Stress
   private
 
   def pull(id)
+    start = Time.now
     Zold::Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
-      ['pull', id.to_s, '--network=zold']
+      ['pull', id.to_s, "--network=#{@network}"]
     )
+    @stats.put('pull-ok', start - Time.now)
     1
   rescue StandardError => e
     @log.error(e.message)
+    @stats.put('pull-error', start - Time.now)
     0
   end
 
   def push(id)
+    start = Time.now
     Zold::Push.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
-      ['push', id.to_s, '--network=zold']
+      ['push', id.to_s, "--network=#{@network}"]
     )
+    @stats.put('push-ok', start - Time.now)
     1
   rescue StandardError => e
     @log.error(e.message)
+    @stats.put('push-error', start - Time.now)
     0
   end
 end

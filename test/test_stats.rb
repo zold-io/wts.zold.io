@@ -19,31 +19,16 @@
 # SOFTWARE.
 
 require 'minitest/autorun'
-require 'zold/key'
-require 'zold/id'
-require 'zold/log'
-require 'zold/wallets'
-require 'zold/remotes'
-require 'tmpdir'
 require_relative 'test__helper'
-require_relative '../objects/stress'
+require_relative '../objects/stats'
 
-class StressTest < Minitest::Test
-  def test_pulls_wallets
-    skip
-    Dir.mktmpdir do |dir|
-      wallets = Zold::Wallets.new(dir)
-      remotes = Zold::Remotes.new(file: File.join(dir, 'remotes'))
-      stress = Stress.new(
-        id: Zold::Id.new('221255bc9af7baec'),
-        pub: Zold::Key.new(text: ''),
-        pvt: Zold::Key.new(text: ''),
-        wallets: wallets,
-        remotes: remotes,
-        copies: File.join(dir, 'copies'),
-        log: Zold::Log::Regular.new
-      )
-      stress.reload
-    end
+class StatsTest < Minitest::Test
+  def test_aggregates_metrics
+    stats = Stats.new
+    m = 'metric-1'
+    stats.put(m, 0.1)
+    stats.put(m, 3.0)
+    assert(stats.to_json[m])
+    assert_equal(1.55, stats.to_json[m][:avg])
   end
 end

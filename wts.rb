@@ -118,6 +118,17 @@ configure do
       end
     end
   end
+  unless config['stress']['id'].empty?
+    Stress.new(
+      id: Zold::Id.new(config['stress']['id']),
+      pub: Zold::Key.new(text: config['stress']['pub']),
+      pvt: Zold::Key.new(text: config['stress']['pvt']),
+      wallets: settings.wallets,
+      remotes: settings.remotes,
+      copies: settings.copies,
+      log: settings.log
+    ).start
+  end
 end
 
 before '/*' do
@@ -176,6 +187,11 @@ get '/' do
   haml :index, layout: :layout, locals: merged(
     title: 'wts'
   )
+end
+
+get '/stress' do
+  content_type 'application/json'
+  settings.stress.to_json
 end
 
 get '/home' do
