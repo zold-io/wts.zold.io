@@ -84,18 +84,18 @@ class Stress
           pay
           refetch
           match
-          @log.info("Cycle done in #{start - Time.now}s, #{@wallets.all.count} wallets in the pool")
+          @log.info("Cycle done in #{Time.now - start}s, #{@wallets.all.count} wallets in the pool")
           sleep(Stress::DELAY)
         end
-        @stats.put('cycles', start - Time.now)
+        @stats.put('cycles', Time.now - start)
       end
     end
   end
 
   def pay
     raise 'Too few wallets in the pool' if @wallets.all.count < 2
-    first = @wallets.all.sample(0)
-    second = @wallets.all.sample(0) while second == first
+    first = @wallets.all.sample
+    second = @wallets.all.sample while second == first
     details = SecureRandom.uuid
     Tempfile.open do |f|
       File.write(f, @pvt.to_s)
@@ -140,7 +140,7 @@ class Stress
     end
     while @wallets.all.count > Stress::POOL_SIZE
       Zold::Remove.new(wallets: @wallets, log: @log).run(
-        ['remove', @wallets.all.sample(0).to_s]
+        ['remove', @wallets.all.sample.to_s]
       )
     end
   end
@@ -174,11 +174,11 @@ class Stress
     Zold::Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
       ['pull', id.to_s, "--network=#{@network}"]
     )
-    @stats.put('pull-ok', start - Time.now)
+    @stats.put('pull-ok', Time.now - start)
     1
   rescue StandardError => e
     @log.error(e.message)
-    @stats.put('pull-error', start - Time.now)
+    @stats.put('pull-error', Time.now - start)
     0
   end
 
@@ -187,11 +187,11 @@ class Stress
     Zold::Push.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
       ['push', id.to_s, "--network=#{@network}"]
     )
-    @stats.put('push-ok', start - Time.now)
+    @stats.put('push-ok', Time.now - start)
     1
   rescue StandardError => e
     @log.error(e.message)
-    @stats.put('push-error', start - Time.now)
+    @stats.put('push-error', Time.now - start)
     0
   end
 end
