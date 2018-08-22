@@ -109,9 +109,7 @@ class Stress
   end
 
   def reload
-    Zold::Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
-      ['pull', @id.to_s, "--network=#{@network}"]
-    )
+    pull(@id)
     loop do
       pulled = 0
       @wallets.all.shuffle.each do |id|
