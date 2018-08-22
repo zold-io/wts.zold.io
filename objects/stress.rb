@@ -77,7 +77,7 @@ class Stress
     @thread = Thread.new do
       @log.info('Stress thread started')
       loop do
-        VerboseThread.new(@log).run(true) do
+        Zold::VerboseThread.new(@log).run(true) do
           @log.info('Stress thread cycle started...')
           start = Time.now
           reload
