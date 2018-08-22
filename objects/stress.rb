@@ -92,21 +92,6 @@ class Stress
     end
   end
 
-  def pay
-    raise 'Too few wallets in the pool' if @wallets.all.count < 2
-    first, second = @wallets.all.sample(2)
-    details = SecureRandom.uuid
-    Tempfile.open do |f|
-      File.write(f, @pvt.to_s)
-      Zold::Pay.new(wallets: @wallets, remotes: @remotes, log: @log).run(
-        ['pay', first, second, Stress::AMOUNT.to_zld, details, "--network=#{@network}", "--private-key=#{f.path}"]
-      )
-    end
-    push(Zold::Id.new(first))
-    @stats.put('paid', 1)
-    @payments[details] = Time.now
-  end
-
   def reload
     pull(@id)
     loop do
@@ -124,7 +109,7 @@ class Stress
       break if pulled.zero?
     end
     @wallets.all.each do |id|
-      next if @wallets.find(Zold::Id.new(id), &:balance) > Stress::AMOUNT * 4
+      next if @wallets.find(Zold::Id.new(id), &:balance) > Stress::AMOUNT
       Zold::Remove.new(wallets: @wallets, log: @log).run(
         ['remove']
       )
@@ -141,6 +126,28 @@ class Stress
       Zold::Remove.new(wallets: @wallets, log: @log).run(
         ['remove', @wallets.all.sample.to_s]
       )
+    end
+  end
+
+  def pay
+    raise 'Too few wallets in the pool' if @wallets.all.count < 2
+    seen = []
+    loop do
+      first, second = @wallets.all.sample(2)
+      next if seen.include?(first)
+      seen << first
+      next if @wallets.find(Zold::Id.new(first), &:balance) < Stress::AMOUNT
+      details = SecureRandom.uuid
+      Tempfile.open do |f|
+        File.write(f, @pvt.to_s)
+        Zold::Pay.new(wallets: @wallets, remotes: @remotes, log: @log).run(
+          ['pay', first, second, Stress::AMOUNT.to_zld, details, "--network=#{@network}", "--private-key=#{f.path}"]
+        )
+      end
+      push(Zold::Id.new(first))
+      @stats.put('paid', 1)
+      @payments[details] = Time.now
+      break
     end
   end
 
