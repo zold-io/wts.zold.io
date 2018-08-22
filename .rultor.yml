@@ -5,6 +5,8 @@ assets:
 install: |-
   sudo gem install pdd
 release:
+  sensitive:
+    - config.yml
   script: |-
     pdd -f /dev/null
     bundle install
@@ -25,7 +27,10 @@ release:
     git commit -m 'build number set'
     cp ../config.yml config.yml
     git add config.yml
-    git commit -m 'config.yml' && git push -f heroku $(git symbolic-ref --short HEAD):master && git reset HEAD~1
+    git commit -m 'config.yml'
+    git push -f heroku $(git symbolic-ref --short HEAD):master
+    git reset HEAD~1
+    rm -rf config.yml
     curl -f --connect-timeout 15 --retry 5 --retry-delay 30 https://wts.zold.io > /dev/null
   commanders:
   - yegor256

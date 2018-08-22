@@ -71,6 +71,11 @@ configure do
       },
       'api_secret' => 'test',
       'sentry' => '',
+      'stress' => {
+        'id' => '',
+        'pub' => '',
+        'pvt' => ''
+      },
       'dynamo' => {
         'key' => '?',
         'secret' => '?'

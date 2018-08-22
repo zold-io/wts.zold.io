@@ -18,21 +18,31 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-if Gem.win_platform? then
-  SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter[
-    SimpleCov::Formatter::HTMLFormatter
-  ]
-  SimpleCov.start do
-    add_filter "/test/"
-    add_filter "/features/"
-  end
-else
-  SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter.new(
-    SimpleCov::Formatter::HTMLFormatter
-  )
-  SimpleCov.start do
-    add_filter "/test/"
-    add_filter "/features/"
-#    minimum_coverage 30
+require 'minitest/autorun'
+require 'zold/key'
+require 'zold/id'
+require 'zold/log'
+require 'zold/wallets'
+require 'zold/remotes'
+require 'tmpdir'
+require_relative 'test__helper'
+require_relative '../objects/stress'
+
+class StressTest < Minitest::Test
+  def test_pulls_wallets
+    Dir.mktmpdir do |dir|
+      wallets = Zold::Wallets.new(dir)
+      remotes = Zold::Remotes.new(file: File.join(dir, 'remotes'), network: 'zold')
+      stress = Stress.new(
+        id: Zold::Id.new('221255bc9af7baec'),
+        pub: Zold::Key.new(text: ''),
+        pvt: Zold::Key.new(text: ''),
+        wallets: wallets,
+        remotes: remotes,
+        copies: File.join(dir, 'copies'),
+        log: Zold::Log::Regular.new
+      )
+      stress.reload
+    end
   end
 end
