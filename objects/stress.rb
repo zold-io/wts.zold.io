@@ -77,17 +77,17 @@ class Stress
     @thread = Thread.new do
       @log.info('Stress thread started')
       loop do
+        @log.info('Stress thread cycle started...')
+        start = Time.now
         Zold::VerboseThread.new(@log).run(true) do
-          @log.info('Stress thread cycle started...')
-          start = Time.now
           reload
           pay
           refetch
           match
-          @stats.put('cycles', start - Time.now)
           @log.info("Cycle done in #{start - Time.now}s, #{@wallets.all.count} wallets in the pool")
           sleep(Stress::DELAY)
         end
+        @stats.put('cycles', start - Time.now)
       end
     end
   end
@@ -97,9 +97,12 @@ class Stress
     first = @wallets.all.sample(0)
     second = @wallets.all.sample(0) while second == first
     details = SecureRandom.uuid
-    Zold::Pay.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
-      ['pay', first, second, Stress::AMOUNT.to_zld, details, "--network=#{@network}"]
-    )
+    Tempfile.open do |f|
+      File.write(f, @pvt.to_s)
+      Zold::Pay.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
+        ['pay', first, second, Stress::AMOUNT.to_zld, details, "--network=#{@network}", "--private-key=#{f.path}"]
+      )
+    end
     push(Zold::Id.new(first))
     @stats.put('paid', 1)
     @payments[details] = Time.now
@@ -129,10 +132,13 @@ class Stress
         ['remove']
       )
     end
-    while @wallets.all.count < Stress::POOL_SIZE
-      Zold::Create.new(wallets: @wallets, log: @log).run(
-        ['create', "--network=#{@network}"]
-      )
+    Tempfile.open do |f|
+      File.write(f, @pub.to_pub)
+      while @wallets.all.count < Stress::POOL_SIZE
+        Zold::Create.new(wallets: @wallets, log: @log).run(
+          ['create', "--network=#{@network}", "--public-key=#{f.path}"]
+        )
+      end
     end
     while @wallets.all.count > Stress::POOL_SIZE
       Zold::Remove.new(wallets: @wallets, log: @log).run(
