@@ -25,6 +25,7 @@ require 'zold/commands/pull'
 require 'zold/commands/push'
 require 'zold/commands/pay'
 require 'zold/commands/remove'
+require 'zold/verbose_thread'
 require_relative 'stats'
 
 #
