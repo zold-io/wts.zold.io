@@ -127,6 +127,7 @@ configure do
       wallets: settings.wallets,
       remotes: settings.remotes,
       copies: settings.copies,
+      network: 'zold',
       log: settings.log
     )
     settings.stress.start
