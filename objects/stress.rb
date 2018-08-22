@@ -114,7 +114,7 @@ class Stress
       next if @wallets.find(Zold::Id.new(id), &:balance) > Stress::AMOUNT
       next if @waiting.find { |w| w[:id] == id }
       Zold::Remove.new(wallets: @wallets, log: @log).run(
-        ['remove']
+        ['remove', id.to_s]
       )
     end
     Tempfile.open do |f|
