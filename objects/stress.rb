@@ -190,7 +190,7 @@ class Stress
 
   def push(id)
     start = Time.now
-    Zold::Push.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
+    Zold::Push.new(wallets: @wallets, remotes: @remotes, log: @log).run(
       ['push', id.to_s, "--network=#{@network}"]
     )
     @stats.put('push-ok', Time.now - start)
