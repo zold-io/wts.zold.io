@@ -61,20 +61,29 @@ class Stress
     raise 'Log can\'t be nil' if log.nil?
     @log = log
     @stats = Stats.new
+    @payments = {}
   end
 
   def to_json
     {
-      'wallets': @wallets.all.count
+      'wallets': @wallets.all.count,
+      'thread': @thread ? @thread.status : '-',
+      'waiting': @payments.count
     }.merge(@stats.to_json)
   end
 
   def start
-    Thread.new do
+    @thread = Thread.new do
+      @log.info('Stress thread started')
       loop do
         VerboseThread.new(@log).run(true) do
+          start = Time.now
           reload
           pay
+          refetch
+          match
+          @stats.put('cycles', start - Time.now)
+          @log.info("Cycle done in #{start - Time.now}s, #{@wallets.all.count} wallets in the pool")
           sleep(Stress::DELAY)
         end
       end
@@ -90,6 +99,8 @@ class Stress
       ['pay', first, second, Stress::AMOUNT.to_zld, details, "--network=#{@network}"]
     )
     push(Zold::Id.new(first))
+    @stats.put('paid', 1)
+    @payments[details] = Time.now
   end
 
   def reload
@@ -113,7 +124,7 @@ class Stress
     @wallets.all.each do |id|
       next if @wallets.find(Zold::Id.new(id), &:balance) > Stress::AMOUNT * 4
       Zold::Remove.new(wallets: @wallets, log: @log).run(
-        ['remove', "--network=#{@network}"]
+        ['remove']
       )
     end
     while @wallets.all.count < Stress::POOL_SIZE
@@ -126,7 +137,28 @@ class Stress
         ['remove', @wallets.all.sample(0).to_s]
       )
     end
-    @log.info("There are #{@wallets.all.count} wallets in the pool")
+  end
+
+  def refetch
+    @wallets.all.each do |id|
+      Zold::Remove.new(wallets: @wallets, log: @log).run(
+        ['remove']
+      )
+      pull(Zold::Id.new(id))
+    end
+  end
+
+  def match
+    @wallets.all.each do |id|
+      @wallets.find(Zold::Id.new(id)) do |w|
+        w.txns.each do |t|
+          next if t.amount.negative?
+          next unless @payments[t.details]
+          @stats.put('arrived', Time.now - @payments[t.details])
+          @payments.delete(t.details)
+        end
+      end
+    end
   end
 
   private
