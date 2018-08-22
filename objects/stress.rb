@@ -66,7 +66,7 @@ class Stress
   def to_json
     {
       'wallets': @wallets.all.count
-    } + @stats.to_json
+    }.merge(@stats.to_json)
   end
 
   def start

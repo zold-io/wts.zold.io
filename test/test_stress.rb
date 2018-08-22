@@ -31,6 +31,19 @@ require_relative '../objects/stress'
 class StressTest < Minitest::Test
   def test_pulls_wallets
     skip
+    exec do |stress|
+      stress.reload
+      assert(true)
+    end
+  end
+
+  def test_renders_json
+    exec do |stress|
+      assert(stress.to_json[:wallets])
+    end
+  end
+
+  def exec
     Dir.mktmpdir do |dir|
       wallets = Zold::Wallets.new(dir)
       remotes = Zold::Remotes.new(file: File.join(dir, 'remotes'))
@@ -43,7 +56,7 @@ class StressTest < Minitest::Test
         copies: File.join(dir, 'copies'),
         log: Zold::Log::Regular.new
       )
-      stress.reload
+      yield stress
     end
   end
 end
