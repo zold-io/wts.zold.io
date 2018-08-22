@@ -50,6 +50,7 @@ require_relative 'objects/update_ops'
 require_relative 'objects/versioned_ops'
 require_relative 'objects/file_log'
 require_relative 'objects/tee_log'
+require_relative 'objects/stress'
 
 if ENV['RACK_ENV'] != 'test'
   require 'rack/ssl'
