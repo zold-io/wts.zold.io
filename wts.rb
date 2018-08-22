@@ -197,7 +197,7 @@ end
 
 get '/stress' do
   content_type 'application/json'
-  settings.stress.to_json.to_s
+  JSON.pretty_generate(settings.stress.to_json)
 end
 
 get '/home' do
