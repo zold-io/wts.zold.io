@@ -133,7 +133,7 @@ class Stress
       )
     end
     Tempfile.open do |f|
-      File.write(f, @pub.to_pub)
+      File.write(f, @pub.to_s)
       while @wallets.all.count < Stress::POOL_SIZE
         Zold::Create.new(wallets: @wallets, log: @log).run(
           ['create', "--network=#{@network}", "--public-key=#{f.path}"]

@@ -124,7 +124,10 @@ configure do
       id: Zold::Id.new(config['stress']['id']),
       pub: Zold::Key.new(text: config['stress']['pub']),
       pvt: Zold::Key.new(text: config['stress']['pvt']),
-      wallets: settings.wallets,
+      wallets: Zold::SyncWallets.new(
+        Zold::Wallets.new(File.join(settings.root, '.zold-wts/stress-wallets')),
+        File.join(settings.root, '.zold-wts/sync-stress-wallets')
+      ),
       remotes: settings.remotes,
       copies: settings.copies,
       network: 'zold',
