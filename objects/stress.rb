@@ -62,14 +62,14 @@ class Stress
     raise 'Log can\'t be nil' if log.nil?
     @log = log
     @stats = Stats.new
-    @payments = {}
+    @waiting = {}
   end
 
   def to_json
     {
       'wallets': @wallets.all.count,
       'thread': @thread ? @thread.status : '-',
-      'waiting': @payments.count
+      'waiting': @waiting.count
     }.merge(@stats.to_json)
   end
 
@@ -112,6 +112,7 @@ class Stress
     end
     @wallets.all.each do |id|
       next if @wallets.find(Zold::Id.new(id), &:balance) > Stress::AMOUNT
+      next if @waiting.find { |w| w[:id] == id }
       Zold::Remove.new(wallets: @wallets, log: @log).run(
         ['remove']
       )
@@ -124,11 +125,11 @@ class Stress
         )
       end
     end
-    while @wallets.all.count > Stress::POOL_SIZE
-      Zold::Remove.new(wallets: @wallets, log: @log).run(
-        ['remove', @wallets.all.sample.to_s]
-      )
-    end
+    # while @wallets.all.count > Stress::POOL_SIZE
+    #   Zold::Remove.new(wallets: @wallets, log: @log).run(
+    #     ['remove', @wallets.all.sample.to_s]
+    #   )
+    # end
   end
 
   def pay
@@ -149,7 +150,10 @@ class Stress
       push(Zold::Id.new(first))
       push(Zold::Id.new(second))
       @stats.put('paid', Stress::AMOUNT.to_zld.to_f)
-      @payments[details] = Time.now
+      @waiting[details] = {
+        start: Time.now,
+        id: second
+      }
       break
     end
   end
@@ -168,9 +172,9 @@ class Stress
       @wallets.find(Zold::Id.new(id)) do |w|
         w.txns.each do |t|
           next if t.amount.negative?
-          next unless @payments[t.details]
-          @stats.put('arrived', Time.now - @payments[t.details])
-          @payments.delete(t.details)
+          next unless @waiting[t.details]
+          @stats.put('arrived', Time.now - @waiting[t.details][:start])
+          @waiting.delete(t.details)
           @log.info("Payment arrived to #{id} at ##{t.id}: #{t.details}")
         end
       end
