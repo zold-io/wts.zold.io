@@ -99,7 +99,7 @@ class Stress
     details = SecureRandom.uuid
     Tempfile.open do |f|
       File.write(f, @pvt.to_s)
-      Zold::Pay.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
+      Zold::Pay.new(wallets: @wallets, remotes: @remotes, log: @log).run(
         ['pay', first, second, Stress::AMOUNT.to_zld, details, "--network=#{@network}", "--private-key=#{f.path}"]
       )
     end
