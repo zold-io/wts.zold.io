@@ -78,6 +78,7 @@ class Stress
       @log.info('Stress thread started')
       loop do
         VerboseThread.new(@log).run(true) do
+          @log.info('Stress thread cycle started...')
           start = Time.now
           reload
           pay
