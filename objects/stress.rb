@@ -33,7 +33,7 @@ require_relative 'stats'
 #
 class Stress
   # Number of wallets to work with
-  POOL_SIZE = 64
+  POOL_SIZE = 8
 
   # Amount to send in each payment
   AMOUNT = Zold::Amount.new(zld: 0.01)
@@ -145,7 +145,7 @@ class Stress
         )
       end
       push(Zold::Id.new(first))
-      @stats.put('paid', 1)
+      @stats.put('paid', Stress::AMOUNT.to_zld)
       @payments[details] = Time.now
       break
     end
