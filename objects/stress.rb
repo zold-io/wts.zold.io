@@ -145,7 +145,7 @@ class Stress
         )
       end
       push(Zold::Id.new(first))
-      @stats.put('paid', Stress::AMOUNT.to_zld)
+      @stats.put('paid', Stress::AMOUNT.to_zld.to_f)
       @payments[details] = Time.now
       break
     end
