@@ -120,7 +120,7 @@ configure do
     end
   end
   unless config['stress']['id'].empty?
-    Stress.new(
+    set :stress, Stress.new(
       id: Zold::Id.new(config['stress']['id']),
       pub: Zold::Key.new(text: config['stress']['pub']),
       pvt: Zold::Key.new(text: config['stress']['pvt']),
@@ -128,7 +128,8 @@ configure do
       remotes: settings.remotes,
       copies: settings.copies,
       log: settings.log
-    ).start
+    )
+    settings.stress.start
   end
 end
 
