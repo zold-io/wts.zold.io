@@ -94,9 +94,7 @@ class Stress
 
   def pay
     raise 'Too few wallets in the pool' if @wallets.all.count < 2
-    first = @wallets.all.sample
-    second = @wallets.all.sample
-    second = @wallets.all.sample while second == first
+    first, second = @wallets.all.sample(2)
     details = SecureRandom.uuid
     Tempfile.open do |f|
       File.write(f, @pvt.to_s)
