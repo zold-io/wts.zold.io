@@ -60,9 +60,9 @@ class UpdateOps
     cmd = Zold::Remote.new(remotes: @remotes, log: @log)
     args = ['remote', "--network=#{@network}"]
     cmd.run(args + ['reset']) if @remotes.all.empty?
+    cmd.run(args + ['trim'])
     return if @remotes.all.count >= 8 && @remotes.all.find { |r| r[:score] >= Zold::Tax::EXACT_SCORE }
     cmd.run(args + ['update'])
-    cmd.run(args + ['trim'])
     cmd.run(args + ['select'])
   end
 end
