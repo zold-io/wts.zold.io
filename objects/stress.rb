@@ -112,7 +112,7 @@ class Stress
     end
     @wallets.all.each do |id|
       next if @wallets.find(Zold::Id.new(id), &:balance) > Stress::AMOUNT
-      next if @waiting.find { |w| w[:id] == id }
+      next if @waiting.values.find { |w| w[:id] == id }
       Zold::Remove.new(wallets: @wallets, log: @log).run(
         ['remove', id.to_s]
       )
