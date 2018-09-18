@@ -62,6 +62,7 @@ class Stress
     raise 'Log can\'t be nil' if log.nil?
     @log = log
     @stats = Stats.new
+    @start = Time.now
     @waiting = {}
   end
 
@@ -69,7 +70,8 @@ class Stress
     {
       'wallets': @wallets.all.count,
       'thread': @thread ? @thread.status : '-',
-      'waiting': @waiting.count
+      'waiting': @waiting.count,
+      'alive_hours': ((Time.now - @start) / 60 * 60).round
     }.merge(@stats.to_json)
   end
 

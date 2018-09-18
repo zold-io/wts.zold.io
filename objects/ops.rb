@@ -62,7 +62,7 @@ in #{(Time.now - start).round}s, the balance is #{wallet.balance}\n \n ")
     Zold::Push.new(wallets: @wallets, remotes: @remotes, log: @log).run(
       ['push', @item.id.to_s, "--network=#{@network}"]
     )
-    @wallets.find(id) do |wallet|
+    @wallets.find(@item.id) do |wallet|
       @log.info("#{Time.now.utc.iso8601}: Wallet #{wallet.id} pushed successfully \
 in #{(Time.now - start).round}s, the balance is #{wallet.balance}\n \n ")
     end
