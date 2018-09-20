@@ -32,18 +32,20 @@ class Stats
 
   def to_json
     @history.map do |m, h|
+      sum = h.inject(&:+)
       [
         m,
         {
           'total': h.count,
-          'sum': h.inject(&:+),
-          'avg': (h.empty? ? 0 : (h.inject(&:+) / h.count))
+          'sum': sum,
+          'avg': (h.empty? ? 0 : (sum / h.count))
         }
       ]
     end.to_h
   end
 
   def put(metric, value)
+    raise "Invalid type of \"#{value}\" (#{value.class.name})" unless value.is_a?(Integer) || value.is_a?(Float)
     @mutex.synchronize do
       @history[metric] = [] unless @history[metric]
       @history[metric] << value
