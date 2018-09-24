@@ -20,6 +20,7 @@
 
 require 'minitest/autorun'
 require 'tmpdir'
+require 'concurrent'
 require_relative 'test__helper'
 require_relative '../objects/latch_ops'
 
@@ -28,6 +29,17 @@ class LatchOpsTest < Minitest::Test
     Dir.mktmpdir 'test' do |dir|
       file = File.join(dir, 'a/a/a/a/latch.txt')
       LatchOps.new(file, FakeOps.new(file)).push
+    end
+  end
+
+  def test_atomic_counter
+    Dir.mktmpdir 'test' do |dir|
+      file = File.join(dir, 'a/a/a/a/latch.txt')
+      latch = LatchOps.new(file, FakeOps.new(file))
+      latch.push
+      latch.push
+      latch.push
+      assert_equal(0, latch.counter)
     end
   end
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Copyright (c) 2018 Yegor Bugayenko
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -12,65 +14,37 @@
 #
 # THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFINGEMENT. IN NO EVENT SHALL THE
 # AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require_relative 'atomic_file'
-
-#
-# Operations that puts and remotes a file.
-#
-class LatchOps
-  def initialize(file, ops)
+# Atomic file.
+# Author:: Yegor Bugayenko (yegor256@gmail.com)
+# Copyright:: Copyright (c) 2018 Yegor Bugayenko
+# License:: MIT
+class AtomicFile
+  def initialize(file)
     raise 'File can\'t be nil' if file.nil?
     @file = file
-    raise 'Ops can\'t be nil' if ops.nil?
-    @ops = ops
+    @mutex = Mutex.new
+    FileUtils.mkdir_p(File.dirname(@file))
+    FileUtils.touch(file)
   end
 
-  def pull
-    start
-    @ops.pull
-  ensure
-    stop
+  def read
+    @mutex.synchronize do
+      File.open(@file, 'rb', &:read)
+    end
   end
 
-  def push
-    start
-    @ops.push
-  ensure
-    stop
-  end
-
-  def pay(keygap, bnf, amount, details)
-    start
-    @ops.pay(keygap, bnf, amount, details)
-  ensure
-    stop
-  end
-
-  def counter
-    read_counter
-  end
-
-  private
-
-  def start
-    counter = read_counter
-    counter += 1
-    AtomicFile.new(@file).write(counter)
-  end
-
-  def read_counter
-    AtomicFile.new(@file).read.to_i
-  end
-
-  def stop
-    counter = read_counter
-    counter -= 1
-    AtomicFile.new(@file).write(counter)
+  def write(content)
+    raise 'Content can\'t be nil' if content.nil?
+    @mutex.synchronize do
+      File.open(@file, 'wb') do |f|
+        f.write(content)
+      end
+    end
   end
 end
