@@ -27,6 +27,7 @@ require 'zold/commands/pay'
 require 'zold/commands/remove'
 require 'zold/verbose_thread'
 require_relative 'stats'
+require_relative '../version'
 
 #
 # The stress tester.
@@ -68,7 +69,8 @@ class Stress
 
   def to_json
     {
-      'wallets': @wallets.all.count,
+      'version': VERSION,
+      'wallets': @wallets.all,
       'thread': @thread ? @thread.status : '-',
       'waiting': @waiting.count,
       'alive_hours': ((Time.now - @start) / 60 * 60).round

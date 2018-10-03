@@ -39,7 +39,11 @@ class StressTest < Minitest::Test
 
   def test_renders_json
     exec do |stress|
-      assert(stress.to_json[:wallets])
+      json = stress.to_json
+      assert(json[:wallets])
+      assert(json[:thread])
+      assert(json[:waiting])
+      assert(json[:alive_hours])
     end
   end
 
