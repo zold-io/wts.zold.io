@@ -196,7 +196,7 @@ get '/' do
   )
 end
 
-get '/stress' do
+get '/stress.json' do
   content_type 'application/json'
   JSON.pretty_generate(settings.stress.to_json)
 end
