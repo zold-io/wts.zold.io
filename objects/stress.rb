@@ -72,7 +72,7 @@ class Stress
       'version': VERSION,
       'wallets': @wallets.all,
       'thread': @thread ? @thread.status : '-',
-      'waiting': @waiting.count,
+      'waiting': @waiting,
       'alive_hours': ((Time.now - @start) / (60 * 60)).round
     }.merge(@stats.to_json)
   end
