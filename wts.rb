@@ -175,6 +175,10 @@ before '/*' do
   end
 end
 
+after do
+  headers['Access-Control-Allow-Origin'] = '*'
+end
+
 get '/github-callback' do
   cookies[:glogin] = GLogin::Cookie::Open.new(
     settings.glogin.user(params[:code]),
