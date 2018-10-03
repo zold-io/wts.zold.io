@@ -94,7 +94,7 @@ class Stress
           sleep(Stress::DELAY)
           @stats.put('cycles-ok', Time.now - start)
         rescue StandardError => e
-          blame(e, start, 'cycles-error')
+          blame(e, start, 'cycle-errors')
         end
       end
     end
@@ -202,7 +202,7 @@ class Stress
     @stats.put('pull-ok', Time.now - start)
     1
   rescue StandardError => e
-    blame(e, start, 'pull-error')
+    blame(e, start, 'pull-errors')
     0
   end
 
@@ -214,7 +214,7 @@ class Stress
     @stats.put('push-ok', Time.now - start)
     1
   rescue StandardError => e
-    blame(e, start, 'push-error')
+    blame(e, start, 'push-errors')
     0
   end
 end
