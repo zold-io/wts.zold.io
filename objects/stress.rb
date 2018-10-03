@@ -73,7 +73,7 @@ class Stress
       'wallets': @wallets.all,
       'thread': @thread ? @thread.status : '-',
       'waiting': @waiting.count,
-      'alive_hours': ((Time.now - @start) / 60 * 60).round
+      'alive_hours': ((Time.now - @start) / (60 * 60)).round
     }.merge(@stats.to_json)
   end
 
@@ -83,7 +83,7 @@ class Stress
       loop do
         @log.info('Stress thread cycle started...')
         start = Time.now
-        Zold::VerboseThread.new(@log).run(true) do
+        begin
           reload
           @log.info("Reloaded, #{@wallets.all.count} wallets in the pool")
           pay
@@ -92,8 +92,10 @@ class Stress
           match
           @log.info("Cycle done in #{Time.now - start}s, #{@wallets.all.count} wallets in the pool")
           sleep(Stress::DELAY)
+          @stats.put('cycles-ok', Time.now - start)
+        rescue StandardError => e
+          blame(e, start, 'cycles-error')
         end
-        @stats.put('cycles', Time.now - start)
       end
     end
   end
@@ -187,6 +189,11 @@ class Stress
 
   private
 
+  def blame(ex, start, label)
+    @log.error("#{ex.class.name}: #{ex.message}\n\t#{ex.backtrace.join("\n\t")}")
+    @stats.put(label, Time.now - start)
+  end
+
   def pull(id)
     start = Time.now
     Zold::Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
@@ -195,8 +202,7 @@ class Stress
     @stats.put('pull-ok', Time.now - start)
     1
   rescue StandardError => e
-    @log.error(e.message)
-    @stats.put('pull-error', Time.now - start)
+    blame(e, start, 'pull-error')
     0
   end
 
@@ -208,8 +214,7 @@ class Stress
     @stats.put('push-ok', Time.now - start)
     1
   rescue StandardError => e
-    @log.error(e.message)
-    @stats.put('push-error', Time.now - start)
+    blame(e, start, 'push-error')
     0
   end
 end
