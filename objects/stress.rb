@@ -90,12 +90,12 @@ class Stress
           refetch
           @log.info("#{@wallets.all.count} wallets remained after re-fetch")
           match
-          @log.info("Cycle done in #{Time.now - start}s, #{@wallets.all.count} wallets in the pool")
-          sleep(Stress::DELAY)
           @stats.put('cycles-ok', Time.now - start)
         rescue StandardError => e
           blame(e, start, 'cycle-errors')
         end
+        @log.info("Cycle done in #{Time.now - start}s, #{@wallets.all.count} wallets in the pool")
+        sleep(Stress::DELAY)
       end
     end
   end
