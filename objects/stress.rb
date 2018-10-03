@@ -73,7 +73,7 @@ class Stress
       'wallets': @wallets.all,
       'thread': @thread ? @thread.status : '-',
       'waiting': @waiting,
-      'alive_hours': ((Time.now - @start) / (60 * 60)).round
+      'alive_hours': (Time.now - @start) / (60 * 60)
     }.merge(@stats.to_json)
   end
 
@@ -90,9 +90,9 @@ class Stress
           refetch
           @log.info("#{@wallets.all.count} wallets remained after re-fetch")
           match
-          @stats.put('cycles-ok', Time.now - start)
+          @stats.put('cycles_ok', Time.now - start)
         rescue StandardError => e
-          blame(e, start, 'cycle-errors')
+          blame(e, start, 'cycle_errors')
         end
         @log.info("Cycle done in #{Time.now - start}s, #{@wallets.all.count} wallets in the pool")
         sleep(Stress::DELAY)
@@ -199,10 +199,10 @@ class Stress
     Zold::Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
       ['pull', id.to_s, "--network=#{@network}"]
     )
-    @stats.put('pull-ok', Time.now - start)
+    @stats.put('pull_ok', Time.now - start)
     1
   rescue StandardError => e
-    blame(e, start, 'pull-errors')
+    blame(e, start, 'pull_errors')
     0
   end
 
@@ -211,10 +211,10 @@ class Stress
     Zold::Push.new(wallets: @wallets, remotes: @remotes, log: @log).run(
       ['push', id.to_s, "--network=#{@network}"]
     )
-    @stats.put('push-ok', Time.now - start)
+    @stats.put('push_ok', Time.now - start)
     1
   rescue StandardError => e
-    blame(e, start, 'push-errors')
+    blame(e, start, 'push_errors')
     0
   end
 end
