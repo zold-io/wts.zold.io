@@ -35,8 +35,8 @@ class UserTest < Minitest::Test
       wallets = Zold::Wallets.new(File.join(dir, 'wallets'))
       login = 'jeffrey'
       user = User.new(
-        login, Item.new(login, Dynamo.new.aws, log: log),
-        wallets, log: log
+        login, Item.new(login, Dynamo.new.aws, log: test_log),
+        wallets, log: test_log
       )
       user.create
       assert(!user.confirmed?)

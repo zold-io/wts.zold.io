@@ -39,9 +39,6 @@ class Stress
   # Amount to send in each payment
   AMOUNT = Zold::Amount.new(zld: 0.01)
 
-  # Delay between payment cycles, in seconds
-  DELAY = 60
-
   def initialize(id:, pub:, pvt:, wallets:, remotes:, copies:, network: 'test', log: Zold::Log::Quiet.new)
     raise 'Wallet ID can\'t be nil' if id.nil?
     raise 'Wallet ID must be of type Id' unless id.is_a?(Zold::Id)
@@ -77,25 +74,33 @@ class Stress
     }.merge(@stats.to_json)
   end
 
-  def start
+  def start(delay: 60, cycles: -1)
+    cycle = 0
     @thread = Thread.new do
-      @log.info('Stress thread started')
-      loop do
-        @log.info('Stress thread cycle started...')
-        start = Time.now
-        begin
-          reload
-          @log.info("Reloaded, #{@wallets.all.count} wallets in the pool")
-          pay
-          refetch
-          @log.info("#{@wallets.all.count} wallets remained after re-fetch")
-          match
-          @stats.put('cycles_ok', Time.now - start)
-        rescue StandardError => e
-          blame(e, start, 'cycle_errors')
+      Zold::VerboseThread.new(@log).run do
+        @log.info("Stress thread started, delay=#{delay}, cycles=#{cycles}")
+        loop do
+          @log.info("Stress thread cycle no.#{cycle} started")
+          start = Time.now
+          begin
+            reload
+            @log.info("Reloaded, #{@wallets.all.count} wallets in the pool")
+            pay
+            refetch
+            @log.info("#{@wallets.all.count} wallets remained after re-fetch")
+            match
+            @stats.put('cycles_ok', Time.now - start)
+          rescue StandardError => e
+            blame(e, start, 'cycle_errors')
+          end
+          @log.info("Cycle no.#{cycle} finished in #{(Time.now - start).round(2)}s")
+          sleep(delay)
+          if cycles.positive?
+            cycle += 1
+            break if cycle >= cycles
+          end
         end
-        @log.info("Cycle done in #{Time.now - start}s, #{@wallets.all.count} wallets in the pool")
-        sleep(Stress::DELAY)
+        @log.info("Stress thread finished after cycle no.#{cycle}")
       end
     end
   end
@@ -110,7 +115,8 @@ class Stress
             next unless t.amount.negative?
             next if @wallets.all.include?(t.bnf.to_s)
             next if @wallets.all.count > Stress::POOL_SIZE
-            pulled += pull(t.bnf)
+            pull(t.bnf)
+            pulled += 1
           end
         end
       end
@@ -142,24 +148,24 @@ class Stress
     raise 'Too few wallets in the pool' if @wallets.all.count < 2
     seen = []
     loop do
-      first, second = @wallets.all.sample(2)
+      raise "No suitable wallets amoung #{seen.count}" if seen.count == @wallets.all.count
+      first = @wallets.all.sample(1)[0]
       next if seen.include?(first)
       seen << first
       next if @wallets.find(Zold::Id.new(first), &:balance) < Stress::AMOUNT
-      details = SecureRandom.uuid
       Tempfile.open do |f|
         File.write(f, @pvt.to_s)
-        Zold::Pay.new(wallets: @wallets, remotes: @remotes, log: @log).run(
-          ['pay', first, second, Stress::AMOUNT.to_zld, details, "--network=#{@network}", "--private-key=#{f.path}"]
-        )
+        @wallets.all.each do |id|
+          next if id == first
+          details = SecureRandom.uuid
+          Zold::Pay.new(wallets: @wallets, remotes: @remotes, log: @log).run(
+            ['pay', first, id, Stress::AMOUNT.to_zld, details, "--network=#{@network}", "--private-key=#{f.path}"]
+          )
+          push(Zold::Id.new(id))
+          @stats.put('paid', Stress::AMOUNT.to_zld.to_f)
+          @waiting[details] = { start: Time.now, id: id }
+        end
       end
-      push(Zold::Id.new(first))
-      push(Zold::Id.new(second))
-      @stats.put('paid', Stress::AMOUNT.to_zld.to_f)
-      @waiting[details] = {
-        start: Time.now,
-        id: second
-      }
       break
     end
   end
@@ -197,24 +203,20 @@ class Stress
   def pull(id)
     start = Time.now
     Zold::Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
-      ['pull', id.to_s, "--network=#{@network}"]
+      ['pull', id.to_s, "--network=#{@network}", '--ignore-score-weakness']
     )
     @stats.put('pull_ok', Time.now - start)
-    1
   rescue StandardError => e
     blame(e, start, 'pull_errors')
-    0
   end
 
   def push(id)
     start = Time.now
     Zold::Push.new(wallets: @wallets, remotes: @remotes, log: @log).run(
-      ['push', id.to_s, "--network=#{@network}"]
+      ['push', id.to_s, "--network=#{@network}", '--ignore-score-weakness']
     )
     @stats.put('push_ok', Time.now - start)
-    1
   rescue StandardError => e
     blame(e, start, 'push_errors')
-    0
   end
 end

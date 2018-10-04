@@ -20,7 +20,7 @@ Layout/EndAlignment:
 Lint/RescueException:
   Enabled: false
 Metrics/MethodLength:
-  Max: 50
+  Max: 100
 Metrics/ClassLength:
   Max: 200
 Metrics/AbcSize:

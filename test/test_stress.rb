@@ -22,18 +22,33 @@ require 'minitest/autorun'
 require 'zold/key'
 require 'zold/id'
 require 'zold/log'
+require 'zold/http'
+require 'zold/score'
 require 'zold/wallets'
 require 'zold/remotes'
+require 'zold/commands/create'
+require 'zold/commands/pay'
+require 'zold/commands/push'
+require 'zold/commands/node'
 require 'tmpdir'
+require 'random-port'
 require_relative 'test__helper'
 require_relative '../objects/stress'
 
+# Delete these two lines!
+require 'cachy'
+require 'moneta'
+Cachy.cache_store = Moneta.new(:Memory)
+
 class StressTest < Minitest::Test
-  def test_pulls_wallets
-    skip
+  def test_runs_a_few_full_cycles
     exec do |stress|
-      stress.reload
-      assert(true)
+      thread = stress.start(delay: 0, cycles: 5)
+      thread.join
+      json = stress.to_json
+      assert_equal(35, json['paid'][:total])
+      assert_equal(35, json['arrived'][:total])
+      assert_equal(5, json['cycles_ok'][:total])
     end
   end
 
@@ -47,20 +62,76 @@ class StressTest < Minitest::Test
     end
   end
 
+  private
+
   def exec
-    Dir.mktmpdir do |dir|
-      wallets = Zold::Wallets.new(dir)
-      remotes = Zold::Remotes.new(file: File.join(dir, 'remotes'))
-      stress = Stress.new(
-        id: Zold::Id.new('221255bc9af7baec'),
-        pub: Zold::Key.new(text: ''),
-        pvt: Zold::Key.new(text: ''),
-        wallets: wallets,
-        remotes: remotes,
-        copies: File.join(dir, 'copies'),
-        log: Zold::Log::Regular.new
-      )
-      yield stress
+    RandomPort::Pool::SINGLETON.acquire do |port|
+      Dir.mktmpdir do |dir|
+        thread = Thread.new do
+          Zold::VerboseThread.new(test_log).run do
+            home = File.join(dir, 'server')
+            FileUtils.mkdir_p(home)
+            node = Zold::Node.new(
+              wallets: Zold::Wallets.new(home),
+              remotes: Zold::Remotes.new(file: File.join(home, 'remotes')),
+              copies: File.join(home, 'copies'),
+              log: test_log
+            )
+            node.run(
+              [
+                '--home', home,
+                '--network=test',
+                '--port', port.to_s,
+                '--host=localhost',
+                '--bind-port', port.to_s,
+                '--threads=1',
+                '--standalone',
+                '--no-metronome',
+                '--dump-errors',
+                '--halt-code=test',
+                '--strength=2',
+                '--routine-immediately',
+                '--invoice=NOPREFIX@ffffffffffffffff'
+              ]
+            )
+          end
+        end
+        loop do
+          break if Zold::Http.new(uri: "http://localhost:#{port}/", score: Zold::Score::ZERO).get.code == '200'
+          test_log.debug('Waiting for the node to start...')
+        end
+        wallets = Zold::Wallets.new(dir)
+        remotes = Zold::Remotes.new(file: File.join(dir, 'remotes'), network: 'test')
+        remotes.clean
+        remotes.add('localhost', port)
+        Zold::Create.new(wallets: wallets, log: test_log).run(
+          ['create', '--public-key=test-assets/id_rsa.pub', '0000000000000000', '--network=test']
+        )
+        id = Zold::Create.new(wallets: wallets, log: test_log).run(
+          ['create', '--public-key=test-assets/id_rsa.pub', '--network=test']
+        )
+        Zold::Pay.new(wallets: wallets, remotes: remotes, log: test_log).run(
+          ['pay', '0000000000000000', id.to_s, '1.00', 'start', '--private-key=test-assets/id_rsa']
+        )
+        Zold::Push.new(wallets: wallets, remotes: remotes, log: test_log).run(
+          ['push', '0000000000000000', id.to_s, '--ignore-score-weakness']
+        )
+        stress = Stress.new(
+          id: id,
+          pub: Zold::Key.new(file: 'test-assets/id_rsa.pub'),
+          pvt: Zold::Key.new(file: 'test-assets/id_rsa'),
+          wallets: wallets,
+          remotes: remotes,
+          copies: File.join(dir, 'copies'),
+          log: test_log
+        )
+        begin
+          yield stress
+        ensure
+          Zold::Http.new(uri: "http://localhost:#{port}/?halt=test", score: Zold::Score::ZERO).get
+          thread.join
+        end
+      end
     end
   end
 end

@@ -36,12 +36,12 @@ class OpsTest < Minitest::Test
       remotes = Zold::Remotes.new(file: File.join(dir, 'remotes.csv'))
       remotes.clean
       login = 'jeff01'
-      item = Item.new(login, Dynamo.new.aws, log: log)
-      user = User.new(login, item, wallets, log: log)
+      item = Item.new(login, Dynamo.new.aws, log: test_log)
+      user = User.new(login, item, wallets, log: test_log)
       user.create
       keygap = user.keygap
       user.confirm(keygap)
-      friend = User.new('friend', Item.new('friend', Dynamo.new.aws, log: log), wallets, log: log)
+      friend = User.new('friend', Item.new('friend', Dynamo.new.aws, log: test_log), wallets, log: test_log)
       friend.create
       puts wallets.all
       # copies = File.join(dir, 'copies')

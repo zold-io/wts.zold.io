@@ -32,9 +32,8 @@ end
 require 'minitest/autorun'
 module Minitest
   class Test
-    def log
-      # $log = Zold::Log::Quiet.new
-      @log ||= Zold::Log::Verbose.new
+    def test_log
+      @test_log ||= Zold::Log::Sync.new(Zold::Log::Verbose.new)
     end
   end
 end

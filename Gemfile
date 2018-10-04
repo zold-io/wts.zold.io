@@ -32,6 +32,7 @@ gem 'rack', '~>2.0'
 gem 'rack-ssl', '~>1.4'
 gem 'rack-test', '~>1.0'
 gem 'rake', '~>12.3', require: false
+gem 'random-port', '~>0.2', require: false
 gem 'rerun', '~>0.11', require: false
 gem 'rubocop', '~>0.52', require: false
 gem 'rubocop-rspec', '~>1.25', require: false
