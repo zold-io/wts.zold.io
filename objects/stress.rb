@@ -171,7 +171,7 @@ class Stress
       paid << first
       break
     end
-    paid.uniq.each do |id|
+    paid.uniq.peach(Concurrent.processor_count * 8) do |id|
       push(Zold::Id.new(id))
     end
   end
