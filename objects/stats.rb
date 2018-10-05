@@ -38,7 +38,9 @@ class Stats
         {
           'total': h.count,
           'sum': sum,
-          'avg': (h.empty? ? 0 : (sum / h.count))
+          'avg': (h.empty? ? 0 : (sum / h.count)),
+          'max': h.max,
+          'min': h.min
         }
       ]
     end.to_h
