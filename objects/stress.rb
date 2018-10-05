@@ -69,6 +69,7 @@ class Stress
     {
       'version': VERSION,
       'wallets': @wallets.all,
+      'transactions': @wallets.all.map { |id| @wallets.find(Zold::Id.new(id)) { |w| w.txns.count } }.inject(&:+),
       'thread': @thread ? @thread.status : '-',
       'waiting': @waiting,
       'alive_hours': (Time.now - @start) / (60 * 60)
