@@ -18,6 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require 'parallelize'
 require 'zold/key'
 require 'zold/id'
 require 'zold/commands/create'
@@ -147,6 +148,7 @@ class Stress
   def pay
     raise 'Too few wallets in the pool' if @wallets.all.count < 2
     seen = []
+    paid = []
     loop do
       raise "No suitable wallets amoung #{seen.count}" if seen.count == @wallets.all.count
       first = @wallets.all.sample(1)[0]
@@ -161,12 +163,16 @@ class Stress
           Zold::Pay.new(wallets: @wallets, remotes: @remotes, log: @log).run(
             ['pay', first, id, Stress::AMOUNT.to_zld, details, "--network=#{@network}", "--private-key=#{f.path}"]
           )
-          push(Zold::Id.new(id))
+          paid << id
           @stats.put('paid', Stress::AMOUNT.to_zld.to_f)
           @waiting[details] = { start: Time.now, id: id }
         end
       end
+      paid << first
       break
+    end
+    paid.uniq.each do |id|
+      push(Zold::Id.new(id))
     end
   end
 
