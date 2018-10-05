@@ -40,6 +40,7 @@ class LatchOps
 
   def push
     start
+    yield @ops if block_given?
     @ops.push
   ensure
     stop
