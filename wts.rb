@@ -134,7 +134,7 @@ configure do
       network: 'zold',
       log: settings.log
     )
-    settings.stress.start
+    settings.stress.start(delay: 0)
   end
 end
 

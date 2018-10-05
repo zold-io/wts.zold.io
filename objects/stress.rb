@@ -107,6 +107,7 @@ class Stress
   end
 
   def reload
+    start = Time.now
     pull(@id)
     loop do
       pulled = 0
@@ -143,10 +144,12 @@ class Stress
     #     ['remove', @wallets.all.sample.to_s]
     #   )
     # end
+    @stats.put('reload_ok', Time.now - start)
   end
 
   def pay
     raise 'Too few wallets in the pool' if @wallets.all.count < 2
+    start = Time.now
     seen = []
     paid = []
     loop do
@@ -174,18 +177,22 @@ class Stress
     paid.uniq.peach(Concurrent.processor_count * 8) do |id|
       push(Zold::Id.new(id))
     end
+    @stats.put('pay_ok', Time.now - start)
   end
 
   def refetch
+    start = Time.now
     @wallets.all.each do |id|
       Zold::Remove.new(wallets: @wallets, log: @log).run(
         ['remove', id.to_s]
       )
       pull(Zold::Id.new(id))
     end
+    @stats.put('refetch_ok', Time.now - start)
   end
 
   def match
+    start = Time.now
     @wallets.all.each do |id|
       @wallets.find(Zold::Id.new(id)) do |w|
         w.txns.each do |t|
@@ -197,6 +204,7 @@ class Stress
         end
       end
     end
+    @stats.put('match_ok', Time.now - start)
   end
 
   private
