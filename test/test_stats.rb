@@ -31,4 +31,15 @@ class StatsTest < Minitest::Test
     assert(stats.to_json[m])
     assert_equal(1.55, stats.to_json[m][:avg])
   end
+
+  def test_filters_out_too_old_values
+    stats = Stats.new(age: 0.1)
+    m = 'metric-1'
+    stats.put(m, 1)
+    stats.put(m, 2)
+    assert_equal(2, stats.to_json[m][:total])
+    sleep 0.2
+    stats.put(m, 2)
+    assert_equal(1, stats.to_json[m][:total])
+  end
 end

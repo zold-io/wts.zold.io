@@ -22,25 +22,25 @@
 # The stats.
 #
 class Stats
-  # Max length of the line
-  MAX = 512
-
-  def initialize
+  def initialize(age: 24 * 60 * 60)
+    @age = age
     @history = {}
     @mutex = Mutex.new
   end
 
   def to_json
     @history.map do |m, h|
-      sum = h.inject(&:+)
+      data = h.map { |a| a[:value] }
+      sum = data.inject(&:+)
       [
         m,
         {
-          'total': h.count,
+          'total': data.count,
           'sum': sum,
-          'avg': (h.empty? ? 0 : (sum / h.count)),
-          'max': h.max,
-          'min': h.min
+          'avg': (data.empty? ? 0 : (sum / data.count)),
+          'max': data.max,
+          'min': data.min,
+          'age': h.map { |a| a[:time] }.max - h.map { |a| a[:time] }.min
         }
       ]
     end.to_h
@@ -50,8 +50,8 @@ class Stats
     raise "Invalid type of \"#{value}\" (#{value.class.name})" unless value.is_a?(Integer) || value.is_a?(Float)
     @mutex.synchronize do
       @history[metric] = [] unless @history[metric]
-      @history[metric] << value
-      @history[metric].shift while @history[metric].count > Stats::MAX
+      @history[metric] << { time: Time.now, value: value }
+      @history[metric].reject! { |a| a[:time] < Time.now - @age }
     end
   end
 end
