@@ -68,6 +68,7 @@ class Stress
   def to_json
     {
       'version': VERSION,
+      'remotes': @remotes.all.count,
       'wallets': @wallets.all,
       'transactions': @wallets.all.map { |id| @wallets.find(Zold::Id.new(id)) { |w| w.txns.count } }.inject(&:+),
       'thread': @thread ? @thread.status : '-',
