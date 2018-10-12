@@ -19,6 +19,7 @@
 # SOFTWARE.
 
 require 'parallelize'
+require 'backtrace'
 require 'zold/key'
 require 'zold/id'
 require 'zold/commands/create'
@@ -210,7 +211,7 @@ class Stress
   private
 
   def blame(ex, start, label)
-    @log.error("#{ex.class.name}: #{ex.message}\n\t#{ex.backtrace.join("\n\t")}")
+    @log.error(ex.message)
     @stats.put(label, Time.now - start)
   end
 
