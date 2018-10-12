@@ -22,10 +22,12 @@ require 'parallelize'
 require 'backtrace'
 require 'zold/key'
 require 'zold/id'
+require 'zold/tax'
 require 'zold/commands/create'
 require 'zold/commands/pull'
 require 'zold/commands/push'
 require 'zold/commands/pay'
+require 'zold/commands/taxes'
 require 'zold/commands/remove'
 require 'zold/verbose_thread'
 require_relative 'stats'
@@ -163,13 +165,8 @@ class Stress
         File.write(f, @pvt.to_s)
         @wallets.all.each do |id|
           next if id == first
-          details = SecureRandom.uuid
-          Zold::Pay.new(wallets: @wallets, remotes: @remotes, log: @log).run(
-            ['pay', first, id, Stress::AMOUNT.to_zld, details, "--network=#{@network}", "--private-key=#{f.path}"]
-          )
+          pay_one(first, id, f.path)
           paid << id
-          @stats.put('paid', Stress::AMOUNT.to_zld.to_f)
-          @waiting[details] = { start: Time.now, id: id }
         end
       end
       paid << first
@@ -179,6 +176,23 @@ class Stress
       push(Zold::Id.new(id))
     end
     @stats.put('pay_ok', Time.now - start)
+  end
+
+  def pay_one(source, target, pvt)
+    Zold::Taxes.new(wallets: @wallets, remotes: @remotes, log: @log).run(
+      ['taxes', 'pay', source, "--network=#{@network}", "--private-key=#{pvt}", '--ignore-nodes-absence']
+    )
+    if @wallets.find(Zold::Id.new(source)) { |w| Zold::Tax.new(w).in_debt? }
+      @log.error("The wallet #{w.id} is still in debt and we can't pay taxes")
+      return
+    end
+    details = SecureRandom.uuid
+    amount = Stress::AMOUNT
+    Zold::Pay.new(wallets: @wallets, remotes: @remotes, log: @log).run(
+      ['pay', source, target, amount.to_zld, details, "--network=#{@network}", "--private-key=#{pvt}"]
+    )
+    @stats.put('paid', amount.to_zld.to_f)
+    @waiting[details] = { start: Time.now, id: target }
   end
 
   def refetch
