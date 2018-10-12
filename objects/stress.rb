@@ -64,6 +64,9 @@ class Stress
     raise 'Log can\'t be nil' if log.nil?
     @log = log
     @stats = Stats.new
+    %w[arrived paid pull_ok pull_errors push_ok push_errors].each do |m|
+      @stats.announce(m)
+    end
     @start = Time.now
     @waiting = {}
   end
@@ -183,7 +186,7 @@ class Stress
       ['taxes', 'pay', source, "--network=#{@network}", "--private-key=#{pvt}", '--ignore-nodes-absence']
     )
     if @wallets.find(Zold::Id.new(source)) { |w| Zold::Tax.new(w).in_debt? }
-      @log.error("The wallet #{w.id} is still in debt and we can't pay taxes")
+      @log.error("The wallet #{source} is still in debt and we can't pay taxes")
       return
     end
     details = SecureRandom.uuid

@@ -31,7 +31,7 @@ class Stats
   def to_json
     @history.map do |m, h|
       data = h.map { |a| a[:value] }
-      sum = data.inject(&:+)
+      sum = data.inject(&:+) || 0
       [
         m,
         {
@@ -40,16 +40,22 @@ class Stats
           'avg': (data.empty? ? 0 : (sum / data.count)),
           'max': data.max,
           'min': data.min,
-          'age': h.map { |a| a[:time] }.max - h.map { |a| a[:time] }.min
+          'age': (h.map { |a| a[:time] }.max || 0) - (h.map { |a| a[:time] }.min || 0)
         }
       ]
     end.to_h
   end
 
-  def put(metric, value)
-    raise "Invalid type of \"#{value}\" (#{value.class.name})" unless value.is_a?(Integer) || value.is_a?(Float)
+  def announce(metric)
     @mutex.synchronize do
       @history[metric] = [] unless @history[metric]
+    end
+  end
+
+  def put(metric, value)
+    raise "Invalid type of \"#{value}\" (#{value.class.name})" unless value.is_a?(Integer) || value.is_a?(Float)
+    announce(metric)
+    @mutex.synchronize do
       @history[metric] << { time: Time.now, value: value }
       @history[metric].reject! { |a| a[:time] < Time.now - @age }
     end
