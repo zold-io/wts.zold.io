@@ -25,6 +25,7 @@ require 'sinatra'
 require 'sinatra/cookies'
 require 'sass'
 require 'json'
+require 'backtrace'
 require 'raven'
 require 'glogin'
 require 'base64'
@@ -36,6 +37,7 @@ require 'zold/remotes'
 require 'zold/amount'
 require 'zold/wallets'
 require 'zold/sync_wallets'
+require 'zold/cached_wallets'
 require 'zold/remotes'
 
 require_relative 'version'
@@ -100,9 +102,11 @@ configure do
     config['github']['client_secret'],
     'https://wts.zold.io/github-callback'
   )
-  set :wallets, Zold::SyncWallets.new(
-    Zold::Wallets.new(File.join(settings.root, '.zold-wts/wallets')),
-    File.join(settings.root, '.zold-wts/sync-wallets')
+  set :wallets, Zold::CachedWallets.new(
+    Zold::SyncWallets.new(
+      Zold::Wallets.new(File.join(settings.root, '.zold-wts/wallets')),
+      File.join(settings.root, '.zold-wts/sync-wallets')
+    )
   )
   set :remotes, Zold::Remotes.new(file: File.join(settings.root, '.zold-wts/remotes'), network: 'zold')
   set :copies, File.join(settings.root, '.zold-wts/copies')
@@ -116,7 +120,7 @@ configure do
         pay_hosting_bonuses
       rescue StandardError => e
         Raven.capture_exception(e)
-        settings.log.error("#{e.class.name}: #{e.message}\n\t#{e.backtrace.join("\n\t")}")
+        settings.log.error(Backtrace.new(e).to_s)
       end
     end
   end
@@ -125,9 +129,11 @@ configure do
       id: Zold::Id.new(config['stress']['id']),
       pub: Zold::Key.new(text: config['stress']['pub']),
       pvt: Zold::Key.new(text: config['stress']['pvt']),
-      wallets: Zold::SyncWallets.new(
-        Zold::Wallets.new(File.join(settings.root, '.zold-wts/stress-wallets')),
-        File.join(settings.root, '.zold-wts/sync-stress-wallets')
+      wallets: Zold::CachedWallets.new(
+        Zold::SyncWallets.new(
+          Zold::Wallets.new(File.join(settings.root, '.zold-wts/stress-wallets')),
+          File.join(settings.root, '.zold-wts/sync-stress-wallets')
+        )
       ),
       remotes: settings.remotes,
       copies: settings.copies,
@@ -462,7 +468,7 @@ error do
     layout: :layout,
     locals: merged(
       title: 'Error',
-      error: "#{e.class.name}: #{e.message}\n\t#{e.backtrace.join("\n\t")}"
+      error: Backtrace.new(e).to_s
     )
   )
 end

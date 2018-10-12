@@ -98,10 +98,8 @@ class Stress
           end
           @log.info("Cycle no.#{cycle} finished in #{(Time.now - start).round(2)}s")
           sleep(delay)
-          if cycles.positive?
-            cycle += 1
-            break if cycle >= cycles
-          end
+          cycle += 1
+          break if cycles.positive? && cycle >= cycles
         end
         @log.info("Stress thread finished after cycle no.#{cycle}")
       end

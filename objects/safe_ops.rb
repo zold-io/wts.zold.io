@@ -18,6 +18,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require 'backtrace'
+
 #
 # Operations that log exceptions.
 #
@@ -50,6 +52,6 @@ class SafeOps
   private
 
   def print(e)
-    @log.error("#{e.class.name}: #{e.message}\n#{e.backtrace.join("\n\t")}")
+    @log.error(Backtrace.new(e).to_s)
   end
 end
