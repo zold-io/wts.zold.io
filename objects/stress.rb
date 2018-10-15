@@ -137,14 +137,12 @@ class Stress
     loop do
       pulled = 0
       @wallets.all.shuffle.each do |id|
-        @wallets.find(Zold::Id.new(id)) do |w|
-          w.txns.each do |t|
-            next unless t.amount.negative?
-            next if @wallets.all.include?(t.bnf.to_s)
-            next if @wallets.all.count > Stress::POOL_SIZE
-            pull(t.bnf)
-            pulled += 1
-          end
+        @wallets.find(Zold::Id.new(id), &:txns).each do |t|
+          next unless t.amount.negative?
+          next if @wallets.all.include?(t.bnf.to_s)
+          next if @wallets.all.count > Stress::POOL_SIZE
+          pull(t.bnf)
+          pulled += 1
         end
       end
       break if pulled.zero?
@@ -232,14 +230,12 @@ class Stress
   def match
     start = Time.now
     @wallets.all.each do |id|
-      @wallets.find(Zold::Id.new(id)) do |w|
-        w.txns.each do |t|
-          next if t.amount.negative?
-          next unless @waiting[t.details]
-          @stats.put('arrived', Time.now - @waiting[t.details][:start])
-          @waiting.delete(t.details)
-          @log.info("Payment arrived to #{id} at ##{t.id}: #{t.details}")
-        end
+      @wallets.find(Zold::Id.new(id), &:txns).each do |t|
+        next if t.amount.negative?
+        next unless @waiting[t.details]
+        @stats.put('arrived', Time.now - @waiting[t.details][:start])
+        @waiting.delete(t.details)
+        @log.info("Payment arrived to #{id} at ##{t.id}: #{t.details}")
       end
     end
     @stats.put('match_ok', Time.now - start)
@@ -248,7 +244,7 @@ class Stress
   private
 
   def blame(ex, start, label)
-    @log.error(Backtrace.new(ex, mine: 'wts'))
+    @log.error(Backtrace.new(ex))
     @stats.put(label, Time.now - start)
   end
 
