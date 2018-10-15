@@ -75,7 +75,15 @@ class Stress
     {
       'version': VERSION,
       'remotes': @remotes.all.count,
-      'wallets': @wallets.all,
+      'wallets': @wallets.all.map do |id|
+        @wallets.find(Zold::Id.new(id)) do |w|
+          {
+            'id': w.id,
+            'txns': w.txns.count,
+            'balance': w.balance.to_zld(4)
+          }
+        end
+      end,
       'transactions': @wallets.all.map { |id| @wallets.find(Zold::Id.new(id)) { |w| w.txns.count } }.inject(&:+),
       'thread': @thread ? @thread.status : '-',
       'waiting': @waiting,
@@ -159,7 +167,7 @@ class Stress
     seen = []
     paid = []
     loop do
-      raise "No suitable wallets amoung #{seen.count}" if seen.count == @wallets.all.count
+      raise "No suitable wallets amoung #{seen.count} in the pool" if seen.count == @wallets.all.count
       first = @wallets.all.sample(1)[0]
       next if seen.include?(first)
       seen << first
@@ -168,6 +176,7 @@ class Stress
         File.write(f, @pvt.to_s)
         @wallets.all.each do |id|
           next if id == first
+          break if @wallets.find(Zold::Id.new(first), &:balance) < Stress::AMOUNT
           pay_one(first, id, f.path)
           paid << id
         end
@@ -186,7 +195,7 @@ class Stress
       ['taxes', 'pay', source, "--network=#{@network}", "--private-key=#{pvt}", '--ignore-nodes-absence']
     )
     if @wallets.find(Zold::Id.new(source)) { |w| Zold::Tax.new(w).in_debt? }
-      @log.error("The wallet #{source} is still in debt and we can't pay taxes")
+      @log.error("The wallet #{source} is still in debt (#{Zold::Tax.new(w).debt}) and we can't pay taxes")
       return
     end
     details = SecureRandom.uuid
