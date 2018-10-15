@@ -27,6 +27,7 @@ require 'zold/commands/create'
 require 'zold/commands/pull'
 require 'zold/commands/push'
 require 'zold/commands/pay'
+require 'zold/commands/remote'
 require 'zold/commands/taxes'
 require 'zold/commands/remove'
 require 'zold/verbose_thread'
@@ -84,7 +85,6 @@ class Stress
           }
         end
       end,
-      'transactions': @wallets.all.map { |id| @wallets.find(Zold::Id.new(id)) { |w| w.txns.count } }.inject(&:+),
       'thread': @thread ? @thread.status : '-',
       'waiting': @waiting,
       'alive_hours': (Time.now - @start) / (60 * 60)
@@ -100,6 +100,8 @@ class Stress
           @log.info("Stress thread cycle no.#{cycle} started")
           start = Time.now
           begin
+            update
+            @log.info("Updated remotes, #{@remotes.all.count} remained")
             reload
             @log.info("Reloaded, #{@wallets.all.count} wallets in the pool")
             pay
@@ -118,6 +120,15 @@ class Stress
         @log.info("Stress thread finished after cycle no.#{cycle}")
       end
     end
+  end
+
+  def update
+    cmd = Zold::Remote.new(remotes: @remotes, log: @log)
+    args = ['remote', "--network=#{@network}"]
+    cmd.run(args + ['trim'])
+    cmd.run(args + ['reset']) if @remotes.all.empty?
+    cmd.run(args + ['update'])
+    cmd.run(args + ['select'])
   end
 
   def reload
@@ -237,7 +248,7 @@ class Stress
   private
 
   def blame(ex, start, label)
-    @log.error(ex.message)
+    @log.error(Backtrace.new(ex, mine: 'wts'))
     @stats.put(label, Time.now - start)
   end
 
