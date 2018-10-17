@@ -126,7 +126,6 @@ configure do
       ),
       remotes: settings.remotes,
       copies: settings.copies,
-      network: 'zold',
       log: settings.log
     )
   end
@@ -142,7 +141,7 @@ configure do
     end
   end
   Thread.new do
-    settings.stress.run(delay: 0)
+    settings.stress.run(delay: 0, opts: '--network=zold')
   end
 end
 
