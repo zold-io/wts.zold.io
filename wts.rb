@@ -113,17 +113,6 @@ configure do
   set :codec, GLogin::Codec.new(config['api_secret'])
   set :pool, Concurrent::FixedThreadPool.new(16, max_queue: 64, fallback_policy: :abort)
   set :log, Zold::Log::Sync.new(Zold::Log::Regular.new)
-  Thread.new do
-    loop do
-      sleep 60 * 60
-      begin
-        pay_hosting_bonuses
-      rescue StandardError => e
-        Raven.capture_exception(e)
-        settings.log.error(Backtrace.new(e).to_s)
-      end
-    end
-  end
   unless config['stress']['id'].empty?
     set :stress, Stress.new(
       id: Zold::Id.new(config['stress']['id']),
@@ -140,7 +129,20 @@ configure do
       network: 'zold',
       log: settings.log
     )
-    settings.stress.start(delay: 0)
+  end
+  Thread.new do
+    loop do
+      sleep 60 * 60
+      begin
+        pay_hosting_bonuses
+      rescue StandardError => e
+        Raven.capture_exception(e)
+        settings.log.error(Backtrace.new(e))
+      end
+    end
+  end
+  Thread.new do
+    settings.stress.run(delay: 0)
   end
 end
 

@@ -43,8 +43,8 @@ class Stats
           'total': data.count,
           'sum': sum,
           'avg': (data.empty? ? 0 : (sum / data.count)),
-          'max': data.max,
-          'min': data.min,
+          'max': data.max || 0,
+          'min': data.min || 0,
           'age': (h.map { |a| a[:time] }.max || 0) - (h.map { |a| a[:time] }.min || 0)
         }
       ]
@@ -57,13 +57,14 @@ class Stats
     end
   end
 
-  def exec(metric)
+  def exec(metric, swallow: true)
     start = Time.now
     yield
     put(metric + '_ok', Time.now - start)
   rescue StandardError => ex
     @log.error(Backtrace.new(ex))
     put(metric + '_error', Time.now - start)
+    raise ex unless swallow
   end
 
   def put(metric, value)

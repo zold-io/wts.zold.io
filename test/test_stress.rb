@@ -31,15 +31,14 @@ require 'zold/commands/pay'
 require 'zold/commands/push'
 require 'zold/commands/node'
 require 'tmpdir'
-require 'random-port'
 require_relative 'test__helper'
+require_relative 'fake_node'
 require_relative '../objects/stress'
 
 class StressTest < Minitest::Test
   def test_runs_a_few_full_cycles
     exec do |stress|
-      thread = stress.start(delay: 0, cycles: 5)
-      thread.join
+      stress.run(delay: 0, cycles: 5, opts: ['--ignore-score-weakness', '--network=test'])
       json = stress.to_json
       assert_equal(35, json['paid'][:total])
       assert(json['arrived'][:total] > 30)
@@ -60,41 +59,8 @@ class StressTest < Minitest::Test
   private
 
   def exec
-    RandomPort::Pool::SINGLETON.acquire do |port|
+    FakeNode.new(test_log).exec do |port|
       Dir.mktmpdir do |dir|
-        thread = Thread.new do
-          Zold::VerboseThread.new(test_log).run do
-            home = File.join(dir, 'server')
-            FileUtils.mkdir_p(home)
-            node = Zold::Node.new(
-              wallets: Zold::Wallets.new(home),
-              remotes: Zold::Remotes.new(file: File.join(home, 'remotes')),
-              copies: File.join(home, 'copies'),
-              log: test_log
-            )
-            node.run(
-              [
-                '--home', home,
-                '--network=test',
-                '--port', port.to_s,
-                '--host=localhost',
-                '--bind-port', port.to_s,
-                '--threads=1',
-                '--standalone',
-                '--no-metronome',
-                '--dump-errors',
-                '--halt-code=test',
-                '--strength=2',
-                '--routine-immediately',
-                '--invoice=NOPREFIX@ffffffffffffffff'
-              ]
-            )
-          end
-        end
-        loop do
-          break if Zold::Http.new(uri: "http://localhost:#{port}/", score: Zold::Score::ZERO).get.code == '200'
-          test_log.debug('Waiting for the node to start...')
-        end
         wallets = Zold::Wallets.new(dir)
         remotes = Zold::Remotes.new(file: File.join(dir, 'remotes'), network: 'test')
         remotes.clean
@@ -111,7 +77,7 @@ class StressTest < Minitest::Test
         Zold::Push.new(wallets: wallets, remotes: remotes, log: test_log).run(
           ['push', '0000000000000000', id.to_s, '--ignore-score-weakness']
         )
-        stress = Stress.new(
+        yield Stress.new(
           id: id,
           pub: Zold::Key.new(file: 'test-assets/id_rsa.pub'),
           pvt: Zold::Key.new(file: 'test-assets/id_rsa'),
@@ -120,12 +86,6 @@ class StressTest < Minitest::Test
           copies: File.join(dir, 'copies'),
           log: test_log
         )
-        begin
-          yield stress
-        ensure
-          Zold::Http.new(uri: "http://localhost:#{port}/?halt=test", score: Zold::Score::ZERO).get
-          thread.join
-        end
       end
     end
   end
