@@ -141,7 +141,7 @@ configure do
     end
   end
   Thread.new do
-    settings.stress.run(delay: 0, opts: '--network=zold')
+    settings.stress.run(delay: 0, opts: ['--network=zold'])
   end
 end
 
