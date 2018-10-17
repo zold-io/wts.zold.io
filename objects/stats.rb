@@ -18,14 +18,19 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require 'time'
+require 'backtrace'
+require 'zold/log'
+
 #
 # The stats.
 #
 class Stats
-  def initialize(age: 24 * 60 * 60)
+  def initialize(age: 24 * 60 * 60, log: Zold::Log::Quiet.new)
     @age = age
     @history = {}
     @mutex = Mutex.new
+    @log = log
   end
 
   def to_json
@@ -50,6 +55,15 @@ class Stats
     @mutex.synchronize do
       @history[metric] = [] unless @history[metric]
     end
+  end
+
+  def exec(metric)
+    start = Time.now
+    yield
+    put(metric + '_ok', Time.now - start)
+  rescue StandardError => ex
+    @log.error(Backtrace.new(ex))
+    put(metric + '_error', Time.now - start)
   end
 
   def put(metric, value)

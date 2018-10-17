@@ -23,10 +23,10 @@ ruby '2.3.3'
 gem 'aws-sdk-dynamodb', '~>1.6'
 gem 'aws-sdk-s3', '~>1.13'
 gem 'backports', '~>3.11'
-gem 'backtrace', '~>0.3'
+gem 'backtrace', '~>0'
 gem 'codecov', '~>0.1'
 gem 'concurrent-ruby', '~>1.0'
-gem 'glogin', '~>0.2'
+gem 'glogin', '~>0'
 gem 'haml', '~>5.0'
 gem 'minitest', '~>5.11'
 gem 'parallelize', '~>0.4'
@@ -34,7 +34,7 @@ gem 'rack', '~>2.0'
 gem 'rack-ssl', '~>1.4'
 gem 'rack-test', '~>1.0'
 gem 'rake', '~>12.3', require: false
-gem 'random-port', '~>0.2', require: false
+gem 'random-port', '~>0', require: false
 gem 'rerun', '~>0.11', require: false
 gem 'rubocop', '~>0.52', require: false
 gem 'rubocop-rspec', '~>1.25', require: false
@@ -42,5 +42,5 @@ gem 'sass', '~>3.5'
 gem 'sentry-raven', '~>2.7'
 gem 'sinatra', '~>2.0'
 gem 'sinatra-contrib', '~>2.0'
-gem 'xcop', '~>0.6'
-gem 'zold', '~>0.14'
+gem 'xcop', '~>0'
+gem 'zold', '~>0'

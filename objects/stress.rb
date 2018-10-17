@@ -32,6 +32,7 @@ require 'zold/commands/taxes'
 require 'zold/commands/remove'
 require 'zold/verbose_thread'
 require_relative 'stats'
+require_relative 'pool'
 require_relative '../version'
 
 #
@@ -77,7 +78,7 @@ class Stress
       'version': VERSION,
       'remotes': @remotes.all.count,
       'wallets': @wallets.all.map do |id|
-        @wallets.find(Zold::Id.new(id)) do |w|
+        @wallets.find(id) do |w|
           {
             'id': w.id,
             'txns': w.txns.count,
@@ -102,17 +103,23 @@ class Stress
           begin
             update
             @log.info("Updated remotes, #{@remotes.all.count} remained")
-            reload
+            Pool.new(
+              id: @id, pub: @pub, wallets: @wallets,
+              remotes: @remotes, copies: @copies, stats: @stats,
+              network: @network, log: @log
+            ).reload
             @log.info("Reloaded, #{@wallets.all.count} wallets in the pool")
             pay
+            @log.info("Payments processed and pushed for #{@wallets.all.count} wallets")
             refetch
             @log.info("#{@wallets.all.count} wallets remained after re-fetch")
             match
             @stats.put('cycles_ok', Time.now - start)
+            @log.info("Cycle no.#{cycle} finished in #{Zold::Age.new(start)}")
           rescue StandardError => e
             blame(e, start, 'cycle_errors')
+            @log.info("Cycle no.#{cycle} failed in #{Zold::Age.new(start)}")
           end
-          @log.info("Cycle no.#{cycle} finished in #{(Time.now - start).round(2)}s")
           sleep(delay)
           cycle += 1
           break if cycles.positive? && cycle >= cycles
@@ -123,6 +130,7 @@ class Stress
   end
 
   def update
+    return unless @network == 'zold'
     cmd = Zold::Remote.new(remotes: @remotes, log: @log)
     args = ['remote', "--network=#{@network}"]
     cmd.run(args + ['trim'])
@@ -131,86 +139,37 @@ class Stress
     cmd.run(args + ['select'])
   end
 
-  def reload
-    start = Time.now
-    pull(@id)
-    loop do
-      pulled = 0
-      @wallets.all.shuffle.each do |id|
-        @wallets.find(Zold::Id.new(id), &:txns).each do |t|
-          next unless t.amount.negative?
-          next if @wallets.all.include?(t.bnf.to_s)
-          next if @wallets.all.count > Stress::POOL_SIZE
-          pull(t.bnf)
-          pulled += 1
-        end
-      end
-      break if pulled.zero?
-    end
-    @wallets.all.each do |id|
-      next if @wallets.find(Zold::Id.new(id), &:balance) > Stress::AMOUNT
-      next if @waiting.values.find { |w| w[:id] == id }
-      Zold::Remove.new(wallets: @wallets, log: @log).run(
-        ['remove', id.to_s]
-      )
-    end
-    Tempfile.open do |f|
-      File.write(f, @pub.to_s)
-      while @wallets.all.count < Stress::POOL_SIZE
-        Zold::Create.new(wallets: @wallets, log: @log).run(
-          ['create', "--network=#{@network}", "--public-key=#{f.path}"]
-        )
-      end
-    end
-    # while @wallets.all.count > Stress::POOL_SIZE
-    #   Zold::Remove.new(wallets: @wallets, log: @log).run(
-    #     ['remove', @wallets.all.sample.to_s]
-    #   )
-    # end
-    @stats.put('reload_ok', Time.now - start)
-  end
-
   def pay
     raise 'Too few wallets in the pool' if @wallets.all.count < 2
     start = Time.now
-    seen = []
-    paid = []
-    loop do
-      raise "No suitable wallets amoung #{seen.count} in the pool" if seen.count == @wallets.all.count
-      first = @wallets.all.sample(1)[0]
-      next if seen.include?(first)
-      seen << first
-      next if @wallets.find(Zold::Id.new(first), &:balance) < Stress::AMOUNT
+    @wallets.all.each do |source|
+      amount = @wallets.find(source, &:balance) * (1.0 / (@wallets.all.count - 1))
+      next if amount.zero?
       Tempfile.open do |f|
         File.write(f, @pvt.to_s)
-        @wallets.all.each do |id|
-          next if id == first
-          break if @wallets.find(Zold::Id.new(first), &:balance) < Stress::AMOUNT
-          pay_one(first, id, f.path)
-          paid << id
+        @wallets.all.each do |target|
+          next if source == target
+          pay_one(source, target, amount, f.path)
         end
       end
-      paid << first
-      break
     end
-    paid.uniq.peach(Concurrent.processor_count * 8) do |id|
-      push(Zold::Id.new(id))
+    @wallets.all.peach(Concurrent.processor_count * 8) do |id|
+      push(id)
     end
     @stats.put('pay_ok', Time.now - start)
   end
 
-  def pay_one(source, target, pvt)
+  def pay_one(source, target, amount, pvt)
     Zold::Taxes.new(wallets: @wallets, remotes: @remotes, log: @log).run(
-      ['taxes', 'pay', source, "--network=#{@network}", "--private-key=#{pvt}", '--ignore-nodes-absence']
+      ['taxes', 'pay', source.to_s, "--network=#{@network}", "--private-key=#{pvt}", '--ignore-nodes-absence']
     )
-    if @wallets.find(Zold::Id.new(source)) { |w| Zold::Tax.new(w).in_debt? }
-      @log.error("The wallet #{source} is still in debt (#{Zold::Tax.new(w).debt}) and we can't pay taxes")
+    if @wallets.find(source) { |w| Zold::Tax.new(w).in_debt? }
+      @log.error("The wallet #{source} is still in debt and we can't pay taxes")
       return
     end
     details = SecureRandom.uuid
-    amount = Stress::AMOUNT
     Zold::Pay.new(wallets: @wallets, remotes: @remotes, log: @log).run(
-      ['pay', source, target, amount.to_zld, details, "--network=#{@network}", "--private-key=#{pvt}"]
+      ['pay', source.to_s, target.to_s, amount.to_zld, details, "--network=#{@network}", "--private-key=#{pvt}"]
     )
     @stats.put('paid', amount.to_zld.to_f)
     @waiting[details] = { start: Time.now, id: target }
@@ -222,7 +181,7 @@ class Stress
       Zold::Remove.new(wallets: @wallets, log: @log).run(
         ['remove', id.to_s]
       )
-      pull(Zold::Id.new(id))
+      pull(id)
     end
     @stats.put('refetch_ok', Time.now - start)
   end
@@ -230,12 +189,13 @@ class Stress
   def match
     start = Time.now
     @wallets.all.each do |id|
-      @wallets.find(Zold::Id.new(id), &:txns).each do |t|
+      @wallets.find(id, &:txns).each do |t|
         next if t.amount.negative?
-        next unless @waiting[t.details]
-        @stats.put('arrived', Time.now - @waiting[t.details][:start])
+        arrival = @waiting[t.details]
+        next unless arrival
+        @stats.put('arrived', Time.now - arrival[:start])
+        @log.info("Payment arrived to #{id} at ##{t.id} in #{Zold::Age.new(arrival[:start])}: #{t.details}")
         @waiting.delete(t.details)
-        @log.info("Payment arrived to #{id} at ##{t.id}: #{t.details}")
       end
     end
     @stats.put('match_ok', Time.now - start)

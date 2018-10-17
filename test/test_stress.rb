@@ -35,11 +35,6 @@ require 'random-port'
 require_relative 'test__helper'
 require_relative '../objects/stress'
 
-# Delete these two lines!
-require 'cachy'
-require 'moneta'
-Cachy.cache_store = Moneta.new(:Memory)
-
 class StressTest < Minitest::Test
   def test_runs_a_few_full_cycles
     exec do |stress|
