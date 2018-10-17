@@ -23,6 +23,7 @@ require 'zold/key'
 require 'zold/id'
 require 'zold/log'
 require 'zold/wallets'
+require 'zold/sync_wallets'
 require 'zold/remotes'
 require 'tmpdir'
 require_relative 'test__helper'
@@ -34,7 +35,7 @@ class PoolTest < Minitest::Test
   def test_reloads_wallets
     FakeNode.new(test_log).exec do |port|
       Dir.mktmpdir do |home|
-        wallets = Zold::Wallets.new(home)
+        wallets = Zold::SyncWallets.new(Zold::Wallets.new(home))
         remotes = Zold::Remotes.new(file: File.join(home, 'remotes'), network: 'test')
         remotes.clean
         remotes.add('localhost', port)

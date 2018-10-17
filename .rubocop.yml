@@ -24,7 +24,7 @@ Metrics/MethodLength:
 Metrics/ClassLength:
   Max: 300
 Metrics/AbcSize:
-  Max: 80
+  Max: 100
 Metrics/BlockLength:
   Max: 100
 Layout/MultilineMethodCallIndentation:

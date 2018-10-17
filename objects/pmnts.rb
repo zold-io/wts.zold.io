@@ -49,7 +49,8 @@ class Pmnts
       @wallets.all.each do |source|
         balance = @wallets.find(source, &:balance)
         next if balance.negative? || balance.zero?
-        amount = balance / (@wallets.all.count - 1)
+        amount = balance / @wallets.all.count
+        next if amount < Zold::Amount.new(zld: 0.0001)
         @wallets.all.each do |target|
           next if source == target
           paid << pay_one(source, target, amount, f.path)
@@ -72,7 +73,7 @@ class Pmnts
     details = SecureRandom.uuid
     @stats.exec('paid', swallow: false) do
       Zold::Pay.new(wallets: @wallets, remotes: @remotes, log: @log).run(
-        ['pay', source.to_s, target.to_s, amount.to_zld, details, "--network=#{@network}", "--private-key=#{pvt}"]
+        ['pay', source.to_s, target.to_s, amount.to_zld(4), details, "--network=#{@network}", "--private-key=#{pvt}"]
       )
     end
     { start: Time.now, source: source, target: target, details: details }

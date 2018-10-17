@@ -33,8 +33,8 @@ class Air
     }
   end
 
-  def count
-    @all.count
+  def fetch
+    @all
   end
 
   def add(pmt)
@@ -46,12 +46,6 @@ class Air
   def delete(pmt)
     @mutex.synchronize do
       @all.delete(pmt)
-    end
-  end
-
-  def each
-    @all.each do |p|
-      yield p
     end
   end
 end

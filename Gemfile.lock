@@ -9,7 +9,7 @@ GEM
     ast (2.4.0)
     aws-eventstream (1.0.1)
     aws-partitions (1.105.0)
-    aws-sdk-core (3.30.0)
+    aws-sdk-core (3.31.0)
       aws-eventstream (~> 1.0)
       aws-partitions (~> 1.0)
       aws-sigv4 (~> 1.0)
@@ -187,8 +187,8 @@ GEM
       nokogiri (~> 1.8)
       rainbow (~> 3.0)
       slop (~> 4.4)
-    zold (0.14.49)
-      backtrace (~> 0.3)
+    zold (0.14.51)
+      backtrace (~> 0)
       cachy (~> 0.4)
       concurrent-ruby (~> 1.0)
       cucumber (~> 3.1)
@@ -209,7 +209,7 @@ GEM
       slop (~> 4.4)
       sys-proctable (~> 1.1)
       usagewatch_ext (~> 0.2)
-      xcop (~> 0.5)
+      xcop (~> 0)
 
 PLATFORMS
   ruby

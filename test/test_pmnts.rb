@@ -23,7 +23,9 @@ require 'zold/key'
 require 'zold/id'
 require 'zold/log'
 require 'zold/wallets'
+require 'zold/sync_wallets'
 require 'zold/remotes'
+require 'zold/commands/create'
 require 'tmpdir'
 require_relative 'test__helper'
 require_relative 'fake_node'
@@ -33,7 +35,7 @@ require_relative '../objects/stats'
 class PmntsTest < Minitest::Test
   def test_pays_one_on_one
     Dir.mktmpdir do |home|
-      wallets = Zold::Wallets.new(home)
+      wallets = Zold::SyncWallets.new(Zold::Wallets.new(home))
       remotes = Zold::Remotes.new(file: File.join(home, 'remotes'), network: 'test')
       Zold::Create.new(wallets: wallets, log: test_log).run(
         ['create', '--public-key=test-assets/id_rsa.pub', Zold::Id::ROOT.to_s, '--network=test']
@@ -66,7 +68,7 @@ class PmntsTest < Minitest::Test
       Zold::Create.new(wallets: wallets, log: test_log).run(
         ['create', '--public-key=test-assets/id_rsa.pub', Zold::Id::ROOT.to_s, '--network=test']
       )
-      total = 5
+      total = 6
       ids = []
       total.times do
         id = Zold::Create.new(wallets: wallets, log: test_log).run(
@@ -84,7 +86,7 @@ class PmntsTest < Minitest::Test
         stats: Stats.new(log: test_log),
         log: test_log
       ).send
-      assert_equal(total * (total - 1), sent.count)
+      assert_equal(total * total, sent.count)
       assert_equal(ids.sort, sent.map { |s| s[:source] }.sort.uniq)
     end
   end

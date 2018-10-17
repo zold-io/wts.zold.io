@@ -63,8 +63,8 @@ class Stats
 
   def put(metric, value)
     raise "Invalid type of \"#{value}\" (#{value.class.name})" unless value.is_a?(Integer) || value.is_a?(Float)
-    announce(metric)
     @mutex.synchronize do
+      @history[metric] = [] unless @history[metric]
       @history[metric] << { time: Time.now, value: value }
       @history[metric].reject! { |a| a[:time] < Time.now - @age }
     end

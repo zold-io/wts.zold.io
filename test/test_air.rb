@@ -28,11 +28,11 @@ class AirTest < Minitest::Test
     air = Air.new
     pmt = { start: Time.now, source: Zold::Id::ROOT, target: Zold::Id::ROOT, details: 'Hi!' }
     air.add(pmt)
-    assert_equal(1, air.count)
-    air.each do |p|
+    assert_equal(1, air.fetch.count)
+    air.fetch.each do |p|
       assert_equal(pmt, p)
     end
     air.delete(pmt)
-    assert_equal(0, air.count)
+    assert_equal(0, air.fetch.count)
   end
 end

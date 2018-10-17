@@ -45,7 +45,7 @@ class Stress
     @remotes = remotes
     @copies = copies
     @log = log
-    @stats = Stats.new
+    @stats = Stats.new(log: log)
     @air = Air.new
   end
 
@@ -91,28 +91,52 @@ class Stress
       log: @log
     )
     pool.rebuild(Stress::POOL_SIZE, opts)
+    @log.info("There are #{@wallets.all.count} wallets in the pool after rebuild")
+    @wallets.all.peach(Concurrent.processor_count * 8) do |id|
+      Zold::Push.new(wallets: @wallets, remotes: @remotes, log: @log).run(
+        ['push', id.to_s] + opts
+      )
+    end
     sent = Pmnts.new(
-      id: @id, pub: @pub, wallets: @wallets,
-      remotes: @remotes, copies: @copies, stats: @stats,
+      pvt: @pvt, wallets: @wallets,
+      remotes: @remotes, stats: @stats,
       log: @log
     ).send
+    @log.info("#{sent.count} payments have been sent")
     mutex = Mutex.new
-    sent.peach(Concurrent.processor_count * 8) do |p|
+    sent.group_by { |p| p[:source] }.peach(Concurrent.processor_count * 8) do |a|
       @stats.exec('push') do
         Zold::Push.new(wallets: @wallets, remotes: @remotes, log: @log).run(
-          ['push', p[:source].to_s] + opts
+          ['push', a[0].to_s] + opts
         )
-        mutex.synchronize { @air.add(p) }
+        mutex.synchronize do
+          a[1].each { |p| @air.add(p) }
+        end
       end
     end
-    pool.repull(opts)
-    @air.each do |p|
-      t = @wallets.find(p[:target], &:txns).find { |t| t.details == p[:details] && t.bnf == p[:source] }
+    @log.info("#{@air.fetch.count} payments are now in the air")
+    @air.fetch.group_by { |p| p[:target] }.each do |a|
+      if @wallets.find(a[0], &:exists?)
+        Zold::Remove.new(wallets: @wallets, log: @log).run(
+          ['remove', a[0].to_s]
+        )
+      end
+      @stats.exec('pull') do
+        Zold::Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
+          ['pull', a[0].to_s] + opts
+        )
+      end
+    end
+    @log.info("There are #{@wallets.all.count} wallets in the pool after re-pull")
+    @air.fetch.each do |p|
+      next unless @wallets.find(p[:target], &:exists?)
+      t = @wallets.find(p[:target], &:txns).find { |x| x.details == p[:details] && x.bnf == p[:source] }
       next if t.nil?
       @stats.put('arrived', Time.now - p[:start])
       @log.info("Payment arrived to #{p[:target]} at ##{t.id} in #{Zold::Age.new(p[:start])}: #{t.details}")
       @air.delete(p)
     end
+    @log.info("#{@air.fetch.count} payments are still in the air")
   end
 
   def update(opts)

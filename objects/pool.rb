@@ -18,6 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require 'parallelize'
 require 'zold/log'
 require 'zold/id'
 require 'zold/key'
@@ -32,25 +33,16 @@ require_relative 'stats'
 #
 class Pool
   def initialize(id:, pub:, wallets:, remotes:, copies:, stats:, log: Zold::Log::Quiet.new)
-    raise 'Wallet ID can\'t be nil' if id.nil?
-    raise 'Wallet ID must be of type Id' unless id.is_a?(Zold::Id)
     @id = id
-    raise 'Public RSA key can\'t be nil' if pub.nil?
-    raise 'Public RSA key must be of type Key' unless pub.is_a?(Zold::Key)
     @pub = pub
-    raise 'Wallets can\'t be nil' if wallets.nil?
     @wallets = wallets
-    raise 'Remotes can\'t be nil' if remotes.nil?
     @remotes = remotes
-    raise 'Copies can\'t be nil' if copies.nil?
     @copies = copies
-    raise 'Log can\'t be nil' if log.nil?
     @log = log
     @stats = stats
   end
 
   def rebuild(size, opts = [])
-    start = Time.now
     candidates = [@id]
     @wallets.all.each do |id|
       @wallets.find(id, &:txns).each do |t|
@@ -76,20 +68,7 @@ class Pool
       File.write(f, @pub.to_s)
       while @wallets.all.count < size
         Zold::Create.new(wallets: @wallets, log: @log).run(
-          ['create', "--public-key=#{f.path}"]
-        )
-      end
-    end
-  end
-
-  def repull(opts = [])
-    @wallets.all.each do |id|
-      Zold::Remove.new(wallets: @wallets, log: @log).run(
-        ['remove', id.to_s]
-      )
-      @stats.exec('pull') do
-        Zold::Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
-          ['pull', id.to_s] + opts
+          ['create', "--public-key=#{f.path}"] + opts
         )
       end
     end

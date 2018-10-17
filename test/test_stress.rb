@@ -25,6 +25,8 @@ require 'zold/log'
 require 'zold/http'
 require 'zold/score'
 require 'zold/wallets'
+require 'zold/sync_wallets'
+require 'zold/cached_wallets'
 require 'zold/remotes'
 require 'zold/commands/create'
 require 'zold/commands/pay'
@@ -40,9 +42,8 @@ class StressTest < Minitest::Test
     exec do |stress|
       stress.run(delay: 0, cycles: 5, opts: ['--ignore-score-weakness', '--network=test'])
       json = stress.to_json
-      assert_equal(35, json['paid'][:total])
       assert(json['arrived'][:total] > 30)
-      assert_equal(5, json['cycles_ok'][:total])
+      assert_equal(5, json['cycle_ok'][:total])
     end
   end
 
@@ -52,16 +53,15 @@ class StressTest < Minitest::Test
       assert(json[:wallets])
       assert(json[:thread])
       assert(json[:waiting])
-      assert(json[:alive_hours])
     end
   end
 
   private
 
   def exec
-    FakeNode.new(test_log).exec do |port|
+    FakeNode.new(Zold::Log::Quiet.new).exec do |port|
       Dir.mktmpdir do |dir|
-        wallets = Zold::Wallets.new(dir)
+        wallets = Zold::CachedWallets.new(Zold::SyncWallets.new(Zold::Wallets.new(dir)))
         remotes = Zold::Remotes.new(file: File.join(dir, 'remotes'), network: 'test')
         remotes.clean
         remotes.add('localhost', port)
@@ -84,7 +84,7 @@ class StressTest < Minitest::Test
           wallets: wallets,
           remotes: remotes,
           copies: File.join(dir, 'copies'),
-          log: test_log
+          log: Zold::Log::Sync.new(Zold::Log::Regular.new)
         )
       end
     end
