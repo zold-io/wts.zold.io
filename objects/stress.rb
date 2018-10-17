@@ -27,6 +27,7 @@ require 'zold/commands/remote'
 require_relative 'stats'
 require_relative 'pool'
 require_relative 'pmnts'
+require_relative 'air'
 require_relative '../version'
 
 #
@@ -37,29 +38,15 @@ class Stress
   POOL_SIZE = 8
 
   def initialize(id:, pub:, pvt:, wallets:, remotes:, copies:, log: Zold::Log::Quiet.new)
-    raise 'Wallet ID can\'t be nil' if id.nil?
-    raise 'Wallet ID must be of type Id' unless id.is_a?(Zold::Id)
     @id = id
-    raise 'Public RSA key can\'t be nil' if pub.nil?
-    raise 'Public RSA key must be of type Key' unless pub.is_a?(Zold::Key)
     @pub = pub
-    raise 'Private RSA key can\'t be nil' if pvt.nil?
-    raise 'Private RSA key must be of type Key' unless pvt.is_a?(Zold::Key)
     @pvt = pvt
-    raise 'Wallets can\'t be nil' if wallets.nil?
     @wallets = wallets
-    raise 'Remotes can\'t be nil' if remotes.nil?
     @remotes = remotes
-    raise 'Copies can\'t be nil' if copies.nil?
     @copies = copies
-    raise 'Log can\'t be nil' if log.nil?
     @log = log
     @stats = Stats.new
-    %w[arrived paid pull_ok pull_errors push_ok push_errors].each do |m|
-      @stats.announce(m)
-    end
-    @start = Time.now
-    @waiting = []
+    @air = Air.new
   end
 
   def to_json
@@ -76,8 +63,7 @@ class Stress
         end
       end,
       'thread': @thread ? @thread.status : '-',
-      'waiting': @waiting,
-      'alive_hours': (Time.now - @start) / (60 * 60)
+      'waiting': @air.to_json
     }.merge(@stats.to_json)
   end
 
@@ -110,21 +96,22 @@ class Stress
       remotes: @remotes, copies: @copies, stats: @stats,
       log: @log
     ).send
-    @waiting.push(sent).flatten
+    mutex = Mutex.new
     sent.peach(Concurrent.processor_count * 8) do |p|
       @stats.exec('push') do
         Zold::Push.new(wallets: @wallets, remotes: @remotes, log: @log).run(
           ['push', p[:source].to_s] + opts
         )
+        mutex.synchronize { @air.add(p) }
       end
     end
     pool.repull(opts)
-    @waiting.each do |p|
+    @air.each do |p|
       t = @wallets.find(p[:target], &:txns).find { |t| t.details == p[:details] && t.bnf == p[:source] }
       next if t.nil?
       @stats.put('arrived', Time.now - p[:start])
       @log.info("Payment arrived to #{p[:target]} at ##{t.id} in #{Zold::Age.new(p[:start])}: #{t.details}")
-      @waiting.delete(p)
+      @air.delete(p)
     end
   end
 

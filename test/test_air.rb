@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2018 Yegor Bugayenko
+# Copyright (c) 2018 Yegor Bugayenko
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the 'Software'), to deal
@@ -18,23 +18,21 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-STDOUT.sync = true
-
-ENV['RACK_ENV'] = 'test'
-
-require 'simplecov'
-SimpleCov.start
-if ENV['CI'] == 'true'
-  require 'codecov'
-  SimpleCov.formatter = SimpleCov::Formatter::Codecov
-end
-
 require 'minitest/autorun'
-module Minitest
-  class Test
-    def test_log
-      require 'zold/log'
-      @test_log ||= Zold::Log::Sync.new(Zold::Log::Verbose.new)
+require 'zold/id'
+require_relative 'test__helper'
+require_relative '../objects/air'
+
+class AirTest < Minitest::Test
+  def test_adds_and_removes
+    air = Air.new
+    pmt = { start: Time.now, source: Zold::Id::ROOT, target: Zold::Id::ROOT, details: 'Hi!' }
+    air.add(pmt)
+    assert_equal(1, air.count)
+    air.each do |p|
+      assert_equal(pmt, p)
     end
+    air.delete(pmt)
+    assert_equal(0, air.count)
   end
 end

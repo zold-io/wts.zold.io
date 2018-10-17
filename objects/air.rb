@@ -18,55 +18,40 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'time'
-require 'backtrace'
-require 'zold/log'
-
 #
-# The stats.
+# Transactions flying in the air.
 #
-class Stats
-  def initialize(age: 24 * 60 * 60, log: Zold::Log::Quiet.new)
-    @age = age
-    @history = {}
+class Air
+  def initialize
     @mutex = Mutex.new
-    @log = log
+    @all = []
   end
 
   def to_json
-    @history.map do |m, h|
-      data = h.map { |a| a[:value] }
-      sum = data.inject(&:+) || 0
-      [
-        m,
-        {
-          'total': data.count,
-          'sum': sum,
-          'avg': (data.empty? ? 0 : (sum / data.count)),
-          'max': data.max || 0,
-          'min': data.min || 0,
-          'age': (h.map { |a| a[:time] }.max || 0) - (h.map { |a| a[:time] }.min || 0)
-        }
-      ]
-    end.to_h
+    {
+      'total': @all.count
+    }
   end
 
-  def exec(metric, swallow: true)
-    start = Time.now
-    yield
-    put(metric + '_ok', Time.now - start)
-  rescue StandardError => ex
-    @log.error(Backtrace.new(ex))
-    put(metric + '_error', Time.now - start)
-    raise ex unless swallow
+  def count
+    @all.count
   end
 
-  def put(metric, value)
-    raise "Invalid type of \"#{value}\" (#{value.class.name})" unless value.is_a?(Integer) || value.is_a?(Float)
-    announce(metric)
+  def add(pmt)
     @mutex.synchronize do
-      @history[metric] << { time: Time.now, value: value }
-      @history[metric].reject! { |a| a[:time] < Time.now - @age }
+      @all << pmt
+    end
+  end
+
+  def delete(pmt)
+    @mutex.synchronize do
+      @all.delete(pmt)
+    end
+  end
+
+  def each
+    @all.each do |p|
+      yield p
     end
   end
 end
