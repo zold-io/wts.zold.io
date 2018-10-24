@@ -39,6 +39,7 @@ require_relative '../objects/stress'
 
 class StressTest < Minitest::Test
   def test_runs_a_few_full_cycles
+    skip
     exec do |stress|
       stress.run(delay: 0, cycles: 5, opts: ['--ignore-score-weakness', '--network=test'])
       json = stress.to_json
@@ -52,7 +53,7 @@ class StressTest < Minitest::Test
       json = stress.to_json
       assert(json[:wallets])
       assert(json[:thread])
-      assert(json[:waiting])
+      assert(json[:air])
     end
   end
 

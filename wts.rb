@@ -131,7 +131,7 @@ configure do
   end
   Thread.new do
     loop do
-      sleep 60 * 60
+      # sleep 60 * 60
       begin
         pay_hosting_bonuses
       rescue StandardError => e
@@ -140,9 +140,14 @@ configure do
       end
     end
   end
-  Thread.new do
-    settings.stress.run(delay: 0, opts: ['--network=zold'])
-  end
+  # Thread.new do
+  #   begin
+  #     settings.stress.run(delay: 0, opts: ['--network=zold'])
+  #   rescue StandardError => e
+  #     Raven.capture_exception(e)
+  #     settings.log.error(Backtrace.new(e))
+  #   end
+  # end
 end
 
 before '/*' do

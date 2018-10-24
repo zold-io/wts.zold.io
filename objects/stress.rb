@@ -63,7 +63,7 @@ class Stress
         end
       end,
       'thread': @thread ? @thread.status : '-',
-      'waiting': @air.to_json
+      'air': @air.to_json
     }.merge(@stats.to_json)
   end
 
