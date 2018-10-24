@@ -131,7 +131,7 @@ configure do
   end
   Thread.new do
     loop do
-      # sleep 60 * 60
+      sleep 60 * 60
       begin
         pay_hosting_bonuses
       rescue StandardError => e
@@ -552,6 +552,7 @@ def pay_hosting_bonuses
   return unless boss.item.exists?
   require 'zold/commands/remote'
   cmd = Zold::Remote.new(remotes: settings.remotes, log: log(login))
+  cmd.run(%w[remote defaults])
   cmd.run(%w[remote update])
   winners = cmd.run(%w[remote elect --min-score=8 --max-winners=8])
   winners.each do |score|
