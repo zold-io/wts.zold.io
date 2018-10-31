@@ -104,8 +104,7 @@ configure do
   )
   set :wallets, Zold::CachedWallets.new(
     Zold::SyncWallets.new(
-      Zold::Wallets.new(File.join(settings.root, '.zold-wts/wallets')),
-      File.join(settings.root, '.zold-wts/sync-wallets')
+      Zold::Wallets.new(File.join(settings.root, '.zold-wts/wallets'))
     )
   )
   set :remotes, Zold::Remotes.new(file: File.join(settings.root, '.zold-wts/remotes'), network: 'zold')
