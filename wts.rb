@@ -119,8 +119,7 @@ configure do
       pvt: Zold::Key.new(text: config['stress']['pvt']),
       wallets: Zold::CachedWallets.new(
         Zold::SyncWallets.new(
-          Zold::Wallets.new(File.join(settings.root, '.zold-wts/stress-wallets')),
-          File.join(settings.root, '.zold-wts/sync-stress-wallets')
+          Zold::Wallets.new(File.join(settings.root, '.zold-wts/stress-wallets'))
         )
       ),
       remotes: settings.remotes,
