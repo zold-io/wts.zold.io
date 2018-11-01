@@ -32,7 +32,7 @@ GEM
       json
       simplecov
       url
-    concurrent-ruby (1.1.0)
+    concurrent-ruby (1.0.5)
     cucumber (3.1.2)
       builder (>= 2.1.2)
       cucumber-core (~> 3.2.0)
@@ -230,7 +230,7 @@ DEPENDENCIES
   backports (~> 3.11)
   backtrace (~> 0)
   codecov (~> 0.1)
-  concurrent-ruby (~> 1.0)
+  concurrent-ruby (= 1.0.5)
   glogin (~> 0)
   haml (~> 5.0)
   minitest (~> 5.11)
