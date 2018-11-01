@@ -28,13 +28,11 @@ GEM
     backports (3.11.4)
     backtrace (0.3.0)
     builder (3.2.3)
-    cachy (0.4.2)
-      mini_memory_store
     codecov (0.1.13)
       json
       simplecov
       url
-    concurrent-ruby (1.0.5)
+    concurrent-ruby (1.1.0)
     cucumber (3.1.2)
       builder (>= 2.1.2)
       cucumber-core (~> 3.2.0)
@@ -102,10 +100,8 @@ GEM
       rb-fsevent (~> 0.9, >= 0.9.4)
       rb-inotify (~> 0.9, >= 0.9.7)
       ruby_dep (~> 1.2)
-    mini_memory_store (0.1.0)
     mini_portile2 (2.3.0)
     minitest (5.11.3)
-    moneta (1.0.0)
     multi_json (1.13.1)
     multi_test (0.1.2)
     multipart-post (2.0.0)
@@ -198,9 +194,8 @@ GEM
       nokogiri (~> 1.8)
       rainbow (~> 3.0)
       slop (~> 4.4)
-    zold (0.16.4)
+    zold (0.16.6)
       backtrace (~> 0)
-      cachy (~> 0)
       concurrent-ruby (~> 1.0)
       cucumber (~> 3)
       diffy (~> 3)
@@ -209,7 +204,6 @@ GEM
       futex (~> 0)
       get_process_mem (~> 0)
       json (~> 2)
-      moneta (~> 1)
       openssl (~> 2)
       posix-spawn (~> 0.3)
       rainbow (~> 3)
@@ -254,7 +248,7 @@ DEPENDENCIES
   sinatra (~> 2.0)
   sinatra-contrib (~> 2.0)
   xcop (~> 0)
-  zold (= 0.16.4)
+  zold (~> 0.16)
 
 RUBY VERSION
    ruby 2.3.3p222
