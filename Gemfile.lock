@@ -124,7 +124,6 @@ GEM
     semantic (1.6.1)
     sentry-raven (2.7.4)
       faraday (>= 0.7.6, < 1.0)
-    sigdump (0.2.4)
     simplecov (0.16.1)
       docile (~> 1.1)
       json (>= 1.8, < 3)
@@ -168,7 +167,8 @@ GEM
       nokogiri (~> 1.8)
       rainbow (~> 3.0)
       slop (~> 4.4)
-    zold (0.16.7)
+    zache (0.2.0)
+    zold (0.16.8)
       backtrace (~> 0)
       concurrent-ruby (~> 1.0)
       cucumber (~> 3)
@@ -183,7 +183,6 @@ GEM
       rubocop (= 0.58.1)
       rubocop-rspec (~> 1)
       semantic (~> 1)
-      sigdump (~> 0)
       sinatra (~> 2)
       slop (~> 4)
       sys-proctable (~> 1)
@@ -191,6 +190,7 @@ GEM
       threads (~> 0)
       usagewatch_ext (~> 0)
       xcop (~> 0)
+      zache (~> 0)
 
 PLATFORMS
   ruby
