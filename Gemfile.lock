@@ -168,7 +168,7 @@ GEM
       rainbow (~> 3.0)
       slop (~> 4.4)
     zache (0.2.0)
-    zold (0.16.8)
+    zold (0.16.9)
       backtrace (~> 0)
       concurrent-ruby (~> 1.0)
       cucumber (~> 3)
