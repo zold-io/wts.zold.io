@@ -129,7 +129,7 @@ configure do
   end
   Thread.new do
     loop do
-      sleep 5 * 60
+      sleep 60 * 60
       begin
         pay_hosting_bonuses
       rescue StandardError => e
