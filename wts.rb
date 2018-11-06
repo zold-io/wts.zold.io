@@ -52,7 +52,6 @@ require_relative 'objects/update_ops'
 require_relative 'objects/versioned_ops'
 require_relative 'objects/file_log'
 require_relative 'objects/tee_log'
-require_relative 'objects/stress'
 
 if ENV['RACK_ENV'] != 'test'
   require 'rack/ssl'
@@ -74,11 +73,6 @@ configure do
       },
       'api_secret' => 'test',
       'sentry' => '',
-      'stress' => {
-        'id' => '',
-        'pub' => '',
-        'pvt' => ''
-      },
       'dynamo' => {
         'key' => '?',
         'secret' => '?'
@@ -112,21 +106,6 @@ configure do
   set :codec, GLogin::Codec.new(config['api_secret'])
   set :pool, Concurrent::FixedThreadPool.new(16, max_queue: 64, fallback_policy: :abort)
   set :log, Zold::Log::Sync.new(Zold::Log::Regular.new)
-  unless config['stress']['id'].empty?
-    set :stress, Stress.new(
-      id: Zold::Id.new(config['stress']['id']),
-      pub: Zold::Key.new(text: config['stress']['pub']),
-      pvt: Zold::Key.new(text: config['stress']['pvt']),
-      wallets: Zold::CachedWallets.new(
-        Zold::SyncWallets.new(
-          Zold::Wallets.new(File.join(settings.root, '.zold-wts/stress-wallets'))
-        )
-      ),
-      remotes: settings.remotes,
-      copies: settings.copies,
-      log: settings.log
-    )
-  end
   Thread.new do
     loop do
       sleep 60 * 60
@@ -138,14 +117,6 @@ configure do
       end
     end
   end
-  # Thread.new do
-  #   begin
-  #     settings.stress.run(delay: 0, opts: ['--network=zold'])
-  #   rescue StandardError => e
-  #     Raven.capture_exception(e)
-  #     settings.log.error(Backtrace.new(e))
-  #   end
-  # end
 end
 
 before '/*' do
@@ -208,11 +179,6 @@ get '/' do
   haml :index, layout: :layout, locals: merged(
     title: 'wts'
   )
-end
-
-get '/stress.json' do
-  content_type 'application/json'
-  JSON.pretty_generate(settings.stress.to_json)
 end
 
 get '/home' do
