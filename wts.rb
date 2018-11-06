@@ -233,7 +233,7 @@ end
 post '/do-pay' do
   redirect '/' unless @locals[:user]
   redirect '/confirm' unless @locals[:user].confirmed?
-  if params[:bnf] =~ /[a-f0-9]{16}/
+  if params[:bnf].match?(/[a-f0-9]{16}/)
     bnf = Zold::Id.new(params[:bnf])
   else
     login = params[:bnf].strip.downcase.gsub(/^@/, '')
