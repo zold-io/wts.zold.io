@@ -191,42 +191,6 @@ get '/home' do
   )
 end
 
-get '/fund' do
-  redirect '/' unless @locals[:user]
-  redirect '/confirm' unless @locals[:user].confirmed?
-  haml :fund, layout: :layout, locals: merged(
-    title: '@' + @locals[:guser][:login] + '/fund'
-  )
-end
-
-post '/do-fund' do
-  redirect '/' unless @locals[:user]
-  redirect '/confirm' unless @locals[:user].confirmed?
-  amount = params[:amount].to_i
-  redirect [
-    'https://indacoin.com/gw/payment_form?',
-    [
-      'partner=zold',
-      "cur_from=#{params[:currency]}",
-      'cur_to=ETH',
-      "amount=#{(amount / 100).round(2)}",
-      'address=0xFb96dc76d73bDBc2193919EC16bB3a6464f85BaA',
-      "user_id=#{@locals[:guser][:login]}@zold.io"
-    ].join('&')
-  ].join
-end
-
-post '/indacoin' do
-  json = JSON.parse(@text)
-  amount = Zold::Amount.new(zld: json['amountIn'])
-  login = json['userId'].split('@', 2)[0]
-  ops(user(settings.config['rewards']['login'])).pay(
-    settings.config['rewards']['keygap'], user(login).item.id,
-    amount, "Purchase of #{json['amountIn']} #{json['curIn']} via Indacoin"
-  )
-  redirect '/'
-end
-
 get '/create' do
   redirect '/' unless @locals[:user]
   @locals[:user].create
