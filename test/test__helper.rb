@@ -34,7 +34,7 @@ module Minitest
   class Test
     def test_log
       require 'zold/log'
-      @test_log ||= Zold::Log::Sync.new(Zold::Log::Verbose.new)
+      @test_log ||= Zold::Log::VERBOSE
     end
   end
 end

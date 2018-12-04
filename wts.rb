@@ -105,7 +105,7 @@ configure do
   set :copies, File.join(settings.root, '.zold-wts/copies')
   set :codec, GLogin::Codec.new(config['api_secret'])
   set :pool, Concurrent::FixedThreadPool.new(16, max_queue: 64, fallback_policy: :abort)
-  set :log, Zold::Log::Sync.new(Zold::Log::Regular.new)
+  set :log, Zold::Log::REGULAR.dup
   Thread.new do
     loop do
       sleep 60 * 60

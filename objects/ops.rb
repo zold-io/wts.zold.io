@@ -26,7 +26,7 @@ require 'zold/log'
 # Operations with a user.
 #
 class Ops
-  def initialize(item, user, wallets, remotes, copies, log: Zold::Log::Quiet.new, network: 'test')
+  def initialize(item, user, wallets, remotes, copies, log: Zold::Log::NULL, network: 'test')
     raise 'User can\'t be nil' if user.nil?
     @user = user
     raise 'Item can\'t be nil' if item.nil?
@@ -50,7 +50,7 @@ class Ops
     Zold::Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
       ['pull', id.to_s, "--network=#{@network}"]
     )
-    @wallets.find(id) do |wallet|
+    @wallets.acq(id) do |wallet|
       @log.info("#{Time.now.utc.iso8601}: Wallet #{wallet.id} pulled successfully \
 in #{(Time.now - start).round}s, the balance is #{wallet.balance}\n \n ")
     end
@@ -62,7 +62,7 @@ in #{(Time.now - start).round}s, the balance is #{wallet.balance}\n \n ")
     Zold::Push.new(wallets: @wallets, remotes: @remotes, log: @log).run(
       ['push', @item.id.to_s, "--network=#{@network}"]
     )
-    @wallets.find(@item.id) do |wallet|
+    @wallets.acq(@item.id) do |wallet|
       @log.info("#{Time.now.utc.iso8601}: Wallet #{wallet.id} pushed successfully \
 in #{(Time.now - start).round}s, the balance is #{wallet.balance}\n \n ")
     end
@@ -79,13 +79,13 @@ in #{(Time.now - start).round}s, the balance is #{wallet.balance}\n \n ")
     raise 'The user is not registered yet' unless @item.exists?
     raise 'The account is not confirmed yet' unless @user.confirmed?
     start = Time.now
-    unless @wallets.find(@item.id, &:exists?)
+    unless @wallets.acq(@item.id, &:exists?)
       require 'zold/commands/pull'
       Zold::Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
         ['pull', @item.id.to_s, "--network=#{@network}"]
       )
     end
-    if bnf.is_a?(Zold::Id) && !@wallets.find(bnf, &:exists?)
+    if bnf.is_a?(Zold::Id) && !@wallets.acq(bnf, &:exists?)
       require 'zold/commands/pull'
       Zold::Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
         ['pull', bnf.to_s, "--network=#{@network}"]

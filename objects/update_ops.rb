@@ -25,7 +25,7 @@ require 'zold/commands/remote'
 # Operations that update remotes before and after.
 #
 class UpdateOps
-  def initialize(ops, remotes, log: Zold::Log::Quiet.new, network: 'test')
+  def initialize(ops, remotes, log: Zold::Log::NULL, network: 'test')
     raise 'Ops can\'t be nil' if ops.nil?
     @ops = ops
     raise 'Remotes can\'t be nil' if remotes.nil?

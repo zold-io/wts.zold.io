@@ -27,7 +27,7 @@ require 'zold/log'
 #
 class User
   attr_reader :item, :login
-  def initialize(login, item, wallets, log: Zold::Log::Quiet.new)
+  def initialize(login, item, wallets, log: Zold::Log::NULL)
     raise 'Login can\'t be nil' if login.nil?
     @login = login.downcase
     raise 'Item can\'t be nil' if item.nil?
@@ -81,7 +81,7 @@ class User
   end
 
   def wallet
-    @wallets.find(@item.id) do |wallet|
+    @wallets.acq(@item.id, exclusive: true) do |wallet|
       yield wallet
     end
   end

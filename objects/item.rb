@@ -27,7 +27,7 @@ require_relative 'keygap'
 # Item in AWS DynamoDB.
 #
 class Item
-  def initialize(login, aws, log: Zold::Log::Quiet.new)
+  def initialize(login, aws, log: Zold::Log::NULL)
     raise 'Login can\'t be nil' if login.nil?
     @login = login.downcase
     raise 'AWS can\'t be nil' if aws.nil?
