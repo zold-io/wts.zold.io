@@ -21,6 +21,7 @@
 STDOUT.sync = true
 
 require 'haml'
+require 'coinbase/wallet'
 require 'sinatra'
 require 'sinatra/cookies'
 require 'sass'
@@ -315,6 +316,32 @@ get '/coinbase' do
   )
 end
 
+post '/coinbase-hook' do
+  request.body.rewind
+  json = JSON.parse(request.body.read)
+  return "Not my notification type #{json['type']}" unless json['type'] == 'wallet:addresses:new-payment'
+  data = json['additional_data']
+  return "Not my currency #{data['amount']['currency']}" unless data['amount']['currency'] == 'BTC'
+  tid = data['transaction']['id']
+  coinbase = Coinbase::Wallet::Client.new(
+    api_key: settings.config['coinbase']['key'],
+    api_secret: settings.config['coinbase']['secret']
+  )
+  account = coinbase.account(settings.config['coinbase']['account'])
+  txn = account.transaction(tid)
+  amount = txn['amount']['amount'].to_f
+  usd = txn['native_amount']['amount'].to_f
+  desc = txn['description']
+  id = desc[/[0-9a-f]{16,}/, 0]
+  return "The description doesn't have wallet ID: #{desc}" if id.nil?
+  ops(boss).pay(
+    settings.config['rewards']['keygap'],
+    Zold::Id.new(id),
+    Zold::Amount.new(zld: usd),
+    "BTC exchange of #{amount} BTC to #{usd} USD/ZLD at #{json['network']['hash']}"
+  )
+end
+
 get '/log' do
   content_type 'text/plain', charset: 'utf-8'
   log.content
@@ -404,7 +431,7 @@ end
 def user(login = @locals[:guser])
   flash('/', 'You have to login first') unless login
   User.new(
-    login, Item.new(login, settings.dynamo),
+    login, Item.new(login, settings.dynamo, log: log(login)),
     settings.wallets, log: log(login)
   )
 end

@@ -28,13 +28,9 @@ require 'zold/log'
 class User
   attr_reader :item, :login
   def initialize(login, item, wallets, log: Zold::Log::NULL)
-    raise 'Login can\'t be nil' if login.nil?
     @login = login.downcase
-    raise 'Item can\'t be nil' if item.nil?
     @item = item
-    raise 'Wallets can\'t be nil' if wallets.nil?
     @wallets = wallets
-    raise 'Log can\'t be nil' if log.nil?
     @log = log
   end
 
