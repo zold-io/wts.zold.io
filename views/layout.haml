@@ -58,6 +58,11 @@
                 - else
                   %span{style: 'color: gray'} Invoice
               %li
+                - if user.wallet(&:exists?)
+                  %a{href: '/coinbase'} Buy/Sell
+                - else
+                  %span{style: 'color: gray'} Buy/Sell
+              %li
                 %a{href: '/log', style: (File.exist?(latch) ? 'color:red' : '')} Log
               %li
                 %a{href: '/key'} Key

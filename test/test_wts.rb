@@ -65,7 +65,7 @@ class AppTest < Minitest::Test
 
   def test_200_user_pages
     login('bill')
-    ['/home', '/key', '/log', '/invoice', '/api'].each do |p|
+    ['/home', '/key', '/log', '/invoice', '/api', '/coinbase'].each do |p|
       get(p)
       assert_equal(200, last_response.status, "#{p} fails: #{last_response.body}")
     end

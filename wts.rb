@@ -309,6 +309,12 @@ get '/invoice' do
   )
 end
 
+get '/coinbase' do
+  haml :coinbase, layout: :layout, locals: merged(
+    title: '@' + @locals[:guser] + '/buy+sell'
+  )
+end
+
 get '/log' do
   content_type 'text/plain', charset: 'utf-8'
   log.content
