@@ -1,15 +1,17 @@
+= u = confirmed_user
+
 %p
   Wallet ID:
   %code
-    = user.item.id
-  - if user.wallet(&:exists?)
+    = u.item.id
+  - if u.wallet(&:exists?)
     = ' | '
     Balance:
-    = user.wallet(&:balance)
+    = u.wallet(&:balance)
     = '/'
-    = "#{user.wallet(&:txns).count}t"
+    = "#{u.wallet(&:txns).count}t"
 
-- if user.wallet(&:exists?) && user.wallet(&:balance).negative?
+- if u.wallet(&:exists?) && u.wallet(&:balance).negative?
   %p{style: 'color: darkred'}
     Your balance is negative, which means that some of your
     transactions will be rolled back in the nearest future!
@@ -17,7 +19,7 @@
     %a{href: '/pull'} pull your wallet
     in a few minutes to get it back to the normal state.
 
-- if user.wallet(&:exists?)
+- if u.wallet(&:exists?)
   %table{style: 'width:100%'}
     %colgroup
       %col{style: 'width: 2em'}
@@ -45,7 +47,7 @@
         %tr
           %td{colspan: 5, style: 'text-align:center'}
             = 'Since ' + start.utc.iso8601
-      - txns = user.wallet(&:txns).sort_by(&:date).reverse.select { |t| start.nil? || t.date < start }.take(50)
+      - txns = u.wallet(&:txns).sort_by(&:date).reverse.select { |t| start.nil? || t.date < start }.take(50)
       - if txns.empty?
         %tr
           %td{colspan: 5, style: 'text-align:center'}

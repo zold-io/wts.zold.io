@@ -127,6 +127,17 @@ before '/*' do
     remotes: settings.remotes,
     pool: settings.pool
   }
+  header = request.env['HTTP_X_ZOLD_WTS']
+  if header
+    begin
+      login, keygap = settings.codec.decrypt(header).split(' ')
+      @params[:glogin] = login
+      @locals[:keygap] = keygap
+      settings.log.info("HTTP authentication header of @#{login} detected from #{request.ip}")
+    rescue OpenSSL::Cipher::CipherError => _
+      error 400
+    end
+  end
   cookies[:glogin] = params[:glogin] if params[:glogin]
   if cookies[:glogin]
     begin
@@ -134,25 +145,10 @@ before '/*' do
         cookies[:glogin],
         settings.config['github']['encryption_secret'],
         context
-      ).to_user
+      ).to_user[:login]
     rescue OpenSSL::Cipher::CipherError => _
-      @locals.delete(:user)
+      @locals.delete(:guser)
     end
-  end
-  header = request.env['HTTP_X_ZOLD_WTS']
-  if header
-    begin
-      login, keygap = settings.codec.decrypt(header).split(' ')
-      @locals[:guser] = { login: login }
-      @locals[:keygap] = keygap
-      settings.log.info("HTTP authentication header of @#{login} detected from #{request.ip}")
-    rescue OpenSSL::Cipher::CipherError => _
-      error 400
-    end
-  end
-  if @locals[:guser]
-    @locals[:user] = user(@locals[:guser][:login])
-    @locals[:ops] = ops(@locals[:user])
   end
 end
 
@@ -166,78 +162,69 @@ get '/github-callback' do
     settings.config['github']['encryption_secret'],
     context
   ).to_s
-  redirect to('/')
+  flash('/', 'You have been logged in')
 end
 
 get '/logout' do
   cookies.delete(:glogin)
-  redirect to('/')
+  flash('/', 'You have been logged out')
 end
 
 get '/' do
-  redirect '/home' if @locals[:user]
+  redirect '/home' if @locals[:guser]
   haml :index, layout: :layout, locals: merged(
     title: 'wts'
   )
 end
 
 get '/home' do
-  redirect '/' unless @locals[:user]
-  redirect '/create' unless @locals[:user].item.exists?
-  redirect '/confirm' unless @locals[:user].confirmed?
+  flash('/create', 'Time to create your wallet') unless user.item.exists?
   haml :home, layout: :layout, locals: merged(
-    title: '@' + @locals[:guser][:login],
+    title: '@' + @locals[:guser],
     start: params[:start] ? Time.parse(params[:start]) : nil
   )
 end
 
 get '/create' do
-  redirect '/' unless @locals[:user]
-  @locals[:user].create
+  user.create
   pay_bonus
-  @locals[:ops].push
-  log.info("Wallet #{@locals[:user].item.id} created and pushed by @#{@locals[:guser][:login]}\n")
-  redirect '/'
+  ops.push
+  log.info("Wallet #{user.item.id} created and pushed by @#{@locals[:guser]}\n")
+  flash('/', "Wallet #{user.item.id} created and pushed")
 end
 
 get '/confirm' do
-  redirect '/' unless @locals[:user]
-  redirect '/home' if @locals[:user].confirmed?
+  flash('/', 'You have done this already, your keygap has been generated') if user.confirmed?
   haml :confirm, layout: :layout, locals: merged(
-    title: '@' + @locals[:guser][:login] + '/keygap'
+    title: '@' + @locals[:guser] + '/keygap'
   )
 end
 
-get '/keygap' do
-  redirect '/' unless @locals[:user]
-  redirect '/' if @locals[:user].confirmed?
-  content_type 'text/plain'
-  @locals[:user].item.keygap
+get '/do-confirm' do
+  flash('/', 'You have done this already, your keygap has been generated') if user.confirmed?
+  user.confirm(params[:keygap])
+  log.info("Account confirmed for @#{@locals[:guser]}\n")
+  flash('/', 'The account has been confirmed')
 end
 
-get '/do-confirm' do
-  redirect '/' unless @locals[:user]
-  @locals[:user].confirm(params[:keygap])
-  log.info("Account confirmed for @#{@locals[:guser][:login]}\n")
-  redirect '/'
+get '/keygap' do
+  flash('/', 'We don\'t have it in the database anymore') if user.item.wiped?
+  content_type 'text/plain'
+  user.item.keygap
 end
 
 get '/pay' do
-  redirect '/' unless @locals[:user]
-  redirect '/confirm' unless @locals[:user].confirmed?
   haml :pay, layout: :layout, locals: merged(
-    title: '@' + @locals[:guser][:login] + '/pay'
+    title: '@' + @locals[:guser] + '/pay'
   )
 end
 
 post '/do-pay' do
-  redirect '/' unless @locals[:user]
-  redirect '/confirm' unless @locals[:user].confirmed?
   if params[:bnf].match?(/[a-f0-9]{16}/)
     bnf = Zold::Id.new(params[:bnf])
   else
     login = params[:bnf].strip.downcase.gsub(/^@/, '')
-    raise "Invalid GitHub user name: '#{params[:bnf]}'" unless login =~ /^[a-z0-9-]{3,32}$/
+    raise UserError, "Invalid GitHub user name: '#{params[:bnf]}'" unless login =~ /^[a-z0-9-]{3,32}$/
     friend = user(login)
     unless friend.item.exists?
       friend.create
@@ -249,55 +236,38 @@ post '/do-pay' do
   details = params[:details]
   params[:keygap] = params[:pass] if params[:pass]
   keygap = @locals[:keygap].nil? ? params[:keygap] : @locals[:keygap]
-  @locals[:ops].pay(keygap, bnf, amount, details)
-  log.info("Payment made by @#{@locals[:guser][:login]} to #{bnf} for #{amount}\n \n")
-  redirect '/'
+  ops.pay(keygap, bnf, amount, details)
+  log.info("Payment made by @#{@locals[:guser]} to #{bnf} for #{amount}\n \n")
+  flash('/', "Payment has been sent to #{bnf} for #{amount}")
 end
 
 get '/pull' do
-  redirect '/' unless @locals[:user]
-  redirect '/confirm' unless @locals[:user].confirmed?
-  @locals[:ops].pull
-  log.info("Wallet #{@locals[:user].item.id} pulled by @#{@locals[:guser][:login]}\n \n")
-  redirect '/'
+  ops.pull
+  log.info("Wallet #{user.item.id} pulled by @#{@locals[:guser]}\n \n")
+  flash('/', "Your wallet #{user.item.id} will be pulled soon")
 end
 
 get '/key' do
-  redirect '/' unless @locals[:user]
-  redirect '/confirm' unless @locals[:user].confirmed?
   haml :key, layout: :layout, locals: merged(
-    title: '@' + @locals[:guser][:login] + '/key'
+    title: '@' + @locals[:guser] + '/key'
   )
 end
 
-get '/keygap' do
-  redirect '/' unless @locals[:user]
-  redirect '/confirm' unless @locals[:user].confirmed?
-  content_type 'text/plain'
-  "hey: #{params[:keygap]}"
-end
-
 get '/id' do
-  redirect '/' unless @locals[:user]
-  redirect '/confirm' unless @locals[:user].confirmed?
   content_type 'text/plain'
-  @locals[:user].item.id.to_s
+  confirmed_user.item.id.to_s
 end
 
 get '/balance' do
-  redirect '/' unless @locals[:user]
-  redirect '/confirm' unless @locals[:user].confirmed?
-  error 404 unless @locals[:user].wallet(&:exists?)
+  error 404 unless confirmed_user.wallet(&:exists?)
   content_type 'text/plain'
-  @locals[:user].wallet(&:balance).to_i
+  confirmed_user.wallet(&:balance).to_i
 end
 
 get '/find' do
-  redirect '/' unless @locals[:user]
-  redirect '/confirm' unless @locals[:user].confirmed?
-  error 404 unless @locals[:user].wallet(&:exists?)
+  error 404 unless confirmed_user.wallet(&:exists?)
   content_type 'text/plain'
-  @locals[:user].wallet do |wallet|
+  confirmed_user.wallet do |wallet|
     wallet.txns.select do |t|
       matches = false
       matches |= params[:id] && Regexp.new(params[:id]).match(t.id.to_s)
@@ -312,48 +282,37 @@ get '/find' do
 end
 
 post '/id_rsa' do
-  redirect '/' unless @locals[:user]
-  redirect '/confirm' unless @locals[:user].confirmed?
   content_type 'text/plain'
   keygap = @locals[:keygap].nil? ? params[:keygap] : @locals[:keygap]
-  @locals[:user].item.key(keygap).to_s
+  confirmed_user.item.key(keygap).to_s
 end
 
 get '/api' do
-  redirect '/' unless @locals[:user]
-  redirect '/confirm' unless @locals[:user].confirmed?
   haml :api, layout: :layout, locals: merged(
-    title: '@' + @locals[:guser][:login] + '/api'
+    title: '@' + @locals[:guser] + '/api'
   )
 end
 
 post '/do-api' do
-  redirect '/' unless @locals[:user]
-  redirect '/confirm' unless @locals[:user].confirmed?
   haml :do_api, layout: :layout, locals: merged(
-    title: '@' + @locals[:guser][:login] + '/api',
-    code: settings.codec.encrypt("#{@locals[:guser][:login]} #{params[:keygap]}")
+    title: '@' + @locals[:guser] + '/api',
+    code: settings.codec.encrypt("#{@locals[:guser]} #{params[:keygap]}")
   )
 end
 
 post '/do-api-token' do
-  redirect '/' unless @locals[:user]
-  redirect '/confirm' unless @locals[:user].confirmed?
   content_type 'text/plain'
-  settings.codec.encrypt("#{@locals[:guser][:login]} #{params[:keygap]}")
+  settings.codec.encrypt("#{@locals[:guser]} #{params[:keygap]}")
 end
 
 get '/invoice' do
-  redirect '/' unless @locals[:user]
-  redirect '/confirm' unless @locals[:user].confirmed?
+  redirect '/confirm' unless user.confirmed?
   haml :invoice, layout: :layout, locals: merged(
-    title: '@' + @locals[:guser][:login] + '/invoice'
+    title: '@' + @locals[:guser] + '/invoice'
   )
 end
 
 get '/log' do
-  redirect '/' unless @locals[:user]
-  redirect '/confirm' unless @locals[:user].confirmed?
   content_type 'text/plain', charset: 'utf-8'
   log.content
 end
@@ -366,7 +325,7 @@ end
 
 get '/robots.txt' do
   content_type 'text/plain'
-  'User-agent: *'
+  "User-agent: *\nDisallow: /"
 end
 
 get '/version' do
@@ -396,18 +355,27 @@ end
 error do
   status 503
   e = env['sinatra.error']
-  Raven.capture_exception(e)
-  haml(
-    :error,
-    layout: :layout,
-    locals: merged(
-      title: 'Error',
-      error: Backtrace.new(e).to_s
+  if e.is_a?(UserError)
+    flash('/', e.message)
+  else
+    Raven.capture_exception(e)
+    haml(
+      :error,
+      layout: :layout,
+      locals: merged(
+        title: 'Error',
+        error: Backtrace.new(e).to_s
+      )
     )
-  )
+  end
 end
 
 private
+
+def flash(uri, msg)
+  cookies[:flash_msg] = msg
+  redirect uri
+end
 
 def context
   "#{request.ip} #{request.user_agent} #{VERSION}"
@@ -416,28 +384,39 @@ end
 def merged(hash)
   out = @locals.merge(hash)
   out[:local_assigns] = out
+  if cookies[:flash_msg]
+    out[:flash_msg] = cookies[:flash_msg]
+    cookies.delete(:flash_msg)
+  end
   out
 end
 
-def log(user = @locals[:guser][:login])
+def log(user = @locals[:guser])
   TeeLog.new(
     settings.log,
     FileLog.new(File.join(settings.root, ".zold-wts/logs/#{user}"))
   )
 end
 
-def user(login)
+def user(login = @locals[:guser])
+  flash('/', 'You have to login first') unless login
   User.new(
     login, Item.new(login, settings.dynamo),
     settings.wallets, log: log(login)
   )
 end
 
-def latch(login = @locals[:guser][:login])
+def confirmed_user
+  u = user
+  flash('/confirm', 'You have to confirm your keygap') unless u.confirmed?
+  u
+end
+
+def latch(login = @locals[:guser])
   File.join(settings.root, "latch/#{login}")
 end
 
-def ops(user, async: true)
+def ops(user = confirmed_user, async: true)
   network = ENV['RACK_ENV'] == 'test' ? 'test' : 'zold'
   ops = SafeOps.new(
     log(user.login),
@@ -469,8 +448,8 @@ def pay_bonus
   boss = user(settings.config['rewards']['login'])
   return unless boss.item.exists?
   ops(boss).pay(
-    settings.config['rewards']['keygap'], @locals[:user].item.id,
-    Zold::Amount.new(zld: 8.0), "WTS signup bonus to #{@locals[:guser][:login]}"
+    settings.config['rewards']['keygap'], user.item.id,
+    Zold::Amount.new(zld: 8.0), "WTS signup bonus to #{@locals[:guser]}"
   )
 end
 

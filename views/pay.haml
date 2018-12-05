@@ -1,6 +1,6 @@
 %p
   Your available balance:
-  = user.wallet(&:balance)
+  = confirmed_user.wallet(&:balance)
 
 %form{method: 'POST', action: '/do-pay'}
   %fieldset

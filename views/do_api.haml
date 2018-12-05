@@ -7,7 +7,9 @@
   %code= code
 
 %p
-  To send money to @yegor256 GitHub user, do the following HTTP request:
+  For example, in order to send money to
+  %code @yegor256
+  GitHub user, do the following HTTP request:
 
 %pre
   POST /do-pay HTTP/1.1
@@ -26,7 +28,7 @@
   = "curl https://wts.zold.io/do-pay \\\n"
   = "  --request POST \\\n"
   = "  --header \"Content-Type: application/x-www-form-urlencoded\" \\\n"
-  = "  --header \"X-Zold-Wts:#{code}\" \\\n"
+  = "  --header \"X-Zold-Wts: #{code}\" \\\n"
   = "  --data \"bnf=yegor256\" \\\n"
   = "  --data \"amount=19.99\" \\\n"
   = "  --data \"details=For+the+pizza\" \\\n"
@@ -38,6 +40,7 @@
   response no matter what. There is no way to check the status
   of transaction right after its submission.
   If everything goes well, the payment will be sent.
+  Otherwise, we are sorry.
 
 %p
   There are more entry points:

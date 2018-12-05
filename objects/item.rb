@@ -22,17 +22,15 @@ require 'zold/key'
 require 'zold/id'
 require 'zold/log'
 require_relative 'keygap'
+require_relative 'user_error'
 
 #
 # Item in AWS DynamoDB.
 #
 class Item
   def initialize(login, aws, log: Zold::Log::NULL)
-    raise 'Login can\'t be nil' if login.nil?
     @login = login.downcase
-    raise 'AWS can\'t be nil' if aws.nil?
     @aws = aws
-    raise 'Log can\'t be nil' if log.nil?
     @log = log
   end
 
@@ -45,9 +43,6 @@ class Item
   # +key+:: Private RSA key
   # +length+:: Length of keygap to use (don't change it without a necessity)
   def create(id, key, length: 8)
-    raise 'ID can\'t be nil' if id.nil?
-    raise 'Key can\'t be nil' if key.nil?
-    raise 'Length can\'t be nil' if length.nil?
     pem, keygap = Keygap.new.extract(key.to_s, length)
     @aws.put_item(
       table_name: 'zold-wallets',
@@ -65,7 +60,6 @@ keygap is '#{keygap[0, 2]}#{'.' * (keygap.length - 2)}'")
 
   # Return private key as Zold::Key
   def key(keygap)
-    raise "Keygap can\'t be nil for @#{@login}" if keygap.nil?
     key = read['pem']
     raise "There is no key for some reason for user @#{@login}" if key.nil?
     key = Keygap.new.merge(key, keygap)
@@ -87,6 +81,10 @@ keygap is '#{keygap[0, 2]}#{'.' * (keygap.length - 2)}'")
     id
   end
 
+  # Returns user Keygap temporarily stored in the database. We should not
+  # keep it here for too long. Once the user confirms that the keygap has
+  # been stored safely, we should call wipe(), which will remove the
+  # keygap from the database.
   def keygap
     keygap = read['keygap']
     raise "The user @#{@login} doesn't have a keygap anymore" if keygap.nil?
@@ -101,7 +99,6 @@ keygap is '#{keygap[0, 2]}#{'.' * (keygap.length - 2)}'")
 
   # Remove the keygap from DynamoDB
   def wipe(keygap)
-    raise "Keygap can\'t be nil for @#{@login}" if keygap.nil?
     item = read
     if keygap != item['keygap']
       raise "Keygap '#{keygap}' of @#{@login} doesn't match \

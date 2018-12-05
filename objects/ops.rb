@@ -21,25 +21,19 @@
 require 'tempfile'
 require 'openssl'
 require 'zold/log'
+require_relative 'user_error'
 
 #
 # Operations with a user.
 #
 class Ops
   def initialize(item, user, wallets, remotes, copies, log: Zold::Log::NULL, network: 'test')
-    raise 'User can\'t be nil' if user.nil?
     @user = user
-    raise 'Item can\'t be nil' if item.nil?
     @item = item
-    raise 'Wallets can\'t be nil' if wallets.nil?
     @wallets = wallets
-    raise 'Remotes can\'t be nil' if remotes.nil?
     @remotes = remotes
-    raise 'Copies can\'t be nil' if copies.nil?
     @copies = copies
-    raise 'Log can\'t be nil' if log.nil?
     @log = log
-    raise 'Network can\'t be nil' if network.nil?
     @network = network
   end
 
@@ -69,13 +63,8 @@ in #{(Time.now - start).round}s, the balance is #{wallet.balance}\n \n ")
   end
 
   def pay(keygap, bnf, amount, details)
-    raise 'Keygap can\'t be nil' if keygap.nil?
-    raise 'Beneficiary can\'t be nil' if bnf.nil?
-    raise 'Amount can\'t be nil' if amount.nil?
-    raise 'Payment amount can\'t be zero' if amount.zero?
-    raise 'Payment amount can\'t be negative' if amount.negative?
-    raise 'Amount must be of type Amount' unless amount.is_a?(Zold::Amount)
-    raise 'Details can\'t be nil' if details.nil?
+    raise UserError, 'Payment amount can\'t be zero' if amount.zero?
+    raise UserError, 'Payment amount can\'t be negative' if amount.negative?
     raise 'The user is not registered yet' unless @item.exists?
     raise 'The account is not confirmed yet' unless @user.confirmed?
     start = Time.now

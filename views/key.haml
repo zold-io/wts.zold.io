@@ -5,11 +5,10 @@
   for your wallet
   =' '
   = succeed ':' do
-    %code
-      =user.item.id
+    %code= confirmed_user.item.id
 
 %pre
-  =user.item.raw_key.gsub(/\*/, '<span style="color:red">*</span>')
+  =confirmed_user.item.raw_key.gsub(/\*/, '<span style="color:red">*</span>')
 
 %p
   Even though we keep this private RSA key in our database, it can't be used to send out money from your wallet,
