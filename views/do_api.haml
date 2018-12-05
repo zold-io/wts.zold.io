@@ -23,13 +23,13 @@
   tool:
 
 %pre
-  = "curl https://wts.zold.io/do-pay \\"
-  = "  --request POST \\"
-  = "  --header \"Content-Type: application/x-www-form-urlencoded\" \\"
-  = "  --header \"X-Zold-Wts:#{code}\" \\"
-  = "  --data \"bnf=yegor256\" \\"
-  = "  --data \"amount=19.99\" \\"
-  = "  --data \"details=For+the+pizza\" \\"
+  = "curl https://wts.zold.io/do-pay \\\n"
+  = "  --request POST \\\n"
+  = "  --header \"Content-Type: application/x-www-form-urlencoded\" \\\n"
+  = "  --header \"X-Zold-Wts:#{code}\" \\\n"
+  = "  --data \"bnf=yegor256\" \\\n"
+  = "  --data \"amount=19.99\" \\\n"
+  = "  --data \"details=For+the+pizza\" \\\n"
   = "  --data \"keygap=84Hjsow9\""
 
 %p
