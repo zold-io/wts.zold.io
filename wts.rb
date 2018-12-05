@@ -77,6 +77,11 @@ configure do
       'dynamo' => {
         'key' => '?',
         'secret' => '?'
+      },
+      'coinbase' => {
+        'key' => 'KOen89oxHobFJ0iz',
+        'secret' => '',
+        'account' => 'c208ea6c-ac01-5c5b-a0f8-1b74b6c234f1'
       }
     }
   else
@@ -340,6 +345,8 @@ post '/coinbase-hook' do
     Zold::Amount.new(zld: usd),
     "BTC exchange of #{amount} BTC to #{usd} USD/ZLD at #{json['network']['hash']}"
   )
+  log.info("Paid #{usd} to #{id} in exchange to #{amount} BTC")
+  'Done'
 end
 
 get '/log' do
