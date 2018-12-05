@@ -234,8 +234,6 @@ post '/do-pay' do
   end
   amount = Zold::Amount.new(zld: params[:amount].to_f)
   details = params[:details]
-  params[:keygap] = params[:pass] if params[:pass]
-  keygap = @locals[:keygap].nil? ? params[:keygap] : @locals[:keygap]
   ops.pay(keygap, bnf, amount, details)
   log.info("Payment made by @#{@locals[:guser]} to #{bnf} for #{amount}\n \n")
   flash('/', "Payment has been sent to #{bnf} for #{amount}")
@@ -283,7 +281,6 @@ end
 
 post '/id_rsa' do
   content_type 'text/plain'
-  keygap = @locals[:keygap].nil? ? params[:keygap] : @locals[:keygap]
   confirmed_user.item.key(keygap).to_s
 end
 
@@ -410,6 +407,17 @@ def confirmed_user
   u = user
   flash('/confirm', 'You have to confirm your keygap') unless u.confirmed?
   u
+end
+
+def keygap
+  params[:keygap] = params[:pass] if params[:pass]
+  kg = @locals[:keygap].nil? ? params[:keygap] : @locals[:keygap]
+  begin
+    confirmed_user.item.key(kg).to_s
+  rescue StandardError => e
+    flash('/', "This doesn\'t seem to be a valid keygap: #{e.message}")
+  end
+  kg
 end
 
 def latch(login = @locals[:guser])
