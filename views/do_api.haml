@@ -17,6 +17,22 @@
   bnf=yegor256&amount=19.99&details=For+the+pizza&keygap=84Hjsow9
 
 %p
+  Or from the command line, using
+  %a{href: 'https://en.wikipedia.org/wiki/CURL'}<
+    %code curl
+  tool:
+
+%pre
+  = "curl https://wts.zold.io/do-pay \\"
+  = "  --request POST \\"
+  = "  --header \"Content-Type: application/x-www-form-urlencoded\" \\"
+  = "  --header \"X-Zold-Wts:#{code}\" \\"
+  = "  --data \"bnf=yegor256\" \\"
+  = "  --data \"amount=19.99\" \\"
+  = "  --data \"details=For+the+pizza\" \\"
+  = "  --data \"keygap=84Hjsow9\""
+
+%p
   You will get
   %code 302
   response no matter what. There is no way to check the status
