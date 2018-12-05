@@ -293,13 +293,13 @@ end
 post '/do-api' do
   haml :do_api, layout: :layout, locals: merged(
     title: '@' + @locals[:guser] + '/api',
-    code: settings.codec.encrypt("#{@locals[:guser]} #{params[:keygap]}")
+    code: settings.codec.encrypt("#{@locals[:guser]} #{keygap}")
   )
 end
 
 post '/do-api-token' do
   content_type 'text/plain'
-  settings.codec.encrypt("#{@locals[:guser]} #{params[:keygap]}")
+  settings.codec.encrypt("#{@locals[:guser]} #{keygap}")
 end
 
 get '/invoice' do
