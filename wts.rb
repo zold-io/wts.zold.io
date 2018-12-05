@@ -415,7 +415,7 @@ def keygap
   begin
     confirmed_user.item.key(kg).to_s
   rescue StandardError => e
-    flash('/', "This doesn\'t seem to be a valid keygap: #{e.message}")
+    flash('/', "This doesn\'t seem to be a valid keygap: #{e.class.name}")
   end
   kg
 end
