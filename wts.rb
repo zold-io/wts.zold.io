@@ -342,8 +342,8 @@ end
 
 # See https://www.blockchain.com/api/api_receive
 get '/btc-hook' do
-  return 'Invalid key' unless params[:key] == settings.config['blockchain']['key']
-  return 'Not enough confirmations' unless params[:confirmations].to_i >= 3
+  return "Invalid key \"#{params[:key]}\"" unless params[:key] == settings.config['blockchain']['key']
+  return "Not enough confirmations: #{params[:confirmations]}" unless params[:confirmations].to_i >= 3
   price = JSON.parse(Zold::Http.new(uri: 'https://blockchain.info/ticker').get.body)['USD']['15m']
   bitcoin = params[:value].to_f / 100_000_000
   usd = bitcoin / price
