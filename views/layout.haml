@@ -59,7 +59,7 @@
                   %span{style: 'color: gray'} Invoice
               %li
                 - if user.wallet(&:exists?)
-                  %a{href: '/coinbase'} Buy/Sell
+                  %a{href: '/btc'} Buy/Sell
                 - else
                   %span{style: 'color: gray'} Buy/Sell
               %li
