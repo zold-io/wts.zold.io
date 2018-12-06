@@ -1,16 +1,11 @@
 %p
-  The rate is $1 per 1 ZLD (according to the current
-  %a{href: 'https://www.coinbase.com'} Coinbase
-  rate).
+  The rate is $1 per 1 ZLD (according to the current bitcoin rate).
 
-  %p
+%p
   To buy ZLD just send your BTC to this wallet:
   = succeed '.' do
-    %code 32wtFfKbjWHpu9WFzX9adGssnAosqPkSp6
-  In the transaction details you have to say exactly this:
-  %code= confirmed_user.item.id
-  (if you don't do that your payment will be lost).
-  Once your payment is completed in Bitcoin network, you will get ZLD.
+    %code= confirmed_user.item.btc
+  Once your payment is completed in the Bitcoin network, you will get ZLD.
 
 %p
   To sell your ZLD and receive BTC just fill this form

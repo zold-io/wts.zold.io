@@ -104,15 +104,27 @@ keygap is '#{keygap[0, 2]}#{'.' * (keygap.length - 2)}'")
       raise "Keygap '#{keygap}' of @#{@login} doesn't match \
 '#{item['keygap'][0, 2]}#{'.' * (item['keygap'].length - 2)}'"
     end
-    @aws.put_item(
-      table_name: 'zold-wallets',
-      item: {
-        'login' => @login,
-        'id' => item['id'],
-        'pem' => item['pem']
-      }
-    )
+    item.delete('keygap')
+    @aws.put_item(table_name: 'zold-wallets', item: item)
     @log.debug("The keygap of @#{@login} was destroyed")
+  end
+
+  # Returns true if BTC address is set
+  def btc?
+    !read['btc'].nil?
+  end
+
+  # Returns BTC address of the item (exception if it's absent)
+  def btc
+    raise "The user @#{@login} doesn't have a BTC address" unless btc?
+    read['btc']
+  end
+
+  # Save BTC address
+  def save_btc(address)
+    item = read
+    item['btc'] = address
+    @aws.put_item(table_name: 'zold-wallets', item: item)
   end
 
   private

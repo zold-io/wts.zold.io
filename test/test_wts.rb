@@ -65,7 +65,7 @@ class AppTest < Minitest::Test
 
   def test_200_user_pages
     login('bill')
-    ['/home', '/key', '/log', '/invoice', '/api', '/coinbase'].each do |p|
+    ['/home', '/key', '/log', '/invoice', '/api'].each do |p|
       get(p)
       assert_equal(200, last_response.status, "#{p} fails: #{last_response.body}")
     end
@@ -94,27 +94,6 @@ class AppTest < Minitest::Test
     set_cookie('glogin=')
     header('X-Zold-WTS', token)
     post('/id_rsa')
-    assert_equal(200, last_response.status, last_response.body)
-  end
-
-  # This test is skipped since it doesn't work now, unless you manually
-  # provide the right values inside the hook method in wts.rb. You will
-  # need Coinbase key, secret and account number.
-  def test_coinbase_hook
-    skip
-    json = JSON.pretty_generate(
-      'type': 'wallet:addresses:new-payment',
-      'additional_data': {
-        'amount': {
-          'amount': '0.0123',
-          'currency': 'BTC'
-        },
-        'transaction': {
-          'id': '9f4cb3ce-78bd-567a-8665-11eb94a613b2'
-        }
-      }
-    )
-    post('/coinbase-hook', json)
     assert_equal(200, last_response.status, last_response.body)
   end
 

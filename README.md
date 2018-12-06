@@ -38,3 +38,15 @@ The build has to be clean. If it's not, [submit an issue](https://github.com/zol
 
 Then, make your changes, make sure the build is still clean,
 and [submit a pull request](https://www.yegor256.com/2014/04/15/github-guidelines.html).
+
+In order to run a single test:
+
+```bash
+$ rake run
+```
+
+Then, in another terminal:
+
+```bash
+$ ruby test/test_item.rb -n test_create_and_read
+```

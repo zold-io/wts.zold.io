@@ -78,10 +78,14 @@ configure do
         'key' => '?',
         'secret' => '?'
       },
+      'blockchain' => {
+        'xpub' => '?',
+        'key' => '?'
+      },
       'coinbase' => {
-        'key' => 'KOen89oxHobFJ0iz',
-        'secret' => '',
-        'account' => 'c208ea6c-ac01-5c5b-a0f8-1b74b6c234f1'
+        'key' => '?',
+        'secret' => '?',
+        'account' => '?'
       }
     }
   else
@@ -202,14 +206,14 @@ end
 get '/confirm' do
   flash('/', 'You have done this already, your keygap has been generated') if user.confirmed?
   haml :confirm, layout: :layout, locals: merged(
-    title: '@' + @locals[:guser] + '/keygap'
+    title: '@' + user.login + '/keygap'
   )
 end
 
 get '/do-confirm' do
   flash('/', 'You have done this already, your keygap has been generated') if user.confirmed?
   user.confirm(params[:keygap])
-  log.info("Account confirmed for @#{@locals[:guser]}\n")
+  log.info("Account confirmed for @#{confirmed_user.login}\n")
   flash('/', 'The account has been confirmed')
 end
 
@@ -221,7 +225,7 @@ end
 
 get '/pay' do
   haml :pay, layout: :layout, locals: merged(
-    title: '@' + @locals[:guser] + '/pay'
+    title: '@' + confirmed_user.login + '/pay'
   )
 end
 
@@ -241,19 +245,19 @@ post '/do-pay' do
   amount = Zold::Amount.new(zld: params[:amount].to_f)
   details = params[:details]
   ops.pay(keygap, bnf, amount, details)
-  log.info("Payment made by @#{@locals[:guser]} to #{bnf} for #{amount}\n \n")
+  log.info("Payment made by @#{confirmed_user.login} to #{bnf} for #{amount}\n \n")
   flash('/', "Payment has been sent to #{bnf} for #{amount}")
 end
 
 get '/pull' do
   ops.pull
-  log.info("Wallet #{user.item.id} pulled by @#{@locals[:guser]}\n \n")
+  log.info("Wallet #{user.item.id} pulled by @#{confirmed_user.login}\n \n")
   flash('/', "Your wallet #{user.item.id} will be pulled soon")
 end
 
 get '/key' do
   haml :key, layout: :layout, locals: merged(
-    title: '@' + @locals[:guser] + '/key'
+    title: '@' + confirmed_user.login + '/key'
   )
 end
 
@@ -292,61 +296,60 @@ end
 
 get '/api' do
   haml :api, layout: :layout, locals: merged(
-    title: '@' + @locals[:guser] + '/api'
+    title: '@' + confirmed_user.login + '/api'
   )
 end
 
 post '/do-api' do
   haml :do_api, layout: :layout, locals: merged(
-    title: '@' + @locals[:guser] + '/api',
-    code: settings.codec.encrypt("#{@locals[:guser]} #{keygap}")
+    title: '@' + confirmed_user.login + '/api',
+    code: settings.codec.encrypt("#{confirmed_user.login} #{keygap}")
   )
 end
 
 post '/do-api-token' do
   content_type 'text/plain'
-  settings.codec.encrypt("#{@locals[:guser]} #{keygap}")
+  settings.codec.encrypt("#{confirmed_user.login} #{keygap}")
 end
 
 get '/invoice' do
-  redirect '/confirm' unless user.confirmed?
   haml :invoice, layout: :layout, locals: merged(
-    title: '@' + @locals[:guser] + '/invoice'
+    title: '@' + confirmed_user.login + '/invoice'
   )
 end
 
-get '/coinbase' do
-  haml :coinbase, layout: :layout, locals: merged(
-    title: '@' + @locals[:guser] + '/buy+sell'
+get '/btc' do
+  unless confirmed_user.item.btc?
+    key = settings.config['blockchain']['key']
+    uri = 'https://api.blockchain.info/v2/receive?' + [
+      "xpub=#{settings.config['blockchain']['xpub']}",
+      "callback=#{CGI.escape("https://wts.zold.io/btc-hook?id=#{confirmed_user.item.id}&key=#{key}")}",
+      "key=#{key}"
+    ].join('&')
+    res = Zold::Http.new(uri: uri).get
+    raise "Can't create Bitcoin address for @#{confirmed_user.login}: #{res.status_line}" unless res.code == 200
+    address = JSON.parse(res.body)['address']
+    confirmed_user.item.save_btc(address)
+  end
+  haml :btc, layout: :layout, locals: merged(
+    title: '@' + confirmed_user.login + '/btc'
   )
 end
 
-post '/coinbase-hook' do
-  request.body.rewind
-  json = JSON.parse(request.body.read)
-  return "Not my notification type #{json['type']}" unless json['type'] == 'wallet:addresses:new-payment'
-  data = json['additional_data']
-  return "Not my currency #{data['amount']['currency']}" unless data['amount']['currency'] == 'BTC'
-  tid = data['transaction']['id']
-  coinbase = Coinbase::Wallet::Client.new(
-    api_key: settings.config['coinbase']['key'],
-    api_secret: settings.config['coinbase']['secret']
-  )
-  account = coinbase.account(settings.config['coinbase']['account'])
-  txn = account.transaction(tid)
-  amount = txn['amount']['amount'].to_f
-  usd = txn['native_amount']['amount'].to_f
-  desc = txn['description']
-  id = desc[/[0-9a-f]{16,}/, 0]
-  return "The description doesn't have wallet ID: #{desc}" if id.nil?
+# See https://www.blockchain.com/api/api_receive
+post '/btc-hook' do
+  return 'Invalid key' unless params[:key] == settings.config['blockchain']['key']
+  price = JSON.parse(Zold::Http.new(uri: 'https://blockchain.info/ticker').get.body)['USD']['15m']
+  bitcoin = params[:value].to_f / 100_000_000
+  usd = bitcoin / price
   ops(boss).pay(
     settings.config['rewards']['keygap'],
-    Zold::Id.new(id),
+    Zold::Id.new(params[:id]),
     Zold::Amount.new(zld: usd),
-    "BTC exchange of #{amount} BTC to #{usd} USD/ZLD at #{json['network']['hash']}"
+    "BTC exchange of #{bitcoin.round(8)} BTC to #{usd} USD/ZLD at #{params[:transaction_hash]}"
   )
   log.info("Paid #{usd} to #{id} in exchange to #{amount} BTC")
-  'Done'
+  '*ok*'
 end
 
 get '/log' do
