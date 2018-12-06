@@ -321,9 +321,10 @@ end
 get '/btc' do
   unless confirmed_user.item.btc?
     key = settings.config['blockchain']['key']
+    callback = "http://p.rehttp.net/https://wts.zold.io/btc-hook?id=#{confirmed_user.item.id}&key=#{key}"
     uri = 'https://api.blockchain.info/v2/receive?' + [
       "xpub=#{settings.config['blockchain']['xpub']}",
-      "callback=#{CGI.escape("https://wts.zold.io/btc-hook?id=#{confirmed_user.item.id}&key=#{key}")}",
+      "callback=#{CGI.escape(callback)}",
       "key=#{key}"
     ].join('&')
     res = Zold::Http.new(uri: uri).get

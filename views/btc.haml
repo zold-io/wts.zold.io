@@ -2,13 +2,17 @@
   The rate is $1 per 1 ZLD (according to the current bitcoin rate).
 
 %p
-  To buy ZLD just send your BTC to this wallet:
+  To
+  %strong buy
+  ZLD just send your BTC to this wallet:
   = succeed '.' do
     %code= confirmed_user.item.btc
   Once your payment is completed in the Bitcoin network, you will get ZLD.
 
 %p
-  To sell your ZLD and receive BTC just fill this form
+  To
+  %strong sell
+  your ZLD and receive BTC just fill this form
   and we will send you the payment promptly:
 
 %form{method: 'POST', action: '/do-sell'}
