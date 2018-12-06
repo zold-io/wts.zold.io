@@ -318,20 +318,23 @@ get '/invoice' do
   )
 end
 
+get '/btc-refresh' do
+  key = settings.config['blockchain']['key']
+  callback = "http://p.rehttp.net/https://wts.zold.io/btc-hook?id=#{confirmed_user.item.id}&key=#{key}"
+  uri = 'https://api.blockchain.info/v2/receive?' + [
+    "xpub=#{settings.config['blockchain']['xpub']}",
+    "callback=#{CGI.escape(callback)}",
+    "key=#{key}"
+  ].join('&')
+  res = Zold::Http.new(uri: uri).get
+  raise "Can't create Bitcoin address for @#{confirmed_user.login}: #{res.status_line}" unless res.code == 200
+  address = JSON.parse(res.body)['address']
+  confirmed_user.item.save_btc(address)
+  flash('/btc', 'A new unique BTC address is assigned to you')
+end
+
 get '/btc' do
-  unless confirmed_user.item.btc?
-    key = settings.config['blockchain']['key']
-    callback = "http://p.rehttp.net/https://wts.zold.io/btc-hook?id=#{confirmed_user.item.id}&key=#{key}"
-    uri = 'https://api.blockchain.info/v2/receive?' + [
-      "xpub=#{settings.config['blockchain']['xpub']}",
-      "callback=#{CGI.escape(callback)}",
-      "key=#{key}"
-    ].join('&')
-    res = Zold::Http.new(uri: uri).get
-    raise "Can't create Bitcoin address for @#{confirmed_user.login}: #{res.status_line}" unless res.code == 200
-    address = JSON.parse(res.body)['address']
-    confirmed_user.item.save_btc(address)
-  end
+  redirect '/btc-refresh' unless confirmed_user.item.btc?
   haml :btc, layout: :layout, locals: merged(
     title: '@' + confirmed_user.login + '/btc'
   )

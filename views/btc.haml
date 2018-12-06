@@ -5,8 +5,10 @@
   To
   %strong buy
   ZLD just send your BTC to this wallet:
+  %code= confirmed_user.item.btc
+  = '/'
   = succeed '.' do
-    %code= confirmed_user.item.btc
+    %a{href: '/btc-refresh'}< refresh
   Once your payment is completed in the Bitcoin network, you will get ZLD.
 
 %p
