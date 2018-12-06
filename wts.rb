@@ -320,7 +320,7 @@ end
 
 get '/btc-refresh' do
   key = settings.config['blockchain']['key']
-  callback = "http://p.rehttp.net/https://wts.zold.io/btc-hook?id=#{confirmed_user.item.id}&key=#{key}"
+  callback = "https://wts.zold.io/btc-hook?id=#{confirmed_user.item.id}&key=#{key}"
   uri = 'https://api.blockchain.info/v2/receive?' + [
     "xpub=#{settings.config['blockchain']['xpub']}",
     "callback=#{CGI.escape(callback)}",
