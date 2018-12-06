@@ -347,7 +347,7 @@ get '/btc-hook' do
   price = JSON.parse(Zold::Http.new(uri: 'https://blockchain.info/ticker').get.body)['USD']['15m']
   bitcoin = params[:value].to_f / 100_000_000
   usd = bitcoin / price
-  ops(boss).pay(
+  ops(user(settings.config['rewards']['login'])).pay(
     settings.config['rewards']['keygap'],
     Zold::Id.new(params[:id]),
     Zold::Amount.new(zld: usd),
