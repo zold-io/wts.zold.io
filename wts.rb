@@ -348,7 +348,7 @@ get '/btc-hook' do
   hash = params[:transaction_hash]
   bnf = user(params[:zold_user])
   raise UserError, "The user @#{bnf.login} is not confirmed" unless bnf.confirmed?
-  raise UserError, "The user @#{bnf.login} doesn't have BTC address" unless bnf.btc?
+  raise UserError, "The user @#{bnf.login} doesn't have BTC address" unless bnf.item.btc?
   unless settings.btc.exists?(params[:transaction_hash], params[:value], bnf.item.btc)
     raise UserError, "Tx #{params[:transaction_hash]}/#{params[:value]}/#{bnf.item.btc} not found"
   end
