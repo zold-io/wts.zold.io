@@ -32,7 +32,7 @@ class Btc
 
   # Create new BTC address
   def create(login)
-    callback = 'http://p.rehttp.net/https://wts.zold.io/btc-hook?' + {
+    callback = 'https://wts.zold.io/btc-hook?' + {
       'zold_user': login
     }.map { |k, v| "#{k}=#{CGI.escape(v)}" }.join('&')
     uri = 'https://api.blockchain.info/v2/receive?' + {

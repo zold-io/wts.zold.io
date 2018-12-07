@@ -339,7 +339,7 @@ end
 
 # See https://www.blockchain.com/api/api_receive
 get '/btc-hook' do
-  return "Not enough confirmations: #{params[:confirmations]}" if params[:confirmations].to_i < 4
+  return "Not enough confirmations: \"#{params[:confirmations]}\"" if params[:confirmations].to_i < 4
   return 'Zold user name is not provided' if params[:zold_user].nil?
   return 'Tx hash is not provided' if params[:transaction_hash].nil?
   return 'Tx value is not provided' if params[:value].nil?
