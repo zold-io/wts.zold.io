@@ -100,6 +100,8 @@ configure do
   end
   set :config, config
   set :logging, true
+  set :show_exceptions, false
+  set :dump_errors, false
   set :server_settings, timeout: 25
   set :dynamo, Dynamo.new(config).aws
   set :glogin, GLogin::Auth.new(
