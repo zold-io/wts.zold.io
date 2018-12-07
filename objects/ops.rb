@@ -44,10 +44,8 @@ class Ops
     Zold::Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
       ['pull', id.to_s, "--network=#{@network}"]
     )
-    @wallets.acq(id) do |wallet|
-      @log.info("#{Time.now.utc.iso8601}: Wallet #{wallet.id} pulled successfully \
-in #{(Time.now - start).round}s, the balance is #{wallet.balance}\n \n ")
-    end
+    @log.info("#{Time.now.utc.iso8601}: Wallet #{id} pulled successfully \
+in #{(Time.now - start).round}s\n \n ")
   end
 
   def push
@@ -56,10 +54,8 @@ in #{(Time.now - start).round}s, the balance is #{wallet.balance}\n \n ")
     Zold::Push.new(wallets: @wallets, remotes: @remotes, log: @log).run(
       ['push', @item.id.to_s, "--network=#{@network}"]
     )
-    @wallets.acq(@item.id) do |wallet|
-      @log.info("#{Time.now.utc.iso8601}: Wallet #{wallet.id} pushed successfully \
-in #{(Time.now - start).round}s, the balance is #{wallet.balance}\n \n ")
-    end
+    @log.info("#{Time.now.utc.iso8601}: Wallet #{id} pushed successfully \
+in #{(Time.now - start).round}s\n \n ")
   end
 
   def pay(keygap, bnf, amount, details)

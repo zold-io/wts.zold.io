@@ -77,7 +77,7 @@ class User
   end
 
   def wallet
-    @wallets.acq(@item.id, exclusive: true) do |wallet|
+    @wallets.acq(@item.id) do |wallet|
       yield wallet
     end
   end
