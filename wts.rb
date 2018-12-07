@@ -380,7 +380,7 @@ get '/btc-hook' do
     "BTC exchange of #{bitcoin.round(8)} at #{hash}, price is #{price}"
   )
   bnf.item.wipe_btc
-  settings.tbot.post("BTC exchange for #{usd} USD for `@#{bnf.login}`")
+  settings.tbot.post("#{bitcoin} BTC exchanged to #{usd} ZLD by `@#{bnf.login}`")
   settings.log.info("Paid #{usd} to #{id} in exchange to #{amount} BTC")
   '*ok*'
 end
