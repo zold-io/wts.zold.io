@@ -39,6 +39,7 @@ class Tbot
   end
 
   def initialize(token, chat)
+    @token = token
     @client = Telebot::Client.new(token)
     @chat = chat
   end

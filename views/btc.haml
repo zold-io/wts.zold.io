@@ -21,6 +21,11 @@
 
 %form{method: 'POST', action: '/do-sell'}
   %fieldset{disabled: 'disabled'}
+    %label
+      Your
+      = succeed ':' do
+        %a{href: 'https://blog.zold.io/2018/07/18/keygap.html'} keygap
+    %input{type: 'text', name: 'keygap', placeholder: 'Your secret...', autocomplete: 'off'}
     %label The amount to sell:
     %input{type: 'text', name: 'amount', size: 15, autocomplete: 'off'}
     %label BTC wallet to send to:
