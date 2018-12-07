@@ -349,7 +349,7 @@ get '/btc-hook' do
   bnf = user(params[:zold_user])
   raise UserError, "The user @#{bnf.login} is not confirmed" unless bnf.confirmed?
   raise UserError, "The user @#{bnf.login} doesn't have BTC address" unless bnf.item.btc?
-  unless settings.btc.exists?(params[:transaction_hash], params[:value], bnf.item.btc)
+  unless settings.btc.exists?(params[:transaction_hash], params[:value].to_i, bnf.item.btc)
     raise UserError, "Tx #{params[:transaction_hash]}/#{params[:value]}/#{bnf.item.btc} not found"
   end
   price = JSON.parse(Zold::Http.new(uri: 'https://blockchain.info/ticker').get.body)['USD']['15m']
