@@ -133,7 +133,12 @@ configure do
     set :tbot, Tbot::Fake.new
   else
     set :tbot, Tbot.new(settings.config['telegram']['token'], settings.config['telegram']['chat'])
-    settings.tbot.start
+    Thread.new do
+      settings.tbot.start
+    rescue StandardError => e
+      Raven.capture_exception(e)
+      settings.log.error(Backtrace.new(e))
+    end
   end
   Thread.new do
     loop do

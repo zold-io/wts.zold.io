@@ -19,6 +19,7 @@
 # SOFTWARE.
 
 require 'zold/http'
+require 'zold/json_page'
 
 #
 # BTC gateway.
@@ -42,12 +43,12 @@ class Btc
     }.map { |k, v| "#{k}=#{CGI.escape(v)}" }.join('&')
     res = Zold::Http.new(uri: uri).get
     raise "Can't create Bitcoin address for @#{@login}: #{res.status_line}" unless res.code == 200
-    JSON.parse(res.body)['address']
+    Zold::JsonPage.new(res.body).to_hash['address']
   end
 
   # Returns TRUE if transaction with this hash, amount, and target address exists
   def exists?(hash, amount, address)
-    txn = JSON.parse(Zold::Http.new(uri: "https://blockchain.info/rawtx/#{hash}").get.body)
+    txn = Zold::JsonPage.new(Zold::Http.new(uri: "https://blockchain.info/rawtx/#{hash}").get.body).to_hash
     !txn['out'].find { |t| t['addr'] == address && t['value'] == amount }.nil?
   end
 end
