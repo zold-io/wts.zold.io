@@ -44,6 +44,7 @@ require 'zold/remotes'
 require_relative 'version'
 require_relative 'objects/item'
 require_relative 'objects/user'
+require_relative 'objects/btc'
 require_relative 'objects/dynamo'
 require_relative 'objects/ops'
 require_relative 'objects/async_ops'
@@ -116,6 +117,11 @@ configure do
   set :codec, GLogin::Codec.new(config['api_secret'])
   set :pool, Concurrent::FixedThreadPool.new(16, max_queue: 64, fallback_policy: :abort)
   set :log, Zold::Log::REGULAR.dup
+  set :btc, Btc.new(
+    settings.config['blockchain']['xpub'],
+    settings.config['blockchain']['key'],
+    log: settings.log
+  )
   Thread.new do
     loop do
       sleep 60 * 60
@@ -318,21 +324,6 @@ get '/invoice' do
   )
 end
 
-get '/btc-refresh' do
-  key = settings.config['blockchain']['key']
-  callback = "https://wts.zold.io/btc-hook?id=#{confirmed_user.item.id}&key=#{key}"
-  uri = 'https://api.blockchain.info/v2/receive?' + [
-    "xpub=#{settings.config['blockchain']['xpub']}",
-    "callback=#{CGI.escape(callback)}",
-    "key=#{key}"
-  ].join('&')
-  res = Zold::Http.new(uri: uri).get
-  raise "Can't create Bitcoin address for @#{confirmed_user.login}: #{res.status_line}" unless res.code == 200
-  address = JSON.parse(res.body)['address']
-  confirmed_user.item.save_btc(address)
-  flash('/btc', 'A new unique BTC address is assigned to you')
-end
-
 get '/btc' do
   redirect '/btc-refresh' unless confirmed_user.item.btc?
   haml :btc, layout: :layout, locals: merged(
@@ -340,19 +331,35 @@ get '/btc' do
   )
 end
 
+get '/btc-refresh' do
+  address = settings.btc.create(confirmed_user.login)
+  confirmed_user.item.save_btc(address)
+  flash('/btc', 'A new unique BTC address is assigned to you')
+end
+
 # See https://www.blockchain.com/api/api_receive
 get '/btc-hook' do
-  return "Invalid key \"#{params[:key]}\"" unless params[:key] == settings.config['blockchain']['key']
-  return "Not enough confirmations: #{params[:confirmations]}" unless params[:confirmations].to_i >= 3
+  return "Not enough confirmations: #{params[:confirmations]}" if params[:confirmations].to_i < 4
+  return 'Zold user name is not provided' if params[:zold_user].nil?
+  return 'Tx hash is not provided' if params[:transaction_hash].nil?
+  return 'Tx value is not provided' if params[:value].nil?
+  hash = params[:transaction_hash]
+  bnf = user(params[:zold_user])
+  return "The user @#{bnf.login} is not confirmed" unless bnf.confirmed?
+  return "The user @#{bnf.login} doesn't have BTC address" unless bnf.btc?
+  unless settings.btc.exists?(params[:transaction_hash], params[:value], bnf.item.btc)
+    return "Tx with hash=#{params[:transaction_hash]}, value=#{params[:value]}, and target=#{bnf.item.btc} not found"
+  end
   price = JSON.parse(Zold::Http.new(uri: 'https://blockchain.info/ticker').get.body)['USD']['15m']
   bitcoin = params[:value].to_f / 100_000_000
-  usd = bitcoin / price
+  usd = bitcoin * price
   ops(user(settings.config['rewards']['login'])).pay(
     settings.config['rewards']['keygap'],
-    Zold::Id.new(params[:id]),
+    bnf.item.id,
     Zold::Amount.new(zld: usd),
-    "BTC exchange of #{bitcoin.round(8)} BTC to #{usd} USD/ZLD at #{params[:transaction_hash]}"
+    "BTC exchange of #{bitcoin.round(8)} BTC to #{usd} USD/ZLD at #{hash}"
   )
+  bnf.item.wipe_btc
   log.info("Paid #{usd} to #{id} in exchange to #{amount} BTC")
   '*ok*'
 end
@@ -451,8 +458,8 @@ def user(login = @locals[:guser])
   )
 end
 
-def confirmed_user
-  u = user
+def confirmed_user(login = @locals[:guser])
+  u = user(login)
   flash('/confirm', 'You have to confirm your keygap') unless u.confirmed?
   u
 end
