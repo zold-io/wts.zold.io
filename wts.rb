@@ -339,16 +339,16 @@ end
 
 # See https://www.blockchain.com/api/api_receive
 get '/btc-hook' do
-  return "Not enough confirmations: \"#{params[:confirmations]}\"" if params[:confirmations].to_i < 4
-  return 'Zold user name is not provided' if params[:zold_user].nil?
-  return 'Tx hash is not provided' if params[:transaction_hash].nil?
-  return 'Tx value is not provided' if params[:value].nil?
+  raise UserError, "Not enough confirmations: \"#{params[:confirmations]}\"" if params[:confirmations].to_i < 4
+  raise UserError, 'Zold user name is not provided' if params[:zold_user].nil?
+  raise UserError, 'Tx hash is not provided' if params[:transaction_hash].nil?
+  raise UserError, 'Tx value is not provided' if params[:value].nil?
   hash = params[:transaction_hash]
   bnf = user(params[:zold_user])
-  return "The user @#{bnf.login} is not confirmed" unless bnf.confirmed?
-  return "The user @#{bnf.login} doesn't have BTC address" unless bnf.btc?
+  raise UserError, "The user @#{bnf.login} is not confirmed" unless bnf.confirmed?
+  raise UserError, "The user @#{bnf.login} doesn't have BTC address" unless bnf.btc?
   unless settings.btc.exists?(params[:transaction_hash], params[:value], bnf.item.btc)
-    return "Tx with hash=#{params[:transaction_hash]}, value=#{params[:value]}, and target=#{bnf.item.btc} not found"
+    raise UserError, "Tx #{params[:transaction_hash]}/#{params[:value]}/#{bnf.item.btc} not found"
   end
   price = JSON.parse(Zold::Http.new(uri: 'https://blockchain.info/ticker').get.body)['USD']['15m']
   bitcoin = params[:value].to_f / 100_000_000
@@ -360,7 +360,7 @@ get '/btc-hook' do
     "BTC exchange of #{bitcoin.round(8)} BTC to #{usd} USD/ZLD at #{hash}"
   )
   bnf.item.wipe_btc
-  log.info("Paid #{usd} to #{id} in exchange to #{amount} BTC")
+  settings.log.info("Paid #{usd} to #{id} in exchange to #{amount} BTC")
   '*ok*'
 end
 
@@ -408,6 +408,7 @@ error do
   status 503
   e = env['sinatra.error']
   if e.is_a?(UserError)
+    settings.log.error(e.message)
     flash('/', e.message)
   else
     Raven.capture_exception(e)
