@@ -359,7 +359,7 @@ get '/btc-hook' do
     settings.config['rewards']['keygap'],
     bnf.item.id,
     Zold::Amount.new(zld: usd),
-    "BTC exchange of #{bitcoin.round(8)} BTC to #{usd} USD/ZLD at #{hash}"
+    "BTC exchange of #{bitcoin.round(8)} at #{hash}, price is #{price}"
   )
   bnf.item.wipe_btc
   settings.log.info("Paid #{usd} to #{id} in exchange to #{amount} BTC")
