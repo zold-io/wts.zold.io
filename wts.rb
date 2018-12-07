@@ -45,6 +45,7 @@ require_relative 'version'
 require_relative 'objects/item'
 require_relative 'objects/user'
 require_relative 'objects/btc'
+require_relative 'objects/tbot'
 require_relative 'objects/dynamo'
 require_relative 'objects/ops'
 require_relative 'objects/async_ops'
@@ -82,6 +83,10 @@ configure do
       'blockchain' => {
         'xpub' => '?',
         'key' => '?'
+      },
+      'telegram' => {
+        'token' => '',
+        'chat' => '111'
       },
       'coinbase' => {
         'key' => '?',
@@ -124,6 +129,12 @@ configure do
     settings.config['blockchain']['key'],
     log: settings.log
   )
+  if settings.config['telegram']['token'].empty?
+    set :tbot, Tbot::Fake.new
+  else
+    set :tbot, Tbot.new(settings.config['telegram']['token'], settings.config['telegram']['chat'])
+    settings.tbot.start
+  end
   Thread.new do
     loop do
       sleep 60 * 60
@@ -207,7 +218,8 @@ get '/create' do
   user.create
   pay_bonus
   ops.push
-  log.info("Wallet #{user.item.id} created and pushed by @#{@locals[:guser]}\n")
+  log.info("Wallet #{user.item.id} created and pushed by @#{user.login}\n")
+  settings.tbot.post("New user `@#{user.login}` registered with wallet `#{user.item.id}`")
   flash('/', "Wallet #{user.item.id} created and pushed")
 end
 
@@ -221,6 +233,7 @@ end
 get '/do-confirm' do
   flash('/', 'You have done this already, your keygap has been generated') if user.confirmed?
   user.confirm(params[:keygap])
+  settings.tbot.post("User `@#{user.login}` confirmed their keygap")
   log.info("Account confirmed for @#{confirmed_user.login}\n")
   flash('/', 'The account has been confirmed')
 end
@@ -254,6 +267,7 @@ post '/do-pay' do
   details = params[:details]
   ops.pay(keygap, bnf, amount, details)
   log.info("Payment made by @#{confirmed_user.login} to #{bnf} for #{amount}\n \n")
+  settings.tbot.post("Payment sent by `@#{user.login}` to #{bnf} for #{amount}")
   flash('/', "Payment has been sent to #{bnf} for #{amount}")
 end
 
@@ -327,16 +341,15 @@ get '/invoice' do
 end
 
 get '/btc' do
-  redirect '/btc-refresh' unless confirmed_user.item.btc?
+  unless confirmed_user.item.btc?
+    address = settings.btc.create(confirmed_user.login)
+    confirmed_user.item.save_btc(address)
+    settings.tbot.post("New BTC address assigned to `@#{user.login}`")
+    flash('/btc', 'A new unique BTC address is assigned to you')
+  end
   haml :btc, layout: :layout, locals: merged(
     title: '@' + confirmed_user.login + '/btc'
   )
-end
-
-get '/btc-refresh' do
-  address = settings.btc.create(confirmed_user.login)
-  confirmed_user.item.save_btc(address)
-  flash('/btc', 'A new unique BTC address is assigned to you')
 end
 
 # See https://www.blockchain.com/api/api_receive
@@ -362,6 +375,7 @@ get '/btc-hook' do
     "BTC exchange of #{bitcoin.round(8)} at #{hash}, price is #{price}"
   )
   bnf.item.wipe_btc
+  settings.tbot.post("BTC exchange for #{usd} USD for `@#{bnf.login}`")
   settings.log.info("Paid #{usd} to #{id} in exchange to #{amount} BTC")
   '*ok*'
 end
