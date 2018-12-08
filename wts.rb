@@ -357,7 +357,7 @@ get '/btc' do
     confirmed_user.item.save_btc(address)
     settings.telepost.post(
       "New BTC address assigned to `@#{user.login}`:",
-      "[`#{address}`](https://www.blockchain.com/btc/address/#{address})"
+      "[#{address}](https://www.blockchain.com/btc/address/#{address})"
     )
     flash('/btc', 'A new unique BTC address is assigned to you')
   end
@@ -392,8 +392,8 @@ get '/btc-hook' do
   bnf.item.wipe_btc
   settings.telepost.post(
     "#{bitcoin} BTC exchanged to #{usd} ZLD by `@#{bnf.login}`",
-    "in [`#{hash[0..8]}..`](https://www.blockchain.com/btc/tx/#{hash})",
-    "via [`#{address[0..8]}..`](https://www.blockchain.com/btc/address/#{address}),",
+    "in [#{hash[0..8]}..](https://www.blockchain.com/btc/tx/#{hash})",
+    "via [#{address[0..8]}..](https://www.blockchain.com/btc/address/#{address}),",
     "BTC price is #{price}"
   )
   settings.log.info("Paid #{usd} to #{id} in exchange to #{amount} BTC in #{hash}")
