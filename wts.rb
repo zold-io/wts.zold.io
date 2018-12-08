@@ -32,6 +32,7 @@ require 'glogin'
 require 'base64'
 require 'concurrent'
 require 'tempfile'
+require 'telepost'
 require 'rack/ssl'
 require 'zold/log'
 require 'zold/remotes'
@@ -45,7 +46,6 @@ require_relative 'version'
 require_relative 'objects/item'
 require_relative 'objects/user'
 require_relative 'objects/btc'
-require_relative 'objects/tbot'
 require_relative 'objects/dynamo'
 require_relative 'objects/ops'
 require_relative 'objects/async_ops'
@@ -130,11 +130,14 @@ configure do
     log: settings.log
   )
   if settings.config['telegram']['token'].empty?
-    set :tbot, Tbot::Fake.new
+    set :telepost, Telepost::Fake.new
   else
-    set :tbot, Tbot.new(settings.config['telegram']['token'], settings.config['telegram']['chat'])
+    set :telepost, Telepost.new(
+      settings.config['telegram']['token'],
+      chat: settings.config['telegram']['chat']
+    )
     Thread.new do
-      settings.tbot.start
+      settings.telepost.run
     rescue StandardError => e
       Raven.capture_exception(e)
       settings.log.error(Backtrace.new(e))
@@ -224,7 +227,7 @@ get '/create' do
   pay_bonus
   ops.push
   log.info("Wallet #{user.item.id} created and pushed by @#{user.login}\n")
-  settings.tbot.post("New user `@#{user.login}` registered with wallet `#{user.item.id}`")
+  settings.telepost.post("A new user `@#{user.login}` registered with wallet `#{user.item.id}`")
   flash('/', "Wallet #{user.item.id} created and pushed")
 end
 
@@ -238,7 +241,7 @@ end
 get '/do-confirm' do
   flash('/', 'You have done this already, your keygap has been generated') if user.confirmed?
   user.confirm(params[:keygap])
-  settings.tbot.post("User `@#{user.login}` confirmed their keygap")
+  settings.telepost.post("The uer `@#{user.login}` confirmed their keygap")
   log.info("Account confirmed for @#{confirmed_user.login}\n")
   flash('/', 'The account has been confirmed')
 end
@@ -272,7 +275,10 @@ post '/do-pay' do
   details = params[:details]
   ops.pay(keygap, bnf, amount, details)
   log.info("Payment made by @#{confirmed_user.login} to #{bnf} for #{amount}\n \n")
-  settings.tbot.post("Payment sent by `@#{user.login}` to #{bnf} for #{amount}")
+  settings.telepost.post(
+    "Payment sent by `@#{user.login}` to `#{bnf}` for #{amount}:",
+    "\"#{details}\""
+  )
   flash('/', "Payment has been sent to #{bnf} for #{amount}")
 end
 
@@ -349,7 +355,10 @@ get '/btc' do
   unless confirmed_user.item.btc?
     address = settings.btc.create(confirmed_user.login)
     confirmed_user.item.save_btc(address)
-    settings.tbot.post("New BTC address assigned to `@#{user.login}`")
+    settings.telepost.post(
+      "New BTC address assigned to `@#{user.login}`:",
+      "[`#{address}`](https://www.blockchain.com/btc/address/#{address})"
+    )
     flash('/btc', 'A new unique BTC address is assigned to you')
   end
   haml :btc, layout: :layout, locals: merged(
@@ -367,7 +376,8 @@ get '/btc-hook' do
   bnf = user(params[:zold_user])
   raise UserError, "The user @#{bnf.login} is not confirmed" unless bnf.confirmed?
   raise UserError, "The user @#{bnf.login} doesn't have BTC address" unless bnf.item.btc?
-  unless settings.btc.exists?(params[:transaction_hash], params[:value].to_i, bnf.item.btc)
+  address = bnf.item.btc
+  unless settings.btc.exists?(params[:transaction_hash], params[:value].to_i, address)
     raise UserError, "Tx #{params[:transaction_hash]}/#{params[:value]}/#{bnf.item.btc} not found"
   end
   price = JSON.parse(Zold::Http.new(uri: 'https://blockchain.info/ticker').get.body)['USD']['15m']
@@ -380,8 +390,13 @@ get '/btc-hook' do
     "BTC exchange of #{bitcoin.round(8)} at #{hash}, price is #{price}"
   )
   bnf.item.wipe_btc
-  settings.tbot.post("#{bitcoin} BTC exchanged to #{usd} ZLD by `@#{bnf.login}`")
-  settings.log.info("Paid #{usd} to #{id} in exchange to #{amount} BTC")
+  settings.telepost.post(
+    "#{bitcoin} BTC exchanged to #{usd} ZLD by `@#{bnf.login}`",
+    "in [`#{hash[0..8]}..`](https://www.blockchain.com/btc/tx/#{hash})",
+    "via [`#{address[0..8]}..`](https://www.blockchain.com/btc/address/#{address}),",
+    "BTC price is #{price}"
+  )
+  settings.log.info("Paid #{usd} to #{id} in exchange to #{amount} BTC in #{hash}")
   '*ok*'
 end
 
