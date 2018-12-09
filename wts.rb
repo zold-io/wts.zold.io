@@ -227,7 +227,10 @@ get '/create' do
   pay_bonus
   ops.push
   log.info("Wallet #{user.item.id} created and pushed by @#{user.login}\n")
-  settings.telepost.post("A new user `@#{user.login}` registered with wallet `#{user.item.id}`")
+  settings.telepost.post(
+    "The user `@#{user.login}` created a new wallet `#{user.item.id}`",
+    "from `#{request.ip}`"
+  )
   flash('/', "Wallet #{user.item.id} created and pushed")
 end
 
@@ -241,7 +244,6 @@ end
 get '/do-confirm' do
   flash('/', 'You have done this already, your keygap has been generated') if user.confirmed?
   user.confirm(params[:keygap])
-  settings.telepost.post("The uer `@#{user.login}` confirmed their keygap")
   log.info("Account confirmed for @#{confirmed_user.login}\n")
   flash('/', 'The account has been confirmed')
 end
@@ -276,7 +278,7 @@ post '/do-pay' do
   ops.pay(keygap, bnf, amount, details)
   log.info("Payment made by @#{confirmed_user.login} to #{bnf} for #{amount}\n \n")
   settings.telepost.post(
-    "Payment sent by `@#{user.login}` to `#{bnf}` for #{amount}:",
+    "Payment sent by `@#{user.login}` to `#{bnf}` for #{amount} from `#{request.ip}`:",
     "\"#{details}\""
   )
   flash('/', "Payment has been sent to #{bnf} for #{amount}")
@@ -356,7 +358,7 @@ get '/btc' do
     address = settings.btc.create(confirmed_user.login)
     confirmed_user.item.save_btc(address)
     settings.telepost.post(
-      "New BTC address assigned to `@#{user.login}`:",
+      "New BTC address assigned to `@#{user.login}` from `#{request.ip}`:",
       "[#{address}](https://www.blockchain.com/btc/address/#{address})"
     )
     flash('/btc', 'A new unique BTC address is assigned to you')
