@@ -114,9 +114,11 @@ configure do
     config['github']['client_secret'],
     'https://wts.zold.io/github-callback'
   )
-  set :wallets, Zold::CachedWallets.new(
-    Zold::SyncWallets.new(
-      Zold::Wallets.new(File.join(settings.root, '.zold-wts/wallets'))
+  set :wallets, Zold::SyncWallets.new(
+    Zold::CachedWallets.new(
+      Zold::Wallets.new(
+        File.join(settings.root, '.zold-wts/wallets')
+      )
     )
   )
   set :remotes, Zold::Remotes.new(file: File.join(settings.root, '.zold-wts/remotes'), network: 'zold')
