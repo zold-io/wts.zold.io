@@ -21,10 +21,12 @@
 require 'minitest/autorun'
 require 'webmock/minitest'
 require_relative 'test__helper'
+require_relative '../objects/dynamo'
 require_relative '../objects/btc'
 
 class BtcTest < Minitest::Test
   def test_creates_address
+    WebMock.disable_net_connect!
     stub_request(
       :get,
       [
@@ -33,6 +35,7 @@ class BtcTest < Minitest::Test
       ].join
     ).to_return(status: 200, body: '{"address": "3456789"}')
     btc = Btc.new(
+      nil,
       'xpub666',
       '9049a412',
       log: test_log
@@ -43,7 +46,7 @@ class BtcTest < Minitest::Test
 
   def test_validates_txn
     WebMock.allow_net_connect!
-    btc = Btc.new('', '', log: test_log)
+    btc = Btc.new(nil, '', '', log: test_log)
     assert(
       btc.exists?(
         'c3c0a51ff985618dd8373eadf3540fd1bea44d676452dbab47fe0cc07209547d',
@@ -55,7 +58,7 @@ class BtcTest < Minitest::Test
 
   def test_validates_invalid_txn
     WebMock.allow_net_connect!
-    btc = Btc.new('', '', log: test_log)
+    btc = Btc.new(nil, '', '', log: test_log)
     assert(
       !btc.exists?(
         'c3c0a51ff985618dd8373eadf3540fd1bea44d676452dbab47fe0cc07209547d',
@@ -63,5 +66,14 @@ class BtcTest < Minitest::Test
         '1N1R2HP9JD4LvAtp7rTkpRqF19GH7PH2ZF'
       )
     )
+  end
+
+  def test_saves_hash_and_loads
+    WebMock.allow_net_connect!
+    btc = Btc.new(Dynamo.new.aws, '', '', log: test_log)
+    hash = 'c3c0a51ff985618dd8373eadf3540fd1bea44d676452dbab47fe0cc07209547d'
+    assert(!btc.paid?(hash))
+    btc.paid(hash, 'jeff123', 'c3c0a51ff985618d')
+    assert(btc.paid?(hash))
   end
 end

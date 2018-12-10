@@ -171,7 +171,7 @@ GEM
       faraday
       faraday_middleware
       virtus
-    telepost (0.1.0)
+    telepost (0.2.0)
       telebot (= 0.1.2)
     temple (0.8.0)
     thin (1.7.2)
@@ -263,7 +263,7 @@ DEPENDENCIES
   sentry-raven (= 2.7.4)
   sinatra (= 2.0.4)
   sinatra-contrib (= 2.0.4)
-  telepost (= 0.1.0)
+  telepost (= 0.2.0)
   webmock (= 3.4.2)
   xcop (= 0.6)
   zold (= 0.18.0)

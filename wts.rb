@@ -124,6 +124,7 @@ configure do
   set :pool, Concurrent::FixedThreadPool.new(16, max_queue: 64, fallback_policy: :abort)
   set :log, Zold::Log::REGULAR.dup
   set :btc, Btc.new(
+    settings.dynamo,
     settings.config['blockchain']['xpub'],
     settings.config['blockchain']['key'],
     log: settings.log
@@ -133,7 +134,7 @@ configure do
   else
     set :telepost, Telepost.new(
       settings.config['telegram']['token'],
-      chat: settings.config['telegram']['chat']
+      chats: settings.config['telegram']['chats']
     )
     Thread.new do
       settings.telepost.run
@@ -226,7 +227,7 @@ get '/create' do
   pay_bonus
   ops.push
   log.info("Wallet #{user.item.id} created and pushed by @#{user.login}\n")
-  settings.telepost.post(
+  settings.telepost.spam(
     "The user `@#{user.login}` created a new wallet `#{user.item.id}`",
     "from `#{request.ip}`"
   )
@@ -276,7 +277,7 @@ post '/do-pay' do
   details = params[:details]
   ops.pay(keygap, bnf, amount, details)
   log.info("Payment made by @#{confirmed_user.login} to #{bnf} for #{amount}\n \n")
-  settings.telepost.post(
+  settings.telepost.spam(
     "Payment sent by `@#{user.login}` to `#{bnf}` for #{amount} from `#{request.ip}`:",
     "\"#{details}\""
   )
@@ -356,7 +357,7 @@ get '/btc' do
   unless confirmed_user.item.btc?
     address = settings.btc.create(confirmed_user.login)
     confirmed_user.item.save_btc(address)
-    settings.telepost.post(
+    settings.telepost.spam(
       "New BTC address assigned to `@#{user.login}` from `#{request.ip}`:",
       "[#{address}](https://www.blockchain.com/btc/address/#{address})"
     )
@@ -380,26 +381,26 @@ get '/btc-hook' do
   raise UserError, "The user @#{bnf.login} is not confirmed" unless bnf.confirmed?
   raise UserError, "The user @#{bnf.login} doesn't have BTC address" unless bnf.item.btc?
   address = bnf.item.btc
-  unless settings.btc.exists?(params[:transaction_hash], params[:value].to_i, address)
-    raise UserError, "Tx #{params[:transaction_hash]}/#{params[:value]}/#{bnf.item.btc} not found"
-  end
+  satoshi = params[:value].to_i
+  raise UserError, "Tx #{hash}/#{satoshi}/#{bnf.item.btc} not found" unless settings.btc.exists?(hash, satoshi, address)
+  raise UserError, "BTC hash #{hash} has already been paid" if settings.btc.paid?(hash)
+  settings.btc.paid(hash, bnf.login, bnf.item.id)
   price = JSON.parse(Zold::Http.new(uri: 'https://blockchain.info/ticker').get.body)['USD']['15m']
-  bitcoin = params[:value].to_f / 100_000_000
+  bitcoin = satoshi.to_f / 100_000_000
   usd = bitcoin * price
-  ops(user(settings.config['rewards']['login'])).pay(
-    settings.config['rewards']['keygap'],
+  ops(user(settings.config['exchange']['login'])).pay(
+    settings.config['exchange']['keygap'],
     bnf.item.id,
     Zold::Amount.new(zld: usd),
     "BTC exchange of #{bitcoin.round(8)} at #{hash}, price is #{price}"
   )
-  bnf.item.wipe_btc
-  settings.telepost.post(
+  settings.telepost.spam(
     "#{bitcoin} BTC exchanged to #{usd} ZLD by `@#{bnf.login}`",
     "in [#{hash[0..8]}..](https://www.blockchain.com/btc/tx/#{hash})",
     "via [#{address[0..8]}..](https://www.blockchain.com/btc/address/#{address}),",
     "BTC price is #{price}, wallet ID is `#{bnf.item.id}`"
   )
-  settings.log.info("Paid #{usd} to #{bnf.item.id} in exchange to #{bitcoin} BTC in #{hash}")
+  settings.log.info("Paid #{usd} to #{bnf.item.id} of @#{bnf.login} in exchange to #{bitcoin} BTC in #{hash}")
   '*ok*'
 end
 
@@ -577,7 +578,7 @@ def pay_hosting_bonuses
       "Hosting bonus for #{score.host} #{score.port} #{score.value}"
     )
   end
-  settings.telepost.post(
+  settings.telepost.spam(
     "Hosting bonus of #{total} distributed among #{winners.count} wallets:",
     winners.map { |s| "`#{s.host}:#{s.port}/#{s.value}`" }.join(', ') + '.',
     "The payer is `@#{boss.login}` with the wallet `#{boss.item.id}`,",

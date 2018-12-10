@@ -27,7 +27,8 @@ require_relative 'user_error'
 # BTC gateway.
 #
 class Btc
-  def initialize(xpub, key, log: Zold::Log::NULL)
+  def initialize(aws, xpub, key, log: Zold::Log::NULL)
+    @aws = aws
     @xpub = xpub
     @key = key
     @log = log
@@ -56,5 +57,26 @@ class Btc
   rescue StandardError => e
     @log.error(Backtrace.new(e))
     false
+  end
+
+  def paid?(hash)
+    !@aws.query(
+      table_name: 'zold-btc',
+      limit: 1,
+      expression_attribute_values: { ':h' => hash },
+      key_condition_expression: 'txhash=:h'
+    ).items.empty?
+  end
+
+  def paid(hash, login, wallet)
+    @aws.put_item(
+      table_name: 'zold-btc',
+      item: {
+        'txhash' => hash,
+        'login' => login,
+        'wallet' => wallet,
+        'time' => Time.now.to_i
+      }
+    )
   end
 end

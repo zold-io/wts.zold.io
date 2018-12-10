@@ -125,13 +125,6 @@ keygap is '#{keygap[0, 2]}#{'.' * (keygap.length - 2)}'")
     @aws.put_item(table_name: 'zold-wallets', item: item)
   end
 
-  # Remote BTC address
-  def wipe_btc
-    item = read
-    item.delete('btc')
-    @aws.put_item(table_name: 'zold-wallets', item: item)
-  end
-
   private
 
   def read
