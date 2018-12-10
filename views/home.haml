@@ -71,7 +71,7 @@
               %code{title: 'prefix: ' + t.prefix}
                 = t.bnf
             %td
-              = t.details.gsub(/([^ ]{16})/, '$1&shy;')
+              = t.details.gsub(/([^ ]{16})/, '\1&shy;')
         - if @last
           %tr
             %td{colspan: 5, style: 'text-align:center'}
