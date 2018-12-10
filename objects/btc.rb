@@ -41,7 +41,8 @@ class Btc
     uri = 'https://api.blockchain.info/v2/receive?' + {
       'xpub': @xpub,
       'callback': callback,
-      'key': @key
+      'key': @key,
+      'gap_limit': 256
     }.map { |k, v| "#{k}=#{CGI.escape(v)}" }.join('&')
     res = Zold::Http.new(uri: uri).get
     raise UserError, "Can't create Bitcoin address for @#{login}, try again: #{res.status_line}" unless res.code == 200
