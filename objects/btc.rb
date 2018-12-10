@@ -34,6 +34,11 @@ class Btc
     @log = log
   end
 
+  # Current price of one BTC
+  def price
+    JSON.parse(Zold::Http.new(uri: 'https://blockchain.info/ticker').get.body)['USD']['15m']
+  end
+
   # Create new BTC address
   def create(login)
     callback = 'https://wts.zold.io/btc-hook?' + {

@@ -385,7 +385,7 @@ get '/btc-hook' do
   raise UserError, "Tx #{hash}/#{satoshi}/#{bnf.item.btc} not found" unless settings.btc.exists?(hash, satoshi, address)
   raise UserError, "BTC hash #{hash} has already been paid" if settings.btc.paid?(hash)
   settings.btc.paid(hash, bnf.login, bnf.item.id)
-  price = JSON.parse(Zold::Http.new(uri: 'https://blockchain.info/ticker').get.body)['USD']['15m']
+  price = settings.btc.price
   bitcoin = satoshi.to_f / 100_000_000
   usd = bitcoin * price
   ops(user(settings.config['exchange']['login'])).pay(
@@ -402,6 +402,29 @@ get '/btc-hook' do
   )
   settings.log.info("Paid #{usd} to #{bnf.item.id} of @#{bnf.login} in exchange to #{bitcoin} BTC in #{hash}")
   '*ok*'
+end
+
+post '/do-sell' do
+  amount = Zold::Amount.new(zld: params[:amount])
+  raise UserError, "The amount #{amount} is too large for us now" if amount > Zold::Amount.new(zld: 4.0)
+  address = params[:btc]
+  raise UserError, "You don't have enough to send #{amount}" if user.wallet(&:balance) < amount
+  raise UserError, 'We can send only one payment per day' if user.wallet(&:txns)[0].date > Time.now - 60 * 60 * 24
+  price = settings.btc.price
+  bitcoin = amount / price
+  ops.pay(
+    params[:keygap],
+    settings.config['exchange']['login'],
+    amount,
+    "ZLD exchange to #{bitcoin}, price is #{price}"
+  )
+  settings.telepost.spam(
+    "#{amount} ZLD exchanged to #{bitcoin} BTC by `@#{user.login}`",
+    "via [#{address[0..8]}..](https://www.blockchain.com/btc/address/#{address}),",
+    "BTC price is #{price}, wallet ID is `#{user.item.id}`"
+  )
+  settings.log.info("Paid #{bitcoin} BTC to @#{bnf.login} in exchange to #{amount}")
+  flash('/btc', "We transferred #{bitcoin} to your wallet")
 end
 
 get '/log' do
