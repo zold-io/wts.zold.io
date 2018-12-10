@@ -411,13 +411,14 @@ post '/do-sell' do
   raise UserError, "You don't have enough to send #{amount}" if user.wallet(&:balance) < amount
   raise UserError, 'We can send only one payment per day' if user.wallet(&:txns)[0].date > Time.now - 60 * 60 * 24
   price = settings.btc.price
-  bitcoin = amount / price
+  bitcoin = amount.to_zld(8).to_f / price
   ops.pay(
     params[:keygap],
     settings.config['exchange']['login'],
     amount,
     "ZLD exchange to #{bitcoin}, price is #{price}"
   )
+  settings.btc.send(address, bitcoin * 100_000_000)
   settings.telepost.spam(
     "#{amount} ZLD exchanged to #{bitcoin} BTC by `@#{user.login}`",
     "via [#{address[0..8]}..](https://www.blockchain.com/btc/address/#{address}),",

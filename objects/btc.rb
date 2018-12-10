@@ -55,6 +55,10 @@ class Btc
     Zold::JsonPage.new(res.body).to_hash['address']
   end
 
+  def send(address, satoshi)
+    # Doesn't work yet
+  end
+
   # Returns TRUE if transaction with this hash, amount, and target address exists
   def exists?(hash, amount, address)
     txn = Zold::JsonPage.new(Zold::Http.new(uri: "https://blockchain.info/rawtx/#{hash}").get.body).to_hash
