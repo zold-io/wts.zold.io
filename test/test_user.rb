@@ -24,6 +24,7 @@ require 'zold/amount'
 require 'zold/wallets'
 require 'zold/remotes'
 require 'zold/id'
+require 'webmock/minitest'
 require_relative 'test__helper'
 require_relative '../objects/dynamo'
 require_relative '../objects/user'
@@ -31,6 +32,7 @@ require_relative '../objects/item'
 
 class UserTest < Minitest::Test
   def test_creates
+    WebMock.allow_net_connect!
     Dir.mktmpdir 'test' do |dir|
       wallets = Zold::Wallets.new(File.join(dir, 'wallets'))
       login = 'jeffrey'

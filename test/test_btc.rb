@@ -19,22 +19,30 @@
 # SOFTWARE.
 
 require 'minitest/autorun'
+require 'webmock/minitest'
 require_relative 'test__helper'
 require_relative '../objects/btc'
 
 class BtcTest < Minitest::Test
   def test_creates_address
-    skip
+    stub_request(
+      :get,
+      [
+        'https://api.blockchain.info/v2/receive?',
+        'callback=https://wts.zold.io/btc-hook?zold_user=jeff&gap_limit=256&key=9049a412&xpub=xpub666'
+      ].join
+    ).to_return(status: 200, body: '{"address": "3456789"}')
     btc = Btc.new(
-      'xpub6D2...',
-      '9049a412-...',
+      'xpub666',
+      '9049a412',
       log: test_log
     )
     address = btc.create('jeff')
-    assert_equal(34, address.length)
+    assert_equal('3456789', address)
   end
 
   def test_validates_txn
+    WebMock.allow_net_connect!
     btc = Btc.new('', '', log: test_log)
     assert(
       btc.exists?(
@@ -46,6 +54,7 @@ class BtcTest < Minitest::Test
   end
 
   def test_validates_invalid_txn
+    WebMock.allow_net_connect!
     btc = Btc.new('', '', log: test_log)
     assert(
       !btc.exists?(

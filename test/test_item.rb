@@ -19,6 +19,7 @@
 # SOFTWARE.
 
 require 'minitest/autorun'
+require 'webmock/minitest'
 require 'openssl'
 require 'zold/key'
 require 'zold/id'
@@ -29,6 +30,7 @@ require_relative '../objects/item'
 
 class ItemTest < Minitest::Test
   def test_create_and_read
+    WebMock.allow_net_connect!
     item = Item.new('jeff', Dynamo.new.aws)
     assert(!item.exists?)
     pvt = OpenSSL::PKey::RSA.new(2048)
@@ -38,6 +40,7 @@ class ItemTest < Minitest::Test
   end
 
   def test_wipes_keygap
+    WebMock.allow_net_connect!
     item = Item.new('jeffrey1', Dynamo.new.aws)
     pvt = OpenSSL::PKey::RSA.new(2048)
     id = Zold::Id.new
@@ -53,6 +56,7 @@ class ItemTest < Minitest::Test
   end
 
   def test_reads_btc_address
+    WebMock.allow_net_connect!
     item = Item.new('jeffrey2', Dynamo.new.aws)
     pvt = OpenSSL::PKey::RSA.new(2048)
     btc = '32wtFfKbjWHpu9WFzX9adGssnAosqPkSp6'

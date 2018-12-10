@@ -19,6 +19,7 @@
 # SOFTWARE.
 
 require 'minitest/autorun'
+require 'webmock/minitest'
 require 'rack/test'
 require 'zold/log'
 require_relative 'test__helper'
@@ -100,6 +101,7 @@ class AppTest < Minitest::Test
   private
 
   def login(name)
+    WebMock.allow_net_connect!
     set_cookie('glogin=' + name)
     get('/create')
     assert_equal(302, last_response.status, last_response.body)

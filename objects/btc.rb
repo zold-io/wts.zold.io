@@ -43,7 +43,7 @@ class Btc
       'callback': callback,
       'key': @key,
       'gap_limit': 256
-    }.map { |k, v| "#{k}=#{CGI.escape(v)}" }.join('&')
+    }.map { |k, v| "#{k}=#{CGI.escape(v.to_s)}" }.join('&')
     res = Zold::Http.new(uri: uri).get
     raise UserError, "Can't create Bitcoin address for @#{login}, try again: #{res.status_line}" unless res.code == 200
     Zold::JsonPage.new(res.body).to_hash['address']
