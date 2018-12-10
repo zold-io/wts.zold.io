@@ -564,12 +564,17 @@ def pay_hosting_bonuses
   cmd.run(%w[remote defaults])
   cmd.run(%w[remote update])
   winners = cmd.run(%w[remote elect --min-score=8 --max-winners=8])
+  total = Zold::Amount.new(zld: 1.0)
   winners.each do |score|
     ops(boss).pay(
       settings.config['rewards']['keygap'],
       score.invoice,
-      Zold::Amount.new(zld: 1.0 / winners.count),
+      total / winners.count,
       "Hosting bonus for #{score.host} #{score.port} #{score.value}"
     )
   end
+  settings.telepost.post(
+    "Hosting bonus of #{total} distributed among #{winers.count} wallets:",
+    winners.map { |s| "`#{s.host}:#{s.port}/#{s.value}`" }.join(', ')
+  )
 end

@@ -18,6 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require 'backtrace'
 require 'zold/http'
 require 'zold/json_page'
 
@@ -50,5 +51,8 @@ class Btc
   def exists?(hash, amount, address)
     txn = Zold::JsonPage.new(Zold::Http.new(uri: "https://blockchain.info/rawtx/#{hash}").get.body).to_hash
     !txn['out'].find { |t| t['addr'] == address && t['value'] == amount }.nil?
+  rescue StandardError => e
+    @log.error(Backtrace.new(e))
+    false
   end
 end
