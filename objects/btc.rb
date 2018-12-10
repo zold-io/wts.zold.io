@@ -43,7 +43,7 @@ class Btc
       'key': @key
     }.map { |k, v| "#{k}=#{CGI.escape(v)}" }.join('&')
     res = Zold::Http.new(uri: uri).get
-    raise "Can't create Bitcoin address for @#{@login}: #{res.status_line}" unless res.code == 200
+    raise "Can't create Bitcoin address for @#{login}: #{res.status_line}" unless res.code == 200
     Zold::JsonPage.new(res.body).to_hash['address']
   end
 

@@ -401,7 +401,7 @@ get '/btc-hook' do
     "via [#{address[0..8]}..](https://www.blockchain.com/btc/address/#{address}),",
     "BTC price is #{price}, wallet ID is `#{bnf.item.id}`"
   )
-  settings.log.info("Paid #{usd} to #{bnf.item.id} in exchange to #{amount} BTC in #{hash}")
+  settings.log.info("Paid #{usd} to #{bnf.item.id} in exchange to #{bitcoin} BTC in #{hash}")
   '*ok*'
 end
 
