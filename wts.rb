@@ -578,7 +578,7 @@ def pay_hosting_bonuses
     )
   end
   settings.telepost.post(
-    "Hosting bonus of #{total} distributed among #{winers.count} wallets:",
+    "Hosting bonus of #{total} distributed among #{winners.count} wallets:",
     winners.map { |s| "`#{s.host}:#{s.port}/#{s.value}`" }.join(', ')
   )
 end
