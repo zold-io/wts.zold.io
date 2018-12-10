@@ -5,11 +5,26 @@
   %code
     = u.item.id
   - if u.wallet(&:exists?)
-    = ' | '
-    Balance:
-    = u.wallet(&:balance)
-    = '/'
-    = "#{u.wallet(&:txns).count}t"
+    - u.wallet do |w|
+      %br
+      Balance:
+      = "#{w.balance.to_zld(8)} (#{w.balance.to_i} zents)"
+      %br
+      Transactions:
+      = "#{w.txns.count}t"
+      %br
+      Taxes:
+      = "#{Zold::Tax.new(w).paid} paid, the debt is #{Zold::Tax.new(w).debt}"
+      %br
+      File size:
+      = "#{Zold::Size.new(w.size)}"
+      %br
+      Modified:
+      = "#{w.mtime.utc.iso8601} (#{Zold::Age.new(w.mtime.utc.iso8601)} ago)"
+      %br
+      Digest:
+      %code
+        = "#{w.digest}"
 
 - if u.wallet(&:exists?) && u.wallet(&:balance).negative?
   %p{style: 'color: darkred'}

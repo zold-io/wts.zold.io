@@ -34,14 +34,9 @@ require 'concurrent'
 require 'tempfile'
 require 'telepost'
 require 'rack/ssl'
-require 'zold/log'
-require 'zold/age'
-require 'zold/remotes'
-require 'zold/amount'
-require 'zold/wallets'
+require 'zold'
 require 'zold/sync_wallets'
 require 'zold/cached_wallets'
-require 'zold/remotes'
 
 require_relative 'version'
 require_relative 'objects/item'
@@ -374,10 +369,12 @@ end
 
 # See https://www.blockchain.com/api/api_receive
 get '/btc-hook' do
-  raise UserError, "Not enough confirmations: \"#{params[:confirmations]}\"" if params[:confirmations].to_i < 4
+  raise UserError, 'Confirmations is not provided' if params[:confirmations].nil?
   raise UserError, 'Zold user name is not provided' if params[:zold_user].nil?
   raise UserError, 'Tx hash is not provided' if params[:transaction_hash].nil?
   raise UserError, 'Tx value is not provided' if params[:value].nil?
+  return '*ok*' if params[:confirmations].to_i > 64
+  raise UserError, "Not enough confirmations: \"#{params[:confirmations]}\"" if params[:confirmations].to_i < 4
   hash = params[:transaction_hash]
   bnf = user(params[:zold_user])
   raise UserError, "The user @#{bnf.login} is not confirmed" unless bnf.confirmed?
