@@ -496,7 +496,7 @@ def log(user = @locals[:guser])
 end
 
 def user(login = @locals[:guser])
-  flash('/', 'You have to login first') unless login
+  raise UserError, "You, @#{login}, have to login first" unless login
   User.new(
     login, Item.new(login, settings.dynamo, log: log(login)),
     settings.wallets, log: log(login)
@@ -505,7 +505,7 @@ end
 
 def confirmed_user(login = @locals[:guser])
   u = user(login)
-  flash('/confirm', 'You have to confirm your keygap') unless u.confirmed?
+  raise UserError, "You, @#{login}, have to confirm your keygap first" unless u.confirmed?
   u
 end
 
@@ -515,7 +515,7 @@ def keygap
   begin
     confirmed_user.item.key(kg).to_s
   rescue StandardError => e
-    flash('/', "This doesn\'t seem to be a valid keygap: #{e.class.name}")
+    raise UserError, "This doesn\'t seem to be a valid keygap: #{e.class.name}"
   end
   kg
 end
@@ -524,25 +524,25 @@ def latch(login = @locals[:guser])
   File.join(settings.root, "latch/#{login}")
 end
 
-def ops(user = confirmed_user, async: true)
+def ops(u = user, async: true)
   network = ENV['RACK_ENV'] == 'test' ? 'test' : 'zold'
   ops = SafeOps.new(
-    log(user.login),
+    log(u.login),
     VersionedOps.new(
-      log(user.login),
+      log(u.login),
       LatchOps.new(
-        latch(user.login),
+        latch(u.login),
         UpdateOps.new(
           Ops.new(
-            user.item, user,
+            u.item, u,
             settings.wallets,
             settings.remotes,
             settings.copies,
-            log: log(user.login),
+            log: log(u.login),
             network: network
           ),
           settings.remotes,
-          log: log(user.login),
+          log: log(u.login),
           network: network
         )
       )

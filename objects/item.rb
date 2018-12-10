@@ -76,9 +76,7 @@ keygap is '#{keygap[0, 2]}#{'.' * (keygap.length - 2)}'")
 
   # Return Wallet ID as Zold::Id
   def id
-    id = Zold::Id.new(read['id'])
-    @log.debug("The ID of @#{@login} retrieved: #{id}")
-    id
+    Zold::Id.new(read['id'])
   end
 
   # Returns user Keygap temporarily stored in the database. We should not
