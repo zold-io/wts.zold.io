@@ -405,7 +405,7 @@ get '/btc-hook' do
 end
 
 post '/do-sell' do
-  amount = Zold::Amount.new(zld: params[:amount])
+  amount = Zold::Amount.new(zld: params[:amount].to_f)
   raise UserError, "The amount #{amount} is too large for us now" if amount > Zold::Amount.new(zld: 4.0)
   address = params[:btc]
   raise UserError, "You don't have enough to send #{amount}" if user.wallet(&:balance) < amount

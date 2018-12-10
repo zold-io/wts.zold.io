@@ -19,6 +19,7 @@
 # SOFTWARE.
 
 require 'minitest/autorun'
+require 'webmock/minitest'
 require 'tmpdir'
 require 'zold/amount'
 require 'zold/wallets'
@@ -31,6 +32,7 @@ require_relative '../objects/ops'
 
 class OpsTest < Minitest::Test
   def test_make_payment
+    WebMock.allow_net_connect!
     Dir.mktmpdir 'test' do |dir|
       wallets = Zold::Wallets.new(File.join(dir, 'wallets'))
       remotes = Zold::Remotes.new(file: File.join(dir, 'remotes.csv'))
