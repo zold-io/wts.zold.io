@@ -65,12 +65,13 @@
               %span{title: t.amount.to_i}
                 = t.amount.to_zld
             %td
-              = t.date.utc.iso8601
+              %span{title: t.date.utc.iso8601}
+                = Zold::Age.new(t.date)
             %td
               %code{title: 'prefix: ' + t.prefix}
                 = t.bnf
             %td
-              = t.details
+              = t.details.gsub(/([^ ]{16})/, '$1&shy;')
         - if @last
           %tr
             %td{colspan: 5, style: 'text-align:center'}

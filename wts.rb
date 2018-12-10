@@ -35,6 +35,7 @@ require 'tempfile'
 require 'telepost'
 require 'rack/ssl'
 require 'zold/log'
+require 'zold/age'
 require 'zold/remotes'
 require 'zold/amount'
 require 'zold/wallets'
@@ -398,7 +399,7 @@ get '/btc-hook' do
     "#{bitcoin} BTC exchanged to #{usd} ZLD by `@#{bnf.login}`",
     "in [#{hash[0..8]}..](https://www.blockchain.com/btc/tx/#{hash})",
     "via [#{address[0..8]}..](https://www.blockchain.com/btc/address/#{address}),",
-    "BTC price is #{price}"
+    "BTC price is #{price}, wallet ID is `#{bnf.item.id}`"
   )
   settings.log.info("Paid #{usd} to #{bnf.item.id} in exchange to #{amount} BTC in #{hash}")
   '*ok*'
