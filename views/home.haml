@@ -8,10 +8,10 @@
     - u.wallet do |w|
       %br
       Balance:
-      = "#{w.balance.to_zld(8)} (#{w.balance.to_i} zents)"
+      = "#{w.balance.to_zld(8)} ZLD (#{w.balance.to_i} zents)"
       %br
       Transactions:
-      = "#{w.txns.count}t"
+      = w.txns.count
       %br
       Taxes:
       = "#{Zold::Tax.new(w).paid} paid, the debt is #{Zold::Tax.new(w).debt}"

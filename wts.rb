@@ -234,21 +234,21 @@ get '/create' do
 end
 
 get '/confirm' do
-  flash('/', 'You have done this already, your keygap has been generated') if user.confirmed?
+  raise UserError, 'You have done this already, your keygap has been generated' if user.confirmed?
   haml :confirm, layout: :layout, locals: merged(
     title: '@' + user.login + '/keygap'
   )
 end
 
 get '/do-confirm' do
-  flash('/', 'You have done this already, your keygap has been generated') if user.confirmed?
+  raise UserError, 'You have done this already, your keygap has been generated' if user.confirmed?
   user.confirm(params[:keygap])
   log.info("Account confirmed for @#{confirmed_user.login}\n")
   flash('/', 'The account has been confirmed')
 end
 
 get '/keygap' do
-  flash('/', 'We don\'t have it in the database anymore') if user.item.wiped?
+  raise UserError, 'We don\'t have it in the database anymore' if user.item.wiped?
   content_type 'text/plain'
   user.item.keygap
 end
@@ -370,10 +370,10 @@ end
 # See https://www.blockchain.com/api/api_receive
 get '/btc-hook' do
   raise UserError, 'Confirmations is not provided' if params[:confirmations].nil?
+  return '*ok*' if params[:confirmations].to_i > 64
   raise UserError, 'Zold user name is not provided' if params[:zold_user].nil?
   raise UserError, 'Tx hash is not provided' if params[:transaction_hash].nil?
   raise UserError, 'Tx value is not provided' if params[:value].nil?
-  return '*ok*' if params[:confirmations].to_i > 64
   raise UserError, "Not enough confirmations: \"#{params[:confirmations]}\"" if params[:confirmations].to_i < 4
   hash = params[:transaction_hash]
   bnf = user(params[:zold_user])
@@ -448,7 +448,7 @@ error do
   e = env['sinatra.error']
   if e.is_a?(UserError)
     settings.log.error(e.message)
-    flash('/', e.message)
+    flash('/', e.message, color: 'darkred')
   else
     Raven.capture_exception(e)
     haml(
@@ -464,8 +464,9 @@ end
 
 private
 
-def flash(uri, msg)
+def flash(uri, msg, color: 'darkgreen')
   cookies[:flash_msg] = msg
+  cookies[:flash_color] = color
   redirect uri
 end
 
@@ -479,6 +480,10 @@ def merged(hash)
   if cookies[:flash_msg]
     out[:flash_msg] = cookies[:flash_msg]
     cookies.delete(:flash_msg)
+  end
+  if cookies[:flash_color]
+    out[:flash_color] = cookies[:flash_color]
+    cookies.delete(:flash_color)
   end
   out
 end
