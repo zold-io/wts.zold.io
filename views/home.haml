@@ -62,7 +62,7 @@
               - else
                 = '-'
             %td{style: 'text-align:right'}
-              %span{title: t.amount.to_i}
+              %span{title: t.amount.to_i, style: 'color: ' + (t.amount.negative? ? 'darkred' : 'darkgreen')}
                 = t.amount.to_zld
             %td
               %span{title: t.date.utc.iso8601}
