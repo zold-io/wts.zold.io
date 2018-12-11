@@ -104,8 +104,7 @@ class AppTest < Minitest::Test
     assert_equal(200, last_response.status, last_response.body)
   end
 
-  def test_btc_hook
-    skip
+  def test_buy_zld
     WebMock.allow_net_connect!
     Dir.mktmpdir 'test' do |dir|
       wallets = Zold::Wallets.new(File.join(dir, 'wallets'))
@@ -129,6 +128,43 @@ class AppTest < Minitest::Test
       assert_equal(200, last_response.status, last_response.body)
       assert_equal('*ok*', last_response.body)
     end
+  end
+
+  def test_sell_zld
+    WebMock.allow_net_connect!
+    name = 'jeff079'
+    login(name)
+    boss = User.new(
+      '0crat', Item.new('0crat', Dynamo.new.aws, log: test_log),
+      Sinatra::Application.settings.wallets, log: test_log
+    )
+    boss.create
+    user = User.new(
+      name, Item.new(name, Dynamo.new.aws, log: test_log),
+      Sinatra::Application.settings.wallets, log: test_log
+    )
+    user.create
+    keygap = user.keygap
+    user.confirm(keygap)
+    Sinatra::Application.settings.wallets.acq(user.item.id) do |w|
+      w.add(
+        Zold::Txn.new(
+          1,
+          Time.now,
+          Zold::Amount.new(zld: 100.0),
+          'NOPREFIX', Zold::Id.new, '-'
+        )
+      )
+    end
+    post(
+      '/do-sell',
+      {
+        'amount': '1',
+        'btc': '1N1R2HP9JD4LvAtp7rTkpRqF19GH7PH2ZF',
+        'keygap': keygap
+      }.map { |k, v| "#{k}=#{CGI.escape(v.to_s)}" }.join('&')
+    )
+    assert_equal(302, last_response.status, last_response.body)
   end
 
   private

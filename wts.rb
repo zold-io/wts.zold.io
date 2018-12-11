@@ -21,7 +21,6 @@
 STDOUT.sync = true
 
 require 'haml'
-require 'coinbase/wallet'
 require 'sinatra'
 require 'sinatra/cookies'
 require 'sass'
@@ -42,6 +41,7 @@ require_relative 'version'
 require_relative 'objects/item'
 require_relative 'objects/user'
 require_relative 'objects/btc'
+require_relative 'objects/bank'
 require_relative 'objects/dynamo'
 require_relative 'objects/hashes'
 require_relative 'objects/user_error'
@@ -132,12 +132,13 @@ configure do
   set :pool, Concurrent::FixedThreadPool.new(16, max_queue: 64, fallback_policy: :abort)
   set :log, Zold::Log::REGULAR.dup
   if settings.config['coinbase']['key'].empty?
-    set :coinbase, nil
+    set :bank, Bank::Fake.new
   else
-    set :coinbase, Coinbase::Wallet::Client.new(
-      api_key: settings.config['coinbase']['key'],
-      api_secret: settings.config['coinbase']['secret']
-    ).account(settings.config['coinbase']['account'])
+    set :bank, Bank.new(
+      settings.config['coinbase']['key'],
+      settings.config['coinbase']['secret'],
+      settings.config['coinbase']['account']
+    )
   end
   set :hashes, Hashes.new(settings.dynamo)
   if settings.config['blockchain']['xpub'].empty?
@@ -430,8 +431,10 @@ post '/do-sell' do
   raise UserError, "The amount #{amount} is too large for us now" if amount > Zold::Amount.new(zld: 4.0)
   address = params[:btc]
   raise UserError, "You don't have enough to send #{amount}" if confirmed_user.wallet(&:balance) < amount
-  raise UserError, 'We can send only one payment per day' if user.wallet(&:txns)[0].date > Time.now - 60 * 60 * 24
-  usd = amount.to_zld(8) * 0.9
+  if user.wallet(&:txns).find { |t| t.amount.negative? && t.date > Time.now - 60 * 60 * 24 }
+    raise UserError, 'We can send only one payment per day'
+  end
+  usd = amount.to_zld(8).to_f * 0.9
   price = settings.btc.price
   bitcoin = (usd / price).round(10)
   ops.pay(
@@ -440,10 +443,7 @@ post '/do-sell' do
     amount,
     "ZLD exchange to #{bitcoin} BTC at #{address}, price is #{price}"
   )
-  settings.coinbase.send(
-    to: address, amount: usd, currency: 'USD',
-    description: "Exchange of #{amount}, price is #{price}"
-  )
+  settings.bank.send(address, usd, "Exchange of #{amount.to_zld}, price is #{price}")
   settings.telepost.spam(
     "#{amount} exchanged to #{bitcoin} BTC by `@#{user.login}`",
     "via [#{address[0..8]}..](https://www.blockchain.com/btc/address/#{address}),",

@@ -62,8 +62,8 @@ in #{(Time.now - start).round}s\n \n ")
   def pay(keygap, bnf, amount, details)
     raise UserError, 'Payment amount can\'t be zero' if amount.zero?
     raise UserError, 'Payment amount can\'t be negative' if amount.negative?
-    raise 'The user is not registered yet' unless @item.exists?
-    raise 'The account is not confirmed yet' unless @user.confirmed?
+    raise "The user @#{@user.login} is not registered yet" unless @item.exists?
+    raise "The account @#{@user.login} is not confirmed yet" unless @user.confirmed?
     start = Time.now
     id = @item.id
     unless @wallets.acq(@item.id, &:exists?)
