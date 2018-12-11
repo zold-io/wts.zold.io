@@ -186,17 +186,6 @@ before '/*' do
     remotes: settings.remotes,
     pool: settings.pool
   }
-  header = request.env['HTTP_X_ZOLD_WTS']
-  if header
-    begin
-      login, keygap = settings.codec.decrypt(header).split(' ')
-      @params[:glogin] = login
-      @locals[:keygap] = keygap
-      settings.log.info("HTTP authentication header of @#{login} detected from #{request.ip}")
-    rescue OpenSSL::Cipher::CipherError => _
-      error 400
-    end
-  end
   cookies[:glogin] = params[:glogin] if params[:glogin]
   if cookies[:glogin]
     begin
@@ -207,6 +196,20 @@ before '/*' do
       ).to_user[:login]
     rescue OpenSSL::Cipher::CipherError => _
       @locals.delete(:guser)
+    end
+  end
+  header = request.env['HTTP_X_ZOLD_WTS']
+  if header
+    begin
+      login, keygap = settings.codec.decrypt(header).split(' ')
+      @locals[:guser] = login
+      @locals[:keygap] = keygap
+      settings.log.info(
+        "HTTP authentication header of @#{login} detected \
+from #{request.ip} with keygap of #{keygap.length} chars"
+      )
+    rescue OpenSSL::Cipher::CipherError => _
+      error 400
     end
   end
 end
@@ -348,7 +351,7 @@ get '/find' do
   end.join("\n")
 end
 
-post '/id_rsa' do
+get '/id_rsa' do
   content_type 'text/plain'
   confirmed_user.item.key(keygap).to_s
 end
@@ -419,7 +422,7 @@ get '/btc-hook' do
     "BTC exchange of #{bitcoin.round(8)} at #{hash}, price is #{price}"
   )
   settings.telepost.spam(
-    "#{bitcoin} BTC exchanged to #{usd} ZLD by `@#{bnf.login}` from `#{request.ip}` (#{country})",
+    "In: #{bitcoin} BTC exchanged to #{usd} ZLD by `@#{bnf.login}` from `#{request.ip}` (#{country})",
     "in [#{hash[0..8]}..](https://www.blockchain.com/btc/tx/#{hash})",
     "via [#{address[0..8]}..](https://www.blockchain.com/btc/address/#{address}),",
     "BTC price is #{price}, wallet ID is `#{bnf.item.id}`"
@@ -447,7 +450,7 @@ post '/do-sell' do
   )
   settings.bank.send(address, usd, "Exchange of #{amount.to_zld}, price is #{price}")
   settings.telepost.spam(
-    "#{amount} exchanged to #{bitcoin} BTC by `@#{user.login}` from `#{request.ip}` (#{country})",
+    "Out: #{amount} exchanged to #{bitcoin} BTC by `@#{user.login}` from `#{request.ip}` (#{country})",
     "via [#{address[0..8]}..](https://www.blockchain.com/btc/address/#{address}),",
     "BTC price is #{price}, the wallet ID is `#{user.item.id}`."
   )

@@ -99,8 +99,9 @@ class AppTest < Minitest::Test
     assert_equal(200, last_response.status, last_response.body)
     token = last_response.body
     set_cookie('glogin=')
+    assert_raises { get('/id_rsa') }
     header('X-Zold-WTS', token)
-    post('/id_rsa')
+    get('/id_rsa')
     assert_equal(200, last_response.status, last_response.body)
   end
 
