@@ -46,19 +46,19 @@
           %nav
             %ul
               %li
-                - if user.wallet(&:exists?)
+                - if user.wallet_exists?
                   %a{href: '/pay'} Pay
                 - else
                   %span{style: 'color: gray'} Pay
               %li
                 %a{href: '/pull'} Pull
               %li
-                - if user.wallet(&:exists?)
+                - if user.wallet_exists?
                   %a{href: '/invoice'} Invoice
                 - else
                   %span{style: 'color: gray'} Invoice
               %li
-                - if user.wallet(&:exists?)
+                - if user.wallet_exists?
                   %a{href: '/btc'} Buy/Sell
                 - else
                   %span{style: 'color: gray'} Buy/Sell

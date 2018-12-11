@@ -77,6 +77,10 @@ class User
     @item.keygap
   end
 
+  def wallet_exists?
+    @wallets.acq(@item.id, &:exists?)
+  end
+
   def wallet
     id = @item.id
     @wallets.acq(id) do |wallet|

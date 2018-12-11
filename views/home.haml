@@ -4,7 +4,7 @@
   Wallet ID:
   %code
     = u.item.id
-  - if u.wallet(&:exists?)
+  - if u.wallet_exists?
     - u.wallet do |w|
       %br
       Balance:
@@ -26,7 +26,7 @@
       %code
         = "#{w.digest}"
 
-- if u.wallet(&:exists?) && u.wallet(&:balance).negative?
+- if u.wallet_exists? && u.wallet(&:balance).negative?
   %p{style: 'color: darkred'}
     Your balance is negative, which means that some of your
     transactions will be rolled back in the nearest future!
@@ -34,7 +34,7 @@
     %a{href: '/pull'} pull your wallet
     in a few minutes to get it back to the normal state.
 
-- if u.wallet(&:exists?)
+- if u.wallet_exists?
   %table{style: 'width:100%'}
     %colgroup
       %col{style: 'width: 2em'}

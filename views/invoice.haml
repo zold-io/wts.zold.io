@@ -1,18 +1,9 @@
-- if user.wallet(&:exists?)
-  %p
-    This is the invoice you can give to your friends:
+%p
+  This is the invoice you can give to your friends:
 
-  %pre
-    =user.invoice
+%pre
+  =user.invoice
 
-  %p
-    Every time you refresh this page, the invoice will be re-generated.
-    It is advised to use different invoices for different payments.
-
-- else
-  %p
-    Your wallet is not visible for us now.
-    Please, do
-    = succeed '.' do
-      %a{href: '/pull'}
-        pull
+%p
+  Every time you refresh this page, the invoice will be re-generated.
+  It is advised to use different invoices for different payments.
