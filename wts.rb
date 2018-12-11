@@ -21,6 +21,7 @@
 STDOUT.sync = true
 
 require 'haml'
+require 'geocoder'
 require 'sinatra'
 require 'sinatra/cookies'
 require 'sass'
@@ -250,7 +251,7 @@ get '/create' do
   log.info("Wallet #{user.item.id} created and pushed by @#{user.login}\n")
   settings.telepost.spam(
     "The user `@#{user.login}` created a new wallet `#{user.item.id}`",
-    "from `#{request.ip}`"
+    "from `#{request.ip}` (#{country})"
   )
   flash('/', "Wallet #{user.item.id} created and pushed")
 end
@@ -302,7 +303,7 @@ post '/do-pay' do
   ops.pay(keygap, bnf, amount, details)
   log.info("Payment made by @#{confirmed_user.login} to #{bnf} for #{amount}\n \n")
   settings.telepost.spam(
-    "Payment sent by `@#{user.login}` to `#{bnf}` for #{amount} from `#{request.ip}`:",
+    "Payment sent by `@#{user.login}` to `#{bnf}` for #{amount} from `#{request.ip}` (#{country}):",
     "\"#{details}\""
   )
   flash('/', "Payment has been sent to #{bnf} for #{amount}")
@@ -380,7 +381,7 @@ get '/btc' do
     address = settings.btc.create(confirmed_user.login)
     confirmed_user.item.save_btc(address)
     settings.telepost.spam(
-      "New BTC address assigned to `@#{user.login}` from `#{request.ip}`:",
+      "New BTC address assigned to `@#{user.login}` from `#{request.ip}` (#{country}):",
       "[#{address}](https://www.blockchain.com/btc/address/#{address})"
     )
   end
@@ -450,7 +451,7 @@ post '/do-sell' do
     "BTC price is #{price}, the wallet ID is `#{user.item.id}`."
   )
   settings.log.info("Paid #{bitcoin} BTC to @#{user.login} in exchange to #{amount}")
-  flash('/btc', "We transferred #{bitcoin} to your wallet")
+  flash('/btc', "We took #{amount} from your wallet and sent you #{bitcoin} BTC")
 end
 
 get '/log' do
@@ -514,6 +515,11 @@ error do
 end
 
 private
+
+def country
+  country = Geocoder.search(request.ip).first
+  country.nil? ? '??' : country.country.to_s
+end
 
 def flash(uri, msg, color: 'darkgreen')
   cookies[:flash_msg] = msg
