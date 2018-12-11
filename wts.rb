@@ -505,6 +505,7 @@ error do
     settings.log.error(e.message)
     # settings.log.error(Backtrace.new(e))
     body(Backtrace.new(e).to_s)
+    headers['X-Zold-Error'] = e.message[0..256]
     flash('/', e.message, color: 'darkred')
   else
     Raven.capture_exception(e)
