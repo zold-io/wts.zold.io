@@ -131,10 +131,14 @@ configure do
   set :codec, GLogin::Codec.new(config['api_secret'])
   set :pool, Concurrent::FixedThreadPool.new(16, max_queue: 64, fallback_policy: :abort)
   set :log, Zold::Log::REGULAR.dup
-  set :coinbase, Coinbase::Wallet::Client.new(
-    api_key: settings.config['coinbase']['key'],
-    api_secret: settings.config['coinbase']['secret']
-  )
+  if settings.config['coinbase']['key'].empty?
+    set :coinbase, nil
+  else
+    set :coinbase, Coinbase::Wallet::Client.new(
+      api_key: settings.config['coinbase']['key'],
+      api_secret: settings.config['coinbase']['secret']
+    ).account(settings.config['coinbase']['account'])
+  end
   set :hashes, Hashes.new(settings.dynamo)
   if settings.config['blockchain']['xpub'].empty?
     set :btc, Btc::Fake.new
@@ -437,9 +441,12 @@ post '/do-sell' do
     amount,
     "ZLD exchange to #{bitcoin}, price is #{price}"
   )
-  settings.btc.send(address, bitcoin * 100_000_000)
+  settings.coinbase.send(
+    to: address, amount: bitcoin, currency: 'BTC',
+    description: "Exchange of #{amount}, price is #{price}"
+  )
   settings.telepost.spam(
-    "#{amount} ZLD exchanged to #{bitcoin} BTC by `@#{user.login}`",
+    "#{amount} exchanged to #{bitcoin} BTC by `@#{user.login}`",
     "via [#{address[0..8]}..](https://www.blockchain.com/btc/address/#{address}),",
     "BTC price is #{price}, wallet ID is `#{user.item.id}`"
   )
