@@ -78,8 +78,9 @@ class User
   end
 
   def wallet
-    @wallets.acq(@item.id) do |wallet|
-      raise UserError, 'You have to pull the wallet first' unless wallet.exists?
+    id = @item.id
+    @wallets.acq(id) do |wallet|
+      raise UserError, "You have to pull the wallet #{id} first" unless wallet.exists?
       yield wallet
     end
   end
