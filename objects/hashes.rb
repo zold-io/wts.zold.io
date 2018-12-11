@@ -18,51 +18,34 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'zold/log'
-require 'zold/commands/remote'
+require 'time'
 
 #
-# Operations that update remotes before and after.
+# BTC hashes.
 #
-class UpdateOps
-  def initialize(ops, remotes, log: Zold::Log::NULL, network: 'test')
-    @ops = ops
-    @remotes = remotes
-    @log = log
-    @network = network
+class Hashes
+  def initialize(aws)
+    @aws = aws
   end
 
-  def pull
-    update
-    @ops.pull
-    update
+  def seen?(hash)
+    !@aws.query(
+      table_name: 'zold-btc',
+      limit: 1,
+      expression_attribute_values: { ':h' => hash },
+      key_condition_expression: 'txhash=:h'
+    ).items.empty?
   end
 
-  def push
-    update
-    @ops.push
-    update
-  end
-
-  def pay(keygap, bnf, amount, details)
-    update
-    @ops.pay(keygap, bnf, amount, details)
-    update
-  end
-
-  private
-
-  def update
-    cmd = Zold::Remote.new(remotes: @remotes, log: @log)
-    args = ['remote', "--network=#{@network}"]
-    if @network == Zold::Wallet::MAINET
-      cmd.run(args + ['trim'])
-      cmd.run(args + ['reset']) if @remotes.all.empty?
-      return if @remotes.all.count >= 8 && @remotes.all.find { |r| r[:score] >= Zold::Tax::EXACT_SCORE }
-      cmd.run(args + ['update'])
-      cmd.run(args + ['select'])
-    else
-      cmd.run(args + ['clean'])
-    end
+  def add(hash, login, wallet)
+    @aws.put_item(
+      table_name: 'zold-btc',
+      item: {
+        'txhash' => hash,
+        'login' => login,
+        'wallet' => wallet,
+        'time' => Time.now.to_i
+      }
+    )
   end
 end

@@ -20,35 +20,17 @@
 
 require 'minitest/autorun'
 require 'webmock/minitest'
-require 'tmpdir'
-require 'zold/amount'
-require 'zold/wallets'
-require 'zold/remotes'
-require 'zold/id'
 require_relative 'test__helper'
 require_relative '../objects/dynamo'
-require_relative '../objects/user'
-require_relative '../objects/ops'
+require_relative '../objects/hashes'
 
-class OpsTest < Minitest::Test
-  def test_make_payment
+class HashesTest < Minitest::Test
+  def test_saves_hash_and_loads
     WebMock.allow_net_connect!
-    Dir.mktmpdir 'test' do |dir|
-      wallets = Zold::Wallets.new(File.join(dir, 'wallets'))
-      remotes = Zold::Remotes.new(file: File.join(dir, 'remotes.csv'))
-      remotes.clean
-      login = 'jeff01'
-      item = Item.new(login, Dynamo.new.aws, log: test_log)
-      user = User.new(login, item, wallets, log: test_log)
-      user.create
-      keygap = user.keygap
-      user.confirm(keygap)
-      friend = User.new('friend', Item.new('friend', Dynamo.new.aws, log: test_log), wallets, log: test_log)
-      friend.create
-      # copies = File.join(dir, 'copies')
-      # Ops.new(item, user, wallets, remotes, copies, log: log).pay(
-      #   keygap, friend.wallet.id, Zold::Amount.new(zld: 19.99), 'for fun'
-      # )
-    end
+    btc = Hashes.new(Dynamo.new.aws)
+    hash = 'c3c0a51ff985618dd8373eadf3540fd1bea44d676452dbab47fe0cc07209547e'
+    assert(!btc.seen?(hash))
+    btc.add(hash, 'jeff123', 'c3c0a51ff985618d')
+    assert(btc.seen?(hash))
   end
 end

@@ -27,8 +27,22 @@ require_relative 'user_error'
 # BTC gateway.
 #
 class Btc
-  def initialize(aws, xpub, key, log: Zold::Log::NULL)
-    @aws = aws
+  # Fake gateway to blockchain.com
+  class Fake
+    def price
+      1000
+    end
+
+    def create(_login)
+      '1N1R2HP9JD4LvAtp7rTkpRqF19GH7PH2ZF'
+    end
+
+    def exists?(_hash, _amount, _address)
+      true
+    end
+  end
+
+  def initialize(xpub, key, log: Zold::Log::NULL)
     @xpub = xpub
     @key = key
     @log = log
@@ -55,10 +69,6 @@ class Btc
     Zold::JsonPage.new(res.body).to_hash['address']
   end
 
-  def send(address, satoshi)
-    # Doesn't work yet
-  end
-
   # Returns TRUE if transaction with this hash, amount, and target address exists
   def exists?(hash, amount, address)
     txn = Zold::JsonPage.new(Zold::Http.new(uri: "https://blockchain.info/rawtx/#{hash}").get.body).to_hash
@@ -66,26 +76,5 @@ class Btc
   rescue StandardError => e
     @log.error(Backtrace.new(e))
     false
-  end
-
-  def paid?(hash)
-    !@aws.query(
-      table_name: 'zold-btc',
-      limit: 1,
-      expression_attribute_values: { ':h' => hash },
-      key_condition_expression: 'txhash=:h'
-    ).items.empty?
-  end
-
-  def paid(hash, login, wallet)
-    @aws.put_item(
-      table_name: 'zold-btc',
-      item: {
-        'txhash' => hash,
-        'login' => login,
-        'wallet' => wallet,
-        'time' => Time.now.to_i
-      }
-    )
   end
 end

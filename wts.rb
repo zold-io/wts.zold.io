@@ -43,6 +43,7 @@ require_relative 'objects/item'
 require_relative 'objects/user'
 require_relative 'objects/btc'
 require_relative 'objects/dynamo'
+require_relative 'objects/hashes'
 require_relative 'objects/user_error'
 require_relative 'objects/ops'
 require_relative 'objects/async_ops'
@@ -66,6 +67,10 @@ configure do
         'login' => '0crat',
         'keygap' => '?'
       },
+      'exchange' => {
+        'login' => '0crat',
+        'keygap' => '?'
+      },
       'github' => {
         'client_id' => '?',
         'client_secret' => '?',
@@ -78,17 +83,17 @@ configure do
         'secret' => '?'
       },
       'blockchain' => {
-        'xpub' => '?',
-        'key' => '?'
+        'xpub' => '',
+        'key' => ''
       },
       'telegram' => {
         'token' => '',
         'chat' => '111'
       },
       'coinbase' => {
-        'key' => '?',
-        'secret' => '?',
-        'account' => '?'
+        'key' => '',
+        'secret' => '',
+        'account' => ''
       }
     }
   else
@@ -118,17 +123,28 @@ configure do
       )
     )
   )
-  set :remotes, Zold::Remotes.new(file: File.join(settings.root, '.zold-wts/remotes'), network: 'zold')
+  set :remotes, Zold::Remotes.new(
+    file: File.join(settings.root, '.zold-wts/remotes'),
+    network: ENV['RACK_ENV'] == 'test' ? 'test' : 'zold'
+  )
   set :copies, File.join(settings.root, '.zold-wts/copies')
   set :codec, GLogin::Codec.new(config['api_secret'])
   set :pool, Concurrent::FixedThreadPool.new(16, max_queue: 64, fallback_policy: :abort)
   set :log, Zold::Log::REGULAR.dup
-  set :btc, Btc.new(
-    settings.dynamo,
-    settings.config['blockchain']['xpub'],
-    settings.config['blockchain']['key'],
-    log: settings.log
+  set :coinbase, Coinbase::Wallet::Client.new(
+    api_key: settings.config['coinbase']['key'],
+    api_secret: settings.config['coinbase']['secret']
   )
+  set :hashes, Hashes.new(settings.dynamo)
+  if settings.config['blockchain']['xpub'].empty?
+    set :btc, Btc::Fake.new
+  else
+    set :btc, Btc.new(
+      settings.config['blockchain']['xpub'],
+      settings.config['blockchain']['key'],
+      log: settings.log
+    )
+  end
   if settings.config['telegram']['token'].empty?
     set :telepost, Telepost::Fake.new
   else
@@ -364,7 +380,6 @@ get '/btc' do
       "New BTC address assigned to `@#{user.login}` from `#{request.ip}`:",
       "[#{address}](https://www.blockchain.com/btc/address/#{address})"
     )
-    flash('/btc', 'A new unique BTC address is assigned to you')
   end
   haml :btc, layout: :layout, locals: merged(
     title: '@' + confirmed_user.login + '/btc'
@@ -381,13 +396,14 @@ get '/btc-hook' do
   raise UserError, "Not enough confirmations: \"#{params[:confirmations]}\"" if params[:confirmations].to_i < 4
   hash = params[:transaction_hash]
   bnf = user(params[:zold_user])
+  raise UserError, "There is no user @#{bnf.login}" unless bnf.item.exists?
   raise UserError, "The user @#{bnf.login} is not confirmed" unless bnf.confirmed?
   raise UserError, "The user @#{bnf.login} doesn't have BTC address" unless bnf.item.btc?
   address = bnf.item.btc
   satoshi = params[:value].to_i
   raise UserError, "Tx #{hash}/#{satoshi}/#{bnf.item.btc} not found" unless settings.btc.exists?(hash, satoshi, address)
-  raise UserError, "BTC hash #{hash} has already been paid" if settings.btc.paid?(hash)
-  settings.btc.paid(hash, bnf.login, bnf.item.id)
+  raise UserError, "BTC hash #{hash} has already been paid" if settings.hashes.seen?(hash)
+  settings.hashes.add(hash, bnf.login, bnf.item.id)
   price = settings.btc.price
   bitcoin = satoshi.to_f / 100_000_000
   usd = bitcoin * price
@@ -609,6 +625,6 @@ def pay_hosting_bonuses
     "Hosting bonus of #{total} distributed among #{winners.count} wallets:",
     winners.map { |s| "`#{s.host}:#{s.port}/#{s.value}`" }.join(', ') + '.',
     "The payer is `@#{boss.login}` with the wallet `#{boss.item.id}`,",
-    "the balance is #{boss.wallet(&:balance)}."
+    "the remaining balance is #{boss.wallet(&:balance)}."
   )
 end
