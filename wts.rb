@@ -261,6 +261,9 @@ get '/pay' do
 end
 
 post '/do-pay' do
+  raise UserError, 'Parameter "bnf" is not provided' if params[:bnf].nil?
+  raise UserError, 'Parameter "amount" is not provided' if params[:amount].nil?
+  raise UserError, 'Parameter "details" is not provided' if params[:details].nil?
   if params[:bnf].match?(/[a-f0-9]{16}/)
     bnf = Zold::Id.new(params[:bnf])
   else
@@ -424,7 +427,7 @@ post '/do-sell' do
     "via [#{address[0..8]}..](https://www.blockchain.com/btc/address/#{address}),",
     "BTC price is #{price}, wallet ID is `#{user.item.id}`"
   )
-  settings.log.info("Paid #{bitcoin} BTC to @#{bnf.login} in exchange to #{amount}")
+  settings.log.info("Paid #{bitcoin} BTC to @#{user.login} in exchange to #{amount}")
   flash('/btc', "We transferred #{bitcoin} to your wallet")
 end
 
