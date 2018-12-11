@@ -408,7 +408,7 @@ get '/btc-hook' do
   settings.hashes.add(hash, bnf.login, bnf.item.id)
   price = settings.btc.price
   bitcoin = satoshi.to_f / 100_000_000
-  usd = bitcoin * price
+  usd = bitcoin * price * 0.9
   ops(user(settings.config['exchange']['login'])).pay(
     settings.config['exchange']['keygap'],
     bnf.item.id,
@@ -431,16 +431,17 @@ post '/do-sell' do
   address = params[:btc]
   raise UserError, "You don't have enough to send #{amount}" if confirmed_user.wallet(&:balance) < amount
   raise UserError, 'We can send only one payment per day' if user.wallet(&:txns)[0].date > Time.now - 60 * 60 * 24
+  usd = amount.to_zld(8) * 0.9
   price = settings.btc.price
-  bitcoin = (amount.to_zld(8).to_f / price).round(10)
+  bitcoin = (usd / price).round(10)
   ops.pay(
     params[:keygap],
     user(settings.config['exchange']['login']).item.id,
     amount,
-    "ZLD exchange to #{bitcoin}, price is #{price}"
+    "ZLD exchange to #{bitcoin} BTC at #{address}, price is #{price}"
   )
   settings.coinbase.send(
-    to: address, amount: bitcoin.to_s, currency: 'BTC',
+    to: address, amount: usd, currency: 'USD',
     description: "Exchange of #{amount}, price is #{price}"
   )
   settings.telepost.spam(
