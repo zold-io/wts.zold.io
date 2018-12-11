@@ -238,7 +238,7 @@ end
 
 get '/home' do
   flash('/create', 'Time to create your wallet') unless user.item.exists?
-  flash('/confirm') unless user.confirmed?
+  flash('/confirm', 'Time to save your keygap') unless user.confirmed?
   haml :home, layout: :layout, locals: merged(
     title: '@' + @locals[:guser],
     start: params[:start] ? Time.parse(params[:start]) : nil
