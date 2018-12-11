@@ -238,6 +238,7 @@ end
 
 get '/home' do
   flash('/create', 'Time to create your wallet') unless user.item.exists?
+  flash('/confirm') unless user.confirmed?
   haml :home, layout: :layout, locals: merged(
     title: '@' + @locals[:guser],
     start: params[:start] ? Time.parse(params[:start]) : nil
@@ -499,7 +500,7 @@ error do
   e = env['sinatra.error']
   if e.is_a?(UserError)
     settings.log.error(e.message)
-    settings.log.error(Backtrace.new(e))
+    # settings.log.error(Backtrace.new(e))
     body(Backtrace.new(e).to_s)
     flash('/', e.message, color: 'darkred')
   else
@@ -552,7 +553,7 @@ def log(user = @locals[:guser])
 end
 
 def user(login = @locals[:guser])
-  raise UserError, "You, @#{login}, have to login first" unless login
+  raise UserError, 'You have to login first' unless login
   User.new(
     login, Item.new(login, settings.dynamo, log: log(login)),
     settings.wallets, log: log(login)
@@ -561,7 +562,7 @@ end
 
 def confirmed_user(login = @locals[:guser])
   u = user(login)
-  raise UserError, "You, @#{login}, have to confirm your keygap first" unless u.confirmed?
+  raise UserError, "You @#{login} have to confirm your keygap first" unless u.confirmed?
   u
 end
 
