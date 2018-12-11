@@ -418,7 +418,7 @@ get '/btc-hook' do
     "BTC exchange of #{bitcoin.round(8)} at #{hash}, price is #{price}"
   )
   settings.telepost.spam(
-    "#{bitcoin} BTC exchanged to #{usd} ZLD by `@#{bnf.login}`",
+    "#{bitcoin} BTC exchanged to #{usd} ZLD by `@#{bnf.login}` from `#{request.ip}` (#{country})",
     "in [#{hash[0..8]}..](https://www.blockchain.com/btc/tx/#{hash})",
     "via [#{address[0..8]}..](https://www.blockchain.com/btc/address/#{address}),",
     "BTC price is #{price}, wallet ID is `#{bnf.item.id}`"
@@ -446,7 +446,7 @@ post '/do-sell' do
   )
   settings.bank.send(address, usd, "Exchange of #{amount.to_zld}, price is #{price}")
   settings.telepost.spam(
-    "#{amount} exchanged to #{bitcoin} BTC by `@#{user.login}`",
+    "#{amount} exchanged to #{bitcoin} BTC by `@#{user.login}` from `#{request.ip}` (#{country})",
     "via [#{address[0..8]}..](https://www.blockchain.com/btc/address/#{address}),",
     "BTC price is #{price}, the wallet ID is `#{user.item.id}`."
   )
