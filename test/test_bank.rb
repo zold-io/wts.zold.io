@@ -12,37 +12,25 @@
 #
 # THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFINGEMENT. IN NO EVENT SHALL THE
 # AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'zold/log'
-require 'coinbase/wallet'
-require_relative 'user_error'
+require 'minitest/autorun'
+require 'webmock/minitest'
+require_relative 'test__helper'
+require_relative '../objects/bank'
 
-#
-# BTC sending out gateway (via Coinbase).
-#
-class Bank
-  # Fake gateway
-  class Fake
-    def send(_address, _usd, _description)
-      # nothing
-    end
-  end
-
-  def initialize(key, secret, account, log: Zold::Log::NULL)
-    @key = key
-    @secret = secret
-    @account = account
-    @log = log
-  end
-
-  # Send BTC
-  def send(address, usd, description)
-    acc = Coinbase::Wallet::Client.new(api_key: @key, api_secret: @secret).account(@account)
-    acc.send(to: address, amount: usd, currency: 'USD', description: description)
+class BankTest < Minitest::Test
+  def test_sends_btc
+    WebMock.disable_net_connect!
+    stub_request(:get, 'https://api.coinbase.com/v2/accounts/account').to_return(
+      status: 200, body: '{}'
+    )
+    stub_request(:post, 'https://api.coinbase.com/v2/accounts//transactions').to_return(status: 200)
+    bank = Bank.new('key', 'secret', 'account', log: test_log)
+    bank.send('1N1R2HP9JD4LvAtp7rTkpRqF19GH7PH2ZF', 1.0, 'test')
   end
 end
