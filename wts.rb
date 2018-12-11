@@ -612,9 +612,14 @@ end
 def pay_bonus
   boss = user(settings.config['rewards']['login'])
   return unless boss.item.exists?
+  amount = Zold::Amount.new(zld: 8.0)
   ops(boss).pay(
     settings.config['rewards']['keygap'], user.item.id,
-    Zold::Amount.new(zld: 8.0), "WTS signup bonus to #{@locals[:guser]}"
+    amount, "WTS signup bonus to #{@locals[:guser]}"
+  )
+  settings.telepost.spam(
+    "Sign-up bonus of #{amount} sent to `@#{user.login}`",
+    "from `#{request.ip}` (#{country})"
   )
 end
 
