@@ -431,7 +431,7 @@ post '/do-sell' do
   amount = Zold::Amount.new(zld: params[:amount].to_f)
   raise UserError, "The amount #{amount} is too large for us now" if amount > Zold::Amount.new(zld: 4.0)
   address = params[:btc]
-  raise UserError, "You don't have enough to send #{amount}" if user.wallet(&:balance) < amount
+  raise UserError, "You don't have enough to send #{amount}" if confirmed_user.wallet(&:balance) < amount
   raise UserError, 'We can send only one payment per day' if user.wallet(&:txns)[0].date > Time.now - 60 * 60 * 24
   price = settings.btc.price
   bitcoin = (amount.to_zld(8).to_f / price).round(10)
@@ -555,6 +555,7 @@ end
 def confirmed_user(login = @locals[:guser])
   u = user(login)
   raise UserError, "You, @#{login}, have to confirm your keygap first" unless u.confirmed?
+  raise UserError, 'You have to pull the wallet first' unless u.wallet(&:exists?)
   u
 end
 
