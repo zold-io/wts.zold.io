@@ -325,13 +325,11 @@ get '/id' do
 end
 
 get '/balance' do
-  error 404 unless confirmed_user.wallet(&:exists?)
   content_type 'text/plain'
   confirmed_user.wallet(&:balance).to_i
 end
 
 get '/find' do
-  error 404 unless confirmed_user.wallet(&:exists?)
   content_type 'text/plain'
   confirmed_user.wallet do |wallet|
     wallet.txns.select do |t|
@@ -555,7 +553,6 @@ end
 def confirmed_user(login = @locals[:guser])
   u = user(login)
   raise UserError, "You, @#{login}, have to confirm your keygap first" unless u.confirmed?
-  raise UserError, 'You have to pull the wallet first' unless u.wallet(&:exists?)
   u
 end
 

@@ -21,6 +21,7 @@
 require 'tempfile'
 require 'openssl'
 require 'zold/log'
+require_relative 'user_error'
 
 #
 # The user.
@@ -78,6 +79,7 @@ class User
 
   def wallet
     @wallets.acq(@item.id) do |wallet|
+      raise UserError, 'You have to pull the wallet first' unless wallet.exists?
       yield wallet
     end
   end
