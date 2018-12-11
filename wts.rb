@@ -499,6 +499,7 @@ error do
   e = env['sinatra.error']
   if e.is_a?(UserError)
     settings.log.error(e.message)
+    settings.log.error(Backtrace.new(e))
     body(Backtrace.new(e).to_s)
     flash('/', e.message, color: 'darkred')
   else
