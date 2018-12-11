@@ -59,7 +59,7 @@ class UpdateOps
       cmd.run(args + ['trim'])
       cmd.run(args + ['reset']) if @remotes.all.empty?
       return if @remotes.all.count >= 8 && @remotes.all.find { |r| r[:score] >= Zold::Tax::EXACT_SCORE }
-      cmd.run(args + ['update'])
+      cmd.run(args + ['update', '--depth=3'])
       cmd.run(args + ['select'])
     else
       cmd.run(args + ['clean'])
