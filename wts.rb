@@ -437,7 +437,7 @@ post '/do-sell' do
   bitcoin = amount.to_zld(8).to_f / price
   ops.pay(
     params[:keygap],
-    settings.config['exchange']['login'],
+    user(settings.config['exchange']['login']).item.id,
     amount,
     "ZLD exchange to #{bitcoin}, price is #{price}"
   )
