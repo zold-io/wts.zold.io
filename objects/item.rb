@@ -136,6 +136,7 @@ keygap is '#{keygap[0, 2]}#{'.' * (keygap.length - 2)}'")
   def items
     @aws.query(
       table_name: 'zold-wallets',
+      consistent_read: true,
       limit: 1,
       select: 'ALL_ATTRIBUTES',
       expression_attribute_values: { ':u' => @login },

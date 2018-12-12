@@ -31,6 +31,7 @@ class Hashes
   def seen?(hash)
     !@aws.query(
       table_name: 'zold-btc',
+      consistent_read: true,
       limit: 1,
       expression_attribute_values: { ':h' => hash },
       key_condition_expression: 'txhash=:h'
