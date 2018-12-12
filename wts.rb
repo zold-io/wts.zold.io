@@ -432,36 +432,38 @@ get '/btc-hook' do
 end
 
 post '/do-sell' do
-  amount = Zold::Amount.new(zld: params[:amount].to_f)
-  raise UserError, "The amount #{amount} is too large for us now" if amount > Zold::Amount.new(zld: 4.0)
-  address = params[:btc]
-  raise UserError, "You don't have enough to send #{amount}" if confirmed_user.wallet(&:balance) < amount
-  if user.wallet(&:txns).find { |t| t.amount.negative? && t.date > Time.now - 60 * 60 * 24 }
-    raise UserError, 'At the moment we can send only one payment per day, sorry' unless user.login == 'yegor256'
-  end
-  usd = amount.to_zld(8).to_f * 0.9
-  price = settings.btc.price
-  bitcoin = (usd / price).round(10)
-  boss = user(settings.config['exchange']['login'])
-  ops.pay(
-    params[:keygap],
-    boss.item.id,
-    amount,
-    "ZLD exchange to #{bitcoin} BTC at #{address}, price is #{price}"
-  )
-  settings.bank.send(
-    address, usd,
-    "Exchange of #{amount.to_zld} by @#{user.login} to #{user.item.id}, price is #{price}"
-  )
-  settings.telepost.spam(
-    "Out: #{amount} exchanged to #{bitcoin} BTC by `@#{user.login}` from `#{request.ip}` (#{country})",
-    "via [#{address[0..8]}..](https://www.blockchain.com/btc/address/#{address}),",
-    "BTC price is #{price}, the wallet ID is [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id}).",
-    "The beneficiary wallet `@#{boss.login}` with the wallet",
-    "[#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id}),",
-    "the balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t)."
-  )
-  flash('/btc', "We took #{amount} from your wallet and sent you #{bitcoin} BTC")
+  raise UserError, 'This feature is temporarily disabled, please come back later'
+  # amount = Zold::Amount.new(zld: params[:amount].to_f)
+  # raise UserError, "The amount #{amount} is too large for us now" if amount > Zold::Amount.new(zld: 4.0)
+  # address = params[:btc]
+  # raise UserError, "You don't have enough to send #{amount}" if confirmed_user.wallet(&:balance) < amount
+  # if user.wallet(&:txns).find { |t| t.amount.negative? && t.date > Time.now - 60 * 60 * 24 }
+  #   raise UserError, 'At the moment we can send only one payment per day, sorry' unless user.login == 'yegor256'
+  # end
+  # usd = amount.to_zld(8).to_f * 0.9
+  # price = settings.btc.price
+  # bitcoin = (usd / price).round(10)
+  # boss = user(settings.config['exchange']['login'])
+  # ops.pay(
+  #   params[:keygap],
+  #   boss.item.id,
+  #   amount,
+  #   "ZLD exchange to #{bitcoin} BTC at #{address}, price is #{price}"
+  # )
+  # settings.bank.send(
+  #   address, usd,
+  #   "Exchange of #{amount.to_zld} by @#{user.login} to #{user.item.id}, price is #{price}"
+  # )
+  # settings.telepost.spam(
+  #   "Out: #{amount} exchanged to #{bitcoin} BTC by `@#{user.login}` from `#{request.ip}` (#{country})",
+  #   "via [#{address[0..8]}..](https://www.blockchain.com/btc/address/#{address}),",
+  #   "BTC price is #{price}, the wallet ID is",
+  #   "[#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id}).",
+  #   "The beneficiary wallet `@#{boss.login}` with the wallet",
+  #   "[#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id}),",
+  #   "the balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t)."
+  # )
+  # flash('/btc', "We took #{amount} from your wallet and sent you #{bitcoin} BTC")
 end
 
 get '/log' do
@@ -630,7 +632,8 @@ def pay_bonus
   settings.telepost.spam(
     "Sign-up bonus of #{amount} sent to `@#{user.login}`",
     "from `#{request.ip}` (#{country}),",
-    "to their wallet `#{user.item.id}` from our wallet `#{boss.item.id}`."
+    "to their wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})",
+    "from our wallet [#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id})."
   )
 end
 
@@ -661,7 +664,8 @@ def pay_hosting_bonuses
     settings.telepost.spam(
       "Hosting bonus of #{total} distributed among #{winners.count} wallets:",
       winners.map { |s| "`#{s.host}:#{s.port}/#{s.value}`" }.join(', ') + '.',
-      "The payer is `@#{boss.login}` with the wallet `#{boss.item.id}`,",
+      "The payer is `@#{boss.login}` with the wallet",
+      "[#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id}),",
       "the remaining balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t)."
     )
   end
