@@ -250,13 +250,12 @@ end
 
 get '/create' do
   user.create
-  pay_bonus
-  ops.push
-  log.info("Wallet #{user.item.id} created and pushed by @#{user.login}\n")
   settings.telepost.spam(
     "The user `@#{user.login}` created a new wallet `#{user.item.id}`",
-    "from `#{request.ip}` (#{country})"
+    "from `#{request.ip}` (#{country})."
   )
+  pay_bonus
+  ops.push
   flash('/', "Wallet #{user.item.id} created and pushed")
 end
 
@@ -270,7 +269,6 @@ end
 get '/do-confirm' do
   raise UserError, 'You have done this already, your keygap has been generated' if user.confirmed?
   user.confirm(params[:keygap])
-  log.info("Account confirmed for @#{confirmed_user.login}\n")
   flash('/', 'The account has been confirmed')
 end
 
@@ -305,17 +303,15 @@ post '/do-pay' do
   amount = Zold::Amount.new(zld: params[:amount].to_f)
   details = params[:details]
   ops.pay(keygap, bnf, amount, details)
-  log.info("Payment made by @#{confirmed_user.login} to #{bnf} for #{amount}\n \n")
   settings.telepost.spam(
     "Payment sent by `@#{user.login}` to `#{bnf}` for #{amount} from `#{request.ip}` (#{country}):",
-    "\"#{details}\""
+    "\"#{details}\"."
   )
   flash('/', "Payment has been sent to #{bnf} for #{amount}")
 end
 
 get '/pull' do
   ops.pull
-  log.info("Wallet #{user.item.id} pulled by @#{confirmed_user.login}\n \n")
   flash('/', "Your wallet #{user.item.id} will be pulled soon")
 end
 
@@ -427,7 +423,6 @@ get '/btc-hook' do
     "via [#{address[0..8]}..](https://www.blockchain.com/btc/address/#{address}),",
     "BTC price is #{price}, wallet ID is `#{bnf.item.id}`"
   )
-  settings.log.info("Paid #{usd} to #{bnf.item.id} of @#{bnf.login} in exchange to #{bitcoin} BTC in #{hash}")
   '*ok*'
 end
 
@@ -448,13 +443,15 @@ post '/do-sell' do
     amount,
     "ZLD exchange to #{bitcoin} BTC at #{address}, price is #{price}"
   )
-  settings.bank.send(address, usd, "Exchange of #{amount.to_zld}, price is #{price}")
+  settings.bank.send(
+    address, usd,
+    "Exchange of #{amount.to_zld} by @#{user.login} to #{user.item.id}, price is #{price}"
+  )
   settings.telepost.spam(
     "Out: #{amount} exchanged to #{bitcoin} BTC by `@#{user.login}` from `#{request.ip}` (#{country})",
     "via [#{address[0..8]}..](https://www.blockchain.com/btc/address/#{address}),",
     "BTC price is #{price}, the wallet ID is `#{user.item.id}`."
   )
-  settings.log.info("Paid #{bitcoin} BTC to @#{user.login} in exchange to #{amount}")
   flash('/btc', "We took #{amount} from your wallet and sent you #{bitcoin} BTC")
 end
 
@@ -623,7 +620,8 @@ def pay_bonus
   )
   settings.telepost.spam(
     "Sign-up bonus of #{amount} sent to `@#{user.login}`",
-    "from `#{request.ip}` (#{country})"
+    "from `#{request.ip}` (#{country}),",
+    "to their wallet `#{user.item.id}` from our wallet `#{boss.item.id}`."
   )
 end
 
@@ -649,6 +647,6 @@ def pay_hosting_bonuses
     "Hosting bonus of #{total} distributed among #{winners.count} wallets:",
     winners.map { |s| "`#{s.host}:#{s.port}/#{s.value}`" }.join(', ') + '.',
     "The payer is `@#{boss.login}` with the wallet `#{boss.item.id}`,",
-    "the remaining balance is #{boss.wallet(&:balance)}."
+    "the remaining balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t)."
   )
 end
