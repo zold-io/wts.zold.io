@@ -109,6 +109,11 @@ class AppTest < Minitest::Test
     WebMock.allow_net_connect!
     Dir.mktmpdir 'test' do |dir|
       wallets = Zold::Wallets.new(File.join(dir, 'wallets'))
+      boss = User.new(
+        '0crat', Item.new('0crat', Dynamo.new.aws, log: test_log),
+        Sinatra::Application.settings.wallets, log: test_log
+      )
+      boss.create
       login = 'jeff009'
       user = User.new(
         login, Item.new(login, Dynamo.new.aws, log: test_log),

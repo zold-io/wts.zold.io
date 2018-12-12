@@ -652,10 +652,17 @@ def pay_hosting_bonuses
       "Hosting bonus for #{score.host} #{score.port} #{score.value}"
     )
   end
-  settings.telepost.spam(
-    "Hosting bonus of #{total} distributed among #{winners.count} wallets:",
-    winners.map { |s| "`#{s.host}:#{s.port}/#{s.value}`" }.join(', ') + '.',
-    "The payer is `@#{boss.login}` with the wallet `#{boss.item.id}`,",
-    "the remaining balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t)."
-  )
+  if winners.empty?
+    settings.telepost.spam(
+      'Attention, no hosting bonuses were paid because no nodes were found,',
+      'which would deserve that. Something is wrong with the network.'
+    )
+  else
+    settings.telepost.spam(
+      "Hosting bonus of #{total} distributed among #{winners.count} wallets:",
+      winners.map { |s| "`#{s.host}:#{s.port}/#{s.value}`" }.join(', ') + '.',
+      "The payer is `@#{boss.login}` with the wallet `#{boss.item.id}`,",
+      "the remaining balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t)."
+    )
+  end
 end
