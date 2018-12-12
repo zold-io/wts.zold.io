@@ -304,7 +304,8 @@ post '/do-pay' do
   details = params[:details]
   ops.pay(keygap, bnf, amount, details)
   settings.telepost.spam(
-    "Payment sent by `@#{user.login}` to `#{bnf}` for #{amount} from `#{request.ip}` (#{country}):",
+    "Payment sent by `@#{user.login}` to [#{bnf}](http://www.zold.io/ledger.html?wallet=#{bnf})",
+    "for #{amount} from `#{request.ip}` (#{country}):",
     "\"#{details}\"."
   )
   flash('/', "Payment has been sent to #{bnf} for #{amount}")
@@ -382,7 +383,7 @@ get '/btc' do
     confirmed_user.item.save_btc(address)
     settings.telepost.spam(
       "New BTC address assigned to `@#{user.login}` from `#{request.ip}` (#{country}):",
-      "[#{address}](https://www.blockchain.com/btc/address/#{address})"
+      "[#{address}](https://www.blockchain.com/btc/address/#{address})."
     )
   end
   haml :btc, layout: :layout, locals: merged(
@@ -411,7 +412,8 @@ get '/btc-hook' do
   price = settings.btc.price
   bitcoin = satoshi.to_f / 100_000_000
   usd = bitcoin * price * 0.9
-  ops(user(settings.config['exchange']['login'])).pay(
+  boss = user(settings.config['exchange']['login'])
+  ops(boss).pay(
     settings.config['exchange']['keygap'],
     bnf.item.id,
     Zold::Amount.new(zld: usd),
@@ -421,7 +423,10 @@ get '/btc-hook' do
     "In: #{bitcoin} BTC exchanged to #{usd} ZLD by `@#{bnf.login}` from `#{request.ip}` (#{country})",
     "in [#{hash[0..8]}..](https://www.blockchain.com/btc/tx/#{hash})",
     "via [#{address[0..8]}..](https://www.blockchain.com/btc/address/#{address}),",
-    "BTC price is #{price}, wallet ID is `#{bnf.item.id}`"
+    "BTC price is #{price}, to the wallet [#{bnf.item.id}](http://www.zold.io/ledger.html?wallet=#{bnf.item.id}).",
+    "The payer is `@#{boss.login}` with the wallet",
+    "[#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id}),",
+    "the remaining balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t)."
   )
   '*ok*'
 end
@@ -437,9 +442,10 @@ post '/do-sell' do
   usd = amount.to_zld(8).to_f * 0.9
   price = settings.btc.price
   bitcoin = (usd / price).round(10)
+  boss = user(settings.config['exchange']['login'])
   ops.pay(
     params[:keygap],
-    user(settings.config['exchange']['login']).item.id,
+    boss.item.id,
     amount,
     "ZLD exchange to #{bitcoin} BTC at #{address}, price is #{price}"
   )
@@ -450,7 +456,10 @@ post '/do-sell' do
   settings.telepost.spam(
     "Out: #{amount} exchanged to #{bitcoin} BTC by `@#{user.login}` from `#{request.ip}` (#{country})",
     "via [#{address[0..8]}..](https://www.blockchain.com/btc/address/#{address}),",
-    "BTC price is #{price}, the wallet ID is `#{user.item.id}`."
+    "BTC price is #{price}, the wallet ID is [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id}).",
+    "The beneficiary wallet `@#{boss.login}` with the wallet",
+    "[#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id}),",
+    "the balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t)."
   )
   flash('/btc', "We took #{amount} from your wallet and sent you #{bitcoin} BTC")
 end
