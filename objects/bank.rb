@@ -18,6 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require 'backtrace'
 require 'zold/log'
 require 'coinbase/wallet'
 require_relative 'user_error'
@@ -41,8 +42,11 @@ class Bank
   end
 
   # Send BTC
-  def send(address, usd, description)
+  def send(address, usd, details)
     acc = Coinbase::Wallet::Client.new(api_key: @key, api_secret: @secret).account(@account)
-    acc.send(to: address, amount: usd, currency: 'USD', description: description)
+    acc.send(to: address, amount: usd, currency: 'USD', description: details)
+  rescue StandardError => e
+    @log.error(Backtrace.new(e))
+    raise "Failed to send \"#{usd}\" to \"#{address}\" with details of \"#{details}\": #{e.message}"
   end
 end
