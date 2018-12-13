@@ -137,7 +137,6 @@ class AppTest < Minitest::Test
   end
 
   def test_sell_zld
-    skip
     WebMock.allow_net_connect!
     name = 'jeff079'
     login(name)

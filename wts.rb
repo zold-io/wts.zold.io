@@ -304,7 +304,8 @@ post '/do-pay' do
   details = params[:details]
   ops.pay(keygap, bnf, amount, details)
   settings.telepost.spam(
-    "Payment sent by `@#{user.login}` to [#{bnf}](http://www.zold.io/ledger.html?wallet=#{bnf})",
+    "Payment sent by [@#{user.login}](https://github.com/#{user.login})",
+    "to [#{bnf}](http://www.zold.io/ledger.html?wallet=#{bnf})",
     "for #{amount} from `#{request.ip}` (#{country}):",
     "\"#{details}\"."
   )
@@ -382,8 +383,9 @@ get '/btc' do
     address = settings.btc.create(confirmed_user.login)
     confirmed_user.item.save_btc(address)
     settings.telepost.spam(
-      "New BTC address assigned to `@#{user.login}` from `#{request.ip}` (#{country}):",
-      "[#{address}](https://www.blockchain.com/btc/address/#{address})."
+      "New Bitcoin address assigned to [@#{user.login}](https://github.com/#{user.login})",
+      "from `#{request.ip}` (#{country}):",
+      "[#{address[0..8]}](https://www.blockchain.com/btc/address/#{address})."
     )
   end
   haml :btc, layout: :layout, locals: merged(
@@ -418,11 +420,13 @@ get '/btc-hook' do
     "BTC exchange of #{bitcoin.round(8)} at #{hash}, price is #{price}"
   )
   settings.telepost.spam(
-    "In: #{bitcoin} BTC exchanged to #{usd} ZLD by `@#{bnf.login}` from `#{request.ip}` (#{country})",
-    "in [#{hash[0..8]}..](https://www.blockchain.com/btc/tx/#{hash})",
-    "via [#{address[0..8]}..](https://www.blockchain.com/btc/address/#{address}),",
-    "BTC price is #{price}, to the wallet [#{bnf.item.id}](http://www.zold.io/ledger.html?wallet=#{bnf.item.id}).",
-    "The payer is `@#{boss.login}` with the wallet",
+    "In: #{bitcoin} BTC exchanged to #{usd} ZLD",
+    "by [@#{bnf.login}](https://github.com/#{bnf.login}) from `#{request.ip}` (#{country})",
+    "in [#{hash[0..8]}](https://www.blockchain.com/btc/tx/#{hash})",
+    "via [#{address[0..8]}](https://www.blockchain.com/btc/address/#{address}),",
+    "to the wallet [#{bnf.item.id}](http://www.zold.io/ledger.html?wallet=#{bnf.item.id}).",
+    "BTC price at the moment of exchange was [#{price}](https://blockchain.info/ticker).",
+    "The payer is [@#{boss.login}](https://github.com/#{boss.login}) with the wallet",
     "[#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id}),",
     "the remaining balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t)."
   )
@@ -430,38 +434,38 @@ get '/btc-hook' do
 end
 
 post '/do-sell' do
-  raise UserError, 'This feature is temporarily disabled, please come back later'
-  # amount = Zold::Amount.new(zld: params[:amount].to_f)
-  # raise UserError, "The amount #{amount} is too large for us now" if amount > Zold::Amount.new(zld: 4.0)
-  # address = params[:btc]
-  # raise UserError, "You don't have enough to send #{amount}" if confirmed_user.wallet(&:balance) < amount
-  # if user.wallet(&:txns).find { |t| t.amount.negative? && t.date > Time.now - 60 * 60 * 24 }
-  #   raise UserError, 'At the moment we can send only one payment per day, sorry' unless user.login == 'yegor256'
-  # end
-  # usd = amount.to_zld(8).to_f * 0.9
-  # price = settings.btc.price
-  # bitcoin = (usd / price).round(10)
-  # boss = user(settings.config['exchange']['login'])
-  # ops.pay(
-  #   params[:keygap],
-  #   boss.item.id,
-  #   amount,
-  #   "ZLD exchange to #{bitcoin} BTC at #{address}, price is #{price}"
-  # )
-  # settings.bank.send(
-  #   address, usd,
-  #   "Exchange of #{amount.to_zld} by @#{user.login} to #{user.item.id}, price is #{price}"
-  # )
-  # settings.telepost.spam(
-  #   "Out: #{amount} exchanged to #{bitcoin} BTC by `@#{user.login}` from `#{request.ip}` (#{country})",
-  #   "via [#{address[0..8]}..](https://www.blockchain.com/btc/address/#{address}),",
-  #   "BTC price is #{price}, the wallet ID is",
-  #   "[#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id}).",
-  #   "The beneficiary wallet `@#{boss.login}` with the wallet",
-  #   "[#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id}),",
-  #   "the balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t)."
-  # )
-  # flash('/btc', "We took #{amount} from your wallet and sent you #{bitcoin} BTC")
+  amount = Zold::Amount.new(zld: params[:amount].to_f)
+  raise UserError, "The amount #{amount} is too large for us now" if amount > Zold::Amount.new(zld: 4.0)
+  address = params[:btc]
+  raise UserError, "You don't have enough to send #{amount}" if confirmed_user.wallet(&:balance) < amount
+  if user.wallet(&:txns).find { |t| t.amount.negative? && t.date > Time.now - 60 * 60 * 24 }
+    raise UserError, 'At the moment we can send only one payment per day, sorry' unless user.login == 'yegor256'
+  end
+  usd = amount.to_zld(8).to_f * 0.9
+  price = settings.btc.price
+  bitcoin = (usd / price).round(10)
+  boss = user(settings.config['exchange']['login'])
+  ops.pay(
+    params[:keygap],
+    boss.item.id,
+    amount,
+    "ZLD exchange to #{bitcoin} BTC at #{address}, price is #{price}"
+  )
+  settings.bank.send(
+    address, usd,
+    "Exchange of #{amount.to_zld} by @#{user.login} to #{user.item.id}, price is #{price}"
+  )
+  settings.telepost.spam(
+    "Out: #{amount} exchanged to #{bitcoin} BTC",
+    "by [@#{user.login}](https://github.com/#{user.login}) from `#{request.ip}` (#{country})",
+    "from the wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})",
+    "to Bitcoin address [#{address[0..8]}](https://www.blockchain.com/btc/address/#{address}).",
+    "BTC price at the time of exchange was #{price}.",
+    "ZLD deposited to [#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id})",
+    "of [#{boss.login}](https://github.com/#{boss.login}),",
+    "the balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t)."
+  )
+  flash('/btc', "We took #{amount} from your wallet and sent you #{bitcoin} BTC")
 end
 
 get '/log' do
@@ -622,16 +626,19 @@ end
 def pay_bonus
   boss = user(settings.config['rewards']['login'])
   return unless boss.item.exists?
-  amount = Zold::Amount.new(zld: 8.0)
+  amount = Zold::Amount.new(zld: 0.256)
   ops(boss).pay(
     settings.config['rewards']['keygap'], user.item.id,
     amount, "WTS signup bonus to #{@locals[:guser]}"
   )
   settings.telepost.spam(
-    "Sign-up bonus of #{amount} sent to `@#{user.login}`",
+    "Sign-up bonus of #{amount} has been sent",
+    "to [@#{user.login}](https://github.com/#{user.login})",
     "from `#{request.ip}` (#{country}),",
     "to their wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})",
-    "from our wallet [#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id})."
+    "from our wallet [#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id})",
+    "of [#{boss.login}](https://github.com/#{boss.login})",
+    "with the remaining balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t)."
   )
 end
 
@@ -660,9 +667,11 @@ def pay_hosting_bonuses
     )
   else
     settings.telepost.spam(
-      "Hosting bonus of #{total} distributed among #{winners.count} wallets:",
-      winners.map { |s| "`#{s.host}:#{s.port}/#{s.value}`" }.join(', ') + '.',
-      "The payer is `@#{boss.login}` with the wallet",
+      "Hosting bonus of #{total} has been distributed among #{winners.count} wallets:",
+      winners.map do |s|
+        "[#{s.host}:#{s.port}](http://www.zold.io/ledger.html?wallet=#{s.invoice.split('@')[1]})/#{s.value}"
+      end.join(', ') + '.',
+      "The payer is [@#{boss.login}](https://github.com/#{boss.login}) with the wallet",
       "[#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id}),",
       "the remaining balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t)."
     )
