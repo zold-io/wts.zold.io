@@ -176,6 +176,7 @@ configure do
       end
     end
   end
+  settings.telepost.spam("WTS server software `#{VERSION}` has been deployed and starts to work.")
 end
 
 before '/*' do
