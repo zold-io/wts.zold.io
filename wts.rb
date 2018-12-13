@@ -156,7 +156,7 @@ configure do
   else
     set :telepost, Telepost.new(
       settings.config['telegram']['token'],
-      chats: settings.config['telegram']['chats']
+      chats: ['@zold_wts']
     )
     Thread.new do
       settings.telepost.run
@@ -176,7 +176,11 @@ configure do
       end
     end
   end
-  settings.telepost.spam("WTS server software `#{VERSION}` has been deployed and starts to work.")
+  settings.telepost.spam(
+    "[WTS](https://wts.zold.io) server software `#{VERSION}` has been deployed and starts to work.",
+    "Zold version is [#{Zold::VERSION}](https://rubygems.org/gems/zold/versions/#{Zold::VERSION}),",
+    "protocol is `#{Zold::PROTOCOL}`."
+  )
 end
 
 before '/*' do
