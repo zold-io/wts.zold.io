@@ -72,7 +72,13 @@ class Btc
   # Returns TRUE if transaction with this hash, amount, and target address exists
   def exists?(hash, amount, address)
     txn = Zold::JsonPage.new(Zold::Http.new(uri: "https://blockchain.info/rawtx/#{hash}").get.body).to_hash
-    !txn['out'].find { |t| t['addr'] == address && t['value'] == amount }.nil?
+    return false if txn['out'].find { |t| t['addr'] == address && t['value'] == amount }.nil?
+    return false if txn['weight'].zero?
+    return false if txn['weight'] < 2 && amount > 100_000 # 0.001 BTC
+    return false if txn['weight'] < 3 && amount > 1_000_000 # 0.01 BTC
+    return false if txn['weight'] < 4 && amount > 10_000_000 # 0.1 BTC
+    return false if txn['weight'] < 5 && amount > 100_000_000 # 1 BTC
+    true
   rescue StandardError => e
     @log.error(Backtrace.new(e))
     false

@@ -393,12 +393,10 @@ end
 
 # See https://www.blockchain.com/api/api_receive
 get '/btc-hook' do
-  raise UserError, 'Confirmations is not provided' if params[:confirmations].nil?
   return '*ok*' if params[:confirmations].to_i > 64
   raise UserError, 'Zold user name is not provided' if params[:zold_user].nil?
   raise UserError, 'Tx hash is not provided' if params[:transaction_hash].nil?
   raise UserError, 'Tx value is not provided' if params[:value].nil?
-  raise UserError, "Not enough confirmations: \"#{params[:confirmations]}\"" if params[:confirmations].to_i < 4
   hash = params[:transaction_hash]
   bnf = user(params[:zold_user])
   raise UserError, "There is no user @#{bnf.login}" unless bnf.item.exists?
