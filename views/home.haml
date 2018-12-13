@@ -2,8 +2,8 @@
 
 %p
   Wallet ID:
-  %code
-    = u.item.id
+  %a{href: "http://www.zold.io/ledger.html?wallet=#{u.item.id}"}
+    %code= u.item.id
   - if u.wallet_exists?
     - u.wallet do |w|
       %br
@@ -21,10 +21,6 @@
       %br
       Modified:
       = "#{w.mtime.utc.iso8601} (#{Zold::Age.new(w.mtime.utc.iso8601)} ago)"
-      %br
-      Digest:
-      %code
-        = "#{w.digest}"
 
 - if u.wallet_exists? && u.wallet(&:balance).negative?
   %p{style: 'color: darkred'}
@@ -83,8 +79,9 @@
               %span{title: t.date.utc.iso8601}
                 = Zold::Age.new(t.date)
             %td
-              %code{title: 'prefix: ' + t.prefix}
-                = t.bnf
+              %a{href: "http://www.zold.io/ledger.html?wallet=#{t.bnf}"}
+                %code{title: 'prefix: ' + t.prefix}
+                  = t.bnf
             %td
               = t.details.gsub(/([^ ]{16})/, '\1&shy;')
         - if @last

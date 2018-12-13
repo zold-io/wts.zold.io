@@ -305,6 +305,8 @@ post '/do-pay' do
   ops.pay(keygap, bnf, amount, details)
   settings.telepost.spam(
     "Payment sent by [@#{user.login}](https://github.com/#{user.login})",
+    "from [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})",
+    "with the balance of #{user.wallet(&:balance)}",
     "to [#{bnf}](http://www.zold.io/ledger.html?wallet=#{bnf})",
     "for #{amount} from `#{request.ip}` (#{country}):",
     "\"#{details}\"."
@@ -424,8 +426,9 @@ get '/btc-hook' do
     "by [@#{bnf.login}](https://github.com/#{bnf.login}) from `#{request.ip}` (#{country})",
     "in [#{hash[0..8]}](https://www.blockchain.com/btc/tx/#{hash})",
     "via [#{address[0..8]}](https://www.blockchain.com/btc/address/#{address}),",
-    "to the wallet [#{bnf.item.id}](http://www.zold.io/ledger.html?wallet=#{bnf.item.id}).",
-    "BTC price at the moment of exchange was [#{price}](https://blockchain.info/ticker).",
+    "to the wallet [#{bnf.item.id}](http://www.zold.io/ledger.html?wallet=#{bnf.item.id})",
+    "with the balance of #{bnf.wallet(&:balance)}.",
+    "BTC price at the moment of exchange was [$#{price}](https://blockchain.info/ticker).",
     "The payer is [@#{boss.login}](https://github.com/#{boss.login}) with the wallet",
     "[#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id}),",
     "the remaining balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t)."
@@ -459,8 +462,9 @@ post '/do-sell' do
     "Out: #{amount} exchanged to #{bitcoin} BTC",
     "by [@#{user.login}](https://github.com/#{user.login}) from `#{request.ip}` (#{country})",
     "from the wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})",
+    "with the balance of #{user.wallet(&:balance)}",
     "to Bitcoin address [#{address[0..8]}](https://www.blockchain.com/btc/address/#{address}).",
-    "BTC price at the time of exchange was #{price}.",
+    "BTC price at the time of exchange was [$#{price}](https://blockchain.info/ticker).",
     "ZLD deposited to [#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id})",
     "of [#{boss.login}](https://github.com/#{boss.login}),",
     "the balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t)."
@@ -583,6 +587,7 @@ end
 def keygap
   params[:keygap] = params[:pass] if params[:pass]
   kg = @locals[:keygap].nil? ? params[:keygap] : @locals[:keygap]
+  raise UserError, 'Keygap is required' if kg.nil?
   begin
     confirmed_user.item.key(kg).to_s
   rescue StandardError => e
@@ -595,7 +600,7 @@ def latch(login = @locals[:guser])
   File.join(settings.root, "latch/#{login}")
 end
 
-def ops(u = user, async: true)
+def ops(u = user)
   network = ENV['RACK_ENV'] == 'test' ? 'test' : 'zold'
   ops = SafeOps.new(
     log(u.login),
@@ -619,7 +624,7 @@ def ops(u = user, async: true)
       )
     )
   )
-  ops = AsyncOps.new(settings.pool, ops) if async
+  ops = AsyncOps.new(settings.pool, ops) unless ENV['RACK_ENV'] == 'test'
   ops
 end
 
