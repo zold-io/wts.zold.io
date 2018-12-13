@@ -39,6 +39,13 @@
     %input{type: 'text', name: 'keygap', placeholder: 'Your secret...', autocomplete: 'off'}
     %label The amount to sell:
     %input{type: 'text', name: 'amount', size: 12, autocomplete: 'off'}
-    %label BTC wallet to send to:
+    %label
+      Bitcoin
+      %a{href: 'https://en.bitcoin.it/wiki/Address'} address
+      to send to, in
+      %a{href: 'https://en.bitcoin.it/wiki/Transaction#Pay-to-PubkeyHash'} P2PKH
+      or
+      %a{href: 'https://en.bitcoin.it/wiki/Pay_to_script_hash'} P2SH
+      format:
     %input{type: 'text', name: 'btc', maxlength: 36, size: 45, autocomplete: 'off'}
     %input{type: 'submit', onclick: "return confirm('Are you sure? This operation is not reversable!')"}
