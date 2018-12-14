@@ -24,7 +24,7 @@ require 'zold/version'
 # Job that shows Zold version.
 #
 class VersionedJob
-  def initialize(log, job)
+  def initialize(job, log: Zold::Log::NULL)
     @log = log
     @job = job
   end

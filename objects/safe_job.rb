@@ -19,12 +19,13 @@
 # SOFTWARE.
 
 require 'backtrace'
+require 'zold/log'
 
 #
 # Job that log exceptions.
 #
 class SafeJob
-  def initialize(log, job)
+  def initialize(job, log: Zold::Log::NULL)
     @log = log
     @job = job
   end

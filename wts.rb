@@ -629,16 +629,16 @@ end
 
 def job(u = user)
   job = SafeJob.new(
-    log(u.login),
     VersionedJob.new(
-      log(u.login),
       UpdateJob.new(
         proc { yield },
         settings.remotes,
         log: log(u.login),
         network: network
-      )
-    )
+      ),
+      log: log(u.login)
+    ),
+    log: log(u.login)
   )
   job = AsyncJob.new(job, settings.pool, latch(u.login)) unless ENV['RACK_ENV'] == 'test'
   job.call

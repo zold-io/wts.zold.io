@@ -19,25 +19,30 @@
 # SOFTWARE.
 
 require 'futex'
+require 'backtrace'
+require 'zold/log'
 require_relative 'user_error'
 
 #
 # Job async.
 #
 class AsyncJob
-  def initialize(job, pool, lock)
+  def initialize(job, pool, lock, log: Zold::Log::NULL)
     @job = job
     @pool = pool
     @lock = lock
+    @log = log
   end
 
   def call
     raise UserError, 'Another operation is still running, try again later' if File.exist?(@lock)
     @pool.post do
-      Futex.new(@lock, timeout: 1, lock: @lock).open do
+      Futex.new(@lock, timeout: 1, lock: @lock, log: @log).open do
         @job.call
-        File.rm(@lock)
       end
+      FileUtils.rm(@lock)
+    rescue StandardError => e
+      @log.error(Backtrace.new(e))
     end
   end
 end
