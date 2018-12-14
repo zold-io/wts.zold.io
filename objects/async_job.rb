@@ -36,8 +36,8 @@ class AsyncJob
     @pool.post do
       Futex.new(@lock, timeout: 1, lock: @lock).open do
         @job.call
+        File.rm(@lock)
       end
-      File.rm(@lock)
     end
   end
 end
