@@ -18,38 +18,19 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'backtrace'
+require 'zold/version'
 
 #
-# Operations that log exceptions.
+# Job that shows Zold version.
 #
-class SafeOps
-  def initialize(log, ops)
+class VersionedJob
+  def initialize(log, job)
     @log = log
-    @ops = ops
+    @job = job
   end
 
-  def pull
-    @ops.pull
-  rescue StandardError => e
-    print(e)
-  end
-
-  def push
-    @ops.push
-  rescue StandardError => e
-    print(e)
-  end
-
-  def pay(keygap, bnf, amount, details)
-    @ops.pay(keygap, bnf, amount, details)
-  rescue StandardError => e
-    print(e)
-  end
-
-  private
-
-  def print(e)
-    @log.error(Backtrace.new(e).to_s)
+  def call
+    @log.info("Zold gem version: #{Zold::VERSION}/#{Zold::PROTOCOL}")
+    @job.call
   end
 end

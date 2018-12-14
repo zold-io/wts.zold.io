@@ -18,37 +18,32 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'zold/version'
+require 'zold/log'
+require 'zold/commands/remote'
 
 #
-# Operations that show zold version.
+# Job that update remotes before and after.
 #
-class VersionedOps
-  def initialize(log, ops)
-    raise 'Log can\'t be nil' if log.nil?
+class UpdateJob
+  def initialize(job, remotes, log: Zold::Log::NULL, network: 'test')
+    @job = job
+    @remotes = remotes
     @log = log
-    raise 'Ops can\'t be nil' if ops.nil?
-    @ops = ops
+    @network = network
   end
 
-  def pull
-    print
-    @ops.pull
-  end
-
-  def push
-    print
-    @ops.push
-  end
-
-  def pay(keygap, bnf, amount, details)
-    print
-    @ops.pay(keygap, bnf, amount, details)
-  end
-
-  private
-
-  def print
-    @log.info("Zold gem version: #{Zold::VERSION}/#{Zold::PROTOCOL}")
+  def call
+    cmd = Zold::Remote.new(remotes: @remotes, log: @log)
+    args = ['remote', "--network=#{@network}"]
+    if @network == Zold::Wallet::MAINET
+      cmd.run(args + ['trim'])
+      cmd.run(args + ['reset']) if @remotes.all.empty?
+      return if @remotes.all.count >= 8 && @remotes.all.find { |r| r[:score] >= Zold::Tax::EXACT_SCORE }
+      cmd.run(args + ['update', '--depth=3'])
+      cmd.run(args + ['select'])
+    else
+      cmd.run(args + ['clean'])
+    end
+    @job.call
   end
 end

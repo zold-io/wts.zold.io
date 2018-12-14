@@ -12,50 +12,44 @@
 #
 # THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFINGEMENT. IN NO EVENT SHALL THE
 # AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-#
-# Operations that puts and remotes a file.
-#
-class LatchOps
-  def initialize(file, ops)
-    @file = file
-    @ops = ops
+require 'minitest/autorun'
+require 'concurrent'
+require 'tmpdir'
+require_relative 'test__helper'
+require_relative '../objects/async_job'
+
+class AsyncJobTest < Minitest::Test
+  def test_pull
+    pool = Concurrent::FixedThreadPool.new(16)
+    Dir.mktmpdir 'test' do |dir|
+      ops = AsyncJob.new(nil, pool, File.join(dir, 'lock'))
+      ops.call
+      pool.shutdown
+      pool.wait_for_termination
+    end
   end
 
-  def pull
-    start
-    @ops.pull
-  ensure
-    stop
-  end
-
-  def push
-    start
-    @ops.push
-  ensure
-    stop
-  end
-
-  def pay(keygap, bnf, amount, details)
-    start
-    @ops.pay(keygap, bnf, amount, details)
-  ensure
-    stop
-  end
-
-  private
-
-  def start
-    FileUtils.mkdir_p(File.dirname(@file))
-    FileUtils.touch(@file)
-  end
-
-  def stop
-    FileUtils.rm_f(@file)
+  def test_prevents_multiple_threads_per_user
+    pool = Concurrent::FixedThreadPool.new(16)
+    Dir.mktmpdir 'test' do |dir|
+      job = Object.new
+      def job.call
+        sleep 1000
+      end
+      async = AsyncJob.new(job, pool, File.join(dir, 'lock'))
+      async.call
+      sleep 0.1
+      assert_raises UserError do
+        async.call
+      end
+      pool.shutdown
+      pool.wait_for_termination(1)
+    end
   end
 end

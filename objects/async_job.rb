@@ -22,34 +22,20 @@ require 'futex'
 require_relative 'user_error'
 
 #
-# Operations with a user, async.
+# Job async.
 #
-class AsyncOps
-  def initialize(pool, ops, lock)
+class AsyncJob
+  def initialize(job, pool, lock)
+    @job = job
     @pool = pool
-    @ops = ops
     @lock = lock
   end
 
-  def pull
-    exec { @ops.pull }
-  end
-
-  def push
-    exec { @ops.push }
-  end
-
-  def pay(keygap, bnf, amount, details)
-    exec { @ops.pay(keygap, bnf, amount, details) }
-  end
-
-  private
-
-  def exec
+  def call
     raise UserError, 'Another operation is still running, try again later' if File.exist?(@lock)
     @pool.post do
       Futex.new(@lock, timeout: 1, lock: @lock).open do
-        yield
+        @job.call
       end
     end
   end

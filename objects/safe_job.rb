@@ -18,51 +18,20 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'zold/log'
-require 'zold/commands/remote'
+require 'backtrace'
 
 #
-# Operations that update remotes before and after.
+# Job that log exceptions.
 #
-class UpdateOps
-  def initialize(ops, remotes, log: Zold::Log::NULL, network: 'test')
-    @ops = ops
-    @remotes = remotes
+class SafeJob
+  def initialize(log, job)
     @log = log
-    @network = network
+    @job = job
   end
 
-  def pull
-    update
-    @ops.pull
-    update
-  end
-
-  def push
-    update
-    @ops.push
-    update
-  end
-
-  def pay(keygap, bnf, amount, details)
-    update
-    @ops.pay(keygap, bnf, amount, details)
-    update
-  end
-
-  private
-
-  def update
-    cmd = Zold::Remote.new(remotes: @remotes, log: @log)
-    args = ['remote', "--network=#{@network}"]
-    if @network == Zold::Wallet::MAINET
-      cmd.run(args + ['trim'])
-      cmd.run(args + ['reset']) if @remotes.all.empty?
-      return if @remotes.all.count >= 8 && @remotes.all.find { |r| r[:score] >= Zold::Tax::EXACT_SCORE }
-      cmd.run(args + ['update', '--depth=3'])
-      cmd.run(args + ['select'])
-    else
-      cmd.run(args + ['clean'])
-    end
+  def call
+    @job.call
+  rescue StandardError => e
+    @log.error(Backtrace.new(e).to_s)
   end
 end
