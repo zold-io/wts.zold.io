@@ -21,7 +21,6 @@
           = r[:errors]
 
 %p
-  The list is being updated regularly.
-  To see its fresh version just reload the page or
-  %a{href: '/pull'} pull
-  your wallet to update it.
+  The list has been updated
+  %strong= Zold::Age.new(remotes.mtime)
+  ago.
