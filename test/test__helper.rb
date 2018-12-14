@@ -32,9 +32,9 @@ end
 require 'minitest/autorun'
 module Minitest
   class Test
-    def log
-      # $log = Zold::Log::Quiet.new
-      @log ||= Zold::Log::Verbose.new
+    def test_log
+      require 'zold/log'
+      @test_log ||= Zold::Log::VERBOSE
     end
   end
 end

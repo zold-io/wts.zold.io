@@ -12,44 +12,25 @@
 #
 # THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFINGEMENT. IN NO EVENT SHALL THE
 # AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-#
-# The stats.
-#
-class Stats
-  # Max length of the line
-  MAX = 512
+require 'minitest/autorun'
+require 'webmock/minitest'
+require_relative 'test__helper'
+require_relative '../objects/dynamo'
+require_relative '../objects/hashes'
 
-  def initialize
-    @history = {}
-    @mutex = Mutex.new
-  end
-
-  def to_json
-    @history.map do |m, h|
-      sum = h.inject(&:+)
-      [
-        m,
-        {
-          'total': h.count,
-          'sum': sum,
-          'avg': (h.empty? ? 0 : (sum / h.count))
-        }
-      ]
-    end.to_h
-  end
-
-  def put(metric, value)
-    raise "Invalid type of \"#{value}\" (#{value.class.name})" unless value.is_a?(Integer) || value.is_a?(Float)
-    @mutex.synchronize do
-      @history[metric] = [] unless @history[metric]
-      @history[metric] << value
-      @history[metric].shift while @history[metric].count > Stats::MAX
-    end
+class HashesTest < Minitest::Test
+  def test_saves_hash_and_loads
+    WebMock.allow_net_connect!
+    btc = Hashes.new(Dynamo.new.aws)
+    hash = 'c3c0a51ff985618dd8373eadf3540fd1bea44d676452dbab47fe0cc07209547e'
+    assert(!btc.seen?(hash))
+    btc.add(hash, 'jeff123', 'c3c0a51ff985618d')
+    assert(btc.seen?(hash))
   end
 end

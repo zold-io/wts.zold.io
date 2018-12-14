@@ -1,0 +1,19 @@
+{
+  "TableName": "zold-btc",
+  "AttributeDefinitions": [
+    {
+      "AttributeName": "txhash",
+      "AttributeType": "S"
+    }
+  ],
+  "KeySchema": [
+    {
+      "AttributeName": "txhash",
+      "KeyType": "HASH"
+    }
+  ],
+  "ProvisionedThroughput": {
+    "ReadCapacityUnits": "1",
+    "WriteCapacityUnits": "1"
+  }
+}

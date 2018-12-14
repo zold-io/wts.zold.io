@@ -23,7 +23,7 @@
             %li
               - if defined? guser
                 %a{href: '/home'}
-                  = "@#{guser[:login]}"
+                  = "@#{guser}"
               - else
                 %a{href: login_link}
                   Login
@@ -46,22 +46,22 @@
           %nav
             %ul
               %li
-                - if user.wallet(&:exists?)
+                - if user.wallet_exists?
                   %a{href: '/pay'} Pay
                 - else
                   %span{style: 'color: gray'} Pay
               %li
                 %a{href: '/pull'} Pull
               %li
-                - if user.wallet(&:exists?)
+                - if user.wallet_exists?
                   %a{href: '/invoice'} Invoice
                 - else
                   %span{style: 'color: gray'} Invoice
               %li
-                - if user.wallet(&:exists?)
-                  %a{href: '/fund'} Buy
+                - if user.wallet_exists?
+                  %a{href: '/btc'} Buy/Sell
                 - else
-                  %span{style: 'color: gray'} Buy
+                  %span{style: 'color: gray'} Buy/Sell
               %li
                 %a{href: '/log', style: (File.exist?(latch) ? 'color:red' : '')} Log
               %li
@@ -79,6 +79,9 @@
                   %a{href: '/log'} updating
                   your wallet right now.
                   Please, refresh the page in a minute.
+        - if defined? flash_msg
+          %p{style: 'background-color:' + flash_color + ';color:white;padding:.1em .5em;border-radius:4px;width:100%;'}
+            = flash_msg
 
       %article
         = yield

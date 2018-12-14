@@ -7,7 +7,9 @@
   %code= code
 
 %p
-  To send money to @yegor256 GitHub user, do the following HTTP request:
+  For example, in order to send money to
+  %code @yegor256
+  GitHub user, do the following HTTP request:
 
 %pre
   POST /do-pay HTTP/1.1
@@ -17,11 +19,28 @@
   bnf=yegor256&amount=19.99&details=For+the+pizza&keygap=84Hjsow9
 
 %p
+  Or from the command line, using
+  %a{href: 'https://en.wikipedia.org/wiki/CURL'}<
+    %code curl
+  tool:
+
+%pre
+  = "curl https://wts.zold.io/do-pay \\\n"
+  = "  --request POST \\\n"
+  = "  --header \"Content-Type: application/x-www-form-urlencoded\" \\\n"
+  = "  --header \"X-Zold-Wts: #{code}\" \\\n"
+  = "  --data \"bnf=yegor256\" \\\n"
+  = "  --data \"amount=19.99\" \\\n"
+  = "  --data \"details=For+the+pizza\" \\\n"
+  = "  --data \"keygap=84Hjsow9\""
+
+%p
   You will get
   %code 302
   response no matter what. There is no way to check the status
   of transaction right after its submission.
   If everything goes well, the payment will be sent.
+  Otherwise, we are sorry.
 
 %p
   There are more entry points:
@@ -33,7 +52,7 @@
 %p
   %code GET /balance
   returns the current balance of the wallet.
-  If the wallet is absent on the server, there will be 404 response code.
+  If the wallet is absent on the server, there will be non-200 response code.
 
 %p
   %code GET /pull

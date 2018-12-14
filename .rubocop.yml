@@ -3,7 +3,7 @@ AllCops:
     - 'bin/**/*'
     - 'assets/**/*'
   DisplayCopNames: true
-  TargetRubyVersion: 2.3
+  TargetRubyVersion: 2.5.1
 
 Naming/UncommunicativeMethodParamName:
   MinNameLength: 1
@@ -20,13 +20,13 @@ Layout/EndAlignment:
 Lint/RescueException:
   Enabled: false
 Metrics/MethodLength:
-  Max: 50
-Metrics/ClassLength:
-  Max: 200
-Metrics/AbcSize:
-  Max: 80
-Metrics/BlockLength:
   Max: 100
+Metrics/ClassLength:
+  Max: 300
+Metrics/AbcSize:
+  Max: 100
+Metrics/BlockLength:
+  Max: 120
 Layout/MultilineMethodCallIndentation:
   Enabled: false
 Metrics/CyclomaticComplexity:
@@ -37,3 +37,5 @@ Metrics/LineLength:
   Max: 120
 Metrics/ParameterLists:
   Max: 10
+Layout/EmptyLineAfterGuardClause:
+  Enabled: false

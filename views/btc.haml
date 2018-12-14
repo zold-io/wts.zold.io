@@ -1,0 +1,56 @@
+%p
+  Your current balance is
+  = succeed '.' do
+    %code= confirmed_user.wallet(&:balance)
+
+%p
+  The rate is $1 per 1 ZLD (according to the
+  %a{href: 'https://blockchain.info/ticker'} current
+  bitcoin rate, minus 10%).
+
+%p
+  If any issues or the payment is lost, contact us in our
+  = succeed '.' do
+    %a{href: 'https://t.me/zold_io'} Telegram group
+
+%p
+  To
+  %strong buy
+  ZLD just send your BTC to this wallet:
+  = succeed '.' do
+    %code= confirmed_user.item.btc
+  Once your payment is completed in the Bitcoin network, you will get ZLD
+  to your wallet.
+  You can send a payment to this address only once!
+  When the payment is received, you will find a new address for the next payment, at this page.
+
+%p
+  To
+  %strong sell
+  your ZLD and receive BTC just fill this form
+  and we will send you the payment promptly:
+
+%form{method: 'POST', action: '/do-sell'}
+  %fieldset
+    %label
+      Your
+      = succeed ':' do
+        %a{href: 'https://blog.zold.io/2018/07/18/keygap.html'} keygap
+    %input{type: 'text', name: 'keygap', placeholder: 'Your secret...', autocomplete: 'off'}
+    %label The amount to sell:
+    %input{type: 'text', name: 'amount', size: 12, autocomplete: 'off'}
+    %label
+      Bitcoin
+      %a{href: 'https://en.bitcoin.it/wiki/Address'} address
+      to send to, in
+      %a{href: 'https://en.bitcoin.it/wiki/Transaction#Pay-to-PubkeyHash'} P2PKH
+      or
+      %a{href: 'https://en.bitcoin.it/wiki/Pay_to_script_hash'} P2SH
+      format:
+    %input{type: 'text', name: 'btc', maxlength: 36, size: 45, autocomplete: 'off'}
+    %input{type: 'submit', onclick: "return confirm('Are you sure? This operation is not reversable!')"}
+
+%p
+  This
+  %a{href: 'https://blog.zold.io/2018/12/09/btc-to-zld.html'} blog post
+  explains how this exchange mechanism works.

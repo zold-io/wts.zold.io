@@ -21,25 +21,19 @@
 require 'tempfile'
 require 'openssl'
 require 'zold/log'
+require_relative 'user_error'
 
 #
 # Operations with a user.
 #
 class Ops
-  def initialize(item, user, wallets, remotes, copies, log: Zold::Log::Quiet.new, network: 'test')
-    raise 'User can\'t be nil' if user.nil?
+  def initialize(item, user, wallets, remotes, copies, log: Zold::Log::NULL, network: 'test')
     @user = user
-    raise 'Item can\'t be nil' if item.nil?
     @item = item
-    raise 'Wallets can\'t be nil' if wallets.nil?
     @wallets = wallets
-    raise 'Remotes can\'t be nil' if remotes.nil?
     @remotes = remotes
-    raise 'Copies can\'t be nil' if copies.nil?
     @copies = copies
-    raise 'Log can\'t be nil' if log.nil?
     @log = log
-    raise 'Network can\'t be nil' if network.nil?
     @network = network
   end
 
@@ -50,42 +44,35 @@ class Ops
     Zold::Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
       ['pull', id.to_s, "--network=#{@network}"]
     )
-    @wallets.find(id) do |wallet|
-      @log.info("#{Time.now.utc.iso8601}: Wallet #{wallet.id} pulled successfully \
-in #{(Time.now - start).round}s, the balance is #{wallet.balance}\n \n ")
-    end
+    @log.info("#{Time.now.utc.iso8601}: Wallet #{id} pulled successfully \
+in #{(Time.now - start).round}s\n \n ")
   end
 
   def push
     start = Time.now
+    id = @item.id
     require 'zold/commands/push'
     Zold::Push.new(wallets: @wallets, remotes: @remotes, log: @log).run(
-      ['push', @item.id.to_s, "--network=#{@network}"]
+      ['push', id.to_s, "--network=#{@network}"]
     )
-    @wallets.find(@item.id) do |wallet|
-      @log.info("#{Time.now.utc.iso8601}: Wallet #{wallet.id} pushed successfully \
-in #{(Time.now - start).round}s, the balance is #{wallet.balance}\n \n ")
-    end
+    @log.info("#{Time.now.utc.iso8601}: Wallet #{id} pushed successfully \
+in #{(Time.now - start).round}s\n \n ")
   end
 
   def pay(keygap, bnf, amount, details)
-    raise 'Keygap can\'t be nil' if keygap.nil?
-    raise 'Beneficiary can\'t be nil' if bnf.nil?
-    raise 'Amount can\'t be nil' if amount.nil?
-    raise 'Payment amount can\'t be zero' if amount.zero?
-    raise 'Payment amount can\'t be negative' if amount.negative?
-    raise 'Amount must be of type Amount' unless amount.is_a?(Zold::Amount)
-    raise 'Details can\'t be nil' if details.nil?
-    raise 'The user is not registered yet' unless @item.exists?
-    raise 'The account is not confirmed yet' unless @user.confirmed?
+    raise UserError, 'Payment amount can\'t be zero' if amount.zero?
+    raise UserError, 'Payment amount can\'t be negative' if amount.negative?
+    raise "The user @#{@user.login} is not registered yet" unless @item.exists?
+    raise "The account @#{@user.login} is not confirmed yet" unless @user.confirmed?
     start = Time.now
-    unless @wallets.find(@item.id, &:exists?)
+    id = @item.id
+    unless @wallets.acq(@item.id, &:exists?)
       require 'zold/commands/pull'
       Zold::Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
-        ['pull', @item.id.to_s, "--network=#{@network}"]
+        ['pull', id.to_s, "--network=#{@network}"]
       )
     end
-    if bnf.is_a?(Zold::Id) && !@wallets.find(bnf, &:exists?)
+    if bnf.is_a?(Zold::Id) && !@wallets.acq(bnf, &:exists?)
       require 'zold/commands/pull'
       Zold::Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
         ['pull', bnf.to_s, "--network=#{@network}"]
@@ -95,16 +82,16 @@ in #{(Time.now - start).round}s, the balance is #{wallet.balance}\n \n ")
       File.write(f, @item.key(keygap))
       require 'zold/commands/pay'
       Zold::Pay.new(wallets: @wallets, remotes: @remotes, log: @log).run(
-        ['pay', '--private-key=' + f.path, @item.id.to_s, bnf.to_s, amount.to_zld(8), details, '--force']
+        ['pay', '--private-key=' + f.path, id.to_s, bnf.to_s, amount.to_zld(8), details]
       )
     end
     require 'zold/commands/propagate'
     Zold::Propagate.new(wallets: @wallets, log: @log).run(['propagate', @item.id.to_s])
     require 'zold/commands/push'
     Zold::Push.new(wallets: @wallets, remotes: @remotes, log: @log).run(
-      ['push', @item.id.to_s, "--network=#{@network}"]
+      ['push', id.to_s, "--network=#{@network}"]
     )
-    @log.info("#{Time.now.utc.iso8601}: Paid #{amount} from #{@item.id} to #{bnf} \
+    @log.info("#{Time.now.utc.iso8601}: Paid #{amount} from #{id} to #{bnf} \
 in #{(Time.now - start).round}s: #{details}\n \n ")
   end
 end

@@ -1,15 +1,28 @@
+- u = confirmed_user
+
 %p
   Wallet ID:
-  %code
-    = user.item.id
-  - if user.wallet(&:exists?)
-    = ' | '
-    Balance:
-    = user.wallet(&:balance)
-    = '/'
-    = "#{user.wallet(&:txns).count}t"
+  %a{href: "http://www.zold.io/ledger.html?wallet=#{u.item.id}"}
+    %code= u.item.id
+  - if u.wallet_exists?
+    - u.wallet do |w|
+      %br
+      Balance:
+      = "#{w.balance.to_zld(8)} ZLD (#{w.balance.to_i} zents)"
+      %br
+      Transactions:
+      = w.txns.count
+      %br
+      Taxes:
+      = "#{Zold::Tax.new(w).paid} paid, the debt is #{Zold::Tax.new(w).debt}"
+      %br
+      File size:
+      = "#{Zold::Size.new(w.size)}"
+      %br
+      Modified:
+      = "#{w.mtime.utc.iso8601} (#{Zold::Age.new(w.mtime.utc.iso8601)} ago)"
 
-- if user.wallet(&:exists?) && user.wallet(&:balance).negative?
+- if u.wallet_exists? && u.wallet(&:balance).negative?
   %p{style: 'color: darkred'}
     Your balance is negative, which means that some of your
     transactions will be rolled back in the nearest future!
@@ -17,12 +30,12 @@
     %a{href: '/pull'} pull your wallet
     in a few minutes to get it back to the normal state.
 
-- if user.wallet(&:exists?)
+- if u.wallet_exists?
   %table{style: 'width:100%'}
     %colgroup
       %col{style: 'width: 2em'}
       %col{style: 'width: 5em'}
-      %col{style: 'width: 13em'}
+      %col{style: 'width: 5em'}
       %col{style: 'width: 10em'}
       %col{style: ''}
     %thead
@@ -45,7 +58,7 @@
         %tr
           %td{colspan: 5, style: 'text-align:center'}
             = 'Since ' + start.utc.iso8601
-      - txns = user.wallet(&:txns).sort_by(&:date).reverse.select { |t| start.nil? || t.date < start }.take(50)
+      - txns = u.wallet(&:txns).sort_by(&:date).reverse.select { |t| start.nil? || t.date < start }.take(50)
       - if txns.empty?
         %tr
           %td{colspan: 5, style: 'text-align:center'}
@@ -60,15 +73,17 @@
               - else
                 = '-'
             %td{style: 'text-align:right'}
-              %span{title: t.amount.to_i}
+              %span{title: t.amount.to_i, style: 'color: ' + (t.amount.negative? ? 'darkred' : 'darkgreen')}
                 = t.amount.to_zld
             %td
-              = t.date.utc.iso8601
+              %span{title: t.date.utc.iso8601}
+                = Zold::Age.new(t.date)
             %td
-              %code{title: 'prefix: ' + t.prefix}
-                = t.bnf
+              %a{href: "http://www.zold.io/ledger.html?wallet=#{t.bnf}"}
+                %code{title: 'prefix: ' + t.prefix}
+                  = t.bnf
             %td
-              = t.details
+              = t.details.gsub(/([^ ]{16})/, '\1&shy;')
         - if @last
           %tr
             %td{colspan: 5, style: 'text-align:center'}

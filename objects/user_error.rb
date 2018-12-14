@@ -18,40 +18,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'futex'
-require_relative 'user_error'
-
 #
-# Operations with a user, async.
+# User error
 #
-class AsyncOps
-  def initialize(pool, ops, lock)
-    @pool = pool
-    @ops = ops
-    @lock = lock
-  end
-
-  def pull
-    exec { @ops.pull }
-  end
-
-  def push
-    exec { @ops.push }
-  end
-
-  def pay(keygap, bnf, amount, details)
-    exec { @ops.pay(keygap, bnf, amount, details) }
-  end
-
-  private
-
-  def exec
-    Futex.new(@lock, timeout: 1).open do
-      @pool.post do
-        yield
-      end
-    rescue Futex::CantLock
-      raise UserError, 'Another operation is still running, try again later'
-    end
-  end
+class UserError < StandardError
+  # Nothing special
 end

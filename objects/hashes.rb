@@ -12,23 +12,41 @@
 #
 # THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFINGEMENT. IN NO EVENT SHALL THE
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 # AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'minitest/autorun'
-require_relative 'test__helper'
-require_relative '../objects/stats'
+require 'time'
 
-class StatsTest < Minitest::Test
-  def test_aggregates_metrics
-    stats = Stats.new
-    m = 'metric-1'
-    stats.put(m, 0.1)
-    stats.put(m, 3.0)
-    assert(stats.to_json[m])
-    assert_equal(1.55, stats.to_json[m][:avg])
+#
+# BTC hashes.
+#
+class Hashes
+  def initialize(aws)
+    @aws = aws
+  end
+
+  def seen?(hash)
+    !@aws.query(
+      table_name: 'zold-btc',
+      consistent_read: true,
+      limit: 1,
+      expression_attribute_values: { ':h' => hash },
+      key_condition_expression: 'txhash=:h'
+    ).items.empty?
+  end
+
+  def add(hash, login, wallet)
+    @aws.put_item(
+      table_name: 'zold-btc',
+      item: {
+        'txhash' => hash,
+        'login' => login,
+        'wallet' => wallet,
+        'time' => Time.now.to_i
+      }
+    )
   end
 end

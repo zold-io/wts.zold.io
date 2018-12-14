@@ -19,25 +19,51 @@
 # SOFTWARE.
 
 require 'minitest/autorun'
+require 'webmock/minitest'
 require 'openssl'
 require 'zold/key'
 require 'zold/id'
+require 'zold/http'
 require_relative 'test__helper'
 require_relative '../objects/dynamo'
 require_relative '../objects/item'
 
 class ItemTest < Minitest::Test
   def test_create_and_read
+    WebMock.allow_net_connect!
     item = Item.new('jeff', Dynamo.new.aws)
     assert(!item.exists?)
     pvt = OpenSSL::PKey::RSA.new(2048)
     id = Zold::Id.new
-    keygap = item.create(id, Zold::Key.new(text: pvt.to_pem))
+    item.create(id, Zold::Key.new(text: pvt.to_pem))
     assert(item.exists?)
-    assert_equal(Zold::Key.new(text: pvt.to_pem), item.key(keygap))
+  end
+
+  def test_wipes_keygap
+    WebMock.allow_net_connect!
+    item = Item.new('jeffrey1', Dynamo.new.aws)
+    pvt = OpenSSL::PKey::RSA.new(2048)
+    id = Zold::Id.new
+    pem = pvt.to_pem
+    key = Zold::Key.new(text: pem)
+    keygap = item.create(id, key)
+    assert_equal(key, item.key(keygap))
     assert_equal(id, item.id)
     assert(!item.wiped?)
     item.wipe(keygap)
     assert(item.wiped?)
+    assert_equal(key, item.key(keygap))
+  end
+
+  def test_reads_btc_address
+    WebMock.allow_net_connect!
+    item = Item.new('jeffrey2', Dynamo.new.aws)
+    pvt = OpenSSL::PKey::RSA.new(2048)
+    btc = '32wtFfKbjWHpu9WFzX9adGssnAosqPkSp6'
+    item.create(Zold::Id.new, Zold::Key.new(text: pvt.to_pem))
+    assert(!item.btc?)
+    item.save_btc(btc)
+    assert(item.btc?)
+    assert_equal(btc, item.btc)
   end
 end

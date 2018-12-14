@@ -19,6 +19,7 @@
 # SOFTWARE.
 
 require 'minitest/autorun'
+require 'webmock/minitest'
 require 'rack/test'
 require 'zold/log'
 require_relative 'test__helper'
@@ -38,12 +39,13 @@ class AppTest < Minitest::Test
   include Rack::Test::Methods
 
   def app
-    Sinatra::Application.set(:log, Zold::Log::Verbose.new)
+    Sinatra::Application.set(:log, Zold::Log::VERBOSE)
     Sinatra::Application.set(:pool, Concurrent::FixedThreadPool.new(1, max_queue: 0, fallback_policy: :caller_runs))
     Sinatra::Application
   end
 
   def test_renders_pages
+    WebMock.allow_net_connect!
     [
       '/version',
       '/robots.txt',
@@ -58,20 +60,23 @@ class AppTest < Minitest::Test
   end
 
   def test_not_found
+    WebMock.allow_net_connect!
     get('/unknown_path')
     assert_equal(404, last_response.status)
     assert_equal('text/html;charset=utf-8', last_response.content_type)
   end
 
   def test_200_user_pages
+    WebMock.allow_net_connect!
     login('bill')
-    ['/home', '/key', '/log', '/invoice', '/api'].each do |p|
+    ['/home', '/key', '/pay', '/log', '/invoice', '/api', '/btc'].each do |p|
       get(p)
       assert_equal(200, last_response.status, "#{p} fails: #{last_response.body}")
     end
   end
 
   def test_302_user_pages
+    WebMock.allow_net_connect!
     login('nick')
     ['/pull'].each do |p|
       get(p)
@@ -80,24 +85,111 @@ class AppTest < Minitest::Test
   end
 
   def test_api_code
+    WebMock.allow_net_connect!
     keygap = login('poly')
-    post('/do-api', 'keygap=' + keygap)
+    post('/do-api', form('keygap': keygap))
     assert_equal(200, last_response.status, last_response.body)
     assert(last_response.body.include?('X-Zold-Wts:'), last_response.body)
   end
 
   def test_fetch_rsa_key_via_restful_api
+    WebMock.allow_net_connect!
     keygap = login('anna')
-    post('/do-api-token', 'keygap=' + keygap)
+    post('/do-api-token', form('keygap': keygap))
     assert_equal(200, last_response.status, last_response.body)
     token = last_response.body
     set_cookie('glogin=')
+    assert_raises { get('/id_rsa') }
     header('X-Zold-WTS', token)
-    post('/id_rsa')
+    get('/id_rsa')
     assert_equal(200, last_response.status, last_response.body)
   end
 
+  def test_buy_zld
+    WebMock.allow_net_connect!
+    boss = User.new(
+      '0crat', Item.new('0crat', Dynamo.new.aws, log: test_log),
+      Sinatra::Application.settings.wallets, log: test_log
+    )
+    boss.create
+    login = 'jeff009'
+    user = User.new(
+      login, Item.new(login, Dynamo.new.aws, log: test_log),
+      Sinatra::Application.settings.wallets, log: test_log
+    )
+    user.create
+    keygap = user.keygap
+    user.confirm(keygap)
+    user.item.save_btc('1N1R2HP9JD4LvAtp7rTkpRqF19GH7PH2ZF')
+    get(
+      '/btc-hook?' + form(
+        'transaction_hash': 'c3c0a51ff985618dd8373eadf3540fd1bea44d676452dbab47fe0cc07209547d',
+        'zold_user': login,
+        'confirmations': 10,
+        'value': 27_900
+      )
+    )
+    assert_equal(200, last_response.status, last_response.body)
+    assert_equal('*ok*', last_response.body)
+  end
+
+  def test_sell_zld
+    WebMock.allow_net_connect!
+    name = 'jeff079'
+    login(name)
+    boss = User.new(
+      '0crat', Item.new('0crat', Dynamo.new.aws, log: test_log),
+      Sinatra::Application.settings.wallets, log: test_log
+    )
+    boss.create
+    user = User.new(
+      name, Item.new(name, Dynamo.new.aws, log: test_log),
+      Sinatra::Application.settings.wallets, log: test_log
+    )
+    user.create
+    keygap = user.keygap
+    user.confirm(keygap)
+    Sinatra::Application.settings.wallets.acq(user.item.id) do |w|
+      w.add(
+        Zold::Txn.new(
+          1,
+          Time.now,
+          Zold::Amount.new(zld: 100.0),
+          'NOPREFIX', Zold::Id.new, '-'
+        )
+      )
+    end
+    post(
+      '/do-sell',
+      form(
+        'amount': '1',
+        'btc': '1N1R2HP9JD4LvAtp7rTkpRqF19GH7PH2ZF',
+        'keygap': keygap
+      )
+    )
+    assert_equal(302, last_response.status, last_response.body)
+  end
+
+  def test_pay_for_pizza
+    WebMock.allow_net_connect!
+    keygap = login('yegor1')
+    post(
+      '/do-pay',
+      form(
+        'keygap': keygap,
+        'bnf': '1111222233334444',
+        'amount': 100,
+        'details': 'for pizza'
+      )
+    )
+    assert_equal(302, last_response.status, last_response.body)
+  end
+
   private
+
+  def form(params)
+    params.map { |k, v| "#{k}=#{CGI.escape(v.to_s)}" }.join('&')
+  end
 
   def login(name)
     set_cookie('glogin=' + name)

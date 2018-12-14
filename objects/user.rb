@@ -21,20 +21,17 @@
 require 'tempfile'
 require 'openssl'
 require 'zold/log'
+require_relative 'user_error'
 
 #
 # The user.
 #
 class User
   attr_reader :item, :login
-  def initialize(login, item, wallets, log: Zold::Log::Quiet.new)
-    raise 'Login can\'t be nil' if login.nil?
+  def initialize(login, item, wallets, log: Zold::Log::NULL)
     @login = login.downcase
-    raise 'Item can\'t be nil' if item.nil?
     @item = item
-    raise 'Wallets can\'t be nil' if wallets.nil?
     @wallets = wallets
-    raise 'Log can\'t be nil' if log.nil?
     @log = log
   end
 
@@ -57,7 +54,7 @@ class User
   def invoice
     require 'zold/commands/invoice'
     Zold::Invoice.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
-      ['invoice', @item.id.to_s]
+      ['invoice', wallet(&:id).to_s]
     )
   end
 
@@ -80,8 +77,14 @@ class User
     @item.keygap
   end
 
+  def wallet_exists?
+    @wallets.acq(@item.id, &:exists?)
+  end
+
   def wallet
-    @wallets.find(@item.id) do |wallet|
+    id = @item.id
+    @wallets.acq(id) do |wallet|
+      raise UserError, "You have to pull the wallet #{id} first" unless wallet.exists?
       yield wallet
     end
   end

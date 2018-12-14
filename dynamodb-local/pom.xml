@@ -120,6 +120,7 @@ SOFTWARE.
               </arguments>
               <tables>
                 <table>${basedir}/tables/zold-wallets.json</table>
+                <table>${basedir}/tables/zold-btc.json</table>
               </tables>
             </configuration>
           </execution>

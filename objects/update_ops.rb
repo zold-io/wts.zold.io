@@ -25,14 +25,10 @@ require 'zold/commands/remote'
 # Operations that update remotes before and after.
 #
 class UpdateOps
-  def initialize(ops, remotes, log: Zold::Log::Quiet.new, network: 'test')
-    raise 'Ops can\'t be nil' if ops.nil?
+  def initialize(ops, remotes, log: Zold::Log::NULL, network: 'test')
     @ops = ops
-    raise 'Remotes can\'t be nil' if remotes.nil?
     @remotes = remotes
-    raise 'Log can\'t be nil' if log.nil?
     @log = log
-    raise 'Network can\'t be nil' if network.nil?
     @network = network
   end
 
@@ -59,10 +55,14 @@ class UpdateOps
   def update
     cmd = Zold::Remote.new(remotes: @remotes, log: @log)
     args = ['remote', "--network=#{@network}"]
-    cmd.run(args + ['trim'])
-    cmd.run(args + ['reset']) if @remotes.all.empty?
-    return if @remotes.all.count >= 8 && @remotes.all.find { |r| r[:score] >= Zold::Tax::EXACT_SCORE }
-    cmd.run(args + ['update'])
-    cmd.run(args + ['select'])
+    if @network == Zold::Wallet::MAINET
+      cmd.run(args + ['trim'])
+      cmd.run(args + ['reset']) if @remotes.all.empty?
+      return if @remotes.all.count >= 8 && @remotes.all.find { |r| r[:score] >= Zold::Tax::EXACT_SCORE }
+      cmd.run(args + ['update', '--depth=3'])
+      cmd.run(args + ['select'])
+    else
+      cmd.run(args + ['clean'])
+    end
   end
 end

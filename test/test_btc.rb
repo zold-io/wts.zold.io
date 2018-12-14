@@ -19,32 +19,46 @@
 # SOFTWARE.
 
 require 'minitest/autorun'
-require 'tmpdir'
-require 'zold/amount'
-require 'zold/wallets'
-require 'zold/remotes'
-require 'zold/id'
 require 'webmock/minitest'
 require_relative 'test__helper'
-require_relative '../objects/dynamo'
-require_relative '../objects/user'
-require_relative '../objects/item'
+require_relative '../objects/btc'
 
-class UserTest < Minitest::Test
-  def test_creates
+class BtcTest < Minitest::Test
+  def test_creates_address
+    WebMock.disable_net_connect!
+    stub_request(
+      :get,
+      [
+        'https://api.blockchain.info/v2/receive?',
+        'callback=https://wts.zold.io/btc-hook?zold_user=jeff&gap_limit=256&key=9049a412&xpub=xpub666'
+      ].join
+    ).to_return(status: 200, body: '{"address": "3456789"}')
+    btc = Btc.new('xpub666', '9049a412', log: test_log)
+    address = btc.create('jeff')
+    assert_equal('3456789', address)
+  end
+
+  def test_validates_txn
     WebMock.allow_net_connect!
-    Dir.mktmpdir 'test' do |dir|
-      wallets = Zold::Wallets.new(File.join(dir, 'wallets'))
-      login = 'jeffrey'
-      user = User.new(
-        login, Item.new(login, Dynamo.new.aws, log: test_log),
-        wallets, log: test_log
+    btc = Btc.new('', '', log: test_log)
+    assert(
+      btc.exists?(
+        'c3c0a51ff985618dd8373eadf3540fd1bea44d676452dbab47fe0cc07209547d',
+        27_900,
+        '1N1R2HP9JD4LvAtp7rTkpRqF19GH7PH2ZF'
       )
-      user.create
-      assert(!user.confirmed?)
-      keygap = user.keygap
-      user.confirm(keygap)
-      assert(user.confirmed?)
-    end
+    )
+  end
+
+  def test_validates_invalid_txn
+    WebMock.allow_net_connect!
+    btc = Btc.new('', '', log: test_log)
+    assert(
+      !btc.exists?(
+        'c3c0a51ff985618dd8373eadf3540fd1bea44d676452dbab47fe0cc07209547d',
+        500,
+        '1N1R2HP9JD4LvAtp7rTkpRqF19GH7PH2ZF'
+      )
+    )
   end
 end

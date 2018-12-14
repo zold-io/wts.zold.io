@@ -12,46 +12,26 @@
 #
 # THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFINGEMENT. IN NO EVENT SHALL THE
 # AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'futex'
-require_relative 'user_error'
+require 'minitest/autorun'
+require 'concurrent'
+require 'tmpdir'
+require_relative 'test__helper'
+require_relative '../objects/async_ops'
 
-#
-# Operations with a user, async.
-#
-class AsyncOps
-  def initialize(pool, ops, lock)
-    @pool = pool
-    @ops = ops
-    @lock = lock
-  end
-
-  def pull
-    exec { @ops.pull }
-  end
-
-  def push
-    exec { @ops.push }
-  end
-
-  def pay(keygap, bnf, amount, details)
-    exec { @ops.pay(keygap, bnf, amount, details) }
-  end
-
-  private
-
-  def exec
-    Futex.new(@lock, timeout: 1).open do
-      @pool.post do
-        yield
-      end
-    rescue Futex::CantLock
-      raise UserError, 'Another operation is still running, try again later'
+class AsyncOpsTest < Minitest::Test
+  def test_pull
+    pool = Concurrent::FixedThreadPool.new(16)
+    Dir.mktmpdir 'test' do |dir|
+      ops = AsyncOps.new(pool, ops, File.join(dir, 'lock'))
+      ops.pull
+      pool.shutdown
+      pool.wait_for_termination
     end
   end
 end

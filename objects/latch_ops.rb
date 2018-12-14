@@ -25,9 +25,7 @@ require_relative 'atomic_file'
 #
 class LatchOps
   def initialize(file, ops)
-    raise 'File can\'t be nil' if file.nil?
     @file = file
-    raise 'Ops can\'t be nil' if ops.nil?
     @ops = ops
   end
 

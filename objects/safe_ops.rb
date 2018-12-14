@@ -18,14 +18,14 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require 'backtrace'
+
 #
 # Operations that log exceptions.
 #
 class SafeOps
   def initialize(log, ops)
-    raise 'Log can\'t be nil' if log.nil?
     @log = log
-    raise 'Ops can\'t be nil' if ops.nil?
     @ops = ops
   end
 
@@ -50,6 +50,6 @@ class SafeOps
   private
 
   def print(e)
-    @log.error("#{e.class.name}: #{e.message}\n#{e.backtrace.join("\n\t")}")
+    @log.error(Backtrace.new(e).to_s)
   end
 end

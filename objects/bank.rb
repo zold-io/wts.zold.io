@@ -18,40 +18,35 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'futex'
+require 'backtrace'
+require 'zold/log'
+require 'coinbase/wallet'
 require_relative 'user_error'
 
 #
-# Operations with a user, async.
+# BTC sending out gateway (via Coinbase).
 #
-class AsyncOps
-  def initialize(pool, ops, lock)
-    @pool = pool
-    @ops = ops
-    @lock = lock
-  end
-
-  def pull
-    exec { @ops.pull }
-  end
-
-  def push
-    exec { @ops.push }
-  end
-
-  def pay(keygap, bnf, amount, details)
-    exec { @ops.pay(keygap, bnf, amount, details) }
-  end
-
-  private
-
-  def exec
-    Futex.new(@lock, timeout: 1).open do
-      @pool.post do
-        yield
-      end
-    rescue Futex::CantLock
-      raise UserError, 'Another operation is still running, try again later'
+class Bank
+  # Fake gateway
+  class Fake
+    def send(_address, _usd, _description)
+      # nothing
     end
+  end
+
+  def initialize(key, secret, account, log: Zold::Log::NULL)
+    @key = key
+    @secret = secret
+    @account = account
+    @log = log
+  end
+
+  # Send BTC
+  def send(address, usd, details)
+    acc = Coinbase::Wallet::Client.new(api_key: @key, api_secret: @secret).account(@account)
+    acc.send(to: address, amount: usd, currency: 'USD', description: details)
+  rescue StandardError => e
+    @log.error(Backtrace.new(e))
+    raise "Failed to send \"#{usd}\" to \"#{address}\" with details of \"#{details}\": #{e.message}"
   end
 end

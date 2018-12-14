@@ -19,6 +19,7 @@
 # SOFTWARE.
 
 require 'minitest/autorun'
+require 'webmock/minitest'
 require 'tmpdir'
 require 'zold/amount'
 require 'zold/wallets'
@@ -31,19 +32,19 @@ require_relative '../objects/ops'
 
 class OpsTest < Minitest::Test
   def test_make_payment
+    WebMock.allow_net_connect!
     Dir.mktmpdir 'test' do |dir|
       wallets = Zold::Wallets.new(File.join(dir, 'wallets'))
       remotes = Zold::Remotes.new(file: File.join(dir, 'remotes.csv'))
       remotes.clean
       login = 'jeff01'
-      item = Item.new(login, Dynamo.new.aws, log: log)
-      user = User.new(login, item, wallets, log: log)
+      item = Item.new(login, Dynamo.new.aws, log: test_log)
+      user = User.new(login, item, wallets, log: test_log)
       user.create
       keygap = user.keygap
       user.confirm(keygap)
-      friend = User.new('friend', Item.new('friend', Dynamo.new.aws, log: log), wallets, log: log)
+      friend = User.new('friend', Item.new('friend', Dynamo.new.aws, log: test_log), wallets, log: test_log)
       friend.create
-      puts wallets.all
       # copies = File.join(dir, 'copies')
       # Ops.new(item, user, wallets, remotes, copies, log: log).pay(
       #   keygap, friend.wallet.id, Zold::Amount.new(zld: 19.99), 'for fun'

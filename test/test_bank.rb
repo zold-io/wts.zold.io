@@ -19,44 +19,18 @@
 # SOFTWARE.
 
 require 'minitest/autorun'
-require 'zold/key'
-require 'zold/id'
-require 'zold/log'
-require 'zold/wallets'
-require 'zold/remotes'
-require 'tmpdir'
+require 'webmock/minitest'
 require_relative 'test__helper'
-require_relative '../objects/stress'
+require_relative '../objects/bank'
 
-class StressTest < Minitest::Test
-  def test_pulls_wallets
-    skip
-    exec do |stress|
-      stress.reload
-      assert(true)
-    end
-  end
-
-  def test_renders_json
-    exec do |stress|
-      assert(stress.to_json[:wallets])
-    end
-  end
-
-  def exec
-    Dir.mktmpdir do |dir|
-      wallets = Zold::Wallets.new(dir)
-      remotes = Zold::Remotes.new(file: File.join(dir, 'remotes'))
-      stress = Stress.new(
-        id: Zold::Id.new('221255bc9af7baec'),
-        pub: Zold::Key.new(text: ''),
-        pvt: Zold::Key.new(text: ''),
-        wallets: wallets,
-        remotes: remotes,
-        copies: File.join(dir, 'copies'),
-        log: Zold::Log::Regular.new
-      )
-      yield stress
-    end
+class BankTest < Minitest::Test
+  def test_sends_btc
+    WebMock.disable_net_connect!
+    stub_request(:get, 'https://api.coinbase.com/v2/accounts/account').to_return(
+      status: 200, body: '{}'
+    )
+    stub_request(:post, 'https://api.coinbase.com/v2/accounts//transactions').to_return(status: 200)
+    bank = Bank.new('key', 'secret', 'account', log: test_log)
+    bank.send('1N1R2HP9JD4LvAtp7rTkpRqF19GH7PH2ZF', 1.0, 'test')
   end
 end
