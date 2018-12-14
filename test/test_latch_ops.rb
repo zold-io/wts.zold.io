@@ -36,7 +36,7 @@ class LatchOpsTest < Minitest::Test
     Dir.mktmpdir 'test' do |dir|
       file = File.join(dir, 'a/a/a/a/latch.txt')
       latch = LatchOps.new(file, FakeOps.new(file))
-      latch.push do |ops|
+      latch.push do
         assert_equal(1, latch.counter)
       end
       latch.push
