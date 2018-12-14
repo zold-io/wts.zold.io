@@ -28,10 +28,28 @@ class AsyncOpsTest < Minitest::Test
   def test_pull
     pool = Concurrent::FixedThreadPool.new(16)
     Dir.mktmpdir 'test' do |dir|
-      ops = AsyncOps.new(pool, ops, File.join(dir, 'lock'))
+      ops = AsyncOps.new(pool, nil, File.join(dir, 'lock'))
       ops.pull
       pool.shutdown
       pool.wait_for_termination
+    end
+  end
+
+  def test_prevents_multiple_threads_per_user
+    pool = Concurrent::FixedThreadPool.new(16)
+    Dir.mktmpdir 'test' do |dir|
+      ops = Object.new
+      def ops.pull
+        sleep 1000
+      end
+      async = AsyncOps.new(pool, ops, File.join(dir, 'lock'))
+      async.pull
+      sleep 0.1
+      assert_raises UserError do
+        async.pull
+      end
+      pool.shutdown
+      pool.wait_for_termination(1)
     end
   end
 end

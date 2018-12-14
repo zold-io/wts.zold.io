@@ -46,12 +46,11 @@ class AsyncOps
   private
 
   def exec
-    Futex.new(@lock, timeout: 1).open do
-      @pool.post do
+    raise UserError, 'Another operation is still running, try again later' if File.exist?(@lock)
+    @pool.post do
+      Futex.new(@lock, timeout: 1, lock: @lock).open do
         yield
       end
-    rescue Futex::CantLock
-      raise UserError, 'Another operation is still running, try again later'
     end
   end
 end
