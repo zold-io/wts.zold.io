@@ -25,9 +25,7 @@ require 'backtrace'
 #
 class SafeOps
   def initialize(log, ops)
-    raise 'Log can\'t be nil' if log.nil?
     @log = log
-    raise 'Ops can\'t be nil' if ops.nil?
     @ops = ops
   end
 

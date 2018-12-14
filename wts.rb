@@ -256,7 +256,8 @@ end
 get '/create' do
   user.create
   settings.telepost.spam(
-    "The user `@#{user.login}` created a new wallet `#{user.item.id}`",
+    "The user [@#{user.login}(https://github.com/#{user.login})",
+    "created a new wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})",
     "from `#{request.ip}` (#{country})."
   )
   pay_bonus
@@ -629,7 +630,7 @@ def ops(u = user)
       )
     )
   )
-  ops = AsyncOps.new(settings.pool, ops) unless ENV['RACK_ENV'] == 'test'
+  ops = AsyncOps.new(settings.pool, ops, File.join('/tmp/wts/locks', u.login)) unless ENV['RACK_ENV'] == 'test'
   ops
 end
 
@@ -673,11 +674,15 @@ def pay_hosting_bonuses
   if winners.empty?
     settings.telepost.spam(
       'Attention, no hosting bonuses were paid because no nodes were found,',
-      'which would deserve that. Something is wrong with the network.'
+      "which would deserve that, among [#{settings.remotes.all.count} visible](https://wts.zold.io).",
+      'Something is wrong with the network,',
+      'check this [health](http://www.zold.io/health.html) page.'
     )
   else
     settings.telepost.spam(
-      "Hosting bonus of #{total} has been distributed among #{winners.count} wallets:",
+      "Hosting bonus of #{total} has been distributed among #{winners.count} wallets",
+      '[visible](https://wts.zold.io/remotes) to us at the moment,',
+      'among [others](http://www.zold.io/health.html):',
       winners.map do |s|
         "[#{s.host}:#{s.port}](http://www.zold.io/ledger.html?wallet=#{s.invoice.split('@')[1]})/#{s.value}"
       end.join(', ') + '.',
