@@ -46,9 +46,9 @@ class AsyncOps
   private
 
   def exec
-    @pool.post do
-      Futex.new(@lock, timeout: 1).open do
-        @ops.pull
+    Futex.new(@lock, timeout: 1).open do
+      @pool.post do
+        yield
       end
     rescue Futex::CantLock
       raise UserError, 'Another operation is still running, try again later'
