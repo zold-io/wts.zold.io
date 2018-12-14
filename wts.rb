@@ -417,7 +417,6 @@ get '/btc-hook' do
   satoshi = params[:value].to_i
   raise UserError, "Tx #{hash}/#{satoshi}/#{bnf.item.btc} not found" unless settings.btc.exists?(hash, satoshi, address)
   raise UserError, "BTC hash #{hash} has already been paid" if settings.hashes.seen?(hash)
-  settings.hashes.add(hash, bnf.login, bnf.item.id)
   price = settings.btc.price
   bitcoin = satoshi.to_f / 100_000_000
   usd = bitcoin * price * 0.9
@@ -429,6 +428,7 @@ get '/btc-hook' do
       Zold::Amount.new(zld: usd),
       "BTC exchange of #{bitcoin.round(8)} at #{hash}, price is #{price}"
     )
+    settings.hashes.add(hash, bnf.login, bnf.item.id)
     settings.telepost.spam(
       "In: #{bitcoin} BTC exchanged to #{usd} ZLD",
       "by [@#{bnf.login}](https://github.com/#{bnf.login}) from `#{request.ip}` (#{country})",
