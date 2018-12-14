@@ -37,6 +37,7 @@ class AsyncJob
       Futex.new(@lock, timeout: 1, lock: @lock).open do
         @job.call
       end
+      File.rm(@lock)
     end
   end
 end
