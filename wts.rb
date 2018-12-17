@@ -430,14 +430,14 @@ get '/btc-hook' do
     )
     settings.hashes.add(hash, bnf.login, bnf.item.id)
     settings.telepost.spam(
-      "In: #{bitcoin} BTC exchanged to #{usd} ZLD",
+      "In: #{bitcoin} BTC [exchanged](https://blog.zold.io/2018/12/09/btc-to-zld.html) to #{usd} ZLD",
       "by [@#{bnf.login}](https://github.com/#{bnf.login}) from `#{request.ip}` (#{country})",
       "in [#{hash[0..8]}](https://www.blockchain.com/btc/tx/#{hash})",
       "via [#{address[0..8]}](https://www.blockchain.com/btc/address/#{address}),",
       "to the wallet [#{bnf.item.id}](http://www.zold.io/ledger.html?wallet=#{bnf.item.id})",
-      "with the balance of #{bnf.wallet(&:balance)}.",
-      "BTC price at the moment of exchange was [$#{price}](https://blockchain.info/ticker).",
-      "The payer is [@#{boss.login}](https://github.com/#{boss.login}) with the wallet",
+      "with the balance of #{bnf.wallet(&:balance)};",
+      "BTC price at the moment of exchange was [$#{price}](https://blockchain.info/ticker);",
+      "the payer is [@#{boss.login}](https://github.com/#{boss.login}) with the wallet",
       "[#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id}),",
       "the remaining balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t)."
     )
@@ -469,13 +469,13 @@ post '/do-sell' do
       "Exchange of #{amount.to_zld} by @#{user.login} to #{user.item.id}, price is #{price}"
     )
     settings.telepost.spam(
-      "Out: #{amount} exchanged to #{bitcoin} BTC",
+      "Out: #{amount} [exchanged](https://blog.zold.io/2018/12/09/btc-to-zld.html) to #{bitcoin} BTC",
       "by [@#{user.login}](https://github.com/#{user.login}) from `#{request.ip}` (#{country})",
       "from the wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})",
       "with the balance of #{user.wallet(&:balance)}",
-      "to Bitcoin address [#{address[0..8]}](https://www.blockchain.com/btc/address/#{address}).",
-      "BTC price at the time of exchange was [$#{price}](https://blockchain.info/ticker).",
-      "ZLD deposited to [#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id})",
+      "to Bitcoin address [#{address[0..8]}](https://www.blockchain.com/btc/address/#{address});",
+      "BTC price at the time of exchange was [$#{price}](https://blockchain.info/ticker);",
+      "zolds were deposited to [#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id})",
       "of [#{boss.login}](https://github.com/#{boss.login}),",
       "the balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t)."
     )
@@ -575,6 +575,7 @@ def merged(hash)
 end
 
 def log(user = @locals[:guser])
+  raise 'User can\'t be nil or empty' if user.nil? || user.empty?
   TeeLog.new(
     settings.log,
     FileLog.new(File.join(settings.root, ".zold-wts/logs/#{user}"))
@@ -660,7 +661,7 @@ def pay_bonus
       "to their wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})",
       "from our wallet [#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id})",
       "of [#{boss.login}](https://github.com/#{boss.login})",
-      "with the remaining balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t)."
+      "with the remaining balance of #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t)."
     )
   end
 end
@@ -669,13 +670,11 @@ def pay_hosting_bonuses
   login = settings.config['rewards']['login']
   boss = user(login)
   return unless boss.item.exists?
-  require 'zold/commands/remote'
-  cmd = Zold::Remote.new(remotes: settings.remotes, log: log(login))
-  cmd.run(%w[remote defaults])
-  cmd.run(%w[remote update])
-  winners = cmd.run(%w[remote elect --min-score=8 --max-winners=8])
-  total = Zold::Amount.new(zld: 1.0)
   job(boss) do
+    require 'zold/commands/remote'
+    cmd = Zold::Remote.new(remotes: settings.remotes, log: log(login))
+    winners = cmd.run(%w[remote elect --min-score=8 --max-winners=8])
+    total = Zold::Amount.new(zld: 1.0)
     winners.each do |score|
       ops(boss).pay(
         settings.config['rewards']['keygap'],
@@ -686,20 +685,22 @@ def pay_hosting_bonuses
     end
     if winners.empty?
       settings.telepost.spam(
-        'Attention, no hosting bonuses were paid because no nodes were found,',
-        "which would deserve that, among [#{settings.remotes.all.count} visible](https://wts.zold.io/remotes).",
-        'Something is wrong with the network,',
-        'check this [health](http://www.zold.io/health.html) page.'
+        'Attention, no hosting [bonuses](https://blog.zold.io/2018/08/14/hosting-bonuses.html)',
+        'were paid because no nodes were found,',
+        "which would deserve that, among [#{settings.remotes.all.count} visible](https://wts.zold.io/remotes);",
+        'something is wrong with the network,',
+        'check this [health](http://www.zold.io/health.html) page!'
       )
     else
       settings.telepost.spam(
-        "Hosting bonus of #{total} has been distributed among #{winners.count} wallets",
+        'Hosting [bonus](https://blog.zold.io/2018/08/14/hosting-bonuses.html)',
+        "of #{total} has been distributed among #{winners.count} wallets",
         '[visible](https://wts.zold.io/remotes) to us at the moment,',
         'among [others](http://www.zold.io/health.html):',
         winners.map do |s|
           "[#{s.host}:#{s.port}](http://www.zold.io/ledger.html?wallet=#{s.invoice.split('@')[1]})/#{s.value}"
-        end.join(', ') + '.',
-        "The payer is [@#{boss.login}](https://github.com/#{boss.login}) with the wallet",
+        end.join(', ') + ';',
+        "the payer is [@#{boss.login}](https://github.com/#{boss.login}) with the wallet",
         "[#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id}),",
         "the remaining balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t)."
       )

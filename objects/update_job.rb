@@ -37,11 +37,10 @@ class UpdateJob
     args = ['remote', "--network=#{@network}"]
     if @network == Zold::Wallet::MAINET
       cmd.run(args + ['trim'])
+      cmd.run(args + ['defaults'])
       cmd.run(args + ['reset']) if @remotes.all.empty?
-      if @remotes.all.count < 8 || !@remotes.all.find { |r| r[:score] >= Zold::Tax::EXACT_SCORE }
-        cmd.run(args + ['update', '--depth=3'])
-        cmd.run(args + ['select'])
-      end
+      cmd.run(args + ['update', '--depth=3'])
+      cmd.run(args + ['select'])
     else
       cmd.run(args + ['clean'])
     end
