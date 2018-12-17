@@ -37,7 +37,7 @@ class UpdateJob
     args = ['remote', "--network=#{@network}"]
     if @network == Zold::Wallet::MAINET
       cmd.run(args + ['trim'])
-      cmd.run(args + ['defaults'])
+      cmd.run(args + ['masters'])
       cmd.run(args + ['reset']) if @remotes.all.empty?
       cmd.run(args + ['update', '--depth=3'])
       cmd.run(args + ['select'])
