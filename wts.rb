@@ -37,7 +37,6 @@ require 'rack/ssl'
 require 'zold'
 require 'zold/sync_wallets'
 require 'zold/cached_wallets'
-
 require_relative 'version'
 require_relative 'objects/item'
 require_relative 'objects/user'
@@ -50,6 +49,7 @@ require_relative 'objects/ops'
 require_relative 'objects/async_job'
 require_relative 'objects/safe_job'
 require_relative 'objects/update_job'
+require_relative 'objects/clean_job'
 require_relative 'objects/versioned_job'
 require_relative 'objects/file_log'
 require_relative 'objects/tee_log'
@@ -176,7 +176,9 @@ configure do
     end
   end
   settings.telepost.spam(
-    "[WTS](https://wts.zold.io) server software `#{VERSION}` has been deployed and starts to work.",
+    '[WTS](https://wts.zold.io) server software',
+    "[#{VERSION}](https://github.com/zold-io/wts.zold.io/releases/tag/#{VERSION})",
+    'has been deployed and starts to work.',
     "Zold version is [#{Zold::VERSION}](https://rubygems.org/gems/zold/versions/#{Zold::VERSION}),",
     "protocol is `#{Zold::PROTOCOL}`."
   )
@@ -629,17 +631,23 @@ def ops(u = user)
 end
 
 def job(u = user)
+  lg = log(u.login)
   job = SafeJob.new(
     VersionedJob.new(
-      UpdateJob.new(
-        proc { yield },
-        settings.remotes,
-        log: log(u.login),
-        network: network
+      CleanJob.new(
+        UpdateJob.new(
+          proc { yield },
+          settings.remotes,
+          log: lg,
+          network: network
+        ),
+        settings.wallets,
+        u.item.id,
+        log: lg
       ),
-      log: log(u.login)
+      log: lg
     ),
-    log: log(u.login)
+    log: lg
   )
   job = AsyncJob.new(job, settings.pool, latch(u.login)) unless ENV['RACK_ENV'] == 'test'
   job.call

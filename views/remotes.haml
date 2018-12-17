@@ -10,7 +10,7 @@
       %th Score
       %th Errors
   %tbody
-    - remotes.all.each do |r|
+    - remotes.all.sort_by { |r| r[:score] }.reverse.each do |r|
       %tr
         %td
           %a{href: "http://#{r[:host]}:#{r[:port]}/"}

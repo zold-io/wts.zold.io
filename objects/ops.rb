@@ -38,6 +38,7 @@ class Ops
   end
 
   def pull
+    raise 'There are no visible remote nodes, can\'t PULL' if @remotes.all.empty?
     start = Time.now
     id = @item.id
     require 'zold/commands/pull'
@@ -49,6 +50,7 @@ in #{(Time.now - start).round}s\n \n ")
   end
 
   def push
+    raise 'There are no visible remote nodes, can\'t PUSH' if @remotes.all.empty?
     start = Time.now
     id = @item.id
     require 'zold/commands/push'
@@ -66,18 +68,8 @@ in #{(Time.now - start).round}s\n \n ")
     raise "The account @#{@user.login} is not confirmed yet" unless @user.confirmed?
     start = Time.now
     id = @item.id
-    unless @wallets.acq(@item.id, &:exists?)
-      require 'zold/commands/pull'
-      Zold::Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
-        ['pull', id.to_s, "--network=#{@network}"]
-      )
-    end
-    if bnf.is_a?(Zold::Id) && !@wallets.acq(bnf, &:exists?)
-      require 'zold/commands/pull'
-      Zold::Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
-        ['pull', bnf.to_s, "--network=#{@network}"]
-      )
-    end
+    pull
+    raise 'There is no wallet file after PULL, can\'t pay' unless @wallets.acq(id, &:exists?)
     Tempfile.open do |f|
       File.write(f, @item.key(keygap))
       require 'zold/commands/pay'
@@ -85,12 +77,7 @@ in #{(Time.now - start).round}s\n \n ")
         ['pay', '--private-key=' + f.path, id.to_s, bnf.to_s, amount.to_zld(8), details]
       )
     end
-    require 'zold/commands/propagate'
-    Zold::Propagate.new(wallets: @wallets, log: @log).run(['propagate', @item.id.to_s])
-    require 'zold/commands/push'
-    Zold::Push.new(wallets: @wallets, remotes: @remotes, log: @log).run(
-      ['push', id.to_s, "--network=#{@network}"]
-    )
+    push
     @log.info("#{Time.now.utc.iso8601}: Paid #{amount} from #{id} to #{bnf} \
 in #{(Time.now - start).round}s: #{details}\n \n ")
   end

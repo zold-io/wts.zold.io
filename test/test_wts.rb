@@ -68,8 +68,24 @@ class AppTest < Minitest::Test
 
   def test_200_user_pages
     WebMock.allow_net_connect!
-    login('bill')
-    ['/home', '/key', '/pay', '/log', '/invoice', '/api', '/btc'].each do |p|
+    name = 'bill'
+    login(name)
+    user = User.new(
+      name, Item.new(name, Dynamo.new.aws, log: test_log),
+      Sinatra::Application.settings.wallets, log: test_log
+    )
+    user.create
+    keygap = user.keygap
+    user.confirm(keygap)
+    [
+      '/home',
+      '/key',
+      '/pay',
+      '/log',
+      '/invoice',
+      '/api',
+      '/btc'
+    ].each do |p|
       get(p)
       assert_equal(200, last_response.status, "#{p} fails: #{last_response.body}")
     end
@@ -112,6 +128,7 @@ class AppTest < Minitest::Test
       Sinatra::Application.settings.wallets, log: test_log
     )
     boss.create
+    boss.confirm(boss.keygap)
     login = 'jeff009'
     user = User.new(
       login, Item.new(login, Dynamo.new.aws, log: test_log),
