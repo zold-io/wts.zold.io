@@ -14,7 +14,8 @@
       %tr
         %td
           %a{href: "http://#{r[:host]}:#{r[:port]}/"}
-            = "#{r[:host]}:#{r[:port]}"
+            %span{style: (r[:master] ? 'font-weight:bold' : '')}
+              = "#{r[:host]}:#{r[:port]}"
         %td{style: 'text-align:right;color:' + (r[:score] < 4 ? 'red' : (r[:score] < 16 ? 'orange' : 'green'))}
           = r[:score]
         %td{style: 'text-align:right;color:' + (r[:errors] > 25 ? 'red' : 'inherit')}
