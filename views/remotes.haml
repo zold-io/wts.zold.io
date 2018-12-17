@@ -1,25 +1,31 @@
-%p
-  Here is the full list of
-  = remotes.all.count
-  remote node(s) we see now:
-
-%table
-  %thead
-    %tr
-      %th Host
-      %th Score
-      %th Errors
-  %tbody
-    - remotes.all.sort_by { |r| r[:score] }.reverse.each do |r|
+- if remotes.all.empty?
+  %p
+    There are no visible remote nodes at the moment.
+    Try to
+    %a{href: '/pull'} pull
+    in order to update the list.
+- else
+  %p
+    Here is the full list of
+    = remotes.all.count
+    remote node(s) we see now:
+  %table
+    %thead
       %tr
-        %td
-          %a{href: "http://#{r[:host]}:#{r[:port]}/"}
-            %span{style: (r[:master] ? 'font-weight:bold' : '')}
-              = "#{r[:host]}:#{r[:port]}"
-        %td{style: 'text-align:right;color:' + (r[:score] < 4 ? 'red' : (r[:score] < 16 ? 'orange' : 'green'))}
-          = r[:score]
-        %td{style: 'text-align:right;color:' + (r[:errors] > 25 ? 'red' : 'inherit')}
-          = r[:errors]
+        %th Host
+        %th Score
+        %th Errors
+    %tbody
+      - remotes.all.sort_by { |r| r[:score] }.reverse.each do |r|
+        %tr
+          %td
+            %a{href: "http://#{r[:host]}:#{r[:port]}/"}
+              %span{style: (r[:master] ? 'font-weight:bold' : '')}
+                = "#{r[:host]}:#{r[:port]}"
+          %td{style: 'text-align:right;color:' + (r[:score] < 4 ? 'red' : (r[:score] < 16 ? 'orange' : 'green'))}
+            = r[:score]
+          %td{style: 'text-align:right;color:' + (r[:errors] > 25 ? 'red' : 'inherit')}
+            = r[:errors]
 
 %p
   The list has been updated
