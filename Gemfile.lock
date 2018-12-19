@@ -208,7 +208,7 @@ GEM
       rainbow (~> 3.0)
       slop (~> 4.4)
     zache (0.5.3)
-    zold (0.20.0)
+    zold (0.20.1)
       backtrace (>= 0.3)
       concurrent-ruby (= 1.1.3)
       cucumber (= 3.1.2)
@@ -268,7 +268,7 @@ DEPENDENCIES
   telepost (= 0.2.1)
   webmock (= 3.4.2)
   xcop (= 0.6)
-  zold (= 0.20.0)
+  zold (= 0.20.1)
 
 RUBY VERSION
    ruby 2.5.1p57

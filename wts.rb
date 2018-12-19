@@ -448,6 +448,9 @@ get '/btc-hook' do
 end
 
 post '/do-sell' do
+  raise UserError, 'Amoung is not provided' if params[:amount].nil?
+  raise UserError, 'Bitcoin address is not provided' if params[:btc].nil?
+  raise UserError, 'Keygap is not provided' if params[:keygap].nil?
   amount = Zold::Amount.new(zld: params[:amount].to_f)
   raise UserError, "The amount #{amount} is too large for us now" if amount > Zold::Amount.new(zld: 4.0)
   address = params[:btc]
@@ -487,7 +490,13 @@ end
 
 get '/log' do
   content_type 'text/plain', charset: 'utf-8'
-  log.content
+  log.content + "\n\n\n" + [
+    'If you see any errors here, which you don\'t understand,',
+    'please submit an issue to our GitHub repository here and copy the entire log over there:',
+    'https://github.com/zold-io/wts.zold.io/issues;',
+    'we need your feedback in order to make our system better;',
+    'you can also discuss it in our Telegram group: https://t.me/zold_io.'
+  ].join(' ')
 end
 
 get '/remotes' do
