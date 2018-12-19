@@ -257,7 +257,7 @@ end
 get '/create' do
   user.create
   settings.telepost.spam(
-    "The user [@#{user.login}(https://github.com/#{user.login})",
+    "The user [@#{user.login}](https://github.com/#{user.login})",
     "created a new wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})",
     "from `#{request.ip}` (#{country})."
   )
@@ -576,11 +576,10 @@ def merged(hash)
   out
 end
 
-def log(user = @locals[:guser])
-  raise 'User can\'t be nil or empty' if user.nil? || user.empty?
+def log(u = user.login)
   TeeLog.new(
     settings.log,
-    FileLog.new(File.join(settings.root, ".zold-wts/logs/#{user}"))
+    FileLog.new(File.join(settings.root, ".zold-wts/logs/#{u}"))
   )
 end
 
