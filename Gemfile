@@ -20,12 +20,12 @@
 source 'https://rubygems.org'
 ruby '2.6.0'
 
-gem 'aws-sdk-dynamodb', '1.15.0'
-gem 'aws-sdk-s3', '1.23.1'
+gem 'aws-sdk-dynamodb', '1.19.0'
+gem 'aws-sdk-s3', '1.30.0'
 gem 'backports', '3.11.4'
 gem 'backtrace', '0.3.0'
 gem 'codecov', '0.1.13'
-gem 'coinbase', '4.1.0'
+gem 'coinbase', '4.2.0'
 gem 'concurrent-ruby', '1.1.3'
 gem 'futex', '0.8.1'
 gem 'geocoder', '1.5.0'
@@ -36,15 +36,15 @@ gem 'rack', '2.0.6'
 gem 'rack-ssl', '1.4.1'
 gem 'rack-test', '1.1.0'
 gem 'rake', '12.3.1', require: false
-gem 'random-port', '0.3.0', require: false
+gem 'random-port', '0.3.1', require: false
 gem 'rerun', '0.13.0', require: false
 gem 'rubocop', '0.60.0', require: false
 gem 'rubocop-rspec', '1.30.1', require: false
-gem 'sass', '3.6.0'
+gem 'sass', '3.7.3'
 gem 'sentry-raven', '2.7.4'
 gem 'sinatra', '2.0.4'
 gem 'sinatra-contrib', '2.0.4'
 gem 'telepost', '0.2.2'
 gem 'webmock', '3.5.1'
 gem 'xcop', '0.6'
-gem 'zold', '0.21.0'
+gem 'zold', '0.21.1'
