@@ -25,17 +25,21 @@ require 'zold/commands/remove'
 # Job that removes the wallet first.
 #
 class CleanJob
-  def initialize(job, wallets, id, log: Zold::Log::NULL)
+  def initialize(job, wallets, item, log: Zold::Log::NULL)
     @job = job
     @wallets = wallets
-    @id = id
+    @item = item
     @log = log
   end
 
   def call
-    Zold::Remove.new(wallets: @wallets, log: @log).run(
-      ['remove', @id.to_s, '--force']
-    )
+    if @item.exists?
+      Zold::Remove.new(wallets: @wallets, log: @log).run(
+        ['remove', @item.id.to_s, '--force']
+      )
+    else
+      @log.info("The user #{@item.login} doesn't have a wallet yet")
+    end
     @job.call
   end
 end

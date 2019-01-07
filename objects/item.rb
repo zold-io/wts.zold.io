@@ -28,6 +28,8 @@ require_relative 'user_error'
 # Item in AWS DynamoDB.
 #
 class Item
+  attr_reader :login
+
   def initialize(login, aws, log: Zold::Log::NULL)
     @login = login.downcase
     @aws = aws

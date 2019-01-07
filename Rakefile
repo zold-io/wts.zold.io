@@ -86,7 +86,7 @@ task run: :dynamo do
 end
 
 task :copyright do
-  sh "grep -q -r '-#{Date.today.strftime('%Y')}' \
+  sh "grep -q -r '#{Date.today.strftime('%Y')}' \
     --include '*.rb' \
     --include '*.txt' \
     --include 'Rakefile' \

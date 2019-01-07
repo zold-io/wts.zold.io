@@ -255,14 +255,16 @@ get '/home' do
 end
 
 get '/create' do
-  user.create
-  settings.telepost.spam(
-    "The user [@#{user.login}](https://github.com/#{user.login})",
-    "created a new wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})",
-    "from `#{request.ip}` (#{country})."
-  )
-  pay_bonus
-  job { ops.push }
+  job do
+    user.create
+    ops.push
+    settings.telepost.spam(
+      "The user [@#{user.login}](https://github.com/#{user.login})",
+      "created a new wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})",
+      "from `#{request.ip}` (#{country})."
+    )
+    pay_bonus
+  end
   flash('/', "Wallet #{user.item.id} created and pushed")
 end
 
@@ -651,7 +653,7 @@ def job(u = user)
           network: network
         ),
         settings.wallets,
-        u.item.id,
+        u.item,
         log: lg
       ),
       log: lg
