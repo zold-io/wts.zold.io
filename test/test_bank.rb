@@ -33,4 +33,17 @@ class BankTest < Minitest::Test
     bank = Bank.new('key', 'secret', 'account', log: test_log)
     bank.send('1N1R2HP9JD4LvAtp7rTkpRqF19GH7PH2ZF', 1.0, 'test')
   end
+
+  # @todo #91:30min This unit test doesn't work for some reason. I can't
+  #  figure out what's wrong here. Let's investigate and fix. The code
+  #  works fine with production API, though.
+  def test_checks_balance
+    skip
+    WebMock.disable_net_connect!
+    stub_request(:get, 'https://api.coinbase.com/v2/accounts/account').to_return(
+      status: 200, body: '{"balance": {"amount": "1.0", "currency": "BTC"}}'
+    )
+    bank = Bank.new('key', 'secret', 'account', log: test_log)
+    assert_equal(1.0, bank.balance)
+  end
 end

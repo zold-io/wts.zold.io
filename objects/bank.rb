@@ -41,6 +41,12 @@ class Bank
     @log = log
   end
 
+  # Get BTC balance, in BTC
+  def balance
+    acc = Coinbase::Wallet::Client.new(api_key: @key, api_secret: @secret).account(@account)
+    acc.balance['amount'].to_f
+  end
+
   # Send BTC
   def send(address, usd, details)
     acc = Coinbase::Wallet::Client.new(api_key: @key, api_secret: @secret).account(@account)
