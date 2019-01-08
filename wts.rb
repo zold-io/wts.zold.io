@@ -351,7 +351,7 @@ post '/do-pay' do
   end
   amount = Zold::Amount.new(zld: params[:amount].to_f)
   details = params[:details]
-  job do
+  headers['X-Zold-Job'] = job do
     ops.pay(keygap, bnf, amount, details)
     settings.telepost.spam(
       "Payment sent by [@#{user.login}](https://github.com/#{user.login})",
@@ -366,7 +366,7 @@ post '/do-pay' do
 end
 
 get '/pull' do
-  job { ops.pull }
+  headers['X-Zold-Job'] = job { ops.pull }
   flash('/', "Your wallet #{user.item.id} will be pulled soon")
 end
 
@@ -760,7 +760,6 @@ def job(u = user)
   )
   job = AsyncJob.new(job, settings.pool, latch(u.login)) unless ENV['RACK_ENV'] == 'test'
   job.call
-  headers['X-Zold-Job'] = uuid
   uuid
 end
 
