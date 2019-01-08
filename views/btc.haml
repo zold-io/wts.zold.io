@@ -6,9 +6,7 @@
 %p
   The rate is
   %strong= rate
-  BTC per 1 ZLD (minus
-  = succeed ').' do
-    %strong= "#{fee * 100}%"
+  BTC per 1 ZLD.
   %a{href: '/rate'} Why?
 
 %p
@@ -31,7 +29,9 @@
   To
   %strong sell
   your ZLD and receive BTC just fill this form
-  and we will send you the payment promptly:
+  and we will send you the payment promptly, deducting
+  = "#{(fee * 100)}%"
+  fee:
 
 %form{method: 'POST', action: '/do-sell'}
   %fieldset

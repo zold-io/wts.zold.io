@@ -462,7 +462,7 @@ get '/btc-hook' do
   raise UserError, "Tx #{hash}/#{satoshi}/#{bnf.item.btc} not found" unless settings.btc.exists?(hash, satoshi, address)
   raise UserError, "BTC hash #{hash} has already been paid" if settings.hashes.seen?(hash)
   bitcoin = satoshi.to_f / 100_000_000
-  zld = Zold::Amount.new(zld: bitcoin / rate * (1 - fee))
+  zld = Zold::Amount.new(zld: bitcoin / rate)
   boss = user(settings.config['exchange']['login'])
   job(boss) do
     ops(boss).pay(
@@ -500,18 +500,26 @@ post '/do-sell' do
     raise UserError, 'At the moment we can send only one payment per day, sorry' unless user.login == 'yegor256'
   end
   price = settings.btc.price
-  bitcoin = (amount.to_zld(8).to_f * rate * (1 - fee)).round(10)
+  bitcoin = amount.to_zld(8).to_f * rate
   usd = bitcoin * price
   boss = user(settings.config['exchange']['login'])
+  rewards = user(settings.config['rewards']['login'])
   job do
     ops.pay(
       params[:keygap],
       boss.item.id,
-      amount,
+      amount * (1 - fee),
       "ZLD exchange to #{bitcoin} BTC at #{address}, rate is #{rate}, fee is #{fee}"
     )
+    ops.pay(
+      params[:keygap],
+      rewards.item.id,
+      amount * fee,
+      "Fee for exchange of #{bitcoin} BTC at #{address}, rate is #{rate}, fee is #{fee}"
+    )
     settings.bank.send(
-      address, usd,
+      address,
+      usd * (1 - fee),
       "Exchange of #{amount.to_zld(8)} by @#{user.login} to #{user.item.id}, rate is #{rate}, fee is #{fee}"
     )
     settings.telepost.spam(
@@ -524,7 +532,10 @@ post '/do-sell' do
       "our bitcoin wallet still has #{settings.bank.balance} BTC;",
       "zolds were deposited to [#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id})",
       "of [#{boss.login}](https://github.com/#{boss.login}),",
-      "the balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t)."
+      "the balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t);",
+      "exchange fee was deposited to [#{rewards.item.id}](http://www.zold.io/ledger.html?wallet=#{rewards.item.id})",
+      "of [#{rewards.login}](https://github.com/#{rewards.login}),",
+      "the balance is #{rewards.wallet(&:balance)} (#{rewards.wallet(&:txns).count}t)."
     )
   end
   flash('/btc', "We took #{amount} from your wallet and sent you #{bitcoin} BTC")
