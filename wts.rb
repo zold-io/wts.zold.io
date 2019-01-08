@@ -25,6 +25,7 @@ require 'geocoder'
 require 'sinatra'
 require 'sinatra/cookies'
 require 'sass'
+require 'securerandom'
 require 'json'
 require 'backtrace'
 require 'raven'
@@ -52,6 +53,7 @@ require_relative 'objects/async_job'
 require_relative 'objects/safe_job'
 require_relative 'objects/update_job'
 require_relative 'objects/clean_job'
+require_relative 'objects/zache_job'
 require_relative 'objects/versioned_job'
 require_relative 'objects/file_log'
 require_relative 'objects/tee_log'
@@ -132,6 +134,7 @@ configure do
   set :copies, File.join(settings.root, '.zold-wts/copies')
   set :codec, GLogin::Codec.new(config['api_secret'])
   set :zache, Zache.new(dirty: true)
+  set :jobs, Zache.new
   set :pool, Concurrent::FixedThreadPool.new(16, max_queue: 64, fallback_policy: :abort)
   set :log, Zold::Log::REGULAR.dup
   if settings.config['coinbase']['key'].empty?
@@ -527,6 +530,13 @@ post '/do-sell' do
   flash('/btc', "We took #{amount} from your wallet and sent you #{bitcoin} BTC")
 end
 
+get '/job' do
+  uuid = params['id']
+  raise UserError, "Job ID #{uuid} is not found" unless settings.jobs.exists?(uuid)
+  content_type 'text/plain', charset: 'utf-8'
+  settings.jobs.get(uuid)
+end
+
 get '/log' do
   content_type 'text/plain', charset: 'utf-8'
   log.content + "\n\n\n" + [
@@ -714,26 +724,33 @@ def ops(u = user)
 end
 
 def job(u = user)
+  uuid = SecureRandom.uuid
   lg = log(u.login)
   job = SafeJob.new(
-    VersionedJob.new(
-      CleanJob.new(
-        UpdateJob.new(
-          proc { yield },
-          settings.remotes,
-          log: lg,
-          network: network
+    ZacheJob.new(
+      VersionedJob.new(
+        CleanJob.new(
+          UpdateJob.new(
+            proc { yield },
+            settings.remotes,
+            log: lg,
+            network: network
+          ),
+          settings.wallets,
+          u.item,
+          log: lg
         ),
-        settings.wallets,
-        u.item,
         log: lg
       ),
-      log: lg
+      uuid,
+      settings.jobs
     ),
     log: lg
   )
   job = AsyncJob.new(job, settings.pool, latch(u.login)) unless ENV['RACK_ENV'] == 'test'
   job.call
+  headers['X-Zold-Job'] = uuid
+  uuid
 end
 
 def pay_hosting_bonuses
