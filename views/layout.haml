@@ -101,13 +101,13 @@
             %li
               &copy;
               %a{href: 'https://www.zerocracy.com'} Zerocracy
-            %li
+            %li{title: 'Currently deployed version of WTS'}
               = "v#{ver}"
-            %li
+            %li{title: 'Zold Ruby software version and the protocol ID'}
               = "#{Zold::VERSION}/#{Zold::PROTOCOL}"
-            %li
+            %li{title: 'Currently consumed memory vs. total system memory, in Mb'}
               = "#{(mem / (1024 * 1024)).round}/#{(total_mem / (1024 * 1024)).round}"
-            %li
+            %li{title: 'Your visible IP address'}
               = request.ip
         %nav
           %ul

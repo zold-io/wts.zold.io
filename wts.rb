@@ -233,8 +233,8 @@ get '/github-callback' do
     settings.glogin.user(params[:code]),
     settings.config['github']['encryption_secret'],
     context
-  ).to_s
-  flash('/', 'You have been logged in')
+  ).to_s.downcase.strip
+  flash('/', "You have been logged in as GitHub user @#{cookies[:glogin]}")
 end
 
 get '/logout' do
@@ -250,7 +250,12 @@ get '/' do
 end
 
 get '/home' do
-  flash('/create', 'Time to create your wallet') unless user.item.exists?
+  unless user.item.exists?
+    flash('/create', 'Time to create your wallet') unless File.exist?(latch(user.login))
+    return haml :busy, layout: :layout, locals: merged(
+      title: '@' + @locals[:guser] + '/busy'
+    )
+  end
   flash('/confirm', 'Time to save your keygap') unless user.confirmed?
   haml :home, layout: :layout, locals: merged(
     title: '@' + @locals[:guser],
@@ -267,9 +272,36 @@ get '/create' do
       "created a new wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})",
       "from `#{request.ip}` (#{country})."
     )
-    pay_bonus
+    known = Zold::Http.new(uri: 'https://www.0crat.com/known/' + user.login).get
+    if known.code == 200
+      boss = user(settings.config['rewards']['login'])
+      amount = Zold::Amount.new(zld: 0.256)
+      job(boss) do
+        ops(boss).pay(
+          settings.config['rewards']['keygap'], user.item.id,
+          amount, "WTS signup bonus to #{user.login}"
+        )
+        settings.telepost.spam(
+          "Sign-up bonus of #{amount} has been sent",
+          "to [@#{user.login}](https://github.com/#{user.login})",
+          "from `#{request.ip}` (#{country}),",
+          "to their wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})",
+          "from our wallet [#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id})",
+          "of [#{boss.login}](https://github.com/#{boss.login})",
+          "with the remaining balance of #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t)."
+        )
+      end
+    else
+      settings.telepost.spam(
+        "Sign-up bonus won't be sent to",
+        "[@#{user.login}](https://github.com/#{user.login})",
+        "from `#{request.ip}` (#{country})",
+        "with the wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})",
+        "because this user is not [known](https://www.0crat.com/known/#{user.login}) to Zerocracy."
+      )
+    end
   end
-  flash('/', "Wallet #{user.item.id} created and pushed")
+  flash('/', 'Your wallet is created and will be pushed soon')
 end
 
 get '/confirm' do
@@ -666,27 +698,6 @@ def job(u = user)
   )
   job = AsyncJob.new(job, settings.pool, latch(u.login)) unless ENV['RACK_ENV'] == 'test'
   job.call
-end
-
-def pay_bonus
-  boss = user(settings.config['rewards']['login'])
-  return unless boss.item.exists?
-  amount = Zold::Amount.new(zld: 0.256)
-  job(boss) do
-    ops(boss).pay(
-      settings.config['rewards']['keygap'], user.item.id,
-      amount, "WTS signup bonus to #{@locals[:guser]}"
-    )
-    settings.telepost.spam(
-      "Sign-up bonus of #{amount} has been sent",
-      "to [@#{user.login}](https://github.com/#{user.login})",
-      "from `#{request.ip}` (#{country}),",
-      "to their wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})",
-      "from our wallet [#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id})",
-      "of [#{boss.login}](https://github.com/#{boss.login})",
-      "with the remaining balance of #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t)."
-    )
-  end
 end
 
 def pay_hosting_bonuses
