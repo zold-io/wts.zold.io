@@ -106,6 +106,8 @@
             %li
               = "#{Zold::VERSION}/#{Zold::PROTOCOL}"
             %li
+              = "#{(mem / (1024 * 1024)).round}/#{(total_mem / (1024 * 1024)).round}"
+            %li
               = request.ip
         %nav
           %ul

@@ -34,6 +34,8 @@ require 'concurrent'
 require 'tempfile'
 require 'telepost'
 require 'rack/ssl'
+require 'get_process_mem'
+require 'total'
 require 'zold'
 require 'zold/sync_wallets'
 require 'zold/cached_wallets'
@@ -190,7 +192,9 @@ before '/*' do
     login_link: settings.glogin.login_uri,
     wallets: settings.wallets,
     remotes: settings.remotes,
-    pool: settings.pool
+    pool: settings.pool,
+    mem: GetProcessMem.new.bytes.to_i,
+    total_mem: Total::Mem.new.bytes
   }
   cookies[:glogin] = params[:glogin] if params[:glogin]
   if cookies[:glogin]
