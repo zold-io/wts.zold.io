@@ -131,6 +131,7 @@ configure do
   )
   set :copies, File.join(settings.root, '.zold-wts/copies')
   set :codec, GLogin::Codec.new(config['api_secret'])
+  set :zache, Zache.new
   set :pool, Concurrent::FixedThreadPool.new(16, max_queue: 64, fallback_policy: :abort)
   set :log, Zold::Log::REGULAR.dup
   if settings.config['coinbase']['key'].empty?
@@ -193,8 +194,8 @@ before '/*' do
     wallets: settings.wallets,
     remotes: settings.remotes,
     pool: settings.pool,
-    mem: GetProcessMem.new.bytes.to_i,
-    total_mem: Total::Mem.new.bytes
+    mem: settings.zache.get(:mem, lifetime: 60) { GetProcessMem.new.bytes.to_i },
+    total_mem: settings.zache.get(:total_mem, lifetime: 60) { Total::Mem.new.bytes }
   }
   cookies[:glogin] = params[:glogin] if params[:glogin]
   if cookies[:glogin]
@@ -540,6 +541,33 @@ end
 get '/remotes' do
   haml :remotes, layout: :layout, locals: merged(
     title: '/remotes'
+  )
+end
+
+get '/rate' do
+  unless settings.zache.exists?(:rate)
+    boss = user(settings.config['exchange']['login'])
+    job(boss) do
+      ops(boss).pull
+      require 'zold/commands/pull'
+      Zold::Pull.new(
+        wallets: settings.wallets, remotes: settings.remotes, copies: settings.copies, log: settings.log
+      ).run(['pull', Zold::Id::ROOT.to_s, "--network=#{settings.network}"])
+      settings.zache.put(
+        :rate,
+        {
+          bank: settings.bank.balance,
+          boss: settings.wallets.acq(boss.item.id, &:balance),
+          root: settings.wallets.acq(Zold::Id::ROOT, &:balance)
+        },
+        lifetime: 10 * 60
+      )
+    end
+  end
+  flash('/', 'Still working on it, come back in a few seconds') unless settings.zache.exists?(:rate)
+  haml :rate, layout: :layout, locals: merged(
+    title: '/rate',
+    rate: settings.zache.get(:rate, dirty: true)
   )
 end
 

@@ -94,7 +94,7 @@ class AppTest < Minitest::Test
   def test_302_user_pages
     WebMock.allow_net_connect!
     login('nick')
-    ['/pull'].each do |p|
+    ['/pull', '/rate'].each do |p|
       get(p)
       assert_equal(302, last_response.status, "#{p} fails: #{last_response.body}")
     end
