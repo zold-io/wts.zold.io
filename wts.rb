@@ -567,7 +567,8 @@ get '/rate' do
   flash('/', 'Still working on it, come back in a few seconds') unless settings.zache.exists?(:rate)
   haml :rate, layout: :layout, locals: merged(
     title: '/rate',
-    formula: settings.zache.get(:rate, dirty: true)
+    formula: settings.zache.get(:rate, dirty: true),
+    mtime: settings.zache.mtime(:rate)
   )
 end
 
