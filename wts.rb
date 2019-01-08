@@ -203,7 +203,7 @@ before '/*' do
         cookies[:glogin],
         settings.config['github']['encryption_secret'],
         context
-      ).to_user[:login]
+      ).to_user[:login]&.downcase
     rescue OpenSSL::Cipher::CipherError => _
       @locals.delete(:guser)
     end
@@ -233,8 +233,8 @@ get '/github-callback' do
     settings.glogin.user(params[:code]),
     settings.config['github']['encryption_secret'],
     context
-  ).to_s.downcase.strip
-  flash('/', "You have been logged in as GitHub user @#{cookies[:glogin]}")
+  ).to_s
+  flash('/', 'You have been logged in')
 end
 
 get '/logout' do
