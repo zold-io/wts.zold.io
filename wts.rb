@@ -552,7 +552,7 @@ get '/rate' do
       require 'zold/commands/pull'
       Zold::Pull.new(
         wallets: settings.wallets, remotes: settings.remotes, copies: settings.copies, log: settings.log
-      ).run(['pull', Zold::Id::ROOT.to_s, "--network=#{network}"])
+      ).run(['pull', Zold::Id::ROOT.to_s, "--network=#{network}", '--tolerate-edges'])
       hash = {
         bank: settings.bank.balance,
         boss: settings.wallets.acq(boss.item.id, &:balance),
