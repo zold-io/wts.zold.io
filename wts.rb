@@ -558,7 +558,7 @@ get '/rate' do
         boss: settings.wallets.acq(boss.item.id, &:balance),
         root: settings.wallets.acq(Zold::Id::ROOT, &:balance)
       }
-      hash[:rate] = (bank / (root - boss).to_f).round(6)
+      hash[:rate] = (hash[:bank] / (hash[:root] - hash[:boss]).to_f).round(6)
       settings.zache.put(:rate, hash, lifetime: 10 * 60)
     end
   end
