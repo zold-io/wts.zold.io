@@ -552,22 +552,20 @@ get '/rate' do
       require 'zold/commands/pull'
       Zold::Pull.new(
         wallets: settings.wallets, remotes: settings.remotes, copies: settings.copies, log: settings.log
-      ).run(['pull', Zold::Id::ROOT.to_s, "--network=#{settings.network}"])
-      settings.zache.put(
-        :rate,
-        {
-          bank: settings.bank.balance,
-          boss: settings.wallets.acq(boss.item.id, &:balance),
-          root: settings.wallets.acq(Zold::Id::ROOT, &:balance)
-        },
-        lifetime: 10 * 60
-      )
+      ).run(['pull', Zold::Id::ROOT.to_s, "--network=#{network}"])
+      hash = {
+        bank: settings.bank.balance,
+        boss: settings.wallets.acq(boss.item.id, &:balance),
+        root: settings.wallets.acq(Zold::Id::ROOT, &:balance)
+      }
+      hash[:rate] = (bank / (root - boss).to_f).round(6)
+      settings.zache.put(:rate, hash, lifetime: 10 * 60)
     end
   end
   flash('/', 'Still working on it, come back in a few seconds') unless settings.zache.exists?(:rate)
   haml :rate, layout: :layout, locals: merged(
     title: '/rate',
-    rate: settings.zache.get(:rate, dirty: true)
+    formula: settings.zache.get(:rate, dirty: true)
   )
 end
 

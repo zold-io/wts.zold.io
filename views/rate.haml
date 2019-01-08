@@ -1,6 +1,6 @@
 %p
   Total fund (F):
-  = bank
+  = formula[:bank]
   BTC
   %br
   %span.small
@@ -8,20 +8,20 @@
 
 %p
   Total emission (E):
-  = root * -1
+  = formula[:root] * -1
   %br
   %span.small
     This is the total negative balance in the root Zold wallet.
 
 %p
   Owned by Zerocracy (Z):
-  = boss
+  = formula[:boss]
   %span.small
     This is how much is still owned by Zerocracy out of the total emission.
 
 %p
   Calculated rate:
-  = (bank / (root - boss).to_f).round(6)
+  = formula[:rate]
   %span.small
     It is equal to
     %em F / (E - Z)
