@@ -1,34 +1,46 @@
 %p
   Total fund (F):
-  = formula[:bank]
-  BTC
+  %code
+    = formula[:bank]
+    BTC
   %br
   %span.small
     This is how much we have in our bitcoin wallet in Coinbase.
 
 %p
   Total emission (E):
-  = formula[:root] * -1
+  %code
+    = formula[:root]
   %br
   %span.small
     This is the total negative balance in the root Zold wallet.
 
 %p
   Owned by Zerocracy (Z):
-  = formula[:boss]
+  %code
+    = formula[:boss]
   %span.small
     This is how much is still owned by Zerocracy out of the total emission.
 
 %p
   Calculated rate:
-  = formula[:rate]
+  %code
+    = formula[:rate].round(6)
   %span.small
     It is equal to
     %em F / (E - Z)
 
 %p
   Effective rate:
-  = rate
+  %code
+    = rate
   %span.small
     This rate is used in all ZLD-to-BTC exchange operations.
 
+%p
+  Fund deficit:
+  %code
+    = formula[:deficit]
+    BTC
+  %span.small
+    This is how much Zerocracy has to add to the fund in order to make the effective rate fully trustable.
