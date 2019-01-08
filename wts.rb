@@ -131,7 +131,7 @@ configure do
   )
   set :copies, File.join(settings.root, '.zold-wts/copies')
   set :codec, GLogin::Codec.new(config['api_secret'])
-  set :zache, Zache.new
+  set :zache, Zache.new(dirty: true)
   set :pool, Concurrent::FixedThreadPool.new(16, max_queue: 64, fallback_policy: :abort)
   set :log, Zold::Log::REGULAR.dup
   if settings.config['coinbase']['key'].empty?
@@ -567,7 +567,7 @@ get '/rate' do
   flash('/', 'Still working on it, come back in a few seconds') unless settings.zache.exists?(:rate)
   haml :rate, layout: :layout, locals: merged(
     title: '/rate',
-    formula: settings.zache.get(:rate, dirty: true),
+    formula: settings.zache.get(:rate),
     mtime: settings.zache.mtime(:rate)
   )
 end
