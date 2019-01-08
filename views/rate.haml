@@ -13,7 +13,9 @@
     = formula[:root]
   %br
   %span.small
-    This is the total negative balance in the root Zold wallet.
+    This is the total negative balance in the
+    %a{href: 'http://www.zold.io/ledger.html?wallet=' + Zold::Id::ROOT.to_s} root
+    wallet.
 
 %p
   Owned by Zerocracy (Z):
@@ -21,7 +23,9 @@
     = formula[:boss]
   %br
   %span.small
-    This is how much is still owned by Zerocracy out of the total emission.
+    This is how much is
+    %a{href: 'http://www.zold.io/ledger.html?wallet=' + formula[:boss_wallet]} still owned
+    by Zerocracy out of the total emission.
 
 %p
   Calculated rate:
@@ -39,7 +43,9 @@
     = format('%0.8f', rate)
   %br
   %span.small
-    This rate is used in all ZLD-to-BTC exchange operations.
+    This rate is used in all
+    %a{href: 'https://blog.zold.io/2018/12/09/btc-to-zld.html'} ZLD-to-BTC exchange
+    operations.
 
 - if formula[:deficit] > 0
   %p

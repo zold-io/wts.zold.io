@@ -556,7 +556,8 @@ get '/rate' do
       hash = {
         bank: settings.bank.balance,
         boss: settings.wallets.acq(boss.item.id, &:balance),
-        root: settings.wallets.acq(Zold::Id::ROOT, &:balance) * -1
+        root: settings.wallets.acq(Zold::Id::ROOT, &:balance) * -1,
+        boss_wallet: boss.item.id
       }
       hash[:rate] = hash[:bank] / (hash[:root] - hash[:boss]).to_f
       hash[:deficit] = (hash[:root] - hash[:boss]).to_f * rate - hash[:bank]
