@@ -1,7 +1,7 @@
 %p
   Total fund (F):
   %code
-    = formula[:bank]
+    = format('%0.4f', formula[:bank])
     BTC
   %br
   %span.small
@@ -27,6 +27,7 @@
   Calculated rate:
   %code
     = format('%0.8f', formula[:rate])
+  BTC per ZLD
   %br
   %span.small
     It is equal to
@@ -40,11 +41,14 @@
   %span.small
     This rate is used in all ZLD-to-BTC exchange operations.
 
-%p
-  Fund deficit:
-  %code
-    = formula[:deficit]
-    BTC
-  %br
-  %span.small
-    This is how much Zerocracy has to add to the fund in order to make the effective rate trustable.
+- if formula[:deficit] > 0
+  %p
+    Fund
+    = succeed ':' do
+      %span{style: 'color: darkred'} deficit
+    %code
+      = format('%0.4f', formula[:deficit])
+      BTC
+    %br
+    %span.small
+      This is how much Zerocracy has to add to the fund in order to make the effective rate trustable.
