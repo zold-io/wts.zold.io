@@ -78,7 +78,7 @@ class User
   end
 
   def wallet_exists?
-    @wallets.acq(@item.id, &:exists?)
+    @item.exists? && @wallets.acq(@item.id, &:exists?)
   end
 
   def wallet
