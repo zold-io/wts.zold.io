@@ -25,7 +25,7 @@ require 'zold/key'
 #
 class Keygap
   # Extracts a random keygap and returns an array of [pem, keygap]
-  def extract(key, length = 8)
+  def extract(key, length = 16)
     pem = key.to_s
     keygap = ''
     until keygap =~ /^[a-zA-Z0-9]+$/ && !keygap.include?("\n")
