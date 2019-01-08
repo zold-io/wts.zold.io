@@ -19,13 +19,15 @@
   Owned by Zerocracy (Z):
   %code
     = formula[:boss]
+  %br
   %span.small
     This is how much is still owned by Zerocracy out of the total emission.
 
 %p
   Calculated rate:
   %code
-    = formula[:rate].round(6)
+    = format('%0.8f', formula[:rate])
+  %br
   %span.small
     It is equal to
     %em F / (E - Z)
@@ -33,7 +35,8 @@
 %p
   Effective rate:
   %code
-    = rate
+    = format('%0.8f', rate)
+  %br
   %span.small
     This rate is used in all ZLD-to-BTC exchange operations.
 
@@ -42,5 +45,6 @@
   %code
     = formula[:deficit]
     BTC
+  %br
   %span.small
-    This is how much Zerocracy has to add to the fund in order to make the effective rate fully trustable.
+    This is how much Zerocracy has to add to the fund in order to make the effective rate trustable.

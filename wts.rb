@@ -559,7 +559,7 @@ get '/rate' do
         root: settings.wallets.acq(Zold::Id::ROOT, &:balance) * -1
       }
       hash[:rate] = hash[:bank] / (hash[:root] - hash[:boss]).to_f
-      hash[:deficit] = (hash[:root] - hash[:boss]).to_f / rate - hash[:bank]
+      hash[:deficit] = (hash[:root] - hash[:boss]).to_f * rate - hash[:bank]
       settings.zache.put(:rate, hash, lifetime: 10 * 60)
     end
   end
