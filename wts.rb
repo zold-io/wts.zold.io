@@ -457,26 +457,25 @@ get '/btc-hook' do
   satoshi = params[:value].to_i
   raise UserError, "Tx #{hash}/#{satoshi}/#{bnf.item.btc} not found" unless settings.btc.exists?(hash, satoshi, address)
   raise UserError, "BTC hash #{hash} has already been paid" if settings.hashes.seen?(hash)
-  price = settings.btc.price
   bitcoin = satoshi.to_f / 100_000_000
-  usd = bitcoin * price * 0.9
+  zld = Zold::Amount.new(zld: bitcoin / rate * (1 - fee))
   boss = user(settings.config['exchange']['login'])
   job(boss) do
     ops(boss).pay(
       settings.config['exchange']['keygap'],
       bnf.item.id,
-      Zold::Amount.new(zld: usd),
-      "BTC exchange of #{bitcoin.round(8)} at #{hash}, price is #{price}"
+      zld,
+      "BTC exchange of #{bitcoin.round(8)} at #{hash}, rate is #{rate}, fee is #{fee}"
     )
     settings.hashes.add(hash, bnf.login, bnf.item.id)
     settings.telepost.spam(
-      "In: #{bitcoin} BTC [exchanged](https://blog.zold.io/2018/12/09/btc-to-zld.html) to #{usd} ZLD",
+      "In: #{bitcoin} BTC [exchanged](https://blog.zold.io/2018/12/09/btc-to-zld.html) to #{zld}",
       "by [@#{bnf.login}](https://github.com/#{bnf.login}) from `#{request.ip}` (#{country})",
       "in [#{hash[0..8]}](https://www.blockchain.com/btc/tx/#{hash})",
       "via [#{address[0..8]}](https://www.blockchain.com/btc/address/#{address}),",
       "to the wallet [#{bnf.item.id}](http://www.zold.io/ledger.html?wallet=#{bnf.item.id})",
       "with the balance of #{bnf.wallet(&:balance)};",
-      "BTC price at the moment of exchange was [$#{price}](https://blockchain.info/ticker);",
+      "BTC price at the moment of exchange was [$#{settings.btc.price}](https://blockchain.info/ticker);",
       "the payer is [@#{boss.login}](https://github.com/#{boss.login}) with the wallet",
       "[#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id}),",
       "the remaining balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t)."
@@ -496,20 +495,20 @@ post '/do-sell' do
   if user.wallet(&:txns).find { |t| t.amount.negative? && t.date > Time.now - 60 * 60 * 24 }
     raise UserError, 'At the moment we can send only one payment per day, sorry' unless user.login == 'yegor256'
   end
-  usd = amount.to_zld(8).to_f * 0.9
   price = settings.btc.price
-  bitcoin = (usd / price).round(10)
+  bitcoin = (amount.to_zld(8).to_f * rate * (1 - fee)).round(10)
+  usd = bitcoin * price
   boss = user(settings.config['exchange']['login'])
   job do
     ops.pay(
       params[:keygap],
       boss.item.id,
       amount,
-      "ZLD exchange to #{bitcoin} BTC at #{address}, price is #{price}"
+      "ZLD exchange to #{bitcoin} BTC at #{address}, rate is #{rate}, fee is #{fee}"
     )
     settings.bank.send(
       address, usd,
-      "Exchange of #{amount.to_zld} by @#{user.login} to #{user.item.id}, price is #{price}"
+      "Exchange of #{amount.to_zld(8)} by @#{user.login} to #{user.item.id}, rate is #{rate}, fee is #{fee}"
     )
     settings.telepost.spam(
       "Out: #{amount} [exchanged](https://blog.zold.io/2018/12/09/btc-to-zld.html) to #{bitcoin} BTC",
@@ -596,6 +595,14 @@ error do
 end
 
 private
+
+def rate
+  0.00025
+end
+
+def fee
+  0.08
+end
 
 def country
   country = Geocoder.search(request.ip).first

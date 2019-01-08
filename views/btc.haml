@@ -4,9 +4,11 @@
     %code= confirmed_user.wallet(&:balance)
 
 %p
-  The rate is $1 per 1 ZLD (according to the
-  %a{href: 'https://blockchain.info/ticker'} current
-  bitcoin rate, minus 10%).
+  The rate is
+  %strong= rate
+  per 1 ZLD (minus
+  = succeed ').' do
+    %strong= "#{fee * 100}%"
 
 %p
   If any issues or the payment is lost, contact us in our
@@ -37,7 +39,7 @@
       = succeed ':' do
         %a{href: 'https://blog.zold.io/2018/07/18/keygap.html'} keygap
     %input{type: 'text', name: 'keygap', placeholder: 'Your secret...', autocomplete: 'off'}
-    %label The amount to sell:
+    %label The amount of ZLD to sell:
     %input{type: 'text', name: 'amount', size: 12, autocomplete: 'off'}
     %label
       Bitcoin
