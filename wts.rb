@@ -738,6 +738,7 @@ end
 
 def job(u = user)
   uuid = SecureRandom.uuid
+  settings.jobs.put(uuid, 'Running', lifetime: 60)
   lg = log(u.login)
   job = SafeJob.new(
     ZacheJob.new(
