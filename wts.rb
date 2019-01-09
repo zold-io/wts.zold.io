@@ -385,7 +385,7 @@ end
 
 get '/balance' do
   content_type 'text/plain'
-  confirmed_user.wallet(&:balance).to_i
+  confirmed_user.wallet(&:balance).to_i.to_s
 end
 
 get '/find' do
