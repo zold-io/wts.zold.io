@@ -36,16 +36,10 @@ class AsyncJob
   end
 
   def call
-    begin
-      Futex.new(@lock, timeout: 0, lock: @lock, log: @log).open
-    rescue Futex::CantLock => e
-      raise UserError, "Another operation is still running at #{@lock} for #{Zold::Age.new(e.start)}, try again later"
-    end
     @pool.post do
-      Futex.new(@lock, lock: @lock, log: @log).open do
+      Futex.new(@lock, lock: @lock, log: @log, timeout: 10 * 60).open do
         @job.call
       end
-      FileUtils.rm(@lock)
     rescue StandardError => e
       @log.error(Backtrace.new(e))
     end

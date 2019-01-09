@@ -40,23 +40,4 @@ class AsyncJobTest < Minitest::Test
       assert(!File.exist?(lock))
     end
   end
-
-  def test_prevents_multiple_threads_per_user
-    pool = Concurrent::FixedThreadPool.new(16)
-    latch = Concurrent::CountDownLatch.new(1)
-    Dir.mktmpdir 'test' do |dir|
-      job = proc do
-        latch.count_down
-        sleep 1000
-      end
-      async = AsyncJob.new(job, pool, File.join(dir, 'lock'))
-      async.call
-      latch.wait
-      assert_raises UserError do
-        async.call
-      end
-      pool.shutdown
-      pool.wait_for_termination(1)
-    end
-  end
 end
