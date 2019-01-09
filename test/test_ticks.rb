@@ -30,6 +30,7 @@ class TicksTest < Minitest::Test
     ticks = Ticks.new(Dynamo.new.aws)
     assert(!ticks.exists?)
     ticks.add('foo' => 'bar')
+    sleep 1
     assert_equal(1, ticks.fetch.count)
   end
 end

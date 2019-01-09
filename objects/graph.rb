@@ -43,11 +43,11 @@ class Graph
     end
     raise UserError, 'There are no ticks, sorry' if sets.empty?
     g = SVG::Graph::Line.new(
-      width: 1024, heigh: 768,
+      width: 400, height: 300,
       show_x_guidelines: true, show_y_guidelines: true,
       show_x_labels: true, show_y_labels: false,
       number_format: '%.0f',
-      fields: (0..11).map { |i| Time.at(min + i * (max - min) / 12).strftime('%m/%d') }
+      fields: (0..5).map { |i| Time.at(min + i * (max - min) / 6).strftime('%m/%d') }
     )
     sets.each { |k, v| g.add_data(title: k, data: v) }
     g.burn
