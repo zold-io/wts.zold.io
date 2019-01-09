@@ -39,9 +39,9 @@
       Your
       = succeed ':' do
         %a{href: 'https://blog.zold.io/2018/07/18/keygap.html'} keygap
-    %input{type: 'text', name: 'keygap', placeholder: 'Your secret...', autocomplete: 'off'}
+    %input{type: 'text', name: 'keygap', placeholder: 'Your secret...', autocomplete: 'off', tabindex: 1, autofocus: true}
     %label The amount of ZLD to sell:
-    %input{type: 'text', name: 'amount', size: 12, autocomplete: 'off'}
+    %input{type: 'text', name: 'amount', size: 12, autocomplete: 'off', tabindex: 2}
     %label
       Bitcoin
       %a{href: 'https://en.bitcoin.it/wiki/Address'} address
@@ -50,8 +50,8 @@
       or
       %a{href: 'https://en.bitcoin.it/wiki/Pay_to_script_hash'} P2SH
       format:
-    %input{type: 'text', name: 'btc', maxlength: 36, size: 45, autocomplete: 'off'}
-    %input{type: 'submit', onclick: "return confirm('Are you sure? This operation is not reversable!')"}
+    %input{type: 'text', name: 'btc', maxlength: 36, size: 45, autocomplete: 'off', tabindex: 3}
+    %input{type: 'submit', onclick: "return confirm('Are you sure? This operation is not reversable!')", tabindex: 4}
 
 %p
   This

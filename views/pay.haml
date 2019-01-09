@@ -9,21 +9,21 @@
       Your
       = succeed ':' do
         %a{href: 'https://blog.zold.io/2018/07/18/keygap.html'} keygap
-    %input{type: 'text', name: 'keygap', placeholder: 'Your secret...', autocomplete: 'off', required: true}
+    %input{type: 'text', name: 'keygap', placeholder: 'Your secret...', autocomplete: 'off', required: true, tabindex: 1, autofocus: true}
     %label
       Send ZLD to (either wallet ID,
       %a{href: 'https://blog.zold.io/2018/08/06/invoices.html'} invoice
       or
       %a{href: 'https://github.com'} GitHub
       login):
-    %input{type: 'text', name: 'bnf', maxlength: 128, size: 25, placeholder: 'e.g. "@yegor256"', autocomplete: 'off', required: true}
+    %input{type: 'text', name: 'bnf', maxlength: 128, size: 25, placeholder: 'e.g. "@yegor256"', autocomplete: 'off', required: true, tabindex: 2}
     %label
       The amount to pay, ZLD:
-    %input{type: 'text', name: 'amount', maxlength: 32, size: 15, placeholder: 'e.g. "14.95"', autocomplete: 'off', required: true}
+    %input{type: 'text', name: 'amount', maxlength: 32, size: 15, placeholder: 'e.g. "14.95"', autocomplete: 'off', required: true, tabindex: 3}
     %label
       Payment details:
-    %input{type: 'text', name: 'details', maxlength: 512, style: 'width:100%', placeholder: 'e.g. "For services"', autocomplete: 'off'}
-    %input{type: 'submit', onclick: "return confirm('Are you sure? This operation is not reversable!')"}
+    %input{type: 'text', name: 'details', maxlength: 512, style: 'width:100%', placeholder: 'e.g. "For services"', autocomplete: 'off', tabindex: 4}
+    %input{type: 'submit', onclick: "return confirm('Are you sure? This operation is not reversable!')", tabindex: 5}
 
 %p
   = succeed ':' do

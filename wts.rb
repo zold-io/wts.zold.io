@@ -339,6 +339,8 @@ post '/do-pay' do
   raise UserError, 'Parameter "details" is not provided' if params[:details].nil?
   if params[:bnf].match?(/[a-f0-9]{16}/)
     bnf = Zold::Id.new(params[:bnf])
+  elsif params[:bnf].match?(/[a-zA-Z0-9]+@[a-f0-9]{16}/)
+    bnf = params[:bnf]
   else
     login = params[:bnf].strip.downcase.gsub(/^@/, '')
     raise UserError, "Invalid GitHub user name: '#{params[:bnf]}'" unless login =~ /^[a-z0-9-]{3,32}$/
@@ -573,7 +575,7 @@ get '/rate' do
       require 'zold/commands/pull'
       Zold::Pull.new(
         wallets: settings.wallets, remotes: settings.remotes, copies: settings.copies, log: settings.log
-      ).run(['pull', Zold::Id::ROOT.to_s, "--network=#{network}", '--tolerate-edges'])
+      ).run(['pull', Zold::Id::ROOT.to_s, "--network=#{network}"])
       hash = {
         bank: settings.bank.balance,
         boss: settings.wallets.acq(boss.item.id, &:balance),

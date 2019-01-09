@@ -44,7 +44,7 @@ class Item
   # +id+:: Wallet iD
   # +key+:: Private RSA key
   # +length+:: Length of keygap to use (don't change it without a necessity)
-  def create(id, key, length: 8)
+  def create(id, key, length: 16)
     pem, keygap = Keygap.new.extract(key.to_s, length)
     @aws.put_item(
       table_name: 'zold-wallets',
