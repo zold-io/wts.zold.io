@@ -774,7 +774,7 @@ def pay_hosting_bonuses
       settings.telepost.spam(
         'The hosting bonuses paying wallet is almost empty,',
         "the balance is just #{boss.wallet(&:balance)};",
-        'we can\'t pay any bonuses now;',
+        "we can\'t pay #{bonus} of bonuses now;",
         'we should wait until the next BTC/ZLD exchange happens.'
       )
     else
