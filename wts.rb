@@ -800,7 +800,7 @@ def pay_hosting_bonuses
       else
         settings.telepost.spam(
           'Hosting [bonus](https://blog.zold.io/2018/08/14/hosting-bonuses.html)',
-          "of #{total} has been distributed among #{winners.count} wallets",
+          "of #{bonus} has been distributed among #{winners.count} wallets",
           '[visible](https://wts.zold.io/remotes) to us at the moment,',
           'among [others](http://www.zold.io/health.html):',
           winners.map do |s|
