@@ -28,9 +28,8 @@ class TicksTest < Minitest::Test
   def test_create_and_read
     WebMock.allow_net_connect!
     ticks = Ticks.new(Dynamo.new.aws)
-    assert(!ticks.exists?)
     ticks.add('foo' => 'bar')
-    sleep 1
-    assert_equal(1, ticks.fetch.count)
+    assert(ticks.fetch.count >= 1)
+    assert(ticks.exists?)
   end
 end

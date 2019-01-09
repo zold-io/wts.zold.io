@@ -24,6 +24,8 @@ require_relative 'user_error'
 #
 # Graph in SVG.
 #
+# See: https://github.com/lumean/svg-graph2/blob/master/lib/SVG/Graph/Graph.rb
+#
 class Graph
   def initialize(ticks)
     @ticks = ticks
