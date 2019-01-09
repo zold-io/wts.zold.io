@@ -1,5 +1,11 @@
 %p
-  Total fund (F):
+  %img{src: '/graph.svg?keys=Fund+Deficit'}
+  %img{src: '/graph.svg?keys=Emission+Office'}
+  %img{src: '/graph.svg?keys=Rate+Coverage'}
+  %img{src: '/graph.svg?keys=Price'}
+
+%p
+  Total Fund (F):
   %code
     = format('%0.4f', formula[:bank])
     BTC
@@ -8,7 +14,7 @@
     This is how much we have in our bitcoin wallet in Coinbase.
 
 %p
-  Total emission (E):
+  Total Emission (E):
   %code
     = formula[:root]
   %br
@@ -18,7 +24,7 @@
     wallet.
 
 %p
-  Owned by Zerocracy (Z):
+  Owned by Zerocracy Office (Z):
   %code
     = formula[:boss]
   %br
@@ -28,7 +34,7 @@
     by Zerocracy out of the total emission.
 
 %p
-  Calculated rate:
+  Coverage:
   %code
     = format('%0.8f', formula[:rate])
   BTC per ZLD
@@ -38,7 +44,7 @@
     %em F / (E - Z)
 
 %p
-  Effective rate:
+  Exchange Rate:
   %code
     = format('%0.8f', rate)
   %br

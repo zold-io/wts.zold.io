@@ -41,6 +41,8 @@ require 'zold'
 require 'zold/sync_wallets'
 require 'zold/cached_wallets'
 require_relative 'version'
+require_relative 'objects/ticks'
+require_relative 'objects/graph'
 require_relative 'objects/item'
 require_relative 'objects/user'
 require_relative 'objects/btc'
@@ -114,6 +116,7 @@ configure do
   set :show_exceptions, false
   set :dump_errors, false
   set :server_settings, timeout: 25
+  set :log, Zold::Log::REGULAR.dup
   set :dynamo, Dynamo.new(config).aws
   set :glogin, GLogin::Auth.new(
     config['github']['client_id'],
@@ -135,8 +138,8 @@ configure do
   set :codec, GLogin::Codec.new(config['api_secret'])
   set :zache, Zache.new(dirty: true)
   set :jobs, Zache.new
+  set :ticks, Ticks.new(settings.dynamo, log: settings.log)
   set :pool, Concurrent::FixedThreadPool.new(16, max_queue: 64, fallback_policy: :abort)
-  set :log, Zold::Log::REGULAR.dup
   if settings.config['coinbase']['key'].empty?
     set :bank, Bank::Fake.new
   else
@@ -585,6 +588,17 @@ get '/rate' do
       hash[:rate] = hash[:bank] / (hash[:root] - hash[:boss]).to_f
       hash[:deficit] = (hash[:root] - hash[:boss]).to_f * rate - hash[:bank]
       settings.zache.put(:rate, hash, lifetime: 10 * 60)
+      unless settings.ticks.exists?
+        settings.ticks.add(
+          'Fund' => (hash[:bank] * 100_000_000).to_i, # in satoshi
+          'Emission' => hash[:root].to_i, # in zents
+          'Office' => hash[:boss].to_i, # in zents
+          'Rate' => (rate * 100_000_000).to_i, # satoshi per ZLD
+          'Coverage' => (hash[:rate] * 100_000_000).to_i, # satoshi per ZLD
+          'Deficit' => (hash[:deficit] * 100_000_000).to_i, # in satoshi
+          'Price' => (settings.btc.price * 100).to_i # US cents per BTC
+        )
+      end
     end
   end
   flash('/', 'Still working on it, come back in a few seconds') unless settings.zache.exists?(:rate)
@@ -593,6 +607,11 @@ get '/rate' do
     formula: settings.zache.get(:rate),
     mtime: settings.zache.mtime(:rate)
   )
+end
+
+get '/graph.svg' do
+  content_type 'image/svg+xml'
+  Graph.new(settings.ticks).svg(params['keys'].split(' '))
 end
 
 get '/robots.txt' do

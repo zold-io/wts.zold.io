@@ -6,49 +6,33 @@
 # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
+#
 # The above copyright notice and this permission notice shall be included in all
 # copies or substantial portions of the Software.
 #
 # THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFINGEMENT. IN NO EVENT SHALL THE
 # AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-source 'https://rubygems.org'
-ruby '2.6.0'
+require 'minitest/autorun'
+require 'webmock/minitest'
+require_relative 'test__helper'
+require_relative '../objects/dynamo'
+require_relative '../objects/ticks'
+require_relative '../objects/graph'
 
-gem 'aws-sdk-dynamodb', '1.19.0'
-gem 'aws-sdk-s3', '1.30.0'
-gem 'backports', '3.11.4'
-gem 'backtrace', '0.3.0'
-gem 'codecov', '0.1.13'
-gem 'coinbase', '4.2.0'
-gem 'concurrent-ruby', '1.1.3'
-gem 'futex', '0.8.6'
-gem 'geocoder', '1.5.0'
-gem 'get_process_mem', '~>0.2'
-gem 'glogin', '0.4.7'
-gem 'haml', '5.0.4'
-gem 'minitest', '5.11.3'
-gem 'rack', '2.0.6'
-gem 'rack-ssl', '1.4.1'
-gem 'rack-test', '1.1.0'
-gem 'rake', '12.3.1', require: false
-gem 'random-port', '0.3.1', require: false
-gem 'rerun', '0.13.0', require: false
-gem 'rubocop', '0.62.0', require: false
-gem 'rubocop-rspec', '1.31.0', require: false
-gem 'sass', '3.7.3'
-gem 'sentry-raven', '2.7.4'
-gem 'sinatra', '2.0.4'
-gem 'sinatra-contrib', '2.0.4'
-gem 'svg-graph', '2.1.3'
-gem 'telepost', '0.2.3'
-gem 'total', '>=0.2.0'
-gem 'webmock', '3.5.1'
-gem 'xcop', '0.6'
-gem 'zache', '>=0.10.1'
-gem 'zold', '0.21.4'
+class GraphTest < Minitest::Test
+  def test_renders_svg
+    WebMock.allow_net_connect!
+    ticks = Ticks.new(Dynamo.new.aws)
+    ticks.add('Price' => 1)
+    ticks.add('Price' => 2)
+    ticks.add('Price' => 30)
+    FileUtils.mkdir_p('target')
+    IO.write('target/graph.svg', Graph.new(ticks).svg('Price'))
+  end
+end
