@@ -587,6 +587,7 @@ get '/rate' do
       }
       hash[:rate] = hash[:bank] / (hash[:root] - hash[:boss]).to_f
       hash[:deficit] = (hash[:root] - hash[:boss]).to_f * rate - hash[:bank]
+      hash[:price] = settings.btc.price
       settings.zache.put(:rate, hash, lifetime: 10 * 60)
       unless settings.ticks.exists?
         settings.ticks.add(
@@ -596,7 +597,7 @@ get '/rate' do
           'Rate' => (rate * 100_000_000).to_i, # satoshi per ZLD
           'Coverage' => (hash[:rate] * 100_000_000).to_i, # satoshi per ZLD
           'Deficit' => (hash[:deficit] * 100_000_000).to_i, # in satoshi
-          'Price' => (settings.btc.price * 100).to_i # US cents per BTC
+          'Price' => (hash[:price] * 100).to_i # US cents per BTC
         )
       end
     end

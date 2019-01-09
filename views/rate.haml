@@ -47,6 +47,10 @@
   Exchange Rate:
   %code
     = format('%0.8f', rate)
+  = '/'
+  = "$#{format('%0.2f', rate * formula[:price])}"
+  at the current
+  %a{href: 'https://blockchain.info/ticker'} market price
   %br
   %span.small
     This rate is used in all
