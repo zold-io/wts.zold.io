@@ -33,6 +33,6 @@ class GraphTest < Minitest::Test
     ticks.add('Price' => 2)
     ticks.add('Price' => 30)
     FileUtils.mkdir_p('target')
-    IO.write('target/graph.svg', Graph.new(ticks).svg('Price'))
+    IO.write('target/graph.svg', Graph.new(ticks).svg('Price', 1))
   end
 end

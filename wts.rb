@@ -612,7 +612,7 @@ end
 
 get '/graph.svg' do
   content_type 'image/svg+xml'
-  Graph.new(settings.ticks).svg(params['keys'].split(' '))
+  Graph.new(settings.ticks).svg(params['keys'].split(' '), params['div'].to_i)
 end
 
 get '/robots.txt' do

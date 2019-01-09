@@ -29,22 +29,24 @@ class Graph
     @ticks = ticks
   end
 
-  def svg(keys)
+  def svg(keys, div)
     sets = {}
     min = max = Time.now.to_f
     @ticks.fetch.each do |t|
       t.each do |k, v|
         next unless keys.include?(k)
         sets[k] = [] if sets[k].nil?
-        sets[k] << v
+        sets[k] << v / div
       end
       min = t['time'] if min > t['time']
       max = t['time'] if max < t['time']
     end
     raise UserError, 'There are no ticks, sorry' if sets.empty?
     g = SVG::Graph::Line.new(
-      width: 1024,
-      heigh: 768,
+      width: 1024, heigh: 768,
+      show_x_guidelines: true, show_y_guidelines: true,
+      show_x_labels: true, show_y_labels: false,
+      number_format: '%.0f',
       fields: (0..11).map { |i| Time.at(min + i * (max - min) / 12).strftime('%m/%d') }
     )
     sets.each { |k, v| g.add_data(title: k, data: v) }

@@ -54,6 +54,7 @@ class Ticks
   def fetch
     @aws.scan(
       table_name: 'zold-ticks',
+      consistent_read: true,
       select: 'ALL_ATTRIBUTES'
     ).items
   end
