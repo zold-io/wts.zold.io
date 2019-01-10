@@ -524,7 +524,7 @@ post '/do-sell' do
     )
     settings.bank.send(
       address,
-      usd * (1 - fee),
+      (usd * (1 - fee)).round(2),
       "Exchange of #{amount.to_zld(8)} by @#{user.login} to #{user.item.id}, rate is #{rate}, fee is #{fee}"
     )
     settings.telepost.spam(
