@@ -571,7 +571,7 @@ get '/remotes' do
 end
 
 get '/rate' do
-  unless settings.zache.exists?(:rate)
+  unless settings.zache.exists?(:rate) && !settings.zache.expired?(:rate)
     boss = user(settings.config['exchange']['login'])
     job(boss) do
       ops(boss).pull
@@ -597,7 +597,8 @@ get '/rate' do
           'Rate' => (rate * 100_000_000).to_i, # satoshi per ZLD
           'Coverage' => (hash[:rate] * 100_000_000).to_i, # satoshi per ZLD
           'Deficit' => (hash[:deficit] * 100_000_000).to_i, # in satoshi
-          'Price' => (hash[:price] * 100).to_i # US cents per BTC
+          'Price' => (hash[:price] * 100).to_i, # US cents per BTC
+          'Value' => (hash[:price] * rate * 100).to_i # US cents per ZLD
         )
       end
     end
@@ -612,7 +613,10 @@ end
 
 get '/graph.svg' do
   content_type 'image/svg+xml'
-  Graph.new(settings.ticks).svg(params['keys'].split(' '), params['div'].to_i)
+  settings.zache.clean
+  settings.zache.get(request.url, lifetime: 10 * 60) do
+    Graph.new(settings.ticks).svg(params['keys'].split(' '), params['div'].to_i)
+  end
 end
 
 get '/robots.txt' do

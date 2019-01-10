@@ -3,14 +3,13 @@ assets:
   id_rsa: zerocracy/home#assets/heroku-key
   id_rsa.pub: zerocracy/home#assets/heroku-key.pub
 install: |-
-  sudo gem install pdd
+  export GEM_HOME=~/.ruby
+  export GEM_PATH=$GEM_HOME:$GEM_PATH
+  gem install pdd
 release:
   sensitive:
     - config.yml
   script: |-
-    export GEM_HOME=~/.ruby
-    export GEM_PATH=$GEM_HOME:$GEM_PATH
-    bundle install --no-color
     pdd -f /dev/null
     bundle install --no-color
     ruby -v

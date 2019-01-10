@@ -45,7 +45,7 @@ class Graph
     end
     raise UserError, 'There are no ticks, sorry' if sets.empty?
     g = SVG::Graph::Line.new(
-      width: 400, height: 300,
+      width: 400, height: 200,
       show_x_guidelines: true, show_y_guidelines: true,
       show_x_labels: true, show_y_labels: false,
       number_format: '%.0f',
