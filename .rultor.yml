@@ -5,7 +5,7 @@ assets:
 install: |-
   export GEM_HOME=~/.ruby
   export GEM_PATH=$GEM_HOME:$GEM_PATH
-  gem install pdd
+  sudo gem install pdd
 release:
   sensitive:
     - config.yml
