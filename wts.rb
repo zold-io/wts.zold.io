@@ -598,7 +598,8 @@ get '/rate' do
           'Coverage' => (hash[:rate] * 100_000_000).to_i, # satoshi per ZLD
           'Deficit' => (hash[:deficit] * 100_000_000).to_i, # in satoshi
           'Price' => (hash[:price] * 100).to_i, # US cents per BTC
-          'Value' => (hash[:price] * rate * 100).to_i # US cents per ZLD
+          'Value' => (hash[:price] * rate * 100).to_i, # US cents per ZLD
+          'Pledge' => (hash[:price] * hash[:rate] * 100).to_i # US cents per ZLD, covered
         )
       end
     end
@@ -615,7 +616,7 @@ get '/graph.svg' do
   content_type 'image/svg+xml'
   settings.zache.clean
   settings.zache.get(request.url, lifetime: 10 * 60) do
-    Graph.new(settings.ticks).svg(params['keys'].split(' '), params['div'].to_i)
+    Graph.new(settings.ticks).svg(params['keys'].split(' '), params['div'].to_i, params['digits'].to_i)
   end
 end
 

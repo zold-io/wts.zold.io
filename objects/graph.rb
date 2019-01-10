@@ -31,27 +31,38 @@ class Graph
     @ticks = ticks
   end
 
-  def svg(keys, div)
+  def svg(keys, div, digits)
     sets = {}
     min = max = Time.now.to_f
     @ticks.fetch.each do |t|
+      time = t['time']
       t.each do |k, v|
         next unless keys.include?(k)
         sets[k] = [] if sets[k].nil?
-        sets[k] << v / div
+        sets[k] << { x: time, y: v / div }
       end
-      min = t['time'] if min > t['time']
-      max = t['time'] if max < t['time']
+      min = time if min > time
+      max = time if max < time
     end
     raise UserError, 'There are no ticks, sorry' if sets.empty?
+    steps = 12
+    step = (max - min) / steps
+    raise UserError, 'Step is zero, sorry' if step.zero?
     g = SVG::Graph::Line.new(
       width: 400, height: 200,
       show_x_guidelines: true, show_y_guidelines: true,
       show_x_labels: true, show_y_labels: false,
-      number_format: '%.0f',
-      fields: (0..5).map { |i| Time.at(min + i * (max - min) / 6).strftime('%m/%d') }
+      number_format: "%.#{digits}f",
+      fields: (0..steps - 1).map { |i| Time.at((min + i * step) / 1000).strftime('%m/%d') }
     )
-    sets.each { |k, v| g.add_data(title: k, data: v) }
+    sets.each do |k, v|
+      g.add_data(
+        title: k,
+        data: v.group_by { |p| ((p[:x] - min) / step).to_i }
+          .values
+          .map { |vals| vals.empty? ? 0 : vals.map { |p| p[:y] }.inject(&:+) / v.size }
+      )
+    end
     g.burn
   end
 end
