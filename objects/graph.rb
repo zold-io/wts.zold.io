@@ -18,6 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require 'zold/log'
 require 'SVG/Graph/Line'
 require_relative 'user_error'
 
@@ -27,13 +28,19 @@ require_relative 'user_error'
 # See: https://github.com/lumean/svg-graph2/blob/master/lib/SVG/Graph/Graph.rb
 #
 class Graph
-  def initialize(ticks)
+  # How many total X-steps on the graph
+  STEPS = 12
+  private_constant :STEPS
+
+  def initialize(ticks, log: Zold::Log::NULL)
     @ticks = ticks
+    @log = log
   end
 
   def svg(keys, div, digits)
     sets = {}
-    min = max = Time.now.to_f
+    min = Time.now.to_f * 1000
+    max = (Time.now.to_f + STEPS * 24 * 60 * 60) * 1000
     @ticks.fetch.each do |t|
       time = t['time']
       t.each do |k, v|
@@ -44,24 +51,24 @@ class Graph
       min = time if min > time
       max = time if max < time
     end
+    @log.debug("Min=#{Time.at(min / 1000).utc.iso8601}, max=#{Time.at(max / 1000).utc.iso8601}")
     raise UserError, 'There are no ticks, sorry' if sets.empty?
-    steps = 12
-    step = (max - min) / steps
-    raise UserError, 'Step is zero, sorry' if step.zero?
+    step = (max - min) / STEPS
+    raise UserError, 'Step is too small, can\'t render, sorry' if step.zero?
     g = SVG::Graph::Line.new(
       width: 400, height: 200,
       show_x_guidelines: true, show_y_guidelines: true,
       show_x_labels: true, show_y_labels: false,
+      stagger_x_labels: true,
       number_format: "%.#{digits}f",
-      fields: (0..steps - 1).map { |i| Time.at((min + i * step) / 1000).strftime('%m/%d') }
+      fields: (0..STEPS - 1).map { |i| Time.at((min + i * step) / 1000).strftime('%m/%d') }
     )
     sets.each do |k, v|
-      g.add_data(
-        title: k,
-        data: v.group_by { |p| ((p[:x] - min) / step).to_i }
-          .values
-          .map { |vals| vals.empty? ? 0 : vals.map { |p| p[:y] }.inject(&:+) / v.size }
-      )
+      data = Array.new(STEPS, nil)
+      v.group_by { |p| ((p[:x] - min) / step).to_i }.each do |s, points|
+        data[s] = points.empty? ? 0 : points.map { |p| p[:y] }.inject(&:+) / points.size
+      end
+      g.add_data(title: k, data: data)
     end
     g.burn
   end

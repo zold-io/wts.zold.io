@@ -175,9 +175,11 @@ configure do
   end
   Thread.new do
     loop do
-      sleep 60 * 60
+      sleep 10 * 60
       begin
-        pay_hosting_bonuses
+        login = settings.config['rewards']['login']
+        boss = user(login)
+        job(boss) { pay_hosting_bonuses } if boss.item.exists?
       rescue StandardError => e
         Raven.capture_exception(e)
         settings.log.error(Backtrace.new(e))
@@ -792,53 +794,50 @@ def job(u = user)
 end
 
 def pay_hosting_bonuses
-  login = settings.config['rewards']['login']
-  boss = user(login)
-  return unless boss.item.exists?
   bonus = Zold::Amount.new(zld: 1.0)
-  job(boss) do
-    ops(boss).pull
-    if boss.wallet(&:balance) < bonus
-      settings.telepost.spam(
-        'The hosting bonuses paying wallet is almost empty,',
-        "the balance is just #{boss.wallet(&:balance)};",
-        "we can\'t pay #{bonus} of bonuses now;",
-        'we should wait until the next BTC/ZLD exchange happens.'
-      )
-    else
-      require 'zold/commands/remote'
-      cmd = Zold::Remote.new(remotes: settings.remotes, log: log(login))
-      winners = cmd.run(%w[remote elect --min-score=8 --max-winners=8])
-      winners.each do |score|
-        ops(boss).pay(
-          settings.config['rewards']['keygap'],
-          score.invoice,
-          bonus / winners.count,
-          "Hosting bonus for #{score.host} #{score.port} #{score.value}"
-        )
-      end
-      if winners.empty?
-        settings.telepost.spam(
-          'Attention, no hosting [bonuses](https://blog.zold.io/2018/08/14/hosting-bonuses.html)',
-          'were paid because no nodes were found,',
-          "which would deserve that, among [#{settings.remotes.all.count} visible](https://wts.zold.io/remotes);",
-          'something is wrong with the network,',
-          'check this [health](http://www.zold.io/health.html) page!'
-        )
-      else
-        settings.telepost.spam(
-          'Hosting [bonus](https://blog.zold.io/2018/08/14/hosting-bonuses.html)',
-          "of #{bonus} has been distributed among #{winners.count} wallets",
-          '[visible](https://wts.zold.io/remotes) to us at the moment,',
-          'among [others](http://www.zold.io/health.html):',
-          winners.map do |s|
-            "[#{s.host}:#{s.port}](http://www.zold.io/ledger.html?wallet=#{s.invoice.split('@')[1]})/#{s.value}"
-          end.join(', ') + ';',
-          "the payer is [@#{boss.login}](https://github.com/#{boss.login}) with the wallet",
-          "[#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id}),",
-          "the remaining balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t)."
-        )
-      end
-    end
+  ops(boss).pull
+  latest = boss.wallet(&:txns).reverse.find { |t| t.amount.negative? }
+  return if latest.time > Time.now - 60 * 60
+  if boss.wallet(&:balance) < bonus
+    settings.telepost.spam(
+      'The hosting bonuses paying wallet is almost empty,',
+      "the balance is just #{boss.wallet(&:balance)};",
+      "we can\'t pay #{bonus} of bonuses now;",
+      'we should wait until the next BTC/ZLD exchange happens.'
+    )
+    return
   end
+  require 'zold/commands/remote'
+  cmd = Zold::Remote.new(remotes: settings.remotes, log: log(login))
+  winners = cmd.run(%w[remote elect --min-score=8 --max-winners=8])
+  winners.each do |score|
+    ops(boss).pay(
+      settings.config['rewards']['keygap'],
+      score.invoice,
+      bonus / winners.count,
+      "Hosting bonus for #{score.host} #{score.port} #{score.value}"
+    )
+  end
+  if winners.empty?
+    settings.telepost.spam(
+      'Attention, no hosting [bonuses](https://blog.zold.io/2018/08/14/hosting-bonuses.html)',
+      'were paid because no nodes were found,',
+      "which would deserve that, among [#{settings.remotes.all.count} visible](https://wts.zold.io/remotes);",
+      'something is wrong with the network,',
+      'check this [health](http://www.zold.io/health.html) page!'
+    )
+    return
+  end
+  settings.telepost.spam(
+    'Hosting [bonus](https://blog.zold.io/2018/08/14/hosting-bonuses.html)',
+    "of #{bonus} has been distributed among #{winners.count} wallets",
+    '[visible](https://wts.zold.io/remotes) to us at the moment,',
+    'among [others](http://www.zold.io/health.html):',
+    winners.map do |s|
+      "[#{s.host}:#{s.port}](http://www.zold.io/ledger.html?wallet=#{s.invoice.split('@')[1]})/#{s.value}"
+    end.join(', ') + ';',
+    "the payer is [@#{boss.login}](https://github.com/#{boss.login}) with the wallet",
+    "[#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id}),",
+    "the remaining balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t)."
+  )
 end
