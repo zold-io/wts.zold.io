@@ -179,7 +179,7 @@ configure do
       begin
         login = settings.config['rewards']['login']
         boss = user(login)
-        job(boss) { pay_hosting_bonuses } if boss.item.exists?
+        job(boss) { pay_hosting_bonuses(boss) } if boss.item.exists?
       rescue StandardError => e
         Raven.capture_exception(e)
         settings.log.error(Backtrace.new(e))
@@ -793,7 +793,7 @@ def job(u = user)
   uuid
 end
 
-def pay_hosting_bonuses
+def pay_hosting_bonuses(boss)
   bonus = Zold::Amount.new(zld: 1.0)
   ops(boss).pull
   latest = boss.wallet(&:txns).reverse.find { |t| t.amount.negative? }
