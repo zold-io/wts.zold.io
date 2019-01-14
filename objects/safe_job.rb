@@ -18,6 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require 'raven'
 require 'backtrace'
 require 'zold/log'
 
@@ -34,5 +35,6 @@ class SafeJob
     @job.call
   rescue StandardError => e
     @log.error(Backtrace.new(e).to_s)
+    Raven.capture_exception(e)
   end
 end
