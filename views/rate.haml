@@ -57,6 +57,14 @@
     %a{href: 'https://blog.zold.io/2018/12/09/btc-to-zld.html'} ZLD-to-BTC exchange
     operations.
 
+%p
+  Exchange fee:
+  %code
+    = format('%0.2f%%', fee * 100)
+  %br
+  %span.small
+    Only the seller pays it.
+
 - if formula[:deficit] > 0
   %p
     Fund
