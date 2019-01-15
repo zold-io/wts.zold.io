@@ -797,7 +797,7 @@ def pay_hosting_bonuses(boss)
   bonus = Zold::Amount.new(zld: 1.0)
   ops(boss).pull
   latest = boss.wallet(&:txns).reverse.find { |t| t.amount.negative? }
-  return if latest.time > Time.now - 60 * 60
+  return if latest.date > Time.now - 60 * 60
   if boss.wallet(&:balance) < bonus
     settings.telepost.spam(
       'The hosting bonuses paying wallet is almost empty,',
