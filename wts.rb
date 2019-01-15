@@ -808,7 +808,7 @@ def pay_hosting_bonuses(boss)
     return
   end
   require 'zold/commands/remote'
-  cmd = Zold::Remote.new(remotes: settings.remotes, log: log(login))
+  cmd = Zold::Remote.new(remotes: settings.remotes, log: log(boss.login))
   winners = cmd.run(%w[remote elect --min-score=8 --max-winners=8])
   winners.each do |score|
     ops(boss).pay(
