@@ -43,7 +43,7 @@ class Ops
     raise "There are no visible remote nodes, can\'t PULL #{id}" if @remotes.all.empty?
     require 'zold/commands/pull'
     Zold::Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
-      ['pull', id.to_s, "--network=#{@network}"]
+      ['pull', id.to_s, "--network=#{@network}", '--retry=4']
     )
     @log.info("#{Time.now.utc.iso8601}: Wallet #{id} pulled successfully \
 in #{(Time.now - start).round}s\n \n ")
@@ -55,7 +55,7 @@ in #{(Time.now - start).round}s\n \n ")
     raise "There are no visible remote nodes, can\'t PUSH #{id}" if @remotes.all.empty?
     require 'zold/commands/push'
     Zold::Push.new(wallets: @wallets, remotes: @remotes, log: @log).run(
-      ['push', id.to_s, "--network=#{@network}"]
+      ['push', id.to_s, "--network=#{@network}", '--retry=4']
     )
     @log.info("#{Time.now.utc.iso8601}: Wallet #{id} pushed successfully \
 in #{(Time.now - start).round}s\n \n ")
