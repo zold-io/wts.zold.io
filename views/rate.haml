@@ -38,6 +38,7 @@
   %code
     = format('%0.8f', formula[:rate])
   BTC per ZLD
+  = format('(%d%% of the exchange rate)', formula[:rate] / rate * 100)
   %br
   %span.small
     It is equal to
