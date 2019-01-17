@@ -799,12 +799,15 @@ def pay_hosting_bonuses(boss)
   latest = boss.wallet(&:txns).reverse.find { |t| t.amount.negative? }
   return if latest.date > Time.now - 60 * 60
   if boss.wallet(&:balance) < bonus
-    settings.telepost.spam(
-      'The hosting bonuses paying wallet is almost empty,',
-      "the balance is just #{boss.wallet(&:balance)};",
-      "we can\'t pay #{bonus} of bonuses now;",
-      'we should wait until the next BTC/ZLD exchange happens.'
-    )
+    if latest.date > Time.now - 60 * 60
+      settings.telepost.spam(
+        'The hosting bonuses paying wallet',
+        "[#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id})",
+        "is almost empty, the balance is just #{boss.wallet(&:balance)};",
+        "we can\'t pay #{bonus} of bonuses now;",
+        'we should wait until the next BTC/ZLD exchange happens.'
+      )
+    end
     return
   end
   require 'zold/commands/remote'
