@@ -358,6 +358,7 @@ post '/do-pay' do
   end
   amount = Zold::Amount.new(zld: params[:amount].to_f)
   details = params[:details]
+  raise UserError, "Invalid details \"#{details}\"" unless details =~ %r{^[a-zA-Z0-9\ @!?*_\-.:,'/]+$}
   headers['X-Zold-Job'] = job do
     ops.pay(keygap, bnf, amount, details)
     settings.telepost.spam(
@@ -652,25 +653,24 @@ not_found do
 end
 
 error do
-  status 503
   e = env['sinatra.error']
   if e.is_a?(UserError)
     settings.log.error(e.message)
     # settings.log.error(Backtrace.new(e))
     body(Backtrace.new(e).to_s)
     headers['X-Zold-Error'] = e.message[0..256]
-    flash('/', e.message, color: 'darkred')
-  else
-    Raven.capture_exception(e)
-    haml(
-      :error,
-      layout: :layout,
-      locals: merged(
-        title: 'Error',
-        error: Backtrace.new(e).to_s
-      )
-    )
+    flash('/', e.message, error: true)
   end
+  status 503
+  Raven.capture_exception(e)
+  haml(
+    :error,
+    layout: :layout,
+    locals: merged(
+      title: 'Error',
+      error: Backtrace.new(e).to_s
+    )
+  )
 end
 
 private
@@ -688,10 +688,10 @@ def country
   country.nil? ? '??' : country.country.to_s
 end
 
-def flash(uri, msg, color: 'darkgreen')
+def flash(uri, msg, error: false)
   cookies[:flash_msg] = msg
-  cookies[:flash_color] = color
-  redirect uri
+  cookies[:flash_color] = error ? 'darkred' : 'darkgreen'
+  redirect(uri, error ? 303 : 302)
 end
 
 def context
