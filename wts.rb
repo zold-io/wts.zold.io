@@ -805,7 +805,8 @@ def pay_hosting_bonuses(boss)
         "[#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id})",
         "is almost empty, the balance is just #{boss.wallet(&:balance)};",
         "we can\'t pay #{bonus} of bonuses now;",
-        'we should wait until the next BTC/ZLD exchange happens.'
+        'we should wait until the next BTC/ZLD',
+        '[exchange](https://blog.zold.io/2018/12/09/btc-to-zld.html) happens.'
       )
     end
     return
