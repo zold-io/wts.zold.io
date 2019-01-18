@@ -615,6 +615,12 @@ get '/rate' do
   )
 end
 
+get '/rate.json' do
+  flash('/rate', 'Let me calculate first...') unless settings.zache.exists?(:rate)
+  content_type 'application/json'
+  JSON.pretty_generate(settings.zache.get(:rate))
+end
+
 get '/graph.svg' do
   content_type 'image/svg+xml'
   settings.zache.clean
