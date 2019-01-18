@@ -591,6 +591,7 @@ get '/rate' do
       hash[:rate] = hash[:bank] / (hash[:root] - hash[:boss]).to_f
       hash[:deficit] = (hash[:root] - hash[:boss]).to_f * rate - hash[:bank]
       hash[:price] = settings.btc.price
+      hash[:usd_rate] = hash[:price] * rate
       settings.zache.put(:rate, hash, lifetime: 10 * 60)
       unless settings.ticks.exists?
         settings.ticks.add(
