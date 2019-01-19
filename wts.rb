@@ -38,6 +38,7 @@ require 'rack/ssl'
 require 'get_process_mem'
 require 'total'
 require 'zold'
+require 'zold/hands'
 require 'zold/sync_wallets'
 require 'zold/cached_wallets'
 require_relative 'version'
@@ -66,6 +67,7 @@ if ENV['RACK_ENV'] != 'test'
 end
 
 configure do
+  Zold::Hands.start
   Haml::Options.defaults[:format] = :xhtml
   config = if ENV['RACK_ENV'] == 'test'
     {
