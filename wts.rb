@@ -595,6 +595,7 @@ get '/rate' do
       hash[:price] = settings.btc.price
       hash[:usd_rate] = hash[:price] * rate
       settings.zache.put(:rate, hash, lifetime: 10 * 60)
+      settings.zache.remove_by { |k| k.to_s.start_with?('http', '/') }
       unless settings.ticks.exists?
         settings.ticks.add(
           'Fund' => (hash[:bank] * 100_000_000).to_i, # in satoshi
@@ -604,7 +605,7 @@ get '/rate' do
           'Coverage' => (hash[:rate] * 100_000_000).to_i, # satoshi per ZLD
           'Deficit' => (hash[:deficit] * 100_000_000).to_i, # in satoshi
           'Price' => (hash[:price] * 100).to_i, # US cents per BTC
-          'Value' => (hash[:price] * rate * 100).to_i, # US cents per ZLD
+          'Value' => (hash[:usd_rate] * 100).to_i, # US cents per ZLD
           'Pledge' => (hash[:price] * hash[:rate] * 100).to_i # US cents per ZLD, covered
         )
       end
