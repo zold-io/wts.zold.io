@@ -686,7 +686,7 @@ end
 private
 
 def rate
-  0.00025
+  0.00026
 end
 
 def fee
