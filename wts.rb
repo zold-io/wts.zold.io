@@ -505,6 +505,7 @@ post '/do-sell' do
   amount = Zold::Amount.new(zld: params[:amount].to_f)
   raise UserError, "The amount #{amount} is too large for us now" if amount > Zold::Amount.new(zld: 4.0)
   address = params[:btc]
+  raise UserError, "Bitcoin address is not valid: #{address.inspect}" unless address =~ /^[a-zA-Z0-9]+$/
   raise UserError, "You don't have enough to send #{amount}" if confirmed_user.wallet(&:balance) < amount
   if user.wallet(&:txns).find { |t| t.amount.negative? && t.date > Time.now - 60 * 60 * 24 }
     raise UserError, 'At the moment we can send only one payment per day, sorry' unless user.login == 'yegor256'
