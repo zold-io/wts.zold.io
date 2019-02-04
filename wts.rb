@@ -501,6 +501,7 @@ get '/btc-hook' do
       "In: #{bitcoin} BTC [exchanged](https://blog.zold.io/2018/12/09/btc-to-zld.html) to #{zld}",
       "by [@#{bnf.login}](https://github.com/#{bnf.login}) from `#{request.ip}` (#{country})",
       "in [#{hash[0..8]}](https://www.blockchain.com/btc/tx/#{hash})",
+      "(#{params[:confirmations]} confirmations)",
       "via [#{address[0..8]}](https://www.blockchain.com/btc/address/#{address}),",
       "to the wallet [#{bnf.item.id}](http://www.zold.io/ledger.html?wallet=#{bnf.item.id})",
       "with the balance of #{bnf.wallet(&:balance)};",
