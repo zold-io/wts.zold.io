@@ -288,19 +288,31 @@ get '/create' do
       boss = user(settings.config['rewards']['login'])
       amount = Zold::Amount.new(zld: 0.256)
       job(boss) do
-        ops(boss).pay(
-          settings.config['rewards']['keygap'], user.item.id,
-          amount, "WTS signup bonus to #{user.login}"
-        )
-        settings.telepost.spam(
-          "Sign-up bonus of #{amount} has been sent",
-          "to [@#{user.login}](https://github.com/#{user.login})",
-          "from `#{request.ip}` (#{country}),",
-          "to their wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})",
-          "from our wallet [#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id})",
-          "of [#{boss.login}](https://github.com/#{boss.login})",
-          "with the remaining balance of #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t)."
-        )
+        if boss.wallet(&:balance) < amount
+          settings.telepost.spam(
+            "Sign-up bonus of #{amount} can't be sent",
+            "to [@#{user.login}](https://github.com/#{user.login})",
+            "from `#{request.ip}` (#{country})",
+            "to their wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})",
+            "from our wallet [#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id})",
+            "of [#{boss.login}](https://github.com/#{boss.login})",
+            "because there is not enough found, only #{boss.wallet(&:balance)} left."
+          )
+        else
+          ops(boss).pay(
+            settings.config['rewards']['keygap'], user.item.id,
+            amount, "WTS signup bonus to #{user.login}"
+          )
+          settings.telepost.spam(
+            "Sign-up bonus of #{amount} has been sent",
+            "to [@#{user.login}](https://github.com/#{user.login})",
+            "from `#{request.ip}` (#{country}),",
+            "to their wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})",
+            "from our wallet [#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id})",
+            "of [#{boss.login}](https://github.com/#{boss.login})",
+            "with the remaining balance of #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t)."
+          )
+        end
       end
     else
       settings.telepost.spam(
