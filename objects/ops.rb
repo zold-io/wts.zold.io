@@ -40,7 +40,7 @@ class Ops
   def pull
     start = Time.now
     id = @item.id
-    raise "There are no visible remote nodes, can\'t PULL #{id}" if @remotes.all.empty?
+    raise UserError, "There are no visible remote nodes, can\'t PULL #{id}" if @remotes.all.empty?
     require 'zold/commands/pull'
     Zold::Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
       ['pull', id.to_s, "--network=#{@network}", '--retry=4']
@@ -52,7 +52,7 @@ in #{(Time.now - start).round}s\n \n ")
   def push
     start = Time.now
     id = @item.id
-    raise "There are no visible remote nodes, can\'t PUSH #{id}" if @remotes.all.empty?
+    raise UserError, "There are no visible remote nodes, can\'t PUSH #{id}" if @remotes.all.empty?
     require 'zold/commands/push'
     Zold::Push.new(wallets: @wallets, remotes: @remotes, log: @log).run(
       ['push', id.to_s, "--network=#{@network}", '--retry=4']
