@@ -21,6 +21,7 @@
 require 'raven'
 require 'backtrace'
 require 'zold/log'
+require_relative 'user_error'
 
 #
 # Job that log exceptions.
@@ -33,6 +34,8 @@ class SafeJob
 
   def call
     @job.call
+  rescue UserError => e
+    @log.error(Backtrace.new(e).to_s)
   rescue StandardError => e
     @log.error(Backtrace.new(e).to_s)
     Raven.capture_exception(e)
