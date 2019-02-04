@@ -491,7 +491,7 @@ get '/btc-hook' do
       settings.config['exchange']['keygap'],
       bnf.item.id,
       zld,
-      "BTC exchange of #{bitcoin.round(8)} at #{hash}, rate is #{rate}, fee is #{fee}"
+      "BTC exchange of #{bitcoin.round(8)} at #{hash}, rate is #{rate}"
     )
     settings.hashes.add(hash, bnf.login, bnf.item.id)
     settings.telepost.spam(
