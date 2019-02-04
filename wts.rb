@@ -358,11 +358,14 @@ post '/do-pay' do
   raise UserError, 'Parameter "details" is not provided' if params[:details].nil?
   if params[:bnf].match?(/^[a-f0-9]{16}$/)
     bnf = Zold::Id.new(params[:bnf])
+    raise UserError, 'You can\'t pay yourself' if bnf == user.item.id
   elsif params[:bnf].match?(/^[a-zA-Z0-9]+@[a-f0-9]{16}$/)
     bnf = params[:bnf]
+    raise UserError, 'You can\'t pay yourself' if bnf.split('@')[1] == user.item.id.to_s
   else
     login = params[:bnf].strip.downcase.gsub(/^@/, '')
     raise UserError, "Invalid GitHub user name: '#{params[:bnf]}'" unless login =~ /^[a-z0-9-]{3,32}$/
+    raise UserError, 'You can\'t pay yourself' if login == user.login
     friend = user(login)
     unless friend.item.exists?
       friend.create
