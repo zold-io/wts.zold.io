@@ -356,9 +356,9 @@ post '/do-pay' do
   raise UserError, 'Parameter "bnf" is not provided' if params[:bnf].nil?
   raise UserError, 'Parameter "amount" is not provided' if params[:amount].nil?
   raise UserError, 'Parameter "details" is not provided' if params[:details].nil?
-  if params[:bnf].match?(/[a-f0-9]{16}/)
+  if params[:bnf].match?(/^[a-f0-9]{16}$/)
     bnf = Zold::Id.new(params[:bnf])
-  elsif params[:bnf].match?(/[a-zA-Z0-9]+@[a-f0-9]{16}/)
+  elsif params[:bnf].match?(/^[a-zA-Z0-9]+@[a-f0-9]{16}$/)
     bnf = params[:bnf]
   else
     login = params[:bnf].strip.downcase.gsub(/^@/, '')
