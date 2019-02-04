@@ -82,6 +82,7 @@ class AppTest < Minitest::Test
       '/key',
       '/pay',
       '/balance',
+      '/restart',
       '/log',
       '/invoice',
       '/api',

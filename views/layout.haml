@@ -72,7 +72,7 @@
                 %a{href: '/api'} API
               %li
                 %del
-                  %a{href: '/create', onclick: "return confirm('The wallet will be re-created, the existing RSA private key will be deleted from our database, are you sure?')"} Restart
+                  %a{href: '/restart'} Restart
           - if File.exist?(latch)
             %nav
               %ul

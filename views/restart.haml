@@ -1,0 +1,24 @@
+%p
+  "Restart" means that a new
+  %strong empty
+  Zold wallet will be created for you.
+  The existing wallet
+  %code= confirmed_user.item.id
+  with the balance of
+  %code= confirmed_user.wallet(&:balance)
+  will disappear from the system.
+  It will still exist in Zold network, but you won't see it here anymore.
+  The private RSA key will also be regenerated.
+
+%p
+  Before you do that we
+  %strong strongly
+  recommend you to download your
+  %a{href: '/key'} private RSA key
+  and record the ID of your wallet,
+  just in case you change you mind in the future.
+
+%p
+  If you understand what you are doing, click
+  %a{href: '/create', onclick: "return confirm('The wallet will be re-created, the existing RSA private key will be deleted from our database, are you sure?')"} here
+  (think twice).

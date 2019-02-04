@@ -395,6 +395,12 @@ get '/pull' do
   flash('/', "Your wallet #{user.item.id} will be pulled soon")
 end
 
+get '/restart' do
+  haml :restart, layout: :layout, locals: merged(
+    title: '@' + confirmed_user.login + '/restart'
+  )
+end
+
 get '/key' do
   haml :key, layout: :layout, locals: merged(
     title: '@' + confirmed_user.login + '/key'
