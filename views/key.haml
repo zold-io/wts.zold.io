@@ -7,6 +7,11 @@
   = succeed ':' do
     %code= confirmed_user.item.id
 
+%form{method: 'POST', action: '/download-key'}
+  %fieldset
+    %input{type: 'text', name: 'keygap', placeholder: 'Your keygap...', autocomplete: 'off', tabindex: 1, autofocus: true}
+    %input{type: 'submit', value: 'Download'}
+
 %pre
   =confirmed_user.item.raw_key.gsub(/\*/, '<span style="color:red">*</span>')
 
