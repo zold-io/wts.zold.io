@@ -4,8 +4,9 @@
   Zold wallet will be created for you.
   The existing wallet
   %code= confirmed_user.item.id
-  with the balance of
-  %code= confirmed_user.wallet(&:balance)
+  - if confirmed_user.wallet_exists?
+    with the balance of
+    %code= confirmed_user.wallet(&:balance)
   will disappear from the system.
   It will still exist in Zold network, but you won't see it here anymore.
   The private RSA key will also be regenerated.
