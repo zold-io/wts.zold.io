@@ -407,12 +407,6 @@ get '/key' do
   )
 end
 
-post '/download-key' do
-  response.headers['Content-Type'] = 'application/octet-stream'
-  response.headers['Content-Disposition'] = "attachment; filename='id_rsa'"
-  confirmed_user.item.key(params[:keygap]).to_s
-end
-
 get '/id' do
   content_type 'text/plain'
   confirmed_user.item.id.to_s
@@ -440,7 +434,8 @@ get '/find' do
 end
 
 get '/id_rsa' do
-  content_type 'text/plain'
+  response.headers['Content-Type'] = 'application/octet-stream'
+  response.headers['Content-Disposition'] = "attachment; filename='id_rsa'"
   confirmed_user.item.key(keygap).to_s
 end
 
