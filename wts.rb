@@ -491,7 +491,9 @@ get '/btc-hook' do
   raise UserError, "The user @#{bnf.login} doesn't have BTC address" unless bnf.item.btc?
   address = bnf.item.btc
   satoshi = params[:value].to_i
-  raise UserError, "Tx #{hash}/#{satoshi}/#{bnf.item.btc} not found" unless settings.btc.exists?(hash, satoshi, address)
+  unless settings.btc.exists?(hash, satoshi, address, params[:confirmations].to_i)
+    raise UserError, "Tx #{hash}/#{satoshi}/#{bnf.item.btc} not found"
+  end
   raise UserError, "BTC hash #{hash} has already been paid" if settings.hashes.seen?(hash)
   bitcoin = satoshi.to_f / 100_000_000
   zld = Zold::Amount.new(zld: bitcoin / rate)

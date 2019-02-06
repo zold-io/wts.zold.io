@@ -45,7 +45,8 @@ class BtcTest < Minitest::Test
       btc.exists?(
         'c3c0a51ff985618dd8373eadf3540fd1bea44d676452dbab47fe0cc07209547d',
         27_900,
-        '1N1R2HP9JD4LvAtp7rTkpRqF19GH7PH2ZF'
+        '1N1R2HP9JD4LvAtp7rTkpRqF19GH7PH2ZF',
+        6
       )
     )
   end
@@ -57,7 +58,8 @@ class BtcTest < Minitest::Test
       !btc.exists?(
         'c3c0a51ff985618dd8373eadf3540fd1bea44d676452dbab47fe0cc07209547d',
         500,
-        '1N1R2HP9JD4LvAtp7rTkpRqF19GH7PH2ZF'
+        '1N1R2HP9JD4LvAtp7rTkpRqF19GH7PH2ZF',
+        6
       )
     )
   end
