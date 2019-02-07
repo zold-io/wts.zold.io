@@ -492,7 +492,7 @@ get '/btc-hook' do
   address = bnf.item.btc
   satoshi = params[:value].to_i
   unless settings.btc.exists?(hash, satoshi, address, params[:confirmations].to_i)
-    raise UserError, "Tx #{hash}/#{satoshi}/#{bnf.item.btc} not found"
+    raise UserError, "Tx #{hash}/#{satoshi}/#{bnf.item.btc} not found yet"
   end
   raise UserError, "BTC hash #{hash} has already been paid" if settings.hashes.seen?(hash)
   bitcoin = satoshi.to_f / 100_000_000
