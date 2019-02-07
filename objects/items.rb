@@ -49,7 +49,7 @@ class Items
     @aws.query(
       table_name: 'zold-wallets',
       index_name: 'queue',
-      limit: 1,
+      limit: 20,
       consistent_read: false,
       select: 'ALL_ATTRIBUTES',
       expression_attribute_values: { ':a' => 1 },
