@@ -40,6 +40,10 @@ class Btc
     def exists?(_hash, _amount, _address, _confirmations)
       true
     end
+
+    def gap
+      5
+    end
   end
 
   def initialize(xpub, key, log: Zold::Log::NULL)
@@ -58,14 +62,17 @@ class Btc
     callback = 'https://wts.zold.io/btc-hook?' + {
       'zold_user': login
     }.map { |k, v| "#{k}=#{CGI.escape(v)}" }.join('&')
-    uri = 'https://api.blockchain.info/v2/receive?' + {
-      'xpub': @xpub,
-      'callback': callback,
-      'key': @key
-    }.map { |k, v| "#{k}=#{CGI.escape(v.to_s)}" }.join('&')
+    uri = uri('/receive', 'xpub': @xpub, 'callback': callback, 'key': @key)
     res = Zold::Http.new(uri: uri).get
     raise UserError, "Can't create Bitcoin address for @#{login}, try again: #{res.status_line}" unless res.code == 200
     Zold::JsonPage.new(res.body).to_hash['address']
+  end
+
+  def gap
+    uri = uri('/receive/checkgap', 'xpub': @xpub, 'key': @key)
+    res = Zold::Http.new(uri: uri).get
+    raise UserError, 'Can\'t get the gap from blockchain.com' unless res.code == 200
+    Zold::JsonPage.new(res.body).to_hash['gap']
   end
 
   # Returns TRUE if transaction with this hash, amount, and target address exists
@@ -81,5 +88,11 @@ class Btc
   rescue StandardError => e
     @log.error(Backtrace.new(e))
     false
+  end
+
+  private
+
+  def uri(path, args)
+    "https://api.blockchain.info/v2#{path}?" + args.map { |k, v| "#{k}=#{CGI.escape(v.to_s)}" }.join('&')
   end
 end

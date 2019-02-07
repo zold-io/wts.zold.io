@@ -30,12 +30,22 @@ class BtcTest < Minitest::Test
       :get,
       [
         'https://api.blockchain.info/v2/receive?',
-        'callback=https://wts.zold.io/btc-hook?zold_user=jeff&gap_limit=256&key=9049a412&xpub=xpub666'
+        'callback=https://wts.zold.io/btc-hook?zold_user=jeff&key=9049a412&xpub=xpub666'
       ].join
     ).to_return(status: 200, body: '{"address": "3456789"}')
     btc = Btc.new('xpub666', '9049a412', log: test_log)
     address = btc.create('jeff')
     assert_equal('3456789', address)
+  end
+
+  def test_checks_gap
+    WebMock.disable_net_connect!
+    stub_request(
+      :get,
+      'https://api.blockchain.info/v2/receive/checkgap?key=9049a412&xpub=xpub666'
+    ).to_return(status: 200, body: '{"gap": 5}')
+    btc = Btc.new('xpub666', '9049a412', log: test_log)
+    assert_equal(5, btc.gap)
   end
 
   def test_validates_txn

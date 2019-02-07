@@ -470,11 +470,13 @@ get '/btc' do
     settings.telepost.spam(
       "New Bitcoin address assigned to [@#{user.login}](https://github.com/#{user.login})",
       "from `#{request.ip}` (#{country}):",
-      "[#{address[0..8]}](https://www.blockchain.com/btc/address/#{address})."
+      "[#{address[0..8]}](https://www.blockchain.com/btc/address/#{address});",
+      "Blockchain.com gap is #{settings.btc.gap}"
     )
   end
   haml :btc, layout: :layout, locals: merged(
-    title: '@' + confirmed_user.login + '/btc'
+    title: '@' + confirmed_user.login + '/btc',
+    gap: settings.zache.get(:gap, lifetime: 60) { settings.btc.gap }
   )
 end
 
@@ -514,6 +516,7 @@ get '/btc-hook' do
       "via [#{address[0..8]}](https://www.blockchain.com/btc/address/#{address}),",
       "to the wallet [#{bnf.item.id}](http://www.zold.io/ledger.html?wallet=#{bnf.item.id})",
       "with the balance of #{bnf.wallet(&:balance)};",
+      "the gap of Blockchain.com is #{settings.btc.gap};",
       "BTC price at the moment of exchange was [$#{settings.btc.price}](https://blockchain.info/ticker);",
       "the payer is [@#{boss.login}](https://github.com/#{boss.login}) with the wallet",
       "[#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id}),",
