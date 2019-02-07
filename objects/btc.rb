@@ -33,7 +33,7 @@ class Btc
       1000
     end
 
-    def create(_login)
+    def create
       '1N1R2HP9JD4LvAtp7rTkpRqF19GH7PH2ZF'
     end
 
@@ -57,14 +57,11 @@ class Btc
     JSON.parse(Zold::Http.new(uri: 'https://blockchain.info/ticker').get.body)['USD']['15m']
   end
 
-  # Create new BTC address
-  def create(login)
-    callback = 'https://wts.zold.io/btc-hook?' + {
-      'zold_user': login
-    }.map { |k, v| "#{k}=#{CGI.escape(v)}" }.join('&')
-    uri = uri('/receive', 'xpub': @xpub, 'callback': callback, 'key': @key)
+  # Create new BTC address to accept payments.
+  def create
+    uri = uri('/receive', 'xpub': @xpub, 'callback': 'https://wts.zold.io/btc-hook', 'key': @key)
     res = Zold::Http.new(uri: uri).get
-    raise UserError, "Can't create Bitcoin address for @#{login}, try again: #{res.status_line}" unless res.code == 200
+    raise UserError, "Can't acquire Bitcoin address, try again: #{res.status_line}" unless res.code == 200
     Zold::JsonPage.new(res.body).to_hash['address']
   end
 

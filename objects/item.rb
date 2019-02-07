@@ -109,22 +109,33 @@ keygap is '#{keygap[0, 2]}#{'.' * (keygap.length - 2)}'")
     @log.debug("The keygap of @#{@login} was destroyed")
   end
 
-  # Returns true if BTC address is set
-  def btc?
-    !read['btc'].nil?
-  end
-
-  # Returns BTC address of the item (exception if it's absent)
+  # Returns BTC address if possible to get it (one of the existing ones),
+  # otherwise generate a new one, using the block.
   def btc
-    raise "The user @#{@login} doesn't have a BTC address" unless btc?
-    read['btc']
-  end
-
-  # Save BTC address
-  def save_btc(address)
     item = read
-    item['btc'] = address
+    return item['btc'] if item['btc']
+    found = @aws.query(
+      table_name: 'zold-wallets',
+      limit: 1,
+      index_name: 'queue',
+      select: 'ALL_ATTRIBUTES',
+      consistent_read: false,
+      expression_attribute_values: { ':a' => 1 },
+      key_condition_expression: 'active=:a'
+    ).items
+    if found.empty? || Time.at(found[0]['assigned'].to_i) > Time.now - 60 * 60
+      item['btc'] = yield
+    else
+      expired = found[0]
+      item['btc'] = expired['btc']
+      expired.delete('btc')
+      expired['active'] = 0
+      @aws.put_item(table_name: 'zold-wallets', item: expired)
+    end
+    item['assigned'] = Time.now.to_i
+    item['active'] = 1
     @aws.put_item(table_name: 'zold-wallets', item: item)
+    item['btc']
   end
 
   private

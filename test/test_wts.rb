@@ -139,10 +139,11 @@ class AppTest < Minitest::Test
     user.create
     keygap = user.keygap
     user.confirm(keygap)
-    user.item.save_btc('1N1R2HP9JD4LvAtp7rTkpRqF19GH7PH2ZF')
+    user.item.btc { '1N1R2HP9JD4LvAtp7rTkpRqF19GH7PH2ZF' }
     get(
       '/btc-hook?' + form(
         'transaction_hash': 'c3c0a51ff985618dd8373eadf3540fd1bea44d676452dbab47fe0cc07209547d',
+        'address': '1N1R2HP9JD4LvAtp7rTkpRqF19GH7PH2ZF',
         'zold_user': login,
         'confirmations': 10,
         'value': 27_900

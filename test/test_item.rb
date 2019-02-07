@@ -61,9 +61,7 @@ class ItemTest < Minitest::Test
     pvt = OpenSSL::PKey::RSA.new(2048)
     btc = '32wtFfKbjWHpu9WFzX9adGssnAosqPkSp6'
     item.create(Zold::Id.new, Zold::Key.new(text: pvt.to_pem))
-    assert(!item.btc?)
-    item.save_btc(btc)
-    assert(item.btc?)
+    assert(item.btc { btc })
     assert_equal(btc, item.btc)
   end
 end

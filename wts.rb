@@ -45,6 +45,7 @@ require_relative 'version'
 require_relative 'objects/ticks'
 require_relative 'objects/graph'
 require_relative 'objects/item'
+require_relative 'objects/items'
 require_relative 'objects/user'
 require_relative 'objects/btc'
 require_relative 'objects/bank'
@@ -120,6 +121,7 @@ configure do
   set :server_settings, timeout: 25
   set :log, Zold::Log::REGULAR.dup
   set :dynamo, Dynamo.new(config).aws
+  set :items, Items.new(settings.dynamo, log: settings.log)
   set :glogin, GLogin::Auth.new(
     config['github']['client_id'],
     config['github']['client_secret'],
@@ -464,15 +466,14 @@ get '/invoice' do
 end
 
 get '/btc' do
-  unless confirmed_user.item.btc?
-    address = settings.btc.create(confirmed_user.login)
-    confirmed_user.item.save_btc(address)
+  confirmed_user.item.btc do
+    address = settings.btc.create
     settings.telepost.spam(
-      "New Bitcoin address assigned to [@#{user.login}](https://github.com/#{user.login})",
-      "from `#{request.ip}` (#{country}):",
+      'New Bitcoin address acquired',
       "[#{address[0..8]}](https://www.blockchain.com/btc/address/#{address});",
       "Blockchain.com gap is #{settings.btc.gap}"
     )
+    address
   end
   haml :btc, layout: :layout, locals: merged(
     title: '@' + confirmed_user.login + '/btc',
@@ -483,16 +484,14 @@ end
 # See https://www.blockchain.com/api/api_receive
 get '/btc-hook' do
   return '*ok*' if params[:confirmations].to_i > 64
-  raise UserError, 'Zold user name is not provided' if params[:zold_user].nil?
   raise UserError, 'Tx hash is not provided' if params[:transaction_hash].nil?
-  raise UserError, 'Tx value is not provided' if params[:value].nil?
   hash = params[:transaction_hash]
-  bnf = user(params[:zold_user])
-  raise UserError, "There is no user @#{bnf.login}" unless bnf.item.exists?
-  raise UserError, "The user @#{bnf.login} is not confirmed" unless bnf.confirmed?
-  raise UserError, "The user @#{bnf.login} doesn't have BTC address" unless bnf.item.btc?
-  address = bnf.item.btc
+  raise UserError, 'Tx value is not provided' if params[:value].nil?
   satoshi = params[:value].to_i
+  raise UserError, 'Address is not provided' if params[:address].nil?
+  address = params[:address]
+  bnf = user(settings.items.find_by_btc(address).login)
+  raise UserError, "The user @#{bnf.login} is not confirmed" unless bnf.confirmed?
   unless settings.btc.exists?(hash, satoshi, address, params[:confirmations].to_i)
     raise UserError, "Tx #{hash}/#{satoshi}/#{bnf.item.btc} not found yet"
   end
@@ -526,8 +525,14 @@ get '/btc-hook' do
   '*ok*'
 end
 
+get '/queue' do
+  raise UserError, 'You are not allowed to see this' unless user.login == 'yegor256'
+  content_type 'text/plain', charset: 'utf-8'
+  settings.items.all.to_s
+end
+
 post '/do-sell' do
-  raise UserError, 'Amoung is not provided' if params[:amount].nil?
+  raise UserError, 'Amount is not provided' if params[:amount].nil?
   raise UserError, 'Bitcoin address is not provided' if params[:btc].nil?
   raise UserError, 'Keygap is not provided' if params[:keygap].nil?
   amount = Zold::Amount.new(zld: params[:amount].to_f)

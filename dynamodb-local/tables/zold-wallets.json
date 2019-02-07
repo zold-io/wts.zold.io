@@ -4,6 +4,18 @@
     {
       "AttributeName": "login",
       "AttributeType": "S"
+    },
+    {
+      "AttributeName": "active",
+      "AttributeType": "N"
+    },
+    {
+      "AttributeName": "btc",
+      "AttributeType": "S"
+    },
+    {
+      "AttributeName": "assigned",
+      "AttributeType": "N"
     }
   ],
   "KeySchema": [
@@ -15,5 +27,47 @@
   "ProvisionedThroughput": {
     "ReadCapacityUnits": "1",
     "WriteCapacityUnits": "1"
-  }
+  },
+  "GlobalSecondaryIndexes": [
+    {
+      "IndexName": "queue",
+      "KeySchema": [
+        {
+          "AttributeName": "active",
+          "KeyType": "HASH"
+        },
+        {
+          "AttributeName": "assigned",
+          "KeyType": "RANGE"
+        }
+      ],
+      "Projection": {
+        "ProjectionType": "ALL"
+      },
+      "ProvisionedThroughput": {
+        "ReadCapacityUnits": "1",
+        "WriteCapacityUnits": "1"
+      }
+    },
+    {
+      "IndexName": "btc",
+      "KeySchema": [
+        {
+          "AttributeName": "btc",
+          "KeyType": "HASH"
+        },
+        {
+          "AttributeName": "login",
+          "KeyType": "RANGE"
+        }
+      ],
+      "Projection": {
+        "ProjectionType": "ALL"
+      },
+      "ProvisionedThroughput": {
+        "ReadCapacityUnits": "1",
+        "WriteCapacityUnits": "1"
+      }
+    }
+  ]
 }
