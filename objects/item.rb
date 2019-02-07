@@ -113,7 +113,7 @@ keygap is '#{keygap[0, 2]}#{'.' * (keygap.length - 2)}'")
   # otherwise generate a new one, using the block.
   def btc
     item = read
-    return item['btc'] if item['btc']
+    return item['btc'] if item['btc'] && Time.at(item['assigned'].to_i) > Time.now - 60 * 60
     found = @aws.query(
       table_name: 'zold-wallets',
       limit: 1,
