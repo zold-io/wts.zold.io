@@ -730,7 +730,7 @@ def fee
 end
 
 def sell_limit
-  Zold::Amount.new(zld: 16.0)
+  Zold::Amount.new(zld: 32.0)
 end
 
 def country
