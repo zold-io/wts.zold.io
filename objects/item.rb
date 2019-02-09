@@ -138,6 +138,14 @@ keygap is '#{keygap[0, 2]}#{'.' * (keygap.length - 2)}'")
     item['btc']
   end
 
+  # Removes the used BTC address entirely (when funds received).
+  def destroy_btc
+    item = read
+    item.delete('btc')
+    item['active'] = 0
+    @aws.put_item(table_name: 'zold-wallets', item: item)
+  end
+
   private
 
   def read
