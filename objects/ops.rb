@@ -82,7 +82,7 @@ in #{(Time.now - start).round}s\n \n ")
       File.write(f, @item.key(keygap))
       require 'zold/commands/pay'
       Zold::Pay.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
-        ['pay', '--private-key=' + f.path, id.to_s, bnf.to_s, amount.to_zld(8), details]
+        ['pay', "--network=#{@network}", '--private-key=' + f.path, id.to_s, bnf.to_s, amount.to_zld(8), details]
       )
     end
     push
