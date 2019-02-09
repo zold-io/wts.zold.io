@@ -534,6 +534,15 @@ get '/queue' do
   end
 end
 
+get '/queue-clean' do
+  raise UserError, 'You are not allowed to see this' unless user.login == 'yegor256'
+  content_type 'text/plain', charset: 'utf-8'
+  settings.items.all.map do |i|
+    user(i['login']).item.destroy_btc
+    "@#{i['login']} #{Zold::Age.new(Time.at(i['assigned']))} #{i['btc']}: destroyed\n"
+  end
+end
+
 post '/do-sell' do
   raise UserError, 'Amount is not provided' if params[:amount].nil?
   raise UserError, 'Bitcoin address is not provided' if params[:btc].nil?
