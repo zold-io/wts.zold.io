@@ -74,17 +74,24 @@ class Btc
 
   # Returns TRUE if transaction with this hash, amount, and target address exists
   def exists?(hash, amount, address, confirmations)
-    txn = Zold::JsonPage.new(Zold::Http.new(uri: "https://blockchain.info/rawtx/#{hash}").get.body).to_hash
-    return false if txn['out'].find { |t| t['addr'] == address && t['value'] == amount }.nil?
-    return false if confirmations.zero?
-    return false if confirmations < 2 && amount > 100_000 # 0.001 BTC
-    return false if confirmations < 3 && amount > 1_000_000 # 0.01 BTC
-    return false if confirmations < 4 && amount > 10_000_000 # 0.1 BTC
-    return false if confirmations < 5 && amount > 100_000_000 # 1 BTC
-    true
-  rescue StandardError => e
-    @log.error(Backtrace.new(e))
-    false
+    attempt = 0
+    begin
+      res = Zold::Http.new(uri: "https://blockchain.info/rawtx/#{hash}").get
+      raise "Invalid response code #{res.status}" unless res.status == 200
+      txn = Zold::JsonPage.new(res.body).to_hash
+      return false if txn['out'].find { |t| t['addr'] == address && t['value'] == amount }.nil?
+      return false if confirmations.zero?
+      return false if confirmations < 2 && amount > 100_000 # 0.001 BTC
+      return false if confirmations < 3 && amount > 1_000_000 # 0.01 BTC
+      return false if confirmations < 4 && amount > 10_000_000 # 0.1 BTC
+      return false if confirmations < 5 && amount > 100_000_000 # 1 BTC
+      true
+    rescue StandardError => e
+      attempt += 1
+      retry if attempt < 3
+      @log.error(Backtrace.new(e))
+      false
+    end
   end
 
   private

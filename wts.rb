@@ -526,6 +526,13 @@ get '/btc-hook' do
   '*ok*'
 end
 
+get '/zache-flush' do
+  raise UserError, 'You are not allowed to see this' unless user.login == 'yegor256'
+  settings.zache.remove_all
+  content_type 'text/plain', charset: 'utf-8'
+  'done'
+end
+
 get '/queue' do
   raise UserError, 'You are not allowed to see this' unless user.login == 'yegor256'
   content_type 'text/plain', charset: 'utf-8'
