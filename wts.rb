@@ -537,7 +537,7 @@ get '/queue' do
   raise UserError, 'You are not allowed to see this' unless user.login == 'yegor256'
   content_type 'text/plain', charset: 'utf-8'
   settings.items.all.map do |i|
-    "@#{i['login']} #{Zold::Age.new(Time.at(i['assigned']))} #{i['btc']}\n"
+    "@#{i['login']} #{Zold::Age.new(Time.at(i['assigned']))} #{i['btc']} A=#{i['active']}\n"
   end
 end
 

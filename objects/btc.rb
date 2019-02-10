@@ -88,7 +88,10 @@ class Btc
       true
     rescue StandardError => e
       attempt += 1
-      retry if attempt < 3
+      if attempt < 3
+        sleep 0.5
+        retry
+      end
       @log.error(Backtrace.new(e))
       false
     end
