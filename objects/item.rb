@@ -111,9 +111,9 @@ keygap is '#{keygap[0, 2]}#{'.' * (keygap.length - 2)}'")
 
   # Returns BTC address if possible to get it (one of the existing ones),
   # otherwise generate a new one, using the block.
-  def btc
+  def btc(lifetime: 60 * 60)
     item = read
-    return item['btc'] if item['btc'] && Time.at(item['assigned'].to_i) > Time.now - 60 * 60
+    return item['btc'] if item['btc'] && Time.at(item['assigned'].to_i) > Time.now - lifetime
     found = @aws.query(
       table_name: 'zold-wallets',
       limit: 1,
@@ -123,12 +123,18 @@ keygap is '#{keygap[0, 2]}#{'.' * (keygap.length - 2)}'")
       expression_attribute_values: { ':a' => 1 },
       key_condition_expression: 'active=:a'
     ).items
-    if found.empty? || Time.at(found[0]['assigned'].to_i) > Time.now - 60 * 60
+    if found.empty? || Time.at(found[0]['assigned'].to_i) > Time.now - lifetime
+      return item['btc'] if item['btc']
       item['btc'] = yield
     else
       expired = found[0]
+      prev = item['btc']
       item['btc'] = expired['btc']
-      expired.delete('btc')
+      if prev.nil?
+        expired.delete('btc')
+      else
+        expired['btc'] = prev
+      end
       expired['active'] = 0
       @aws.put_item(table_name: 'zold-wallets', item: expired)
     end

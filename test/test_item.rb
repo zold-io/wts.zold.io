@@ -57,11 +57,19 @@ class ItemTest < Minitest::Test
 
   def test_reads_btc_address
     WebMock.allow_net_connect!
-    item = Item.new('jeffrey2', Dynamo.new.aws)
+    jeff = Item.new('jeffrey2', Dynamo.new.aws)
+    sarah = Item.new('sarah2', Dynamo.new.aws)
     pvt = OpenSSL::PKey::RSA.new(2048)
-    btc = '32wtFfKbjWHpu9WFzX9adGssnAosqPkSp6'
-    item.create(Zold::Id.new, Zold::Key.new(text: pvt.to_pem))
-    assert(item.btc { btc })
-    assert_equal(btc, item.btc)
+    jeff.create(Zold::Id.new, Zold::Key.new(text: pvt.to_pem))
+    sarah.create(Zold::Id.new, Zold::Key.new(text: pvt.to_pem))
+    btc1 = '32wtFfKbjWHpu9WFzX9adGssnAosqPkSp6'
+    assert(jeff.btc { btc1 })
+    assert_equal(btc1, jeff.btc)
+    btc2 = '32wtFfKbjWHpu9WFzX9adGssnAosqPkSp7'
+    assert(sarah.btc { btc2 })
+    assert_equal(btc2, sarah.btc)
+    sleep 0.5
+    assert(jeff.btc(lifetime: 0.2) { raise 'Should not happen' })
+    assert(btc1 != jeff.btc)
   end
 end
