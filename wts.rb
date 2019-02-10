@@ -537,7 +537,7 @@ get '/queue' do
   raise UserError, 'You are not allowed to see this' unless user.login == 'yegor256'
   content_type 'text/plain', charset: 'utf-8'
   settings.items.all.map do |i|
-    "@#{i['login']} #{Zold::Age.new(Time.at(i['assigned']))} #{i['btc']} A=#{i['active']}\n"
+    "@#{i['login']} #{Zold::Age.new(Time.at(i['assigned']))} #{i['btc']} A=#{i['active'].to_i}\n"
   end
 end
 
@@ -596,7 +596,8 @@ post '/do-sell' do
       "zolds were deposited to [#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id})",
       "of [#{boss.login}](https://github.com/#{boss.login}),",
       "the balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t);",
-      "exchange fee was deposited to [#{rewards.item.id}](http://www.zold.io/ledger.html?wallet=#{rewards.item.id})",
+      "the exchange fee of #{amount * fee}",
+      "was deposited to [#{rewards.item.id}](http://www.zold.io/ledger.html?wallet=#{rewards.item.id})",
       "of [#{rewards.login}](https://github.com/#{rewards.login}),",
       "the balance is #{rewards.wallet(&:balance)} (#{rewards.wallet(&:txns).count}t)."
     )
