@@ -558,6 +558,7 @@ post '/do-sell' do
   raise UserError, "The amount #{amount} is too large for us now" if amount > sell_limit
   address = params[:btc]
   raise UserError, "Bitcoin address is not valid: #{address.inspect}" unless address =~ /^[a-zA-Z0-9]+$/
+  raise UserError, 'Bitcoin address must start with 1, 3 or bc1' unless address =~ /^(1|3|bc1)/
   raise UserError, "You don't have enough to send #{amount}" if confirmed_user.wallet(&:balance) < amount
   if user.wallet(&:txns).find { |t| t.amount.negative? && t.date > Time.now - 60 * 60 * 24 }
     raise UserError, 'At the moment we can send only one payment per day, sorry' unless user.login == 'yegor256'

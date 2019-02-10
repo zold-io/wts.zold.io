@@ -51,9 +51,12 @@
       Bitcoin
       %a{href: 'https://en.bitcoin.it/wiki/Address'} address
       to send to, in
-      %a{href: 'https://en.bitcoin.it/wiki/Transaction#Pay-to-PubkeyHash'} P2PKH
+      = succeed ',' do
+        %a{href: 'https://en.bitcoin.it/wiki/Transaction#Pay-to-PubkeyHash'} P2PKH
+      = succeed ',' do
+        %a{href: 'https://en.bitcoin.it/wiki/Pay_to_script_hash'} P2SH
       or
-      %a{href: 'https://en.bitcoin.it/wiki/Pay_to_script_hash'} P2SH
+      %a{href: 'https://en.bitcoin.it/wiki/Bech32'} Bech32
       format:
     %input{type: 'text', name: 'btc', maxlength: 36, size: 45, autocomplete: 'off', tabindex: 3}
     %input{type: 'submit', onclick: "return confirm('Are you sure? This operation is not reversable!')", tabindex: 4}
