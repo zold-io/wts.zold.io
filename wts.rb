@@ -283,7 +283,7 @@ get '/create' do
     settings.telepost.spam(
       "The user [@#{user.login}](https://github.com/#{user.login})",
       "created a new wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})",
-      "from `#{request.ip}` (#{country})."
+      "from #{anon_ip}."
     )
     known = Zold::Http.new(uri: 'https://www.0crat.com/known/' + user.login).get
     if known.code == 200
@@ -294,7 +294,7 @@ get '/create' do
           settings.telepost.spam(
             "Sign-up bonus of #{amount} can't be sent",
             "to [@#{user.login}](https://github.com/#{user.login})",
-            "from `#{request.ip}` (#{country})",
+            "from #{anon_ip}",
             "to their wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})",
             "from our wallet [#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id})",
             "of [#{boss.login}](https://github.com/#{boss.login})",
@@ -308,7 +308,7 @@ get '/create' do
           settings.telepost.spam(
             "Sign-up bonus of #{amount} has been sent",
             "to [@#{user.login}](https://github.com/#{user.login})",
-            "from `#{request.ip}` (#{country}),",
+            "from #{anon_ip},",
             "to their wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})",
             "from our wallet [#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id})",
             "of [#{boss.login}](https://github.com/#{boss.login})",
@@ -320,7 +320,7 @@ get '/create' do
       settings.telepost.spam(
         "Sign-up bonus won't be sent to",
         "[@#{user.login}](https://github.com/#{user.login})",
-        "from `#{request.ip}` (#{country})",
+        "from #{anon_ip}",
         "with the wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})",
         "because this user is not [known](https://www.0crat.com/known/#{user.login}) to Zerocracy."
       )
@@ -385,7 +385,7 @@ post '/do-pay' do
       "from [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})",
       "with the balance of #{user.wallet(&:balance)}",
       "to [#{bnf}](http://www.zold.io/ledger.html?wallet=#{bnf})",
-      "for #{amount} from `#{request.ip}` (#{country}):",
+      "for #{amount} from #{anon_ip}:",
       "\"#{details}\"."
     )
   end
@@ -510,7 +510,7 @@ get '/btc-hook' do
     user.item.destroy_btc
     settings.telepost.spam(
       "In: #{bitcoin} BTC [exchanged](https://blog.zold.io/2018/12/09/btc-to-zld.html) to #{zld}",
-      "by [@#{bnf.login}](https://github.com/#{bnf.login}) from `#{request.ip}` (#{country})",
+      "by [@#{bnf.login}](https://github.com/#{bnf.login}) from #{anon_ip}",
       "in [#{hash[0..8]}](https://www.blockchain.com/btc/tx/#{hash})",
       "(#{params[:confirmations]} confirmations)",
       "via [#{address[0..8]}](https://www.blockchain.com/btc/address/#{address}),",
@@ -588,7 +588,7 @@ post '/do-sell' do
     )
     settings.telepost.spam(
       "Out: #{amount} [exchanged](https://blog.zold.io/2018/12/09/btc-to-zld.html) to #{bitcoin} BTC",
-      "by [@#{user.login}](https://github.com/#{user.login}) from `#{request.ip}` (#{country})",
+      "by [@#{user.login}](https://github.com/#{user.login}) from #{anon_ip}",
       "from the wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})",
       "with the balance of #{user.wallet(&:balance)}",
       "to bitcoin address [#{address[0..8]}](https://www.blockchain.com/btc/address/#{address});",
@@ -751,6 +751,10 @@ end
 
 def sell_limit
   Zold::Amount.new(zld: 32.0)
+end
+
+def anon_ip
+  "`#{request.ip.to_s.gsub(/\.[0-9]+$/, '.xxx')}` (#{country})"
 end
 
 def country
