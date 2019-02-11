@@ -229,7 +229,7 @@ before '/*' do
       @locals[:keygap] = keygap
       settings.log.info(
         "HTTP authentication header of @#{login} detected \
-from #{request.ip} with keygap of #{keygap.length} chars"
+from #{anon_ip} with keygap of #{keygap.length} chars"
       )
     rescue OpenSSL::Cipher::CipherError => _
       error 400
