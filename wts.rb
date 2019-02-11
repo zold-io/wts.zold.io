@@ -754,7 +754,7 @@ def sell_limit
 end
 
 def anon_ip
-  "`#{request.ip.to_s.gsub(/\.[0-9]+$/, '.xxx')}` (#{country})"
+  "`#{request.ip.to_s.gsub(/\.[0-9]+$/, '.xx')}` (#{country})"
 end
 
 def country
