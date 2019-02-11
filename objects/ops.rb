@@ -46,6 +46,13 @@ class Ops
       Zold::Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
         ['pull', id.to_s, "--network=#{@network}", '--retry=4']
       )
+    rescue Zold::Fetch::NotFound => e
+      raise UserError, "We didn't manage to find your wallet in any of visible Zold nodes. \
+You should try to PULL again. If it doesn't work, most likely your wallet #{id} is lost \
+and can't be recovered. If you have its copy locally, you can push it to the \
+network from the console app, using PUSH command. Otherwise, go for \
+the RESTART option in the top menu and create a new wallet. We are sorry to \
+see this happening! #{e.message}"
     rescue Zold::Fetch::EdgesOnly, Zold::Fetch::NoQuorum => e
       raise UserError, e.message
     end
