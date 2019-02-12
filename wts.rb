@@ -292,7 +292,7 @@ get '/create' do
       job(boss) do
         if boss.wallet(&:balance) < amount
           settings.telepost.spam(
-            "Sign-up bonus of #{amount} can't be sent",
+            "A sign-up bonus of #{amount} can't be sent",
             "to [@#{user.login}](https://github.com/#{user.login})",
             "from #{anon_ip}",
             "to their wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})",
@@ -306,7 +306,7 @@ get '/create' do
             amount, "WTS signup bonus to #{user.login}"
           )
           settings.telepost.spam(
-            "Sign-up bonus of #{amount} has been sent",
+            "The sign-up bonus of #{amount} has been sent",
             "to [@#{user.login}](https://github.com/#{user.login})",
             "from #{anon_ip},",
             "to their wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})",
@@ -318,7 +318,7 @@ get '/create' do
       end
     else
       settings.telepost.spam(
-        "Sign-up bonus won't be sent to",
+        "A sign-up bonus won't be sent to",
         "[@#{user.login}](https://github.com/#{user.login})",
         "from #{anon_ip}",
         "with the wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})",
