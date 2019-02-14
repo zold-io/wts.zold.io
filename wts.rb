@@ -224,7 +224,7 @@ before '/*' do
   header = request.env['HTTP_X_ZOLD_WTS']
   if header
     login, token = header.strip.split('-', 2)
-    raise UserError, 'Invalid token' unless user(login).token == token
+    raise UserError, 'Invalid token' unless user(login).item.token == token
     @locals[:guser] = login
   end
 end
