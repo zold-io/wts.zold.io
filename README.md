@@ -79,6 +79,19 @@ There are more entry points:
   * `GET /id_rsa`: returns private RSA key of the user, expecting the keygap
     as an argument.
 
+## Mobile API
+
+If you want to create a mobile client, you may use our mobile API with two
+access points:
+
+  * `GET /mobile/send?phone=+15551234567`:
+    returns `200` if the SMS has been sent to the user with the authentication code.
+
+  * `GET /mobile/token?phone=+15551234567&code=6666`:
+    returns API access token. The `code` is the code from the SMS.
+
+Then, when you have the API token, you can manage the account of the user.
+
 ## How to Contribute
 
 First, install
