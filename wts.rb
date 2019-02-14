@@ -20,6 +20,7 @@
 
 STDOUT.sync = true
 
+require 'aws-sdk-sns'
 require 'haml'
 require 'geocoder'
 require 'sinatra'
@@ -88,6 +89,12 @@ configure do
       'api_secret' => 'test',
       'sentry' => '',
       'dynamo' => {
+        'region' => '?',
+        'key' => '?',
+        'secret' => '?'
+      },
+      'sns' => {
+        'region' => '?',
         'key' => '?',
         'secret' => '?'
       },
@@ -163,6 +170,11 @@ configure do
       log: settings.log
     )
   end
+  set :sns, Aws::SNS::Client.new(
+    region: settings.config['sns']['region'],
+    access_key_id: settings.config['sns']['key'],
+    secret_access_key: settings.config['sns']['secret']
+  )
   if settings.config['telegram']['token'].empty?
     set :telepost, Telepost::Fake.new
   else
@@ -277,8 +289,7 @@ get '/create' do
       "created a new wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})",
       "from #{anon_ip}"
     )
-    known = Zold::Http.new(uri: 'https://www.0crat.com/known/' + user.login).get
-    if known.code == 200
+    if known?
       boss = user(settings.config['rewards']['login'])
       amount = Zold::Amount.new(zld: 0.256)
       job(boss) do
@@ -670,7 +681,7 @@ get '/rate.json' do
     bank: hash[:bank],
     boss: hash[:boss].to_i,
     root: hash[:root].to_i,
-    rate: hash[:rate].to_s,
+    rate: hash[:rate].round(8),
     deficit: hash[:deficit].round(2),
     price: hash[:price].round,
     usd_rate: hash[:usd_rate].round(4)
@@ -689,9 +700,13 @@ get '/mobile/send' do
   phone = params[:phone]
   raise UserError, 'Mobile phone number is required' if phone.nil?
   raise UserError, "Invalid phone #{phone.inspect}" unless /^[0-9]+$/.match?(phone)
-  code = rand(1000..9999)
-  user(phone).item.mcode_set(code)
-  'not implemented yet...'
+  mcode = rand(1000..9999)
+  user(phone).item.mcode_set(mcode)
+  response = settings.sns.publish(
+    phone_number: "+#{phone}",
+    message: "Your WTS code is: #{mcode}"
+  )
+  response[:message_id]
 end
 
 get '/mobile/token' do
@@ -763,7 +778,7 @@ def rate
 end
 
 def fee
-  0.08
+  known? ? 0.02 : 0.08
 end
 
 def sell_limit
@@ -820,6 +835,11 @@ def confirmed_user(login = @locals[:guser])
   u = user(login)
   raise UserError, "You @#{login} have to confirm your keygap first" unless u.confirmed?
   u
+end
+
+# This user is known as Zerocracy contributor.
+def known?
+  Zold::Http.new(uri: 'https://www.0crat.com/known/' + user.login).get.code == 200
 end
 
 def keygap
