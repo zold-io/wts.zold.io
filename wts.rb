@@ -678,7 +678,16 @@ end
 get '/rate.json' do
   flash('/rate', 'Let me calculate first...') unless settings.zache.exists?(:rate)
   content_type 'application/json'
-  JSON.pretty_generate(settings.zache.get(:rate))
+  hash = settings.zache.get(:rate)
+  JSON.pretty_generate(
+    bank: hash[:bank],
+    boss: hash[:boss].to_i,
+    root: hash[:root].to_i,
+    rate: hash[:rate].to_s,
+    deficit: hash[:deficit].round(2),
+    price: hash[:price].round,
+    usd_rate: hash[:usd_rate].round(4)
+  )
 end
 
 get '/graph.svg' do
