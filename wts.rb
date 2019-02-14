@@ -223,13 +223,9 @@ before '/*' do
   end
   header = request.env['HTTP_X_ZOLD_WTS']
   if header
-    begin
-      login, token = settings.codec.decrypt(header).split('-', 2)
-      raise UserError, 'Invalid token' unless user(login).token == token
-      @locals[:guser] = login
-    rescue OpenSSL::Cipher::CipherError => _
-      error 400
-    end
+    login, token = header.strip.split('-', 2)
+    raise UserError, 'Invalid token' unless user(login).token == token
+    @locals[:guser] = login
   end
 end
 
