@@ -470,7 +470,8 @@ get '/btc' do
     address = settings.btc.create
     settings.telepost.spam(
       'New Bitcoin address acquired',
-      "[#{address[0..8]}](https://www.blockchain.com/btc/address/#{address});",
+      "[#{address[0..8]}](https://www.blockchain.com/btc/address/#{address})",
+      "by request of [@#{user.login}](https://github.com/#{user.login}) from #{anon_ip}",
       "Blockchain.com gap is #{settings.btc.gap};",
       settings.btc.to_s
     )
