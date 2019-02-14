@@ -109,6 +109,21 @@ keygap is '#{keygap[0, 2]}#{'.' * (keygap.length - 2)}'")
     @log.debug("The keygap of @#{@login} was destroyed")
   end
 
+  # API token, if exists. Otherwise, resets it.
+  def token
+    item = read
+    return item['token'] if item['token']
+    token_reset
+    read['token']
+  end
+
+  # Sets a new API token to the user.
+  def token_reset
+    item = read
+    item['token'] = SecureRandom.uuid.gsub(/[^a-f0-9]/, '')
+    @aws.put_item(table_name: 'zold-wallets', item: item)
+  end
+
   # Returns BTC address if possible to get it (one of the existing ones),
   # otherwise generate a new one, using the block.
   def btc(lifetime: 60 * 60)

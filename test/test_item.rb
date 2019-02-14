@@ -72,4 +72,15 @@ class ItemTest < Minitest::Test
     assert(jeff.btc(lifetime: 0.2) { raise 'Should not happen' })
     assert(btc1 != jeff.btc)
   end
+
+  def test_sets_and_resets_api_token
+    WebMock.allow_net_connect!
+    item = Item.new('johnny2', Dynamo.new.aws)
+    pvt = OpenSSL::PKey::RSA.new(2048)
+    item.create(Zold::Id.new, Zold::Key.new(text: pvt.to_pem))
+    token = item.token
+    assert_equal(token, item.token)
+    item.token_reset
+    assert(token != item.token)
+  end
 end

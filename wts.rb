@@ -224,13 +224,9 @@ before '/*' do
   header = request.env['HTTP_X_ZOLD_WTS']
   if header
     begin
-      login, keygap = settings.codec.decrypt(header).split(' ')
+      login, token = settings.codec.decrypt(header).split('-', 2)
+      raise UserError, 'Invalid token' unless user(login).token == token
       @locals[:guser] = login
-      @locals[:keygap] = keygap
-      settings.log.info(
-        "HTTP authentication header of @#{login} detected \
-from #{anon_ip} with keygap of #{keygap.length} chars"
-      )
     rescue OpenSSL::Cipher::CipherError => _
       error 400
     end
@@ -447,16 +443,9 @@ get '/api' do
   )
 end
 
-post '/do-api' do
-  haml :do_api, layout: :layout, locals: merged(
-    title: '@' + confirmed_user.login + '/api',
-    code: settings.codec.encrypt("#{confirmed_user.login} #{keygap}")
-  )
-end
-
-post '/do-api-token' do
-  content_type 'text/plain'
-  settings.codec.encrypt("#{confirmed_user.login} #{keygap}")
+get '/api-reset' do
+  confirmed_user.item.token_reset
+  flash('/api', 'You got a new API token')
 end
 
 get '/invoice' do
@@ -572,13 +561,13 @@ post '/do-sell' do
   rewards = user(settings.config['rewards']['login'])
   job do
     ops.pay(
-      params[:keygap],
+      keygap,
       boss.item.id,
       amount * (1 - fee),
       "ZLD exchange to #{bitcoin} BTC at #{address}, rate is #{rate}, fee is #{fee}"
     )
     ops.pay(
-      params[:keygap],
+      keygap,
       rewards.item.id,
       amount * fee,
       "Fee for exchange of #{bitcoin} BTC at #{address}, rate is #{rate}, fee is #{fee}"
@@ -700,6 +689,23 @@ get '/graph.svg' do
   end
 end
 
+get '/mobile/send' do
+  phone = params[:phone]
+  raise UserError, 'Mobile phone number is required' if phone.nil?
+  raise UserError, "Invalid phone #{phone.inspect}" unless /^[0-9]+$/.match?(phone)
+  raise UserError, 'Not implemented yet'
+end
+
+get '/mobile/token' do
+  phone = params[:phone]
+  raise UserError, 'Mobile phone number is required' if phone.nil?
+  raise UserError, "Invalid phone #{phone.inspect}" unless /^[0-9]+$/.match?(phone)
+  code = params[:code]
+  raise UserError, 'Mobile confirmation code is required' if code.nil?
+  raise UserError, "Invalid code #{code.inspect}" unless /^[0-9]+$/.match?(code)
+  raise UserError, 'Not implemented yet'
+end
+
 get '/robots.txt' do
   content_type 'text/plain'
   "User-agent: *\nDisallow: /"
@@ -817,15 +823,14 @@ def confirmed_user(login = @locals[:guser])
 end
 
 def keygap
-  params[:keygap] = params[:pass] if params[:pass]
-  kg = @locals[:keygap].nil? ? params[:keygap] : @locals[:keygap]
-  raise UserError, 'Keygap is required' if kg.nil?
+  gap = params[:keygap]
+  raise UserError, 'Keygap is required' if gap.nil?
   begin
-    confirmed_user.item.key(kg).to_s
+    confirmed_user.item.key(gap).to_s
   rescue StandardError => e
-    raise UserError, "This doesn\'t seem to be a valid keygap (#{e.class.name})"
+    raise UserError, "This doesn\'t seem to be a valid keygap: '#{'*' * gap.length}' (#{e.class.name})"
   end
-  kg
+  gap
 end
 
 def latch(login = @locals[:guser])

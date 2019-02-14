@@ -1,11 +1,17 @@
 %p
-  Enter your
-  %a{href: 'https://blog.zold.io/2018/07/18/keygap.html'} keygap
-  in order to get the API token:
+  This is the code you should send in the
+  %code X-Zold-Wts
+  HTTP header in order to perform all API operations:
 
-%form{method: 'POST', action: '/do-api'}
-  %fieldset
-    %input{type: 'text', name: 'keygap', placeholder: 'Your keygap...', autocomplete: 'off', tabindex: 1, autofocus: true}
-    %input{type: 'submit', value: 'Submit'}
+%p
+  %code= "#{confirmed_user.login}-#{confirmed_user.item.token}"
 
+%p
+  Click
+  %a{href: '/api-reset'} here
+  to reset it.
 
+%p
+  More information about the API you can find in our
+  %a{href: 'https://github.com/zold-io/wts.zold.io/blob/master/README.md'} README
+  file.

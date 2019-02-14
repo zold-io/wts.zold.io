@@ -104,22 +104,8 @@ class AppTest < Minitest::Test
 
   def test_api_code
     WebMock.allow_net_connect!
-    keygap = login('poly')
-    post('/do-api', form('keygap': keygap))
-    assert_equal(200, last_response.status, last_response.body)
-    assert(last_response.body.include?('X-Zold-Wts:'), last_response.body)
-  end
-
-  def test_fetch_rsa_key_via_restful_api
-    WebMock.allow_net_connect!
-    keygap = login('anna')
-    post('/do-api-token', form('keygap': keygap))
-    assert_equal(200, last_response.status, last_response.body)
-    token = last_response.body
-    set_cookie('glogin=')
-    assert_raises { get('/id_rsa') }
-    header('X-Zold-WTS', token)
-    get('/id_rsa')
+    login('poly')
+    get('/api')
     assert_equal(200, last_response.status, last_response.body)
   end
 
