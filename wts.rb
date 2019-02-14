@@ -689,17 +689,21 @@ get '/mobile/send' do
   phone = params[:phone]
   raise UserError, 'Mobile phone number is required' if phone.nil?
   raise UserError, "Invalid phone #{phone.inspect}" unless /^[0-9]+$/.match?(phone)
-  raise UserError, 'Not implemented yet'
+  code = rand(1000..9999)
+  user(phone).item.mcode_set(code)
+  'not implemented yet...'
 end
 
 get '/mobile/token' do
   phone = params[:phone]
   raise UserError, 'Mobile phone number is required' if phone.nil?
   raise UserError, "Invalid phone #{phone.inspect}" unless /^[0-9]+$/.match?(phone)
-  code = params[:code]
-  raise UserError, 'Mobile confirmation code is required' if code.nil?
-  raise UserError, "Invalid code #{code.inspect}" unless /^[0-9]+$/.match?(code)
-  raise UserError, 'Not implemented yet'
+  mcode = params[:code]
+  raise UserError, 'Mobile confirmation code is required' if mcode.nil?
+  raise UserError, "Invalid code #{mcode.inspect}" unless /^[0-9]{4}$/.match?(mcode)
+  u = user(phone)
+  raise UserError, 'Invalid mobile code' unless u.item.mcode == mcode
+  "#{u.login}-#{u.item.token}"
 end
 
 get '/robots.txt' do

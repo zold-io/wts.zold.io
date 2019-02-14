@@ -109,6 +109,20 @@ keygap is '#{keygap[0, 2]}#{'.' * (keygap.length - 2)}'")
     @log.debug("The keygap of @#{@login} was destroyed")
   end
 
+  # Get mobile auth code.
+  def mcode
+    item = read
+    raise UserError, 'Mobile authentication code is not set' unless item['mcode']
+    item['mcode']
+  end
+
+  # Sets a new mobile code.
+  def mcode_set(code)
+    item = read
+    item['mcode'] = code
+    @aws.put_item(table_name: 'zold-wallets', item: item)
+  end
+
   # API token, if exists. Otherwise, resets it.
   def token
     item = read

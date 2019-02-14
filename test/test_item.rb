@@ -83,4 +83,15 @@ class ItemTest < Minitest::Test
     item.token_reset
     assert(token != item.token)
   end
+
+  def test_sets_and_resets_mcode
+    WebMock.allow_net_connect!
+    item = Item.new('johnny99', Dynamo.new.aws)
+    pvt = OpenSSL::PKey::RSA.new(2048)
+    item.create(Zold::Id.new, Zold::Key.new(text: pvt.to_pem))
+    item.mcode_set(1234)
+    assert_equal(1234, item.mcode)
+    item.mcode_set(5566)
+    assert_equal(5566, item.mcode)
+  end
 end
