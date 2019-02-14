@@ -195,7 +195,7 @@ configure do
     "[#{VERSION}](https://github.com/zold-io/wts.zold.io/releases/tag/#{VERSION})",
     'has been deployed and starts to work.',
     "Zold version is [#{Zold::VERSION}](https://rubygems.org/gems/zold/versions/#{Zold::VERSION}),",
-    "protocol is `#{Zold::PROTOCOL}`."
+    "protocol is `#{Zold::PROTOCOL}`"
   )
 end
 
@@ -283,7 +283,7 @@ get '/create' do
     settings.telepost.spam(
       "The user [@#{user.login}](https://github.com/#{user.login})",
       "created a new wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})",
-      "from #{anon_ip}."
+      "from #{anon_ip}"
     )
     known = Zold::Http.new(uri: 'https://www.0crat.com/known/' + user.login).get
     if known.code == 200
@@ -298,7 +298,7 @@ get '/create' do
             "to their wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})",
             "from our wallet [#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id})",
             "of [#{boss.login}](https://github.com/#{boss.login})",
-            "because there is not enough found, only #{boss.wallet(&:balance)} left."
+            "because there is not enough found, only #{boss.wallet(&:balance)} left"
           )
         else
           ops(boss).pay(
@@ -312,7 +312,7 @@ get '/create' do
             "to their wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})",
             "from our wallet [#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id})",
             "of [#{boss.login}](https://github.com/#{boss.login})",
-            "with the remaining balance of #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t)."
+            "with the remaining balance of #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t)"
           )
         end
       end
@@ -322,7 +322,7 @@ get '/create' do
         "[@#{user.login}](https://github.com/#{user.login})",
         "from #{anon_ip}",
         "with the wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})",
-        "because this user is not [known](https://www.0crat.com/known/#{user.login}) to Zerocracy."
+        "because this user is not [known](https://www.0crat.com/known/#{user.login}) to Zerocracy"
       )
     end
   end
@@ -386,7 +386,7 @@ post '/do-pay' do
       "with the balance of #{user.wallet(&:balance)}",
       "to [#{bnf}](http://www.zold.io/ledger.html?wallet=#{bnf})",
       "for #{amount} from #{anon_ip}:",
-      "\"#{details}\"."
+      "\"#{details}\""
     )
   end
   flash('/', "Payment has been sent to #{bnf} for #{amount}")
@@ -471,7 +471,8 @@ get '/btc' do
     settings.telepost.spam(
       'New Bitcoin address acquired',
       "[#{address[0..8]}](https://www.blockchain.com/btc/address/#{address});",
-      "Blockchain.com gap is #{settings.btc.gap}"
+      "Blockchain.com gap is #{settings.btc.gap};",
+      settings.btc.to_s
     )
     address
   end
@@ -520,7 +521,7 @@ get '/btc-hook' do
       "BTC price at the moment of exchange was [$#{settings.btc.price}](https://blockchain.info/ticker);",
       "the payer is [@#{boss.login}](https://github.com/#{boss.login}) with the wallet",
       "[#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id}),",
-      "the remaining balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t)."
+      "the remaining balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t)"
     )
   end
   '*ok*'
@@ -601,7 +602,7 @@ post '/do-sell' do
       "the exchange fee of #{amount * fee}",
       "was deposited to [#{rewards.item.id}](http://www.zold.io/ledger.html?wallet=#{rewards.item.id})",
       "of [#{rewards.login}](https://github.com/#{rewards.login}),",
-      "the balance is #{rewards.wallet(&:balance)} (#{rewards.wallet(&:txns).count}t)."
+      "the balance is #{rewards.wallet(&:balance)} (#{rewards.wallet(&:txns).count}t)"
     )
   end
   flash('/btc', "We took #{amount} from your wallet and sent you #{bitcoin} BTC")
@@ -925,6 +926,6 @@ def pay_hosting_bonuses(boss)
     end.join(', ') + ';',
     "the payer is [@#{boss.login}](https://github.com/#{boss.login}) with the wallet",
     "[#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id}),",
-    "the remaining balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t)."
+    "the remaining balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t)"
   )
 end

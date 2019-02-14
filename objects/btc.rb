@@ -52,6 +52,10 @@ class Btc
     @log = log
   end
 
+  def to_s
+    "key=#{@key[0..8]}, xpub=#{@xpub[4..8]}"
+  end
+
   # Current price of one BTC
   def price
     JSON.parse(Zold::Http.new(uri: 'https://blockchain.info/ticker').get.body)['USD']['15m']
