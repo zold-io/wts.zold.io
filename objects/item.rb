@@ -147,7 +147,7 @@ keygap is '#{keygap[0, 2]}#{'.' * (keygap.length - 2)}'")
 
   # Returns BTC address if possible to get it (one of the existing ones),
   # otherwise generate a new one, using the block.
-  def btc(lifetime: 60 * 60)
+  def btc(lifetime: 30 * 60)
     item = read
     return item['btc'] if item['btc'] && Time.at(item['assigned'].to_i) > Time.now - lifetime
     found = @aws.query(

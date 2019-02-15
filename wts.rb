@@ -457,6 +457,10 @@ end
 
 get '/api-reset' do
   confirmed_user.item.token_reset
+  settings.telepost.spam(
+    "API token has been reset by [@#{user.login}](https://github.com/#{user.login})",
+    "from #{anon_ip}"
+  )
   flash('/api', 'You got a new API token')
 end
 
