@@ -21,6 +21,7 @@
 require 'tempfile'
 require 'openssl'
 require 'zold/log'
+require 'zold/age'
 require_relative 'user_error'
 
 #
@@ -56,8 +57,7 @@ see this happening! #{e.message}"
     rescue Zold::Fetch::EdgesOnly, Zold::Fetch::NoQuorum => e
       raise UserError, e.message
     end
-    @log.info("#{Time.now.utc.iso8601}: Wallet #{id} pulled successfully \
-in #{(Time.now - start).round}s\n \n ")
+    @log.info("Wallet #{id} pulled successfully in #{Zold::Age.new(start)}")
   end
 
   def push
@@ -72,8 +72,26 @@ in #{(Time.now - start).round}s\n \n ")
     rescue Zold::Push::EdgesOnly, Zold::Push::NoQuorum => e
       raise UserError, e.message
     end
-    @log.info("#{Time.now.utc.iso8601}: Wallet #{id} pushed successfully \
-in #{(Time.now - start).round}s\n \n ")
+    @log.info("Wallet #{id} pushed successfully in #{Zold::Age.new(start)}")
+  end
+
+  # Pay all required taxes, no matter what is the amount.
+  def pay_taxes
+    raise "The user @#{@user.login} is not registered yet" unless @item.exists?
+    raise "The account @#{@user.login} is not confirmed yet" unless @user.confirmed?
+    start = Time.now
+    id = @item.id
+    pull
+    raise 'There is no wallet file after PULL, can\'t pay taxes' unless @wallets.acq(id, &:exists?)
+    Tempfile.open do |f|
+      File.write(f, @item.key(keygap))
+      require 'zold/commands/taxes'
+      Zold::Taxes.new(wallets: @wallets, remotes: @remotes, log: @log).run(
+        ['taxes', 'pay', "--network=#{@network}", '--private-key=' + f.path, id.to_s]
+      )
+    end
+    push
+    @log.info("Taxes paid for #{id} in #{Zold::Age.new(start)}")
   end
 
   def pay(keygap, bnf, amount, details)
@@ -93,7 +111,6 @@ in #{(Time.now - start).round}s\n \n ")
       )
     end
     push
-    @log.info("#{Time.now.utc.iso8601}: Paid #{amount} from #{id} to #{bnf} \
-in #{(Time.now - start).round}s: #{details}\n \n ")
+    @log.info("Paid #{amount} from #{id} to #{bnf} in #{Zold::Age.new(start)}: #{details}")
   end
 end

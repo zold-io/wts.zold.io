@@ -19,6 +19,7 @@
 # SOFTWARE.
 
 require 'zold/version'
+require 'time'
 
 #
 # Job that shows Zold version.
@@ -32,6 +33,7 @@ class VersionedJob
   def call
     @log.info("\n\nZold gem version: #{Zold::VERSION}/#{Zold::PROTOCOL}")
     @log.info("WTS version: #{VERSION}")
+    @log.info("Current time is: #{Time.now.utc.iso8601}")
     @job.call
   end
 end

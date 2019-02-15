@@ -282,6 +282,7 @@ end
 
 get '/create' do
   job do
+    settings.log.info('Creating a new wallet by /create request...')
     user.create
     ops.push
     settings.telepost.spam(
@@ -382,6 +383,7 @@ post '/do-pay' do
   details = params[:details]
   raise UserError, "Invalid details \"#{details}\"" unless details =~ %r{^[a-zA-Z0-9\ @!?*_\-.:,'/]+$}
   headers['X-Zold-Job'] = job do
+    settings.log.info("Sending #{amount} to #{bnf}...")
     ops.pay(keygap, bnf, amount, details)
     settings.telepost.spam(
       "Payment sent by [@#{user.login}](https://github.com/#{user.login})",
@@ -396,7 +398,10 @@ post '/do-pay' do
 end
 
 get '/pull' do
-  headers['X-Zold-Job'] = job { ops.pull }
+  headers['X-Zold-Job'] = job do
+    settings.log.info("Pulling wallet #{user.item.id} via /pull...")
+    ops.pull
+  end
   flash('/', "Your wallet #{user.item.id} will be pulled soon")
 end
 
@@ -469,8 +474,9 @@ end
 
 get '/do-migrate' do
   headers['X-Zold-Job'] = job do
+    settings.log.info("Migrating #{user.item.id} to a new wallet...")
     origin = user.item.id
-    ops.pull
+    ops.pay_taxes
     balance = user.wallet(&:balance)
     target = Tempfile.open do |f|
       File.write(f, user.wallet(&:key).to_s)
@@ -600,6 +606,7 @@ post '/do-sell' do
   boss = user(settings.config['exchange']['login'])
   rewards = user(settings.config['rewards']['login'])
   job do
+    settings.log.info("Accepting #{bitcoin} bitcoins from #{address}...")
     ops.pay(
       keygap,
       boss.item.id,
