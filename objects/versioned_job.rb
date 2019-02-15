@@ -31,6 +31,7 @@ class VersionedJob
 
   def call
     @log.info("\n\nZold gem version: #{Zold::VERSION}/#{Zold::PROTOCOL}")
+    @log.info("WTS version: #{VERSION}")
     @job.call
   end
 end

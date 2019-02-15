@@ -475,7 +475,7 @@ get '/do-migrate' do
     target = Tempfile.open do |f|
       File.write(f, user.wallet(&:key).to_s)
       require 'zold/commands/create'
-      Zold::Create.new(wallets: @wallets, log: @log).run(
+      Zold::Create.new(wallets: settings.wallets, log: settings.log).run(
         ['create', '--public-key=' + f.path]
       )
     end
