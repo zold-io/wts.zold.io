@@ -24,7 +24,7 @@
   to your wallet.
   You can send a payment to this address only once and only within the next
   = succeed '!' do
-    %strong= "#{(30 * 60 - (Time.now - confirmed_user.item.btc_mtime)).round} minutes"
+    %strong= "#{(30 - (Time.now - confirmed_user.item.btc_mtime) / 60).round} minutes"
   When the payment is received, you will find a new address for the next payment, at this page.
 
 %p
