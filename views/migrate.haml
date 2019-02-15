@@ -1,0 +1,12 @@
+%p
+  When your wallet is too big its processing becomes
+  slower. It is advised to migrate to a new wallet once you
+  have more than a thousands transactions. Your funds
+  will be transferred to a new one, the private RSA key and
+  the keygap will remain the same. Just the wallet ID will
+  be changed and all current transactions will remain in the
+  old wallet.
+
+%form{method: 'GET', action: '/do-migrate'}
+  %input{type: 'text', name: 'keygap', placeholder: 'Your keygap...', autocomplete: 'off', tabindex: 1, autofocus: true}
+  %input{type: 'submit', value: 'Migrate'}

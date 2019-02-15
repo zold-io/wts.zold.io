@@ -52,9 +52,9 @@ curl https://wts.zold.io/do-pay \
 ```
 
 You will get `302`
-response no matter what. The body of the response will
+response no matter what. The `X-Zold-Job` header of the response will
 contain the ID of the job, which is executed on the server. Later,
-you can check the status of the job via the `/job` entry point.
+you can check the status of the job via the `/job` entry point, using its ID.
 
 There are more entry points:
 

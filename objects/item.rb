@@ -60,6 +60,13 @@ keygap is '#{keygap[0, 2]}#{'.' * (keygap.length - 2)}'")
     keygap
   end
 
+  # This is used during migration to a new wallet.
+  def replace_id(id)
+    item = read
+    item['id'] = id.to_s
+    @aws.put_item(table_name: 'zold-wallets', item: item)
+  end
+
   # Return private key as Zold::Key
   def key(keygap)
     key = read['pem']

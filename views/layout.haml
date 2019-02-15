@@ -60,6 +60,8 @@
                 - else
                   %span{style: 'color: gray'} Invoice
               %li
+                %a{href: '/migrate'} Migrate
+              %li
                 - if user.wallet_exists?
                   %a{href: '/btc'} Buy/Sell
                 - else

@@ -190,6 +190,13 @@ class AppTest < Minitest::Test
     assert_equal(302, last_response.status, last_response.body)
   end
 
+  def test_migrate
+    WebMock.allow_net_connect!
+    keygap = login('yegor565')
+    get("/do-migrate?keygap=#{keygap}")
+    assert_equal(302, last_response.status, last_response.body)
+  end
+
   private
 
   def form(params)

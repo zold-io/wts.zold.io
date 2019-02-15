@@ -461,6 +461,37 @@ get '/invoice' do
   )
 end
 
+get '/migrate' do
+  haml :migrate, layout: :layout, locals: merged(
+    title: '@' + confirmed_user.login + '/migrate'
+  )
+end
+
+get '/do-migrate' do
+  headers['X-Zold-Job'] = job do
+    origin = user.item.id
+    balance = user.wallet(&:balance)
+    target = Tempfile.open do |f|
+      File.write(f, user.wallet(&:key).to_pem)
+      require 'zold/commands/create'
+      Zold::Create.new(wallets: @wallets, log: @log).run(
+        ['create', '--public-key=' + f.path]
+      )
+    end
+    ops.pay(keygap, target, balance, 'Migrated')
+    user.item.replace_id(target)
+    ops.push
+    settings.telepost.spam(
+      "The wallet [#{origin}](http://www.zold.io/ledger.html?wallet=#{origin})",
+      "with #{settings.wallets.acq(origin, &:txns).count} transactions",
+      "and #{user.wallet(&:balance)}",
+      "has been migrated to a new wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})",
+      "by [@#{user.login}](https://github.com/#{user.login}) from #{anon_ip}"
+    )
+  end
+  flash('/', 'You got a new wallet ID, your funds will be transferred soon...')
+end
+
 get '/btc' do
   confirmed_user.item.btc do
     address = settings.btc.create
@@ -481,6 +512,7 @@ end
 
 # See https://www.blockchain.com/api/api_receive
 get '/btc-hook' do
+  settings.log.info("Blockchain.com hook arrived: #{params}")
   return '*ok*' if params[:confirmations].to_i > 64
   raise UserError, 'Tx hash is not provided' if params[:transaction_hash].nil?
   hash = params[:transaction_hash]
