@@ -470,6 +470,7 @@ end
 get '/do-migrate' do
   headers['X-Zold-Job'] = job do
     origin = user.item.id
+    ops.pull
     balance = user.wallet(&:balance)
     target = Tempfile.open do |f|
       File.write(f, user.wallet(&:key).to_pem)
