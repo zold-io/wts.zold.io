@@ -76,7 +76,7 @@ see this happening! #{e.message}"
   end
 
   # Pay all required taxes, no matter what is the amount.
-  def pay_taxes
+  def pay_taxes(keygap)
     raise "The user @#{@user.login} is not registered yet" unless @item.exists?
     raise "The account @#{@user.login} is not confirmed yet" unless @user.confirmed?
     start = Time.now

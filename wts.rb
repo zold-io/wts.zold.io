@@ -473,11 +473,10 @@ get '/migrate' do
 end
 
 get '/do-migrate' do
-  gap = keygap
   headers['X-Zold-Job'] = job do
     log.info("Migrating #{user.item.id} to a new wallet...")
     origin = user.item.id
-    ops.pay_taxes
+    ops.pay_taxes(keygap)
     balance = user.wallet(&:balance)
     target = Tempfile.open do |f|
       File.write(f, user.wallet(&:key).to_s)
@@ -486,7 +485,7 @@ get '/do-migrate' do
         ['create', '--public-key=' + f.path]
       )
     end
-    ops.pay(gap, target, balance, 'Migrated')
+    ops.pay(keygap, target, balance, 'Migrated')
     user.item.replace_id(target)
     ops.push
     settings.telepost.spam(
