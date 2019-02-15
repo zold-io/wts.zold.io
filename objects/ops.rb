@@ -107,7 +107,7 @@ see this happening! #{e.message}"
       File.write(f, @item.key(keygap))
       require 'zold/commands/pay'
       Zold::Pay.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
-        ['pay', "--network=#{@network}", '--private-key=' + f.path, id.to_s, bnf.to_s, amount.to_zld(8), details]
+        ['pay', "--network=#{@network}", '--private-key=' + f.path, id.to_s, bnf.to_s, "#{amount.to_i}z", details]
       )
     end
     push
