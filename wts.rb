@@ -884,6 +884,7 @@ end
 
 # This user is known as Zerocracy contributor.
 def known?
+  return false unless @locals[:guser]
   Zold::Http.new(uri: 'https://www.0crat.com/known/' + user.login).get.code == 200
 end
 
