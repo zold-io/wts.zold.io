@@ -188,6 +188,11 @@ keygap is '#{keygap[0, 2]}#{'.' * (keygap.length - 2)}'")
     @aws.put_item(table_name: 'zold-wallets', item: item)
   end
 
+  # Get BTC assignment time.
+  def btc_mtime
+    Time.at(read['assigned'].to_i)
+  end
+
   private
 
   def read

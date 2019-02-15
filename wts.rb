@@ -799,7 +799,7 @@ end
 error do
   e = env['sinatra.error']
   if e.is_a?(UserError)
-    settings.log.error(e.message)
+    settings.log.error("#{request.url}: #{e.message}")
     body(Backtrace.new(e).to_s)
     headers['X-Zold-Error'] = e.message[0..256]
     flash('/', e.message, error: true)
