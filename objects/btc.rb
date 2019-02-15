@@ -53,7 +53,7 @@ class Btc
   end
 
   def to_s
-    "key=#{@key[0..8]}, xpub=#{@xpub[4..8]}"
+    "key=#{@key[0..7]}, xpub=#{@xpub[4..12]}"
   end
 
   # Current price of one BTC
@@ -65,14 +65,18 @@ class Btc
   def create
     uri = uri('/receive', 'xpub': @xpub, 'callback': 'https://wts.zold.io/btc-hook', 'key': @key)
     res = Zold::Http.new(uri: uri).get
-    raise UserError, "Can't acquire Bitcoin address, try again: #{res.status_line}" unless res.code == 200
+    unless res.code == 200
+      raise UserError, "Can't acquire Bitcoin address from Blockchain.com (#{res.code}, try to reload the page)"
+    end
     Zold::JsonPage.new(res.body).to_hash['address']
   end
 
   def gap
     uri = uri('/receive/checkgap', 'xpub': @xpub, 'key': @key)
     res = Zold::Http.new(uri: uri).get
-    raise UserError, 'Can\'t get the gap from blockchain.com' unless res.code == 200
+    unless res.code == 200
+      raise UserError, "Can't get the gap from Blockchain.com (#{res.code}, try to reload the page)"
+    end
     Zold::JsonPage.new(res.body).to_hash['gap']
   end
 
