@@ -79,6 +79,11 @@ There are more entry points:
   * `GET /id_rsa`: returns private RSA key of the user, expecting the keygap
     as an argument.
 
+  * `GET /keygap`: returns the keygap of the user,
+    if it's still not confirmed (as plain text).
+
+  * `GET /do-confirm`: removes the keygap from the database and returns `302`.
+
 ## Mobile API
 
 If you want to create a mobile client, you may use our mobile API with two

@@ -700,8 +700,10 @@ get '/mobile/send' do
   phone = params[:phone]
   raise UserError, 'Mobile phone number is required' if phone.nil?
   raise UserError, "Invalid phone #{phone.inspect}" unless /^[0-9]+$/.match?(phone)
+  u = user(phone)
+  u.create unless u.item.exists?
   mcode = rand(1000..9999)
-  user(phone).item.mcode_set(mcode)
+  u.item.mcode_set(mcode)
   response = settings.sns.publish(
     phone_number: "+#{phone}",
     message: "Your WTS code is: #{mcode}"
