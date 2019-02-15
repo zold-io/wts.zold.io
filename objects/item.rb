@@ -171,7 +171,7 @@ keygap is '#{keygap[0, 2]}#{'.' * (keygap.length - 2)}'")
       else
         expired['btc'] = prev
       end
-      expired['active'] = 0
+      expired['active'] = 1
       @aws.put_item(table_name: 'zold-wallets', item: expired)
     end
     item['assigned'] = Time.now.to_i
