@@ -282,7 +282,7 @@ end
 
 get '/create' do
   job do
-    settings.log.info('Creating a new wallet by /create request...')
+    log.info('Creating a new wallet by /create request...')
     user.create
     ops.push
     settings.telepost.spam(
@@ -383,7 +383,7 @@ post '/do-pay' do
   details = params[:details]
   raise UserError, "Invalid details \"#{details}\"" unless details =~ %r{^[a-zA-Z0-9\ @!?*_\-.:,'/]+$}
   headers['X-Zold-Job'] = job do
-    settings.log.info("Sending #{amount} to #{bnf}...")
+    log.info("Sending #{amount} to #{bnf}...")
     ops.pay(keygap, bnf, amount, details)
     settings.telepost.spam(
       "Payment sent by [@#{user.login}](https://github.com/#{user.login})",
@@ -399,7 +399,7 @@ end
 
 get '/pull' do
   headers['X-Zold-Job'] = job do
-    settings.log.info("Pulling wallet #{user.item.id} via /pull...")
+    log.info("Pulling wallet #{user.item.id} via /pull...")
     ops.pull
   end
   flash('/', "Your wallet #{user.item.id} will be pulled soon")
@@ -474,14 +474,14 @@ end
 
 get '/do-migrate' do
   headers['X-Zold-Job'] = job do
-    settings.log.info("Migrating #{user.item.id} to a new wallet...")
+    log.info("Migrating #{user.item.id} to a new wallet...")
     origin = user.item.id
     ops.pay_taxes
     balance = user.wallet(&:balance)
     target = Tempfile.open do |f|
       File.write(f, user.wallet(&:key).to_s)
       require 'zold/commands/create'
-      Zold::Create.new(wallets: settings.wallets, log: settings.log).run(
+      Zold::Create.new(wallets: settings.wallets, log: log).run(
         ['create', '--public-key=' + f.path]
       )
     end
@@ -606,7 +606,7 @@ post '/do-sell' do
   boss = user(settings.config['exchange']['login'])
   rewards = user(settings.config['rewards']['login'])
   job do
-    settings.log.info("Accepting #{bitcoin} bitcoins from #{address}...")
+    log.info("Accepting #{bitcoin} bitcoins from #{address}...")
     ops.pay(
       keygap,
       boss.item.id,

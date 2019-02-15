@@ -45,7 +45,7 @@ class Ops
     require 'zold/commands/pull'
     begin
       Zold::Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
-        ['pull', id.to_s, "--network=#{@network}", '--retry=4']
+        ['pull', id.to_s, "--network=#{@network}", '--retry=4', '--shallow']
       )
     rescue Zold::Fetch::NotFound => e
       raise UserError, "We didn't manage to find your wallet in any of visible Zold nodes. \
