@@ -1,4 +1,5 @@
 - u = confirmed_user
+- max = 50
 
 %p
   Wallet ID:
@@ -65,13 +66,13 @@
         %tr
           %td{colspan: 5, style: 'text-align:center'}
             = 'Since ' + start.utc.iso8601
-      - txns = u.wallet(&:txns).sort_by(&:date).reverse.select { |t| start.nil? || t.date < start }.take(50)
+      - txns = u.wallet(&:txns).sort_by(&:date).reverse.select { |t| start.nil? || t.date < start }.take(max)
       - if txns.empty?
         %tr
           %td{colspan: 5, style: 'text-align:center'}
             No transactions in the wallet as of yet.
       - else
-        - txns.each do |t|
+        - txns.each_with_index do |t, idx|
           - @last = t.date
           %tr
             %td
@@ -91,7 +92,7 @@
                   = t.bnf
             %td
               = t.details.gsub(/([^ ]{16})/, '\1&shy;')
-        - if @last
+        - if @last && idx == max - 1
           %tr
             %td{colspan: 5, style: 'text-align:center'}
               %a{href: '?start=' + @last.utc.iso8601} Show more
