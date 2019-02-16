@@ -525,7 +525,7 @@ get '/btc-hook' do
       settings.config['exchange']['keygap'],
       bnf.item.id,
       zld,
-      "BTC exchange of #{bitcoin.round(8)} at #{hash}, rate is #{rate}"
+      "BTC exchange of #{bitcoin.round(8)} at #{hash[0..8]}, rate is #{rate}"
     )
     settings.hashes.add(hash, bnf.login, bnf.item.id)
     bnf.item.destroy_btc
