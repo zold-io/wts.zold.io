@@ -625,6 +625,7 @@ post '/do-sell' do
       "of [#{rewards.login}](https://github.com/#{rewards.login}),",
       "the balance is #{rewards.wallet(&:balance)} (#{rewards.wallet(&:txns).count}t)"
     )
+    migrate if boss.wallet(&:txns).count > 1000
   end
   flash('/btc', "We took #{amount} from your wallet and sent you #{bitcoin} BTC")
 end
