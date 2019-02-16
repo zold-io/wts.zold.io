@@ -72,7 +72,7 @@
           %td{colspan: 5, style: 'text-align:center'}
             No transactions in the wallet as of yet.
       - else
-        - txns.each_with_index do |t, idx|
+        - txns.each do |t|
           - @last = t.date
           %tr
             %td
@@ -92,7 +92,7 @@
                   = t.bnf
             %td
               = t.details.gsub(/([^ ]{16})/, '\1&shy;')
-        - if @last && idx == max - 1
+        - if @last && txns.count == max
           %tr
             %td{colspan: 5, style: 'text-align:center'}
               %a{href: '?start=' + @last.utc.iso8601} Show more
