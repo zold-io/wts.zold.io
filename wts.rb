@@ -478,27 +478,7 @@ end
 
 get '/do-migrate' do
   headers['X-Zold-Job'] = job do
-    log.info("Migrating #{user.item.id} to a new wallet...")
-    origin = user.item.id
-    ops.pay_taxes(keygap)
-    balance = user.wallet(&:balance)
-    target = Tempfile.open do |f|
-      File.write(f, user.wallet(&:key).to_s)
-      require 'zold/commands/create'
-      Zold::Create.new(wallets: settings.wallets, log: log).run(
-        ['create', '--public-key=' + f.path]
-      )
-    end
-    ops.pay(keygap, target, balance, 'Migrated')
-    user.item.replace_id(target)
-    ops.push
-    settings.telepost.spam(
-      "The wallet [#{origin}](http://www.zold.io/ledger.html?wallet=#{origin})",
-      "with #{settings.wallets.acq(origin, &:txns).count} transactions",
-      "and #{user.wallet(&:balance)}",
-      "has been migrated to a new wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})",
-      "by [@#{user.login}](https://github.com/#{user.login}) from #{anon_ip}"
-    )
+    migrate
   end
   flash('/', 'You got a new wallet ID, your funds will be transferred soon...')
 end
@@ -551,7 +531,7 @@ get '/btc-hook' do
     user.item.destroy_btc
     settings.telepost.spam(
       "In: #{bitcoin} BTC [exchanged](https://blog.zold.io/2018/12/09/btc-to-zld.html) to #{zld}",
-      "by [@#{bnf.login}](https://github.com/#{bnf.login}) from #{anon_ip}",
+      "by [@#{bnf.login}](https://github.com/#{bnf.login})",
       "in [#{hash[0..8]}](https://www.blockchain.com/btc/tx/#{hash})",
       "(#{params[:confirmations]} confirmations)",
       "via [#{address[0..8]}](https://www.blockchain.com/btc/address/#{address}),",
@@ -999,5 +979,30 @@ def pay_hosting_bonuses(boss)
     "the payer is [@#{boss.login}](https://github.com/#{boss.login}) with the wallet",
     "[#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id}),",
     "the remaining balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t)"
+  )
+  migrate if boss.wallet(&:txns).count > 1000
+end
+
+def migrate
+  log.info("Migrating #{user.item.id} to a new wallet...")
+  origin = user.item.id
+  ops.pay_taxes(keygap)
+  balance = user.wallet(&:balance)
+  target = Tempfile.open do |f|
+    File.write(f, user.wallet(&:key).to_s)
+    require 'zold/commands/create'
+    Zold::Create.new(wallets: settings.wallets, log: log).run(
+      ['create', '--public-key=' + f.path]
+    )
+  end
+  ops.pay(keygap, target, balance, 'Migrated')
+  user.item.replace_id(target)
+  ops.push
+  settings.telepost.spam(
+    "The wallet [#{origin}](http://www.zold.io/ledger.html?wallet=#{origin})",
+    "with #{settings.wallets.acq(origin, &:txns).count} transactions",
+    "and #{user.wallet(&:balance)}",
+    "has been migrated to a new wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})",
+    "by [@#{user.login}](https://github.com/#{user.login}) from #{anon_ip}"
   )
 end
