@@ -528,7 +528,7 @@ get '/btc-hook' do
       "BTC exchange of #{bitcoin.round(8)} at #{hash}, rate is #{rate}"
     )
     settings.hashes.add(hash, bnf.login, bnf.item.id)
-    user.item.destroy_btc
+    bnf.item.destroy_btc
     settings.telepost.spam(
       "In: #{bitcoin} BTC [exchanged](https://blog.zold.io/2018/12/09/btc-to-zld.html) to #{zld}",
       "by [@#{bnf.login}](https://github.com/#{bnf.login})",
