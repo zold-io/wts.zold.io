@@ -202,6 +202,12 @@ keygap is '#{keygap[0, 2]}#{'.' * (keygap.length - 2)}'")
     Time.at(read['assigned'].to_i)
   end
 
+  # Is something already arrived to this address?
+  def btc_arrived?
+    item = read
+    item['active'] && item['active'] == 2
+  end
+
   private
 
   def read

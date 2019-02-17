@@ -15,17 +15,25 @@
     %a{href: 'https://t.me/zold_io'} Telegram group
 
 %p
-  To
-  %strong buy
-  ZLD just send your BTC to this wallet:
-  = succeed '.' do
+  - if confirmed_user.item.btc_arrived?
+    The payment has arrived to the address
     %code= confirmed_user.item.btc
-  Once your payment is completed in the Bitcoin network, you will get ZLD
-  to your wallet.
-  You can send a payment to this address only once and only within the next
-  = succeed '!' do
-    %strong= "#{(30 - (Time.now - confirmed_user.item.btc_mtime) / 60).round} minutes"
-  When the payment is received, you will find a new address for the next payment, at this page.
+    assigned to your account.
+    We are waiting for more Blockchain confirmations
+    and will deposit ZLD into your wallet.
+    Don't breath, this will happen soon!
+  - else
+    To
+    %strong buy
+    ZLD just send your BTC to this wallet:
+    = succeed '.' do
+      %code= confirmed_user.item.btc
+    Once your payment is completed in the Bitcoin network, you will get ZLD
+    to your wallet.
+    You can send a payment to this address only once and only within the next
+    = succeed '!' do
+      %strong= "#{(30 - (Time.now - confirmed_user.item.btc_mtime) / 60).round} minutes"
+    When the payment is received, you will find a new address for the next payment, at this page.
 
 %p
   To
