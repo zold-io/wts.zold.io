@@ -149,8 +149,11 @@ keygap is '#{keygap[0, 2]}#{'.' * (keygap.length - 2)}'")
   # otherwise generate a new one, using the block.
   def btc(lifetime: 30 * 60)
     item = read
-    return item['btc'] if item['btc'] && Time.at(item['assigned'].to_i) > Time.now - lifetime
-    return item['btc'] if item['active'] && item['active'] == 2
+    if item['btc']
+      age = Time.now - Time.at(item['assigned'].to_i)
+      return item['btc'] if age < lifetime
+      return item['btc'] if item['active'] && item['active'] == 2 && age < lifetime * 10
+    end
     found = @aws.query(
       table_name: 'zold-wallets',
       limit: 1,
@@ -205,6 +208,7 @@ keygap is '#{keygap[0, 2]}#{'.' * (keygap.length - 2)}'")
   # Is something already arrived to this address?
   def btc_arrived?
     item = read
+    item['assigned'] = Time.now.to_i
     item['active'] && item['active'] == 2
   end
 

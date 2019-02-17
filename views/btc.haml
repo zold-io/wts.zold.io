@@ -16,11 +16,14 @@
 
 %p
   - if confirmed_user.item.btc_arrived?
-    The payment has arrived to the address
+    The payment
+    %strong{style: 'color:darkgreen'} has arrived
+    to the address
     %code= confirmed_user.item.btc
-    assigned to your account.
-    We are waiting for more Blockchain confirmations
-    and will deposit ZLD into your wallet.
+    assigned to your account, just
+    %strong= (30 - (Time.now - confirmed_user.item.btc_mtime) / 60).round
+    minutes ago. Once we receive a few more Blockchain confirmations,
+    we will deposit ZLD coins into your wallet.
     Don't breath, this will happen soon!
   - else
     To
