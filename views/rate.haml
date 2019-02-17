@@ -66,6 +66,10 @@
   Exchange fee:
   %code
     = format('%0.2f%%', fee * 100)
+  - if known?
+    = '/'
+    because you work in
+    %a{href: 'https://www.zerocracy.com/team'} Zerocracy
   %br
   %span.small
     Only the seller pays it.

@@ -504,21 +504,33 @@ end
 # See https://www.blockchain.com/api/api_receive
 get '/btc-hook' do
   settings.log.info("Blockchain.com hook arrived: #{params}")
-  return '*ok*' if params[:confirmations].to_i > 64
-  raise UserError, 'Tx hash is not provided' if params[:transaction_hash].nil?
-  hash = params[:transaction_hash]
-  raise UserError, 'Tx value is not provided' if params[:value].nil?
-  satoshi = params[:value].to_i
+  raise UserError, 'Confirmations is not provided' if params[:confirmations].nil?
+  confirmations = params[:confirmations].to_i
   raise UserError, 'Address is not provided' if params[:address].nil?
   address = params[:address]
-  bnf = user(settings.items.find_by_btc(address).login)
-  raise UserError, "The user @#{bnf.login} is not confirmed" unless bnf.confirmed?
-  unless settings.btc.exists?(hash, satoshi, address, params[:confirmations].to_i)
-    raise UserError, "Tx #{hash}/#{satoshi}/#{bnf.item.btc} not found yet"
-  end
+  raise UserError, 'Tx hash is not provided' if params[:transaction_hash].nil?
+  hash = params[:transaction_hash]
   raise UserError, "BTC hash #{hash} has already been paid" if settings.hashes.seen?(hash)
+  raise UserError, 'Tx value is not provided' if params[:value].nil?
+  satoshi = params[:value].to_i
   bitcoin = satoshi.to_f / 100_000_000
   zld = Zold::Amount.new(zld: bitcoin / rate)
+  bnf = user(settings.items.find_by_btc(address).login)
+  raise UserError, "The user @#{bnf.login} is not confirmed" unless bnf.confirmed?
+  if confirmations.zero?
+    bnf.item.btc_arrived
+    settings.telepost.spam(
+      "Bitcoin transaction arrived for #{bitcoin} BTC",
+      "in [#{hash[0..8]}](https://www.blockchain.com/btc/tx/#{hash})",
+      "and was identified as belonging to [@#{bnf.login}](https://github.com/#{bnf.login}),",
+      "#{zld} will be deposited to the wallet",
+      "[#{bnf.item.id}](http://www.zold.io/ledger.html?wallet=#{bnf.item.id})",
+      "once we see enough confirmations, now it's #{confirmations}"
+    )
+  end
+  unless settings.btc.exists?(hash, satoshi, address, confirmations)
+    raise UserError, "Tx #{hash}/#{satoshi}/#{bnf.item.btc} not found yet or is not yet confirmed enough"
+  end
   boss = user(settings.config['exchange']['login'])
   job(boss) do
     ops(boss).pay(
