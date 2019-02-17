@@ -169,10 +169,10 @@ keygap is '#{keygap[0, 2]}#{'.' * (keygap.length - 2)}'")
       raise "There is no BTC in the table for @#{expired['login']}, while marked as active" if item['btc'].nil?
       if prev.nil?
         expired.delete('btc')
+        expired['active'] = 0
       else
         expired['btc'] = prev
       end
-      expired['active'] = 1
       @aws.put_item(table_name: 'zold-wallets', item: expired)
     end
     item['assigned'] = Time.now.to_i
