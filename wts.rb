@@ -510,7 +510,7 @@ get '/btc-hook' do
   address = params[:address]
   raise UserError, 'Tx hash is not provided' if params[:transaction_hash].nil?
   hash = params[:transaction_hash]
-  raise UserError, "BTC hash #{hash} has already been paid" if settings.hashes.seen?(hash)
+  return '*ok*' if settings.hashes.seen?(hash)
   raise UserError, 'Tx value is not provided' if params[:value].nil?
   satoshi = params[:value].to_i
   bitcoin = satoshi.to_f / 100_000_000
@@ -539,8 +539,8 @@ get '/btc-hook' do
       zld,
       "BTC exchange of #{bitcoin.round(8)} at #{hash[0..8]}, rate is #{rate}"
     )
-    settings.hashes.add(hash, bnf.login, bnf.item.id)
     bnf.item.destroy_btc
+    settings.hashes.add(hash, bnf.login, bnf.item.id)
     settings.telepost.spam(
       "In: #{bitcoin} BTC [exchanged](https://blog.zold.io/2018/12/09/btc-to-zld.html) to #{zld}",
       "by [@#{bnf.login}](https://github.com/#{bnf.login})",
@@ -556,7 +556,7 @@ get '/btc-hook' do
       "the remaining balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t)"
     )
   end
-  '*ok*'
+  'Thanks!'
 end
 
 get '/zache-flush' do

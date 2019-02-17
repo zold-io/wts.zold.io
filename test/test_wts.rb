@@ -135,7 +135,7 @@ class AppTest < Minitest::Test
       )
     )
     assert_equal(200, last_response.status, last_response.body)
-    assert_equal('*ok*', last_response.body)
+    assert_equal('Thanks!', last_response.body)
   end
 
   def test_sell_zld
