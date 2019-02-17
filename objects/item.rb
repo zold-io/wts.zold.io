@@ -166,6 +166,7 @@ keygap is '#{keygap[0, 2]}#{'.' * (keygap.length - 2)}'")
       expired = found[0]
       prev = item['btc']
       item['btc'] = expired['btc']
+      raise "There is no BTC in the table for @#{expired['login']}, while marked as active" if item['btc'].nil?
       if prev.nil?
         expired.delete('btc')
       else
