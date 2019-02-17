@@ -571,7 +571,7 @@ get '/queue' do
   content_type 'text/plain', charset: 'utf-8'
   settings.items.all.map do |i|
     "@#{i['login']} #{Zold::Age.new(Time.at(i['assigned']))} #{i['btc']} A=#{i['active'].to_i}\n"
-  end
+  end.join('/n')
 end
 
 get '/queue-clean' do
@@ -581,7 +581,7 @@ get '/queue-clean' do
     next if params[:login] && i['login'] != params[:login]
     user(i['login']).item.destroy_btc
     "@#{i['login']} #{Zold::Age.new(Time.at(i['assigned']))} #{i['btc']}: destroyed\n"
-  end
+  end.compact.join('/n')
 end
 
 post '/do-sell' do

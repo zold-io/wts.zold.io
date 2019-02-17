@@ -150,6 +150,7 @@ keygap is '#{keygap[0, 2]}#{'.' * (keygap.length - 2)}'")
   def btc(lifetime: 30 * 60)
     item = read
     return item['btc'] if item['btc'] && Time.at(item['assigned'].to_i) > Time.now - lifetime
+    return item['btc'] if item['active'] && item['active'] == 2
     found = @aws.query(
       table_name: 'zold-wallets',
       limit: 1,
