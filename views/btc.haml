@@ -21,10 +21,13 @@
     to the address
     %code= confirmed_user.item.btc
     assigned to your account, just
-    %strong= (30 - (Time.now - confirmed_user.item.btc_mtime) / 60).round
+    %strong= ((Time.now - confirmed_user.item.btc_mtime) / 60).round
     minutes ago. Once we receive a few more Blockchain confirmations,
     we will deposit ZLD coins into your wallet.
-    Don't breath, this will happen soon!
+    Don't worry, this will happen soon!
+    If not, ask for help in our
+    = succeed '.' do
+      %a{href: 'https://t.me/zold_io'} Telegram group
   - else
     To
     %strong buy
