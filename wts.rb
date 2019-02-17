@@ -578,6 +578,7 @@ get '/queue-clean' do
   raise UserError, 'You are not allowed to see this' unless user.login == 'yegor256'
   content_type 'text/plain', charset: 'utf-8'
   settings.items.all.map do |i|
+    next if params[:login] && i['login'] != params[:login]
     user(i['login']).item.destroy_btc
     "@#{i['login']} #{Zold::Age.new(Time.at(i['assigned']))} #{i['btc']}: destroyed\n"
   end
