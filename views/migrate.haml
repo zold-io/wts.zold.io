@@ -16,13 +16,18 @@
     = succeed '.' do
       %code= user.item.id
     - if total > 1000
-      It is highly recommended to migrate!
+      It is
+      %span{style: 'color:darkgreen'} highly recommended
+      to migrate!
     - else
-      It is not recommended to migrate yet.
+      It is
+      %span{style: 'color:darkred'} not recommended
+      to migrate yet, but you can, of course.
 
 %form{method: 'GET', action: '/do-migrate'}
   %input{type: 'text', name: 'keygap', placeholder: 'Your keygap...', autocomplete: 'off', tabindex: 1, autofocus: true}
   %input{type: 'submit', value: 'Migrate'}
 
 %p
-  Taxes will be paid first.
+  %a{href: 'https://blog.zold.io/2019/01/15/taxes-explained.html'} Taxes
+  will be paid first.

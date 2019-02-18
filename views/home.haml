@@ -4,8 +4,7 @@
 %p
   Wallet ID:
   %a{href: "http://www.zold.io/ledger.html?wallet=#{u.item.id}"}<
-    %code= u.item.id
-  %textarea{style: 'display:none', id:'wallet_id'}= u.item.id
+    %code{id: 'wallet_id'}= u.item.id
   %span{onclick: 'document.getElementById("wallet_id").select(); document.execCommand("copy");', style:'cursor:pointer;', info: 'Click here to copy wallet ID into your clipboard'}
     != "&#x2398"
   - if u.wallet_exists?
