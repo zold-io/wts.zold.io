@@ -3,18 +3,22 @@
 
 %p
   Wallet ID:
-  %a{href: "http://www.zold.io/ledger.html?wallet=#{u.item.id}"}
+  %a{href: "http://www.zold.io/ledger.html?wallet=#{u.item.id}"}<
     %code= u.item.id
+  %textarea{style: 'display:none', id:'wallet_id'}= u.item.id
+  %span{onclick: 'document.getElementById("wallet_id").select(); document.execCommand("copy");'}
+    != "&#x2398"
   - if u.wallet_exists?
     - u.wallet do |w|
       %br
       Balance:
-      = "#{w.balance.to_zld(8)} ZLD (#{w.balance.to_i} zents)"
+      = "#{w.balance.to_zld} ZLD (#{w.balance.to_i} zents)"
       %br
       Transactions:
       = w.txns.count
       %br
-      Taxes:
+      = succeed ':' do
+        %a{href: 'https://blog.zold.io/2019/01/15/taxes-explained.html'} Taxes
       = "#{Zold::Tax.new(w).paid} paid, the debt is #{Zold::Tax.new(w).debt}"
       %br
       File size:
