@@ -471,6 +471,13 @@ get '/invoice' do
   )
 end
 
+get '/invoice.json' do
+  inv = user.invoice
+  prefix = inv.split('@')[0]
+  content_type 'application/json'
+  JSON.pretty_generate(prefix: prefix, invoice: inv)
+end
+
 get '/migrate' do
   haml :migrate, layout: :layout, locals: merged(
     title: '@' + confirmed_user.login + '/migrate'

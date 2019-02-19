@@ -85,6 +85,7 @@ class AppTest < Minitest::Test
       '/restart',
       '/log',
       '/invoice',
+      '/invoice.json',
       '/api',
       '/btc'
     ].each do |p|
