@@ -113,4 +113,23 @@ see this happening! #{e.message}"
     push
     @log.info("Paid #{amount} from #{id} to #{bnf} in #{Zold::Age.new(start)}: #{details}")
   end
+
+  def migrate(keygap)
+    start = Time.now
+    pay_taxes(keygap)
+    origin = @user.item.id
+    balance = @user.wallet(&:balance)
+    target = Tempfile.open do |f|
+      File.write(f, @user.wallet(&:key).to_s)
+      require 'zold/commands/create'
+      Zold::Create.new(wallets: @wallets, log: @log).run(
+        ['create', '--public-key=' + f.path]
+      )
+    end
+    pay(keygap, target, balance, 'Migrated')
+    @user.item.replace_id(target)
+    push
+    @log.info("Wallet of @#{@user.login} migrated from #{origin} to #{target} \
+with #{balance}, in #{Zold::Age.new(start)}")
+  end
 end

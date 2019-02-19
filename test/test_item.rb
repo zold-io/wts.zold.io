@@ -68,8 +68,8 @@ class ItemTest < Minitest::Test
     btc2 = '32wtFfKbjWHpu9WFzX9adGssnAosqPkSp7'
     assert(sarah.btc { btc2 })
     assert_equal(btc2, sarah.btc)
-    sleep 0.5
-    assert(jeff.btc(lifetime: 0.2) { raise 'Should not happen' })
+    sleep 2
+    assert(jeff.btc(lifetime: 1) { raise 'Should not happen' })
     assert(btc1 != jeff.btc)
   end
 

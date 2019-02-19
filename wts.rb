@@ -478,7 +478,7 @@ end
 
 get '/do-migrate' do
   headers['X-Zold-Job'] = job do
-    migrate
+    ops.migrate(keygap)
     settings.telepost.spam(
       "The wallet [#{origin}](http://www.zold.io/ledger.html?wallet=#{origin})",
       "with #{settings.wallets.acq(origin, &:txns).count} transactions",
@@ -646,7 +646,7 @@ post '/do-sell' do
       "the balance is #{rewards.wallet(&:balance)} (#{rewards.wallet(&:txns).count}t)"
     )
     if boss.wallet(&:txns).count > 1000
-      migrate(boss, settings.config['exchange']['keygap'])
+      ops(boss).migrate(settings.config['exchange']['keygap'])
       settings.telepost.spam(
         'The office wallet has been migrated to a new place',
         "[#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id}),",
@@ -977,7 +977,8 @@ def pay_hosting_bonuses(boss)
   end
   require 'zold/commands/remote'
   cmd = Zold::Remote.new(remotes: settings.remotes, log: log(boss.login))
-  winners = cmd.run(%w[remote elect --min-score=8 --max-winners=8 --ignore-masters])
+  cmd.run(%w[update --depth=3])
+  winners = cmd.run(%w[remote elect --min-score=2 --max-winners=8 --ignore-masters])
   winners.each do |score|
     ops(boss).pay(
       settings.config['rewards']['keygap'],
@@ -1000,7 +1001,7 @@ def pay_hosting_bonuses(boss)
     'Hosting [bonus](https://blog.zold.io/2018/08/14/hosting-bonuses.html)',
     "of #{bonus} has been distributed among #{winners.count} wallets",
     '[visible](https://wts.zold.io/remotes) to us at the moment,',
-    'among [others](http://www.zold.io/health.html):',
+    "among #{settings.remotes.all.count} [others](http://www.zold.io/health.html):",
     winners.map do |s|
       "[#{s.host}:#{s.port}](http://www.zold.io/ledger.html?wallet=#{s.invoice.split('@')[1]})/#{s.value}"
     end.join(', ') + ';',
@@ -1009,27 +1010,11 @@ def pay_hosting_bonuses(boss)
     "the remaining balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t)"
   )
   return if boss.wallet(&:txns).count < 1000
-  migrate(boss, settings.config['rewards']['keygap'])
+  ops(boss).migrate(settings.config['rewards']['keygap'])
   settings.telepost.spam(
     'The wallet with hosting [bonuses](https://blog.zold.io/2018/08/14/hosting-bonuses.html)',
     'has been migrated to a new place',
     "[#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id}),",
     "the balance is #{boss.wallet(&:balance)}"
   )
-end
-
-def migrate(u = user, k = keygap)
-  log(u).info("Migrating #{u.item.id} to a new wallet...")
-  ops(u).pay_taxes(k)
-  balance = u.wallet(&:balance)
-  target = Tempfile.open do |f|
-    File.write(f, u.wallet(&:key).to_s)
-    require 'zold/commands/create'
-    Zold::Create.new(wallets: settings.wallets, log: log).run(
-      ['create', '--public-key=' + f.path]
-    )
-  end
-  ops(u).pay(k, target, balance, 'Migrated')
-  u.item.replace_id(target)
-  ops(u).push
 end
