@@ -478,6 +478,7 @@ end
 
 get '/do-migrate' do
   headers['X-Zold-Job'] = job do
+    origin = user.item.id
     ops.migrate(keygap)
     settings.telepost.spam(
       "The wallet [#{origin}](http://www.zold.io/ledger.html?wallet=#{origin})",
