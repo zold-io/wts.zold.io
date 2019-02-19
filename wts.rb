@@ -236,6 +236,7 @@ before '/*' do
   header = request.env['HTTP_X_ZOLD_WTS']
   if header
     login, token = header.strip.split('-', 2)
+    raise UserError, 'User is absent' unless user(login).item.exists?
     raise UserError, 'Invalid token' unless user(login).item.token == token
     @locals[:guser] = login
   end
@@ -978,7 +979,7 @@ def pay_hosting_bonuses(boss)
   end
   require 'zold/commands/remote'
   cmd = Zold::Remote.new(remotes: settings.remotes, log: log(boss.login))
-  cmd.run(%w[remote update --depth=3])
+  cmd.run(%w[remote update --depth=5])
   winners = cmd.run(%w[remote elect --min-score=2 --max-winners=8 --ignore-masters])
   winners.each do |score|
     ops(boss).pay(

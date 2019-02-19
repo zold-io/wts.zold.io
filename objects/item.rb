@@ -150,7 +150,7 @@ keygap is '#{keygap[0, 2]}#{'.' * (keygap.length - 2)}'")
   def btc(lifetime: 30 * 60)
     item = read
     if item['btc']
-      age = Time.now - Time.at(item['assigned'].to_i)
+      age = Time.now.to_i - item['assigned']
       return item['btc'] if age < lifetime
       return item['btc'] if item['active'] && item['active'] == 2 && age < lifetime * 10
     end
@@ -163,7 +163,7 @@ keygap is '#{keygap[0, 2]}#{'.' * (keygap.length - 2)}'")
       expression_attribute_values: { ':a' => 1 },
       key_condition_expression: 'active=:a'
     ).items
-    if found.empty? || Time.at(found[0]['assigned'].to_i) > Time.now - lifetime
+    if found.empty? || Time.at(found[0]['assigned']) > Time.now - lifetime
       return item['btc'] if item['btc']
       item['btc'] = yield
     else
@@ -197,6 +197,7 @@ keygap is '#{keygap[0, 2]}#{'.' * (keygap.length - 2)}'")
   def btc_arrived
     item = read
     item['active'] = 2
+    item['assigned'] = Time.now.to_i
     @aws.put_item(table_name: 'zold-wallets', item: item)
   end
 
@@ -208,7 +209,6 @@ keygap is '#{keygap[0, 2]}#{'.' * (keygap.length - 2)}'")
   # Is something already arrived to this address?
   def btc_arrived?
     item = read
-    item['assigned'] = Time.now.to_i
     item['active'] && item['active'] == 2
   end
 
