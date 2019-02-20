@@ -41,13 +41,18 @@ class Gl
       r.assert_code(200, res)
       Zold::JsonPage.new(res.body, uri).to_hash.each do |t|
         row = @pgsql.exec(
-          'INSERT INTO txn (id, source, date, amount, target, details) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+          [
+            'INSERT INTO txn (id, source, date, amount, target, details)',
+            'VALUES ($1, $2, $3, $4, $5, $6)',
+            'ON CONFLICT DO NOTHING',
+            'RETURNING *'
+          ].join(' '),
           [
             t['id'], t['source'], Zold::Txn.parse_time(t['date']).utc.iso8601,
             t['amount'].to_i, t['target'], t['details']
           ]
         )
-        yield map(row[0]) if !row.nil? && block_given?
+        yield map(row[0]) if !row.empty? && block_given?
       end
     end
   end

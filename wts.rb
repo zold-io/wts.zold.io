@@ -162,7 +162,7 @@ configure do
       dbname: settings.config['pgsql']['dbname'],
       user: settings.config['pgsql']['user'],
       password: settings.config['pgsql']['password']
-    ),
+    ).start(1),
     log: settings.log
   )
   set :codec, GLogin::Codec.new(config['api_secret'])

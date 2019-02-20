@@ -32,12 +32,18 @@ class Pgsql
     @dbname = dbname
     @user = user
     @password = password
-    @mutex = Mutex.new
-    @pool = []
+    @pool = Queue.new
+  end
+
+  def start(max = 1)
+    max.times do
+      @pool << PG.connect(dbname: @dbname, host: @host, port: @port, user: @user, password: @password)
+    end
+    self
   end
 
   # Test connection
-  TEST = Pgsql.new
+  TEST = Pgsql.new.start
 
   def exec(query, args = [], result = 0)
     connect do |c|
@@ -54,16 +60,11 @@ class Pgsql
   end
 
   def connect
-    conn = @mutex.synchronize do
-      @pool << PG.connect(dbname: @dbname, host: @host, port: @port, user: @user, password: @password) if @pool.empty?
-      @pool.shift
-    end
+    conn = @pool.pop
     begin
       yield conn
-    rescue PG::Error
-      conn = nil
     ensure
-      @mutex.synchronize { @pool << conn } unless conn.nil?
+      @pool << conn
     end
   end
 end
