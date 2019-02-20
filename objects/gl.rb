@@ -18,7 +18,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'pg'
 require 'time'
 require 'zold/txn'
 require 'zold/id'
@@ -44,8 +43,8 @@ class Gl
       Zold::JsonPage.new(res.body, uri).to_hash.each do |t|
         row = @pgsql.exec(
           [
-            'INSERT INTO txn (id, source, date, amount, target, details)',
-            'VALUES ($1, $2, $3, $4, $5, $6)',
+            'INSERT INTO txn (id, source, date, amount, target, prefix, details)',
+            'VALUES ($1, $2, $3, $4, $5, $6, $7)',
             'ON CONFLICT DO NOTHING',
             'RETURNING *'
           ].join(' '),
@@ -55,6 +54,7 @@ class Gl
             Zold::Txn.parse_time(t['date']).utc.iso8601,
             Zold::Amount.new(zents: t['amount'].to_i).to_i,
             Zold::Id.new(t['target']),
+            t['prefix'],
             t['details']
           ]
         )
@@ -79,6 +79,7 @@ class Gl
       source: Zold::Id.new(r['source']),
       target: Zold::Id.new(r['target']),
       amount: Zold::Amount.new(zents: r['amount'].to_i),
+      prefix: r['prefix'],
       details: r['details']
     }
   end

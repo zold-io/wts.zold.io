@@ -87,6 +87,42 @@ There are more entry points:
 
   * `GET /do-confirm`: removes the keygap from the database and returns `302`.
 
+## Callback API
+
+If you want to integrate Zold into your website or mobile app, where your
+customers are sending payments to you, you may try our callback API. First, you
+send a `GET` request to `/wait-for` and specify:
+
+  * `wallet`: the ID of the wallet you expect payments to
+  * `prefix`: the prefix you expect them to arrive to (get it at `/invoice.json` first)
+  * `regexp`: the regular expression to match payment details, e.g. `/pizza$/` (the text has to end with `pizza`)
+  * `uri`: the URI where the callback should arrive once we see the payment
+
+If your callback is registered, you will receive `200` response of time `text/plain`
+with the ID of the callback in the body.
+
+Once the payment arrives, your URI will receive a `GET` request from us
+with the following query arguments:
+
+  * `callback`: the ID of the callback
+  * `login`: the user name of the owner of this callback
+  * `regexp`: the regular expression just matched
+  * `wallet`: the wallet ID
+  * `id`: the transaction ID
+  * `prefix`: the prefix matched
+  * `source`: the ID of the payer
+  * `amount`: the amount in zents
+  * `details`: the details
+
+Your callback has to return `200` and `OK` as a text. Unless it happens,
+our server will send you another `GET` request in 10 minutes and will
+keep doing that for 4 hours.
+
+If your callback is never matched, it will be removed from the system
+in 24 hours.
+
+You may register up to 8 callbacks in one account.
+
 ## Mobile API
 
 If you want to create a mobile client, you may use our mobile API with two

@@ -18,23 +18,28 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'backtrace'
+require 'raven'
+require 'zold/log'
 
 #
-# Job that reports its result to Zache.
+# Daemon thread.
 #
-class ZacheJob
-  def initialize(job, key, zache)
-    @job = job
-    @key = key
-    @zache = zache
+class Daemon
+  def initialize(log)
+    @log = log
   end
 
-  def call
-    @job.call
-    @zache.put(@key, 'OK', lifetime: 60 * 60)
-  rescue StandardError => e
-    @zache.put(@key, Backtrace.new(e).to_s)
-    raise e
+  def run(min = 60)
+    Thread.new do
+      loop do
+        sleep(min * 60)
+        begin
+          yield
+        rescue StandardError => e
+          Raven.capture_exception(e)
+          @log.error(Backtrace.new(e))
+        end
+      end
+    end
   end
 end

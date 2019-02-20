@@ -38,9 +38,8 @@ class Ops
     @network = network
   end
 
-  def pull
+  def pull(id = @item.id)
     start = Time.now
-    id = @item.id
     raise UserError, "There are no visible remote nodes, can\'t PULL #{id}" if @remotes.all.empty?
     require 'zold/commands/pull'
     begin

@@ -43,6 +43,7 @@ require 'zold/hands'
 require 'zold/sync_wallets'
 require 'zold/cached_wallets'
 require_relative 'version'
+require_relative 'objects/daemon'
 require_relative 'objects/ticks'
 require_relative 'objects/graph'
 require_relative 'objects/item'
@@ -155,16 +156,15 @@ configure do
     network: ENV['RACK_ENV'] == 'test' ? 'test' : 'zold'
   )
   set :copies, File.join(settings.root, '.zold-wts/copies')
-  set :gl, Gl.new(
-    Pgsql.new(
-      host: settings.config['pgsql']['host'],
-      port: settings.config['pgsql']['port'],
-      dbname: settings.config['pgsql']['dbname'],
-      user: settings.config['pgsql']['user'],
-      password: settings.config['pgsql']['password']
-    ).start(1),
-    log: settings.log
-  )
+  set :pgsql, Pgsql.new(
+    host: settings.config['pgsql']['host'],
+    port: settings.config['pgsql']['port'],
+    dbname: settings.config['pgsql']['dbname'],
+    user: settings.config['pgsql']['user'],
+    password: settings.config['pgsql']['password']
+  ).start(1)
+  set :gl, Gl.new(settings.pgsql, log: settings.log)
+  set :callbacks, Callbacks.new(settings.pgsql, log: settings.log)
   set :codec, GLogin::Codec.new(config['api_secret'])
   set :zache, Zache.new(dirty: true)
   set :jobs, Zache.new
@@ -201,38 +201,30 @@ configure do
       settings.config['telegram']['token'],
       chats: ['@zold_wts']
     )
-    Thread.new do
+    Daemon.new(settings.log).run(0) do
       settings.telepost.run
-    rescue StandardError => e
-      Raven.capture_exception(e)
-      settings.log.error(Backtrace.new(e))
     end
   end
-  Thread.new do
-    loop do
-      sleep 10 * 60
-      begin
-        login = settings.config['rewards']['login']
-        boss = user(login)
-        job(boss) { pay_hosting_bonuses(boss) } if boss.item.exists?
-      rescue StandardError => e
-        Raven.capture_exception(e)
-        settings.log.error(Backtrace.new(e))
-      end
-    end
+  Daemon.new(settings.log).run(10) do
+    login = settings.config['rewards']['login']
+    boss = user(login)
+    job(boss) { pay_hosting_bonuses(boss) } if boss.item.exists?
   end
-  Thread.new do
-    loop do
-      sleep 60
-      begin
-        settings.gl.scan(settings.remotes) do |t|
-          settings.log.info("A new transaction added to the General Ledger \
+  Daemon.new(settings.log).run do
+    settings.gl.scan(settings.remotes) do |t|
+      settings.log.info("A new transaction added to the General Ledger \
 for #{t[:amount].to_zld(6)} from #{t[:source]} to #{t[:target]} with details \"#{t[:details]}\" \
 and dated of #{t[:date].utc.iso8601}")
+      settings.callbacks.match(t[:target], t[:prefix], t[:details])
+    end
+  end
+  Daemon.new(settings.log).run(10) do
+    settings.callbacks.ping do |login, id, pfx, regexp|
+      ops(user(login)).pull(id)
+      settings.wallets.acq(id) do |wallet|
+        wallet.txns.select do |t|
+          t.pfx == pfx && regexp.match?(t.details)
         end
-      rescue StandardError => e
-        Raven.capture_exception(e)
-        settings.log.error(Backtrace.new(e))
       end
     end
   end
@@ -514,10 +506,22 @@ end
 
 # See https://github.com/zold-io/wts.zold.io/issues/116
 get '/wait-for' do
-  inv = user.invoice
-  prefix = inv.split('@')[0]
-  content_type 'application/json'
-  JSON.pretty_generate(prefix: prefix, invoice: inv)
+  wallet = params[:wallet]
+  raise UserError, 'The parameter "wallet" is mandatory' if wallet.nil?
+  prefix = params[:prefix]
+  raise UserError, 'The parameter "prefix" is mandatory' if prefix.nil?
+  regexp = params[:regexp]
+  regexp = /^.*$/ if regexp.nil?
+  uri = params[:uri]
+  raise UserError, 'The parameter "uri" is mandatory' if uri.nil?
+  id = settings.callbacks.add(user.login, wallet, prefix, regexp, uri)
+  settings.telepost.spam(
+    "New callback no.#{id} created by [@#{user.login}](https://github.com/#{user.login}) from #{anon_ip}",
+    "for the wallet [#{wallet}](http://www.zold.io/ledger.html?wallet=#{wallet}),",
+    "prefix `#{prefix}`, and regular expression `#{regexp}`"
+  )
+  content_type 'text/plain'
+  id.to_s
 end
 
 get '/migrate' do

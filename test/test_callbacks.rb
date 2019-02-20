@@ -12,29 +12,38 @@
 #
 # THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFINGEMENT. IN NO EVENT SHALL THE
 # AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'backtrace'
+require 'minitest/autorun'
+require 'webmock/minitest'
+require 'zold/amount'
+require_relative 'test__helper'
+require_relative '../objects/pgsql'
+require_relative '../objects/callbacks'
 
-#
-# Job that reports its result to Zache.
-#
-class ZacheJob
-  def initialize(job, key, zache)
-    @job = job
-    @key = key
-    @zache = zache
-  end
-
-  def call
-    @job.call
-    @zache.put(@key, 'OK', lifetime: 60 * 60)
-  rescue StandardError => e
-    @zache.put(@key, Backtrace.new(e).to_s)
-    raise e
+class CallbacksTest < Minitest::Test
+  def test_register_and_ping
+    WebMock.allow_net_connect!
+    callbacks = Callbacks.new(Pgsql::TEST.start, log: test_log)
+    id = Zold::Id.new
+    callbacks.add('yegor256', id.to_s, 'NOPREFIX', /pizza/, 'http://localhost:888/')
+    assert(!callbacks.match(id.to_s, 'NOPREFIX', 'for pizza').empty?)
+    assert(callbacks.match(id.to_s, 'NOPREFIX', 'for pizza').empty?)
+    get = stub_request(:get, /localhost:888/).to_return(status: 200, body: 'OK')
+    callbacks.ping do
+      [
+        Zold::Txn.new(
+          1, Time.now,
+          Zold::Amount.new(zld: 1.99),
+          'NOPREFIX',
+          Zold::Id.new, '-'
+        )
+      ]
+    end
+    assert_requested(get, times: 1)
   end
 end
