@@ -1,0 +1,56 @@
+%p
+  The Callback API is explained in the
+  %a{href: 'https://github.com/zold-io/wts.zold.io#callback-api'} README
+  document.
+
+%form{method: 'GET', action: '/wait-for'}
+  %fieldset
+    %label
+      Wallet ID to scan:
+    %input{type: 'text', name: 'wallet', autocomplete: 'off', required: true, tabindex: 1, autofocus: true}
+    %label
+      Prefix:
+    %input{type: 'text', name: 'prefix', maxlength: 32, size: 25, autocomplete: 'off', required: true, tabindex: 2}
+    %label
+      RegExp:
+    %input{type: 'text', name: 'regexp', size: 45, autocomplete: 'off', tabindex: 3}
+    %label
+      URI:
+    %input{type: 'text', name: 'uri', size: 55, autocomplete: 'off', required: true, tabindex: 4}
+    %input{type: 'submit', tabindex: 5, value: 'Add'}
+
+%table{style: 'width:100%; font-size:80%;'}
+  %colgroup
+    %col{style: 'width: 2em'}
+    %col{style: 'width: 5em'}
+    %col{style: 'width: 5em'}
+    %col{style: ''}
+    %col{style: 'width: 10em'}
+  %thead
+    %tr
+      %th
+        ID
+      %th
+        Wallet
+      %th
+        Prefix
+      %th
+        RegExp
+      %th
+        Created
+  %tbody
+    - callbacks.fetch(confirmed_user.login).each do |c|
+      %tr
+        %td
+          = c['id']
+        %td
+          %code
+            %a{href: "http://www.zold.io/ledger.html?wallet=#{c['wallet']}"}= c['wallet']
+        %td
+          %code
+            = c['prefix']
+        %td
+          %code
+            = c['regexp']
+        %td{title: Time.parse(c['created']).utc.iso8601}
+          = Zold::Age.new(Time.parse(c['created']))

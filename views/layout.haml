@@ -71,8 +71,6 @@
               %li
                 %a{href: '/key'} Key
               %li
-                %a{href: '/api'} API
-              %li
                 %del
                   %a{href: '/restart'} Restart
           - if File.exist?(latch)
@@ -99,6 +97,11 @@
           %ul
             %li
               %a{href: '/gl'} General Ledger
+            - if defined? guser
+              %li
+                %a{href: '/api'} API
+              %li
+                %a{href: '/callbacks'} Callbacks
         %nav
           %ul
             %li

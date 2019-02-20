@@ -68,6 +68,10 @@ prefix \"#{prefix}\", regexp #{regexp}, and URI: #{uri}")
     found
   end
 
+  def fetch(login)
+    @pgsql.exec('SELECT callback.* FROM callback WHERE login = $1', [login])
+  end
+
   # Ping them all.
   def ping
     @pgsql.exec('DELETE FROM callback WHERE created < NOW() - INTERVAL \'24 HOURS\'')

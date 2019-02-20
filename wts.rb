@@ -505,7 +505,13 @@ get '/invoice.json' do
   JSON.pretty_generate(prefix: prefix, invoice: inv)
 end
 
-# See https://github.com/zold-io/wts.zold.io/issues/116
+get '/callbacks' do
+  haml :callbacks, layout: :layout, locals: merged(
+    title: '@' + confirmed_user.login + '/callbacks',
+    callbacks: settings.callbacks
+  )
+end
+
 get '/wait-for' do
   wallet = params[:wallet]
   raise UserError, 'The parameter "wallet" is mandatory' if wallet.nil?
