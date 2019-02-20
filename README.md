@@ -73,8 +73,11 @@ There are more entry points:
     `/find?bnf=012345670.%2B&details=Hello!`.
     You can match by all transaction fields (see the [White Paper](https://papers.zold.io/wp.pdf)).
 
-  * `GET /job`: checks the status of the jobs, expecting `id` argument.
-    Returns `OK` if the job is completed, otherwise a full log of its execution.
+  * `GET /job`: checks the status of the jobs, expecting `id` as a query argument.
+    Returns `200` and plain text `OK` if the job is completed.
+    Returns `200` and plain text `Running` if the job is still in progress.
+    Returns `404` if there is no such job.
+    Returns `200` and a full stack trace as plain text if the job is finished with an exception.
 
   * `GET /id_rsa`: returns private RSA key of the user, expecting the keygap
     as an argument.
