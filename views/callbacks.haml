@@ -7,13 +7,13 @@
   %fieldset
     %label
       Wallet ID to scan:
-    %input{type: 'text', name: 'wallet', autocomplete: 'off', required: true, tabindex: 1, autofocus: true}
+    %input{type: 'text', name: 'wallet', autocomplete: 'off', required: true, tabindex: 1, autofocus: true, value: user.item.id}
     %label
       Prefix:
-    %input{type: 'text', name: 'prefix', maxlength: 32, size: 25, autocomplete: 'off', required: true, tabindex: 2}
+    %input{type: 'text', name: 'prefix', maxlength: 32, size: 15, autocomplete: 'off', required: true, tabindex: 2}
     %label
       RegExp:
-    %input{type: 'text', name: 'regexp', size: 45, autocomplete: 'off', tabindex: 3}
+    %input{type: 'text', name: 'regexp', size: 25, autocomplete: 'off', tabindex: 3}
     %label
       URI:
     %input{type: 'text', name: 'uri', size: 55, autocomplete: 'off', required: true, tabindex: 4}
