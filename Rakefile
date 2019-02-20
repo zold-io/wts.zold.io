@@ -22,6 +22,7 @@ require 'rubygems'
 require 'rake'
 require 'rdoc'
 require 'rake/clean'
+require 'English'
 require_relative 'objects/dynamo'
 
 ENV['RACK_ENV'] = 'test'
@@ -30,7 +31,7 @@ task default: %i[clean test rubocop xcop copyright]
 
 require 'rake/testtask'
 desc 'Run all unit tests'
-Rake::TestTask.new(test: :dynamo) do |test|
+Rake::TestTask.new(test: %i[dynamo liquibase]) do |test|
   Rake::Cleaner.cleanup_files(['coverage'])
   test.libs << 'lib' << 'test'
   test.pattern = 'test/**/test_*.rb'
@@ -73,6 +74,55 @@ task :dynamo do
   puts "DynamoDB Local is running in PID #{pid}"
 end
 
+desc 'Start PostgreSQL Local server'
+task :pgsql do
+  FileUtils.mkdir_p('target')
+  dir = File.expand_path(File.join(Dir.pwd, 'target/pgsql'))
+  FileUtils.rm_rf(dir)
+  File.write('target/pwfile', 'test')
+  system("initdb --auth=trust -D #{dir} --username=test --pwfile=target/pwfile 2>&1")
+  raise unless $CHILD_STATUS.exitstatus.zero?
+  port = `python -c 'import socket; s=socket.socket(); s.bind(("", 0)); print(s.getsockname()[1]); s.close()'`.to_i
+  pid = Process.spawn('postgres', '-k', dir, '-D', dir, "--port=#{port}")
+  at_exit do
+    `kill -TERM #{pid}`
+    puts "PostgreSQL killed in PID #{pid}"
+  end
+  sleep 1
+  attempt = 0
+  begin
+    system("createdb -h localhost -p #{port} --username=test test 2>&1")
+    raise unless $CHILD_STATUS.exitstatus.zero?
+  rescue StandardError => e
+    puts e.message
+    sleep(5)
+    attempt += 1
+    raise if attempt > 10
+    retry
+  end
+  File.write('target/pgsql.port', port.to_s)
+  File.write(
+    'target/config.yml',
+    [
+      'pgsql:',
+      '  host: localhost',
+      "  port: #{port}",
+      '  dbname: test',
+      '  user: test',
+      '  password: test',
+      "  url: jdbc:postgresql://localhost:#{port}/test?user=test&password=test"
+    ].join("\n")
+  )
+  puts "PostgreSQL is running in PID #{pid}"
+end
+
+desc 'Update the database via Liquibase'
+task liquibase: %i[pgsql] do
+  yml = YAML.safe_load(File.open(File.exist?('config.yml') ? 'config.yml' : 'target/config.yml'))
+  system("mvn -f liquibase verify \"-Durl=#{yml['pgsql']['url']}\" --errors 2>&1")
+  raise unless $CHILD_STATUS.exitstatus.zero?
+end
+
 desc 'Sleep endlessly after the start of DynamoDB Local server'
 task :sleep do
   loop do
@@ -81,7 +131,7 @@ task :sleep do
   end
 end
 
-task run: :dynamo do
+task run: %i[dynamo pgsql] do
   `rerun -b "RACK_ENV=test rackup"`
 end
 

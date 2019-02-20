@@ -29,6 +29,9 @@ if ENV['CI'] == 'true'
   SimpleCov.formatter = SimpleCov::Formatter::Codecov
 end
 
+require 'zold/hands'
+Zold::Hands.start
+
 require 'minitest/autorun'
 module Minitest
   class Test

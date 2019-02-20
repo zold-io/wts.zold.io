@@ -93,6 +93,13 @@ configure do
         'key' => '?',
         'secret' => '?'
       },
+      'pgsql' => {
+        'host' => 'localhost',
+        'port' => 0,
+        'user' => 'test',
+        'dbname' => 'test',
+        'password' => 'test'
+      },
       'sns' => {
         'region' => '?',
         'key' => '?',
@@ -146,6 +153,16 @@ configure do
     network: ENV['RACK_ENV'] == 'test' ? 'test' : 'zold'
   )
   set :copies, File.join(settings.root, '.zold-wts/copies')
+  set :gl, Gl.new(
+    Pgsql.new(
+      host: settings.config['pgsql']['host'],
+      port: settings.config['pgsql']['port'],
+      dbname: settings.config['pgsql']['dbname'],
+      user: settings.config['pgsql']['user'],
+      password: settings.config['pgsql']['password']
+    ),
+    log: settings.log
+  )
   set :codec, GLogin::Codec.new(config['api_secret'])
   set :zache, Zache.new(dirty: true)
   set :jobs, Zache.new
@@ -202,12 +219,23 @@ configure do
       end
     end
   end
+  Thread.new do
+    loop do
+      sleep 60
+      begin
+        settings.gl.scan(settings.remotes)
+      rescue StandardError => e
+        Raven.capture_exception(e)
+        settings.log.error(Backtrace.new(e))
+      end
+    end
+  end
   settings.telepost.spam(
     '[WTS](https://wts.zold.io) server software',
     "[#{VERSION}](https://github.com/zold-io/wts.zold.io/releases/tag/#{VERSION})",
-    'has been deployed and starts to work.',
+    'has been deployed and starts to work;',
     "Zold version is [#{Zold::VERSION}](https://rubygems.org/gems/zold/versions/#{Zold::VERSION}),",
-    "protocol is `#{Zold::PROTOCOL}`"
+    "the protocol is `#{Zold::PROTOCOL}`"
   )
 end
 
@@ -472,6 +500,14 @@ get '/invoice' do
 end
 
 get '/invoice.json' do
+  inv = user.invoice
+  prefix = inv.split('@')[0]
+  content_type 'application/json'
+  JSON.pretty_generate(prefix: prefix, invoice: inv)
+end
+
+# See https://github.com/zold-io/wts.zold.io/issues/116
+get '/wait-for' do
   inv = user.invoice
   prefix = inv.split('@')[0]
   content_type 'application/json'
@@ -782,6 +818,14 @@ get '/mobile/token' do
   u = user(phone)
   raise UserError, 'Invalid mobile code' unless u.item.mcode == mcode
   "#{u.login}-#{u.item.token}"
+end
+
+get '/gl' do
+  haml :gl, layout: :layout, locals: merged(
+    title: 'General Ledger',
+    gl: settings.gl,
+    since: Zold::Txn.parse_time(params[:since])
+  )
 end
 
 get '/robots.txt' do
