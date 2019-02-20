@@ -47,7 +47,7 @@ class Gl
             t['amount'].to_i, t['target'], t['details']
           ]
         )
-        yield map(row[0]) unless row.nil? && block_given?
+        yield map(row[0]) if !row.nil? && block_given?
       end
     end
   end

@@ -826,7 +826,7 @@ get '/gl' do
   haml :gl, layout: :layout, locals: merged(
     title: 'General Ledger',
     gl: settings.gl,
-    since: params[:since] ? Zold::Txn.parse_time(params[:since]) : Time.now
+    since: params[:since] ? Zold::Txn.parse_time(params[:since]) : nil
   )
 end
 
