@@ -225,7 +225,11 @@ configure do
     loop do
       sleep 60
       begin
-        settings.gl.scan(settings.remotes)
+        settings.gl.scan(settings.remotes) do |t|
+          settings.log.info("A new transaction added to the General Ledger \
+for #{t[:amount].to_zld(6)} from #{t[:source]} to #{t[:target]} with details \"#{t[:details]}\" \
+and dated of #{t[:date].utc.iso8601}")
+        end
       rescue StandardError => e
         Raven.capture_exception(e)
         settings.log.error(Backtrace.new(e))

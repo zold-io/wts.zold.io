@@ -149,7 +149,7 @@ keygap is '#{keygap[0, 2]}#{'.' * (keygap.length - 2)}'")
   # otherwise generate a new one, using the block.
   def btc(lifetime: 30 * 60)
     item = read
-    if item['btc']
+    if item['btc'] && item['assigned']
       age = Time.now.to_i - item['assigned']
       return item['btc'] if age < lifetime
       return item['btc'] if item['active'] && item['active'] == 2 && age < lifetime * 10

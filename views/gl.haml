@@ -50,7 +50,7 @@
             = t[:id]
           %td{style: 'text-align:right', title: t[:amount].to_i}
             = t[:amount].to_zld
-          %td
+          %td{title: t[:date].utc.iso8601}
             = Zold::Age.new(t[:date])
           %td
             %code

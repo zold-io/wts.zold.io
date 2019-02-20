@@ -21,6 +21,8 @@
 require 'pg'
 require 'time'
 require 'zold/txn'
+require 'zold/id'
+require 'zold/amount'
 require 'zold/json_page'
 require_relative 'pgsql'
 
@@ -48,8 +50,12 @@ class Gl
             'RETURNING *'
           ].join(' '),
           [
-            t['id'], t['source'], Zold::Txn.parse_time(t['date']).utc.iso8601,
-            t['amount'].to_i, t['target'], t['details']
+            t['id'],
+            Zold::Id.new(t['source']).to_s,
+            Zold::Txn.parse_time(t['date']).utc.iso8601,
+            Zold::Amount.new(zents: t['amount'].to_i).to_i,
+            Zold::Id.new(t['target']),
+            t['details']
           ]
         )
         yield map(row[0]) if !row.empty? && block_given?
