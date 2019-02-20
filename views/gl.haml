@@ -30,7 +30,7 @@
       %tr
         %td{colspan: 6, style: 'text-align:center'}
           = 'Since ' + since.utc.iso8601
-    - txns = gl.fetch(since: since, max: max)
+    - txns = gl.fetch(since: since, limit: max)
     - if txns.empty?
       %tr
         %td{colspan: 6, style: 'text-align:center'}
