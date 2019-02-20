@@ -43,7 +43,7 @@ class Pgsql
   end
 
   # Test connection
-  TEST = Pgsql.new.start
+  TEST = Pgsql.new
 
   def exec(query, args = [], result = 0)
     connect do |c|

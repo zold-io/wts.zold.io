@@ -57,7 +57,7 @@ class GlTest < Minitest::Test
         )
       )
       remotes.add('localhost', 4096)
-      gl = Gl.new(Pgsql::TEST, log: test_log)
+      gl = Gl.new(Pgsql::TEST.start, log: test_log)
       gl.scan(remotes) do |t|
         assert_equal(id, t[:id], t)
       end
