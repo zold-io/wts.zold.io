@@ -40,7 +40,7 @@ class GlTest < Minitest::Test
               date: Time.now.utc.iso8601,
               source: '0000111122223333',
               target: 'ffffeeeeddddcccc',
-              amount: 1024,
+              amount: 9_999_999_999_999,
               prefix: 'NOPREFIX',
               details: 'for pizza'
             },
@@ -67,7 +67,7 @@ class GlTest < Minitest::Test
       assert_equal('0000111122223333', row[:source].to_s, row)
       assert_equal('ffffeeeeddddcccc', row[:target].to_s, row)
       assert(row[:date] > Time.now - 60, row)
-      assert_equal(1024, row[:amount].to_i, row)
+      assert_equal(9_999_999_999_999, row[:amount].to_i, row)
       assert_equal('for pizza', row[:details], row)
     end
   end
