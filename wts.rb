@@ -224,7 +224,7 @@ and dated of #{t[:date].utc.iso8601}")
       ops(user(login)).pull(id)
       settings.wallets.acq(id) do |wallet|
         wallet.txns.select do |t|
-          t.pfx == pfx && regexp.match?(t.details)
+          t.prefix == pfx && regexp.match?(t.details)
         end
       end
     end

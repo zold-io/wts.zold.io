@@ -34,8 +34,6 @@ class Callbacks
 
   # Adds a new callback
   def add(login, wallet, prefix, regexp, uri)
-    puts @pgsql.exec('SELECT * FROM callback')
-    # exit
     total = @pgsql.exec('SELECT COUNT(*) FROM callback WHERE login = $1', [login])[0]['count'].to_i
     raise UserError, "You have too many of them already: #{total}" if total >= 8
     cid = @pgsql.exec(
@@ -63,7 +61,8 @@ prefix \"#{prefix}\", regexp #{regexp}, and URI: #{uri}")
       next if id.empty?
       mid = id[0]['id'].to_i
       found << mid
-      @log.info("Callback ##{r['id']} just matched in #{wallet}/#{prefix} with \"#{details}\", match ##{mid}")
+      @log.info("Callback ##{r['id']} of @#{r['login']} just matched in #{wallet}/#{prefix} \
+with \"#{details}\", match ##{mid}")
     end
     found
   end
