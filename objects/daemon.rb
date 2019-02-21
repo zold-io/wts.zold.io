@@ -19,6 +19,7 @@
 # SOFTWARE.
 
 require 'raven'
+require 'backtrace'
 require 'zold/log'
 
 #
@@ -29,7 +30,7 @@ class Daemon
     @log = log
   end
 
-  def run(min = 60)
+  def run(min = 1)
     Thread.new do
       loop do
         sleep(min * 60)
