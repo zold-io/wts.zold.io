@@ -78,6 +78,7 @@ There are more entry points:
     Returns `200` and plain text `Running` if the job is still in progress.
     Returns `404` if there is no such job.
     Returns `200` and a full stack trace as plain text if the job is finished with an exception.
+    We keep the information about the job in memory for 4 hours (it gets destroyed if the server reboots).
 
   * `GET /id_rsa`: returns private RSA key of the user, expecting the keygap
     as an argument.

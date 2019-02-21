@@ -34,7 +34,7 @@ class ZacheJob
     @job.call
     @zache.put(@key, 'OK', lifetime: 60 * 60)
   rescue StandardError => e
-    @zache.put(@key, Backtrace.new(e).to_s)
+    @zache.put(@key, Backtrace.new(e).to_s, lifetime: 4 * 60 * 60)
     raise e
   end
 end
