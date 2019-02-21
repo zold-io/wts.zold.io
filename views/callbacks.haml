@@ -16,10 +16,10 @@
       Ruby
       %a{href: 'https://ruby-doc.org/core-2.1.1/Regexp.html'} RegExp
       to match the details:
-    %input{type: 'text', name: 'regexp', size: 25, autocomplete: 'off', tabindex: 3, placeholder: '/^.*$/'}
+    %input{type: 'text', name: 'regexp', size: 25, autocomplete: 'off', tabindex: 3, placeholder: '^.*$'}
     %label
       URI to call when matched:
-    %input{type: 'url', name: 'uri', size: 55, autocomplete: 'off', required: true, tabindex: 4}
+    %input{type: 'url', name: 'uri', size: 55, autocomplete: 'off', required: true, tabindex: 4, value: 'https://wts.zold.io/null'}
     %input{type: 'submit', tabindex: 5, value: 'Add'}
 
 %p

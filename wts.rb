@@ -512,6 +512,11 @@ get '/callbacks' do
   )
 end
 
+get '/null' do
+  content_type 'text/plain'
+  'OK'
+end
+
 get '/wait-for' do
   wallet = params[:wallet]
   raise UserError, 'The parameter "wallet" is mandatory' if wallet.nil?
