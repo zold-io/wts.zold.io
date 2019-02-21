@@ -108,16 +108,16 @@ with the following query arguments:
   * `callback`: the ID of the callback
   * `login`: the user name of the owner of this callback
   * `regexp`: the regular expression just matched
-  * `wallet`: the wallet ID
+  * `wallet`: the ID of the wallet that is receiving the payment
   * `id`: the transaction ID
-  * `prefix`: the prefix matched
-  * `source`: the ID of the payer
-  * `amount`: the amount in zents
-  * `details`: the details
+  * `prefix`: the prefix just matched
+  * `source`: the ID of the wallet that is sending the payment
+  * `amount`: the amount in zents (always positive)
+  * `details`: the details of the payment
 
 Your callback has to return `200` and `OK` as a text. Unless it happens,
-our server will send you another `GET` request in 10 minutes and will
-keep doing that for 4 hours.
+our server will send you another `GET` request in 5 minutes and will
+keep doing that for 4 hours. Then it will give up.
 
 If your callback is never matched, it will be removed from the system
 in 24 hours.
