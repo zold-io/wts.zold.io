@@ -98,6 +98,7 @@ send a `GET` request to `/wait-for` and specify:
   * `prefix`: the prefix you expect them to arrive to (get it at `/invoice.json` first)
   * `regexp`: the regular expression to match payment details, e.g. `pizza$` (the text has to end with `pizza`)
   * `uri`: the URI where the callback should arrive once we see the payment
+  * `token`: the secret we will return back to you (up to 128 chars)
 
 If your callback is registered, you will receive `200` response of time `text/plain`
 with the ID of the callback in the body.
@@ -114,6 +115,7 @@ with the following query arguments:
   * `source`: the ID of the wallet that is sending the payment
   * `amount`: the amount in zents (always positive)
   * `details`: the details of the payment
+  * `token`: the secret token you provided when registering the callback
 
 Your callback has to return `200` and `OK` as a text. Unless it happens,
 our server will send you another `GET` request in 5 minutes and will
