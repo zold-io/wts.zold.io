@@ -69,7 +69,14 @@ prefix \"#{prefix}\", regexp #{regexp}, and URI: #{uri}")
   end
 
   def fetch(login)
-    @pgsql.exec('SELECT callback.* FROM callback WHERE login = $1', [login])
+    @pgsql.exec(
+      [
+        'SELECT callback.*, match.created AS matched FROM callback',
+        'LEFT JOIN match ON match.callback = callback.id',
+        'WHERE login = $1'
+      ].join(' '),
+      [login]
+    )
   end
 
   # Ping them all.

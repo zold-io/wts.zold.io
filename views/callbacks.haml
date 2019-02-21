@@ -6,18 +6,24 @@
 %form{method: 'GET', action: '/wait-for'}
   %fieldset
     %label
-      Wallet ID to scan:
+      The ID of the wallet to scan:
     %input{type: 'text', name: 'wallet', autocomplete: 'off', required: true, tabindex: 1, autofocus: true, value: user.item.id}
     %label
-      Prefix:
+      %a{href: 'https://blog.zold.io/2018/08/06/invoices.html'} Invoice
+      prefix:
     %input{type: 'text', name: 'prefix', maxlength: 32, size: 15, autocomplete: 'off', required: true, tabindex: 2}
     %label
-      RegExp:
-    %input{type: 'text', name: 'regexp', size: 25, autocomplete: 'off', tabindex: 3}
+      Ruby
+      %a{href: 'https://ruby-doc.org/core-2.1.1/Regexp.html'} RegExp
+      to match the details:
+    %input{type: 'text', name: 'regexp', size: 25, autocomplete: 'off', tabindex: 3, placeholder: '/^.*$/'}
     %label
-      URI:
-    %input{type: 'text', name: 'uri', size: 55, autocomplete: 'off', required: true, tabindex: 4}
+      URI to call when matched:
+    %input{type: 'url', name: 'uri', size: 55, autocomplete: 'off', required: true, tabindex: 4}
     %input{type: 'submit', tabindex: 5, value: 'Add'}
+
+%p
+  This is the full list of callbacks we have in your account:
 
 %table{style: 'width:100%; font-size:80%;'}
   %colgroup
@@ -38,6 +44,8 @@
         RegExp
       %th
         Created
+      %th
+        Matched
   %tbody
     - callbacks.fetch(confirmed_user.login).each do |c|
       %tr
@@ -54,3 +62,9 @@
             = c['regexp']
         %td{title: Time.parse(c['created']).utc.iso8601}
           = Zold::Age.new(Time.parse(c['created']))
+        %td
+          - if c['matched']
+            %span{title: Time.parse(c['matched']).utc.iso8601}
+              = Zold::Age.new(Time.parse(c['matched']))
+          - else
+            = '&mdash;'
