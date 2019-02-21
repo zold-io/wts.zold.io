@@ -60,7 +60,7 @@ There are more entry points:
 
   * `GET /id`: returns your wallet ID.
 
-  * `GET /balance`: returns the current balance of the wallet.
+  * `GET /balance`: returns the current balance of the wallet in Zents (1 ZLD is 2^32 Zents).
     If the wallet is absent on the server, there will be non-200 response code and maybe you need to call /pull.
 
   * `GET /pull`: asks the server to pull your wallet from the network.
