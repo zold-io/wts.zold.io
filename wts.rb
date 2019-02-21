@@ -525,7 +525,10 @@ get '/wait-for' do
   regexp = params[:regexp] ? Regexp.new(params[:regexp]) : /^.*$/
   uri = URI(params[:uri])
   raise UserError, 'The parameter "uri" is mandatory' if uri.nil?
-  id = settings.callbacks.add(user.login, Zold::Id.new(wallet), prefix, regexp, uri)
+  id = settings.callbacks.add(
+    user.login, Zold::Id.new(wallet), prefix, regexp, uri,
+    params[:token] || 'none'
+  )
   settings.telepost.spam(
     "New callback no.#{id} created by [@#{user.login}](https://github.com/#{user.login}) from #{anon_ip}",
     "for the wallet [#{wallet}](http://www.zold.io/ledger.html?wallet=#{wallet}),",

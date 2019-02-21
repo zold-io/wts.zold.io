@@ -33,16 +33,16 @@ class Callbacks
   end
 
   # Adds a new callback
-  def add(login, wallet, prefix, regexp, uri)
+  def add(login, wallet, prefix, regexp, uri, token = 'none')
     total = @pgsql.exec('SELECT COUNT(*) FROM callback WHERE login = $1', [login])[0]['count'].to_i
     raise UserError, "You have too many of them already: #{total}" if total >= 8
     cid = @pgsql.exec(
       [
-        'INSERT INTO callback (login, wallet, prefix, regexp, uri)',
-        'VALUES ($1, $2, $3, $4, $5)',
+        'INSERT INTO callback (login, wallet, prefix, regexp, uri, token)',
+        'VALUES ($1, $2, $3, $4, $5, $6)',
         'RETURNING id'
       ].join(' '),
-      [login, wallet, prefix, regexp, uri]
+      [login, wallet, prefix, regexp, uri, token]
     )[0]['id'].to_i
     @log.info("New callback ##{cid} registered by @#{login} for wallet #{wallet}, \
 prefix \"#{prefix}\", regexp #{regexp}, and URI: #{uri}")
@@ -101,7 +101,8 @@ with \"#{details}\", match ##{mid}")
           prefix: t.prefix,
           source: t.bnf.to_s,
           amount: t.amount.to_i,
-          details: t.details
+          details: t.details,
+          token: r['token']
         }
         res = Zold::Http.new(uri: r['uri'] + '?' + args.map { |k, v| "#{k}=#{CGI.escape(v.to_s)}" }.join('&')).get
         msg = "The callback ##{cid} of @#{login} "

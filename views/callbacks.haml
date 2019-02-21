@@ -15,12 +15,15 @@
     %label
       Ruby
       %a{href: 'https://ruby-doc.org/core-2.1.1/Regexp.html'} RegExp
-      to match the details:
+      to match the details (optional):
     %input{type: 'text', name: 'regexp', size: 25, autocomplete: 'off', tabindex: 3, placeholder: '^.*$'}
     %label
       URI to call when matched:
     %input{type: 'url', name: 'uri', size: 55, autocomplete: 'off', required: true, tabindex: 4, value: 'https://wts.zold.io/null'}
-    %input{type: 'submit', tabindex: 5, value: 'Add'}
+    %label
+      Secret token (optional):
+    %input{type: 'text', name: 'token', size: 15, maxlength: 32, autocomplete: 'off', required: true, tabindex: 5, value: 'none'}
+    %input{type: 'submit', tabindex: 6, value: 'Add'}
 
 %p
   This is the full list of callbacks we have in your account:
