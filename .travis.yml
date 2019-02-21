@@ -13,6 +13,8 @@ addons:
       - libmagic-dev
 install:
   - travis_retry bundle update
+services:
+  - postgresql
 script:
   - rake
 after_success:

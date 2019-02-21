@@ -219,7 +219,7 @@ and dated of #{t[:date].utc.iso8601}")
       settings.callbacks.match(t[:target], t[:prefix], t[:details])
     end
   end
-  Daemon.new(settings.log).run(10) do
+  Daemon.new(settings.log).run(5) do
     settings.callbacks.ping do |login, id, pfx, regexp|
       ops(user(login)).pull(id)
       settings.wallets.acq(id) do |wallet|
