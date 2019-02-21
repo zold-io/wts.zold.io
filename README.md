@@ -96,7 +96,7 @@ send a `GET` request to `/wait-for` and specify:
 
   * `wallet`: the ID of the wallet you expect payments to
   * `prefix`: the prefix you expect them to arrive to (get it at `/invoice.json` first)
-  * `regexp`: the regular expression to match payment details, e.g. `/pizza$/` (the text has to end with `pizza`)
+  * `regexp`: the regular expression to match payment details, e.g. `pizza$` (the text has to end with `pizza`)
   * `uri`: the URI where the callback should arrive once we see the payment
 
 If your callback is registered, you will receive `200` response of time `text/plain`
