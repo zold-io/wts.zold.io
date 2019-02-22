@@ -46,11 +46,11 @@ amount #{amount}, and details: \"#{details}\"")
   end
 
   def fetch_all
-    @pgsql.exec('SELECT * FROM payout ORDER BY created DESC LIMIT 50')
+    @pgsql.exec('SELECT * FROM payout ORDER BY created DESC LIMIT 50').map { |r| map(r) }
   end
 
   def fetch(login)
-    @pgsql.exec('SELECT * FROM payout WHERE login = $1 ORDER BY created DESC', [login])
+    @pgsql.exec('SELECT * FROM payout WHERE login = $1 ORDER BY created DESC', [login]).map { |r| map(r) }
   end
 
   # Still allowed to send a payout for this amount to this user?
@@ -77,5 +77,18 @@ amount #{amount}, and details: \"#{details}\"")
     )
     return false if monthly + amount > Zold::Amount.new(zld: 2048.0)
     true
+  end
+
+  private
+
+  def map(r)
+    {
+      id: r['id'].to_i,
+      login: r['login'],
+      wallet: Zold::Id.new(r['wallet']),
+      amount: Zold::Amount.new(zents: r['zents'].to_i),
+      details: r['details'],
+      created: Time.parse(r['created'])
+    }
   end
 end
