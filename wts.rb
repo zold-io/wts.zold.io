@@ -44,6 +44,7 @@ require 'zold/sync_wallets'
 require 'zold/cached_wallets'
 require_relative 'version'
 require_relative 'objects/callbacks'
+require_relative 'objects/payouts'
 require_relative 'objects/daemon'
 require_relative 'objects/ticks'
 require_relative 'objects/graph'
@@ -165,6 +166,7 @@ configure do
     password: settings.config['pgsql']['password']
   ).start(1)
   set :gl, Gl.new(settings.pgsql, log: settings.log)
+  set :payouts, Payouts.new(settings.pgsql, log: settings.log)
   set :callbacks, Callbacks.new(settings.pgsql, log: settings.log)
   set :codec, GLogin::Codec.new(config['api_secret'])
   set :zache, Zache.new(dirty: true)
@@ -670,8 +672,8 @@ post '/do-sell' do
   raise UserError, "Bitcoin address is not valid: #{address.inspect}" unless address =~ /^[a-zA-Z0-9]+$/
   raise UserError, 'Bitcoin address must start with 1, 3 or bc1' unless address =~ /^(1|3|bc1)/
   raise UserError, "You don't have enough to send #{amount}" if confirmed_user.wallet(&:balance) < amount
-  if user.wallet(&:txns).find { |t| t.amount.negative? && t.date > Time.now - 60 * 60 * 24 }
-    raise UserError, 'At the moment we can send only one payment per day, sorry' unless user.login == 'yegor256'
+  unless settings.payouts.allowed?(user.login, amount)
+    raise UserError, "With #{amount} you are going over your limits, sorry"
   end
   price = settings.btc.price
   bitcoin = amount.to_zld(8).to_f * rate
@@ -696,6 +698,10 @@ post '/do-sell' do
       address,
       (usd * (1 - fee)).round(2),
       "Exchange of #{amount.to_zld(8)} by @#{user.login} to #{user.item.id}, rate is #{rate}, fee is #{fee}"
+    )
+    settings.payouts.add(
+      user.login, user.item.id, amount,
+      "#{bitcoin} BTC sent to #{address}, the price was $#{price.round}/BTC, the fee was #{fee}"
     )
     settings.telepost.spam(
       "Out: #{amount} [exchanged](https://blog.zold.io/2018/12/09/btc-to-zld.html) to #{bitcoin} BTC",

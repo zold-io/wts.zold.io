@@ -161,7 +161,7 @@ class AppTest < Minitest::Test
         Zold::Txn.new(
           1,
           Time.now,
-          Zold::Amount.new(zld: 100.0),
+          Zold::Amount.new(zld: 1.0),
           'NOPREFIX', Zold::Id.new, '-'
         )
       )
