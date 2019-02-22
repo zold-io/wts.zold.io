@@ -35,15 +35,15 @@
   %tbody
     - if since
       %tr
-        %td{colspan: 6, style: 'text-align:center'}
+        %td.center{colspan: 6}
           %a{href: '/gl'} Show most recent transactions
       %tr
-        %td{colspan: 6, style: 'text-align:center'}
+        %td.center{colspan: 6}
           = 'Since ' + since.utc.iso8601
     - txns = gl.fetch(since: since ? since : Time.now, limit: max)
     - if txns.empty?
       %tr
-        %td{colspan: 6, style: 'text-align:center'}
+        %td.center{colspan: 6}
           No transactions as of yet.
     - else
       - txns.each do |t|
@@ -51,7 +51,7 @@
         %tr
           %td
             = t[:id]
-          %td{style: 'text-align:right', title: t[:amount].to_i}
+          %td.right{title: t[:amount].to_i}
             = t[:amount].to_zld
           %td{title: t[:date].utc.iso8601}
             = Zold::Age.new(t[:date])
@@ -65,5 +65,5 @@
             = t[:details]
       - if @last && txns.count == max
         %tr
-          %td{colspan: 6, style: 'text-align:center'}
+          %td.center{colspan: 6}
             %a{href: '?since=' + @last.utc.iso8601} Show more

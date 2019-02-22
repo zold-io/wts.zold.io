@@ -39,7 +39,7 @@
           %td
             %code
               %a{href: "http://www.zold.io/ledger.html?wallet=#{p[:wallet]}"}= p[:wallet]
-          %td
+          %td.right
             = p[:amount].to_zld
           %td{title: p[:created].utc.iso8601}
             = Zold::Age.new(p[:created])
@@ -77,7 +77,7 @@
           %td
             %code
               %a{href: "http://www.zold.io/ledger.html?wallet=#{p[:wallet]}"}= p[:wallet]
-          %td
+          %td.right
             = p[:amount].to_zld
           %td{title: p[:created].utc.iso8601}
             = Zold::Age.new(p[:created])

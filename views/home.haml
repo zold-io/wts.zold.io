@@ -68,15 +68,15 @@
     %tbody
       - if start
         %tr
-          %td{colspan: 5, style: 'text-align:center'}
+          %td.center{colspan: 5}
             %a{href: '/home'} Show most recent transactions
         %tr
-          %td{colspan: 5, style: 'text-align:center'}
+          %td.center{colspan: 5}
             = 'Since ' + start.utc.iso8601
       - txns = u.wallet(&:txns).sort_by(&:date).reverse.select { |t| start.nil? || t.date < start }.take(max)
       - if txns.empty?
         %tr
-          %td{colspan: 5, style: 'text-align:center'}
+          %td.center{colspan: 5}
             No transactions in the wallet as of yet.
       - else
         - txns.each do |t|
@@ -87,7 +87,7 @@
                 = '#' + t.id.to_s
               - else
                 = '-'
-            %td{style: 'text-align:right'}
+            %td.right
               %span{title: t.amount.to_i, style: 'color: ' + (t.amount.negative? ? 'darkred' : 'darkgreen')}
                 = t.amount.to_zld
             %td
@@ -101,7 +101,7 @@
               = t.details.gsub(/([^ ]{16})/, '\1&shy;')
         - if @last && txns.count == max
           %tr
-            %td{colspan: 5, style: 'text-align:center'}
+            %td.center{colspan: 5}
               %a{href: '?start=' + @last.utc.iso8601} Show more
 - else
   %p
