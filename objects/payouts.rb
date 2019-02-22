@@ -45,6 +45,10 @@ amount #{amount}, and details: \"#{details}\"")
     pid
   end
 
+  def fetch(login)
+    @pgsql.exec('SELECT * FROM payout WHERE login = $1', [login])
+  end
+
   # Still allowed to send a payout for this amount to this user?
   def allowed?(login, amount)
     daily = Zold::Amount.new(

@@ -31,6 +31,7 @@ class PayoutsTest < Minitest::Test
     payouts = Payouts.new(Pgsql::TEST.start, log: test_log)
     login = 'yegor256'
     payouts.add(login, Zold::Id::ROOT.to_s, Zold::Amount.new(zld: 16.0), 'just for fun')
+    assert_equal(1, payouts.fetch(login).count)
     assert(payouts.allowed?(login, Zold::Amount.new(zld: 3.0)))
   end
 end

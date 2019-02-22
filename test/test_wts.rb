@@ -88,6 +88,8 @@ class AppTest < Minitest::Test
       '/invoice',
       '/invoice.json',
       '/api',
+      '/callbacks',
+      '/payouts',
       '/btc'
     ].each do |p|
       get(p)

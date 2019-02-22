@@ -1,0 +1,36 @@
+%p
+  The full list of payouts:
+
+%table{style: 'width:100%; font-size:80%;'}
+  %colgroup
+    %col{style: 'width: 2em'}
+    %col{style: 'width: 5em'}
+    %col{style: 'width: 5em'}
+    %col{style: ''}
+    %col{style: 'width: 10em'}
+  %thead
+    %tr
+      %th
+        ID
+      %th
+        Wallet
+      %th
+        Amount
+      %th
+        Created
+      %th
+        Details
+  %tbody
+    - payouts.fetch(confirmed_user.login).each do |p|
+      %tr
+        %td
+          = p['id']
+        %td
+          %code
+            %a{href: "http://www.zold.io/ledger.html?wallet=#{p['wallet']}"}= p['wallet']
+        %td
+          = p['amount'].to_zld
+        %td{title: Time.parse(c['created']).utc.iso8601}
+          = Zold::Age.new(Time.parse(c['created']))
+        %td
+          = p['details']

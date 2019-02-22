@@ -662,6 +662,13 @@ get '/queue-clean' do
   end.compact.join("\n")
 end
 
+get '/payouts' do
+  haml :payouts, layout: :layout, locals: merged(
+    title: '@' + confirmed_user.login + '/payouts',
+    payouts: settings.payouts
+  )
+end
+
 post '/do-sell' do
   raise UserError, 'Amount is not provided' if params[:amount].nil?
   raise UserError, 'Bitcoin address is not provided' if params[:btc].nil?
