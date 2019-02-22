@@ -60,6 +60,8 @@ class Graph
       show_x_guidelines: true, show_y_guidelines: true,
       show_x_labels: true, show_y_labels: false,
       x_label_font_size: 10,
+      key: keys.count > 1,
+      step_include_first_x_label: false,
       stagger_x_labels: true,
       number_format: "%.#{digits}f",
       fields: (0..STEPS - 1).map { |i| Time.at((min + i * step) / 1000).strftime('%m/%d') }

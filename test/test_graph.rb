@@ -35,7 +35,7 @@ class GraphTest < Minitest::Test
     ticks.add('Price' => 1.5, 'time' => tme(-14))
     ticks.add('Price' => 1.2, 'time' => tme(-50))
     FileUtils.mkdir_p('target')
-    IO.write('target/graph.svg', Graph.new(ticks, log: test_log).svg('Price', 1, 0))
+    IO.write('target/graph.svg', Graph.new(ticks, log: test_log).svg(['Price'], 1, 0))
   end
 
   private
