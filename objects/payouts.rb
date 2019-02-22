@@ -45,8 +45,12 @@ amount #{amount}, and details: \"#{details}\"")
     pid
   end
 
+  def fetch_all
+    @pgsql.exec('SELECT * FROM payout ORDER BY created DESC LIMIT 50')
+  end
+
   def fetch(login)
-    @pgsql.exec('SELECT * FROM payout WHERE login = $1', [login])
+    @pgsql.exec('SELECT * FROM payout WHERE login = $1 ORDER BY created DESC', [login])
   end
 
   # Still allowed to send a payout for this amount to this user?

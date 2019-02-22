@@ -32,6 +32,7 @@ class PayoutsTest < Minitest::Test
     login = 'yegor256'
     payouts.add(login, Zold::Id::ROOT.to_s, Zold::Amount.new(zld: 16.0), 'just for fun')
     assert_equal(1, payouts.fetch(login).count)
+    assert_equal(1, payouts.fetch_all.count)
     assert(payouts.allowed?(login, Zold::Amount.new(zld: 3.0)))
   end
 end
