@@ -37,7 +37,7 @@
             %code
               %a{href: "http://www.zold.io/ledger.html?wallet=#{p['wallet']}"}= p['wallet']
           %td
-            = p['amount'].to_zld
+            = p['zents'].to_zld
           %td{title: Time.parse(c['created']).utc.iso8601}
             = Zold::Age.new(Time.parse(c['created']))
           %td
@@ -75,7 +75,7 @@
             %code
               %a{href: "http://www.zold.io/ledger.html?wallet=#{p['wallet']}"}= p['wallet']
           %td
-            = p['amount'].to_zld
+            = p['zents'].to_zld
           %td{title: Time.parse(c['created']).utc.iso8601}
             = Zold::Age.new(Time.parse(c['created']))
           %td
