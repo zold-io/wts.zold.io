@@ -1,10 +1,13 @@
+%h2
+  Payouts
+
 - list = payouts.fetch(confirmed_user.login)
 
 - if list.empty?
   %p
     There are no payouts as of yet.
-    If you have any ZLD in your wallet, you can sell them
-    %a{here: '/btc'}
+    If you have any ZLD in your wallet, you can
+    %a{here: '/btc'} sell them
     any time.
 - else
   %p
