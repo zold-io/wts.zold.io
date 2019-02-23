@@ -591,7 +591,7 @@ get '/btc-hook' do
   return '*ok*' if settings.hashes.seen?(hash)
   raise UserError, 'Tx value is not provided' if params[:value].nil?
   satoshi = params[:value].to_i
-  bitcoin = satoshi.to_f / 100_000_000
+  bitcoin = (satoshi.to_f / 100_000_000).round(8)
   zld = Zold::Amount.new(zld: bitcoin / rate)
   bnf = user(settings.items.find_by_btc(address).login)
   raise UserError, "The user @#{bnf.login} is not confirmed" unless bnf.confirmed?
@@ -611,11 +611,12 @@ get '/btc-hook' do
   end
   boss = user(settings.config['exchange']['login'])
   job(boss) do
+    log.info("Accepting #{bitcoin} bitcoins from #{address}...")
     ops(boss).pay(
       settings.config['exchange']['keygap'],
       bnf.item.id,
       zld,
-      "BTC exchange of #{bitcoin.round(8)} at #{hash[0..8]}, rate is #{rate}"
+      "BTC exchange of #{bitcoin} at #{hash[0..8]}, rate is #{rate}"
     )
     bnf.item.destroy_btc
     settings.hashes.add(hash, bnf.login, bnf.item.id)
@@ -683,12 +684,12 @@ post '/do-sell' do
     raise UserError, "With #{amount} you are going over your limits, sorry"
   end
   price = settings.btc.price
-  bitcoin = amount.to_zld(8).to_f * rate
+  bitcoin = (amount.to_zld(8).to_f * rate).round(8)
   usd = bitcoin * price
   boss = user(settings.config['exchange']['login'])
   rewards = user(settings.config['rewards']['login'])
   job do
-    log.info("Accepting #{bitcoin} bitcoins from #{address}...")
+    log.info("Sending #{bitcoin} bitcoins to #{address}...")
     ops.pay(
       keygap,
       boss.item.id,
@@ -840,7 +841,7 @@ get '/mobile/send' do
   u.item.mcode_set(mcode)
   response = settings.sns.publish(
     phone_number: "+#{phone}",
-    message: "Your WTS code is: #{mcode}"
+    message: "Your authorization code for wts.zold.io is: #{mcode}"
   )
   response[:message_id]
 end
@@ -853,7 +854,7 @@ get '/mobile/token' do
   raise UserError, 'Mobile confirmation code is required' if mcode.nil?
   raise UserError, "Invalid code #{mcode.inspect}" unless /^[0-9]{4}$/.match?(mcode)
   u = user(phone)
-  raise UserError, 'Invalid mobile code' unless u.item.mcode == mcode
+  raise UserError, 'Invalid mobile code' unless u.item.mcode == mcode.to_i
   "#{u.login}-#{u.item.token}"
 end
 
