@@ -44,6 +44,7 @@ require 'zold/sync_wallets'
 require 'zold/cached_wallets'
 require_relative 'version'
 require_relative 'objects/callbacks'
+require_relative 'objects/smss'
 require_relative 'objects/payouts'
 require_relative 'objects/daemon'
 require_relative 'objects/ticks'
@@ -192,10 +193,14 @@ configure do
       log: settings.log
     )
   end
-  set :sns, Aws::SNS::Client.new(
-    region: settings.config['sns']['region'],
-    access_key_id: settings.config['sns']['key'],
-    secret_access_key: settings.config['sns']['secret']
+  set :smss, Smss.new(
+    settings.pgsql,
+    Aws::SNS::Client.new(
+      region: settings.config['sns']['region'],
+      access_key_id: settings.config['sns']['key'],
+      secret_access_key: settings.config['sns']['secret']
+    ),
+    log: settings.log
   )
   if settings.config['telegram']['token'].empty?
     set :telepost, Telepost::Fake.new
@@ -835,15 +840,13 @@ get '/mobile/send' do
   phone = params[:phone]
   raise UserError, 'Mobile phone number is required' if phone.nil?
   raise UserError, "Invalid phone #{phone.inspect}" unless /^[0-9]+$/.match?(phone)
-  u = user(phone)
+  phone = phone.to_i
+  u = user(phone.to_s)
   u.create unless u.item.exists?
   mcode = rand(1000..9999)
   u.item.mcode_set(mcode)
-  response = settings.sns.publish(
-    phone_number: "+#{phone}",
-    message: "Your authorization code for wts.zold.io is: #{mcode}"
-  )
-  response[:message_id]
+  settings.smss.send(phone, "Your authorization code for wts.zold.io is: #{mcode}")
+  flash('/', 'The SMS was sent with the auth code')
 end
 
 get '/mobile/token' do
