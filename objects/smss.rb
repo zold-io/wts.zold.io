@@ -42,7 +42,7 @@ class Smss
     raise UserError, 'We\'ve sent too many of them already, wait for a few hours and try again' if recent > 3
     total = @pgsql.exec('SELECT COUNT(*) FROM sms WHERE created > NOW() - INTERVAL \'4 HOURS\'')[0]['count'].to_i
     raise UserError, 'We\'ve sent too many of them already, we have to relax for a while' if total > 50
-    response = @sns.publish(phone: "+#{phone}", message: msg)
+    response = @sns.publish(phone_number: "+#{phone}", message: msg)
     cid = @pgsql.exec(
       [
         'INSERT INTO sms (phone, message_id)',
