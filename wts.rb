@@ -931,6 +931,7 @@ get '/gl' do
 end
 
 get '/quick' do
+  flash('/home', 'Please logout first') if @locals[:guser]
   haml :quick, layout: :layout, locals: merged(
     page_title: 'Zold: Quick Start',
     header_off: true
