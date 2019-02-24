@@ -46,15 +46,20 @@ class Item
   # +length+:: Length of keygap to use (don't change it without a necessity)
   def create(id, key, length: 16)
     pem, keygap = Keygap.new.extract(key.to_s, length)
-    @aws.put_item(
-      table_name: 'zold-wallets',
-      item: {
-        'login' => @login,
-        'id' => id.to_s,
-        'pem' => pem,
-        'keygap' => keygap
-      }
-    )
+    item = {
+      'login' => @login,
+      'id' => id.to_s,
+      'pem' => pem,
+      'keygap' => keygap
+    }
+    if exists?
+      n = read
+      n['id'] = item['id']
+      n['pem'] = item['pem']
+      n['keygap'] = item['keygap']
+      item = n
+    end
+    @aws.put_item(table_name: 'zold-wallets', item: item)
     @log.info("New user #{@login} created, wallet ID is #{id}, \
 keygap is '#{keygap[0, 2]}#{'.' * (keygap.length - 2)}'")
     keygap
