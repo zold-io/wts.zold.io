@@ -617,30 +617,31 @@ get '/btc-hook' do
   end
   boss = user(settings.config['exchange']['login'])
   job(boss) do
-    return if settings.hashes.seen?(hash)
-    log(bnf).info("Accepting #{bitcoin} bitcoins from #{address}...")
-    ops(boss, log: log(bnf)).pay(
-      settings.config['exchange']['keygap'],
-      bnf.item.id,
-      zld,
-      "BTC exchange of #{bitcoin} at #{hash[0..8]}, rate is #{rate}"
-    )
-    bnf.item.destroy_btc
-    settings.hashes.add(hash, bnf.login, bnf.item.id)
-    settings.telepost.spam(
-      "In: #{bitcoin} BTC [exchanged](https://blog.zold.io/2018/12/09/btc-to-zld.html) to #{zld}",
-      "by [@#{bnf.login}](https://github.com/#{bnf.login})",
-      "in [#{hash[0..8]}](https://www.blockchain.com/btc/tx/#{hash})",
-      "(#{params[:confirmations]} confirmations)",
-      "via [#{address[0..8]}](https://www.blockchain.com/btc/address/#{address}),",
-      "to the wallet [#{bnf.item.id}](http://www.zold.io/ledger.html?wallet=#{bnf.item.id})",
-      "with the balance of #{bnf.wallet(&:balance)};",
-      "the gap of Blockchain.com is #{settings.btc.gap};",
-      "BTC price at the moment of exchange was [$#{settings.btc.price}](https://blockchain.info/ticker);",
-      "the payer is [@#{boss.login}](https://github.com/#{boss.login}) with the wallet",
-      "[#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id}),",
-      "the remaining balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t)"
-    )
+    unless settings.hashes.seen?(hash)
+      log(bnf).info("Accepting #{bitcoin} bitcoins from #{address}...")
+      ops(boss, log: log(bnf)).pay(
+        settings.config['exchange']['keygap'],
+        bnf.item.id,
+        zld,
+        "BTC exchange of #{bitcoin} at #{hash[0..8]}, rate is #{rate}"
+      )
+      bnf.item.destroy_btc
+      settings.hashes.add(hash, bnf.login, bnf.item.id)
+      settings.telepost.spam(
+        "In: #{bitcoin} BTC [exchanged](https://blog.zold.io/2018/12/09/btc-to-zld.html) to #{zld}",
+        "by [@#{bnf.login}](https://github.com/#{bnf.login})",
+        "in [#{hash[0..8]}](https://www.blockchain.com/btc/tx/#{hash})",
+        "(#{params[:confirmations]} confirmations)",
+        "via [#{address[0..8]}](https://www.blockchain.com/btc/address/#{address}),",
+        "to the wallet [#{bnf.item.id}](http://www.zold.io/ledger.html?wallet=#{bnf.item.id})",
+        "with the balance of #{bnf.wallet(&:balance)};",
+        "the gap of Blockchain.com is #{settings.btc.gap};",
+        "BTC price at the moment of exchange was [$#{settings.btc.price}](https://blockchain.info/ticker);",
+        "the payer is [@#{boss.login}](https://github.com/#{boss.login}) with the wallet",
+        "[#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id}),",
+        "the remaining balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t)"
+      )
+    end
   end
   'Thanks!'
 end
