@@ -8,9 +8,6 @@
   Wallet ID:
   %a{href: "http://www.zold.io/ledger.html?wallet=#{u.item.id}"}<
     %code= u.item.id
-  %span{onclick: 'document.getElementById("wallet_id").select(); document.execCommand("copy");', style:'cursor:pointer;', title: 'Click here to copy wallet ID into your clipboard'}
-    != "&#x2398"
-  %input{style: 'height:0px;width:0px;opacity:0;', id: 'wallet_id', value: u.item.id}
   - if u.wallet_exists?
     - u.wallet do |w|
       %br
@@ -54,6 +51,13 @@
   - if u.wallet(&:txns).empty?
     %p
       The wallet is empty.
+    %p
+      If you don't know much about Zold and
+      want to get a few coins into your wallet to play
+      with, join this
+      = succeed ',' do
+        %a{href: 'https://t.me/zold_io'} Telegram group
+      someone will help you out.
   - else
     %table
       %colgroup
