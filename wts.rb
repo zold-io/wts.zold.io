@@ -608,7 +608,7 @@ get '/btc-hook' do
       "and was identified as belonging to [@#{bnf.login}](https://github.com/#{bnf.login}),",
       "#{zld} will be deposited to the wallet",
       "[#{bnf.item.id}](http://www.zold.io/ledger.html?wallet=#{bnf.item.id})",
-      "once we see enough confirmations, now it's #{confirmations}"
+      "once we see enough confirmations, now it's #{confirmations} (may take up to an hour!)"
     )
   end
   unless settings.btc.exists?(hash, satoshi, address, confirmations)
@@ -616,7 +616,7 @@ get '/btc-hook' do
   end
   boss = user(settings.config['exchange']['login'])
   job(boss) do
-    log.info("Accepting #{bitcoin} bitcoins from #{address}...")
+    log(boss).info("Accepting #{bitcoin} bitcoins from #{address}...")
     ops(boss).pay(
       settings.config['exchange']['keygap'],
       bnf.item.id,
