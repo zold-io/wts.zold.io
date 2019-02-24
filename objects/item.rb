@@ -55,7 +55,7 @@ class Item
         'keygap' => keygap
       }
     )
-    @log.info("New user @#{@login} created, wallet ID is #{id}, \
+    @log.info("New user #{@login} created, wallet ID is #{id}, \
 keygap is '#{keygap[0, 2]}#{'.' * (keygap.length - 2)}'")
     keygap
   end
@@ -70,16 +70,16 @@ keygap is '#{keygap[0, 2]}#{'.' * (keygap.length - 2)}'")
   # Return private key as Zold::Key
   def key(keygap)
     key = read['pem']
-    raise "There is no key for some reason for user @#{@login}" if key.nil?
+    raise "There is no key for some reason for user #{@login}" if key.nil?
     key = Keygap.new.merge(key, keygap)
-    @log.debug("The private key of @#{@login} reassembled: #{key.to_s.length} chars")
+    @log.debug("The private key of #{@login} reassembled: #{key.to_s.length} chars")
     key
   end
 
   # Return private key as text
   def raw_key
     key = read['pem']
-    raise "There is no key for some reason for user @#{@login}" if key.nil?
+    raise "There is no key for some reason for user #{@login}" if key.nil?
     key
   end
 
@@ -94,8 +94,8 @@ keygap is '#{keygap[0, 2]}#{'.' * (keygap.length - 2)}'")
   # keygap from the database.
   def keygap
     keygap = read['keygap']
-    raise "The user @#{@login} doesn't have a keygap anymore" if keygap.nil?
-    @log.debug("The keygap of @#{@login} retrieved")
+    raise "The user #{@login} doesn't have a keygap anymore" if keygap.nil?
+    @log.debug("The keygap of #{@login} retrieved")
     keygap
   end
 
@@ -108,12 +108,12 @@ keygap is '#{keygap[0, 2]}#{'.' * (keygap.length - 2)}'")
   def wipe(keygap)
     item = read
     if keygap != item['keygap']
-      raise "Keygap '#{keygap}' of @#{@login} doesn't match \
+      raise "Keygap '#{keygap}' of #{@login} doesn't match \
 '#{item['keygap'][0, 2]}#{'.' * (item['keygap'].length - 2)}'"
     end
     item.delete('keygap')
     @aws.put_item(table_name: 'zold-wallets', item: item)
-    @log.debug("The keygap of @#{@login} was destroyed")
+    @log.debug("The keygap of #{@login} was destroyed")
   end
 
   # Get mobile auth code.
@@ -216,7 +216,7 @@ keygap is '#{keygap[0, 2]}#{'.' * (keygap.length - 2)}'")
 
   def read
     item = items[0]
-    raise "There is no item in DynamoDB for @#{@login}" if item.nil?
+    raise "There is no item in DynamoDB for #{@login}" if item.nil?
     item
   end
 

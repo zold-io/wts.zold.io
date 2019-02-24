@@ -76,8 +76,8 @@ see this happening! #{e.message}"
 
   # Pay all required taxes, no matter what is the amount.
   def pay_taxes(keygap)
-    raise "The user @#{@user.login} is not registered yet" unless @item.exists?
-    raise "The account @#{@user.login} is not confirmed yet" unless @user.confirmed?
+    raise "The user #{@user.login} is not registered yet" unless @item.exists?
+    raise "The account #{@user.login} is not confirmed yet" unless @user.confirmed?
     start = Time.now
     id = @item.id
     pull
@@ -96,8 +96,8 @@ see this happening! #{e.message}"
   def pay(keygap, bnf, amount, details)
     raise UserError, 'Payment amount can\'t be zero' if amount.zero?
     raise UserError, 'Payment amount can\'t be negative' if amount.negative?
-    raise "The user @#{@user.login} is not registered yet" unless @item.exists?
-    raise "The account @#{@user.login} is not confirmed yet" unless @user.confirmed?
+    raise "The user #{@user.login} is not registered yet" unless @item.exists?
+    raise "The account #{@user.login} is not confirmed yet" unless @user.confirmed?
     start = Time.now
     id = @item.id
     pull
@@ -128,7 +128,7 @@ see this happening! #{e.message}"
     pay(keygap, target, balance, 'Migrated')
     @user.item.replace_id(target)
     push
-    @log.info("Wallet of @#{@user.login} migrated from #{origin} to #{target} \
+    @log.info("Wallet of #{@user.login} migrated from #{origin} to #{target} \
 with #{balance}, in #{Zold::Age.new(start)}")
   end
 end

@@ -40,7 +40,7 @@ class Payouts
       ].join(' '),
       [login, id.to_s, amount.to_i, details]
     )[0]['id'].to_i
-    @log.info("New payout ##{pid} registered by @#{login} for wallet #{id}, \
+    @log.info("New payout ##{pid} registered by #{login} for wallet #{id}, \
 amount #{amount}, and details: \"#{details}\"")
     pid
   end

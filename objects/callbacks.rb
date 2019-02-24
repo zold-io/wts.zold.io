@@ -44,7 +44,7 @@ class Callbacks
       ].join(' '),
       [login, wallet, prefix, regexp, uri, token]
     )[0]['id'].to_i
-    @log.info("New callback ##{cid} registered by @#{login} for wallet #{wallet}, \
+    @log.info("New callback ##{cid} registered by #{login} for wallet #{wallet}, \
 prefix \"#{prefix}\", regexp #{regexp}, and URI: #{uri}")
     cid
   end
@@ -61,7 +61,7 @@ prefix \"#{prefix}\", regexp #{regexp}, and URI: #{uri}")
       next if id.empty?
       mid = id[0]['id'].to_i
       found << mid
-      @log.info("Callback ##{r['id']} of @#{r['login']} just matched in #{wallet}/#{prefix} \
+      @log.info("Callback ##{r['id']} of #{r['login']} just matched in #{wallet}/#{prefix} \
 with \"#{details}\", match ##{mid}")
     end
     found
@@ -105,10 +105,10 @@ with \"#{details}\", match ##{mid}")
           token: r['token']
         }
         res = Zold::Http.new(uri: r['uri'] + '?' + args.map { |k, v| "#{k}=#{CGI.escape(v.to_s)}" }.join('&')).get
-        msg = "The callback ##{cid} of @#{login} "
+        msg = "The callback ##{cid} of #{login} "
         if res.code == 200 && res.body == 'OK'
           @pgsql.exec('DELETE FROM callback WHERE id = $1', [cid])
-          @log.info("Callback ##{cid} of @#{login} deleted")
+          @log.info("Callback ##{cid} of #{login} deleted")
           msg += "success at #{r['uri']}, wallet=#{r['wallet']}, amount=#{t.amount}"
         else
           msg += "failure at #{r['uri']}: #{res.code} #{res.status_line}"

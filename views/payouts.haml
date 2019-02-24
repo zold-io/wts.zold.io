@@ -73,7 +73,7 @@
       - payouts.fetch_all.each do |p|
         %tr
           %td
-            = "@#{p[:login]}"
+            = p[:login]
           %td
             %code
               %a{href: "http://www.zold.io/ledger.html?wallet=#{p[:wallet]}"}= p[:wallet]
