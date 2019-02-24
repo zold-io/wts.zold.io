@@ -23,7 +23,7 @@
             %li
               - if defined? guser
                 %a{href: '/home'}
-                  = /^[0-9]/.match?(guser) ? "+#{guser}" : "@#{guser}"
+                  = title
               - else
                 %a{href: '/'}
                   Login

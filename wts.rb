@@ -270,8 +270,8 @@ before '/*' do
   header = request.env['HTTP_X_ZOLD_WTS'] || cookies[:wts] || nil
   if header
     login, token = header.strip.split('-', 2)
-    raise UserError, 'User is absent' unless user(login).item.exists?
-    raise UserError, 'Invalid token' unless user(login).item.token == token
+    raise UserError, "User @#{login} is absent" unless user(login).item.exists?
+    raise UserError, "Invalid token of @#{login}" unless user(login).item.token == token
     @locals[:guser] = login
   end
 end
@@ -321,12 +321,12 @@ get '/home' do
   unless user.item.exists?
     flash('/create', 'Time to create your wallet') unless File.exist?(latch(user.login))
     return haml :busy, layout: :layout, locals: merged(
-      title: '@' + @locals[:guser] + '/busy'
+      title: title('busy')
     )
   end
   flash('/confirm', 'Time to save your keygap') unless user.confirmed?
   haml :home, layout: :layout, locals: merged(
-    title: '@' + @locals[:guser],
+    title: title,
     start: params[:start] ? Time.parse(params[:start]) : nil,
     usd_rate: settings.zache.exists?(:rate) ? settings.zache.get(:rate)[:usd_rate] : nil
   )
@@ -388,7 +388,7 @@ end
 get '/confirm' do
   raise UserError, 'You have done this already, your keygap has been generated' if user.confirmed?
   haml :confirm, layout: :layout, locals: merged(
-    title: '@' + user.login + '/keygap'
+    title: title('keygap')
   )
 end
 
@@ -406,7 +406,7 @@ end
 
 get '/pay' do
   haml :pay, layout: :layout, locals: merged(
-    title: '@' + confirmed_user.login + '/pay'
+    title: title('pay')
   )
 end
 
@@ -463,13 +463,13 @@ end
 
 get '/restart' do
   haml :restart, layout: :layout, locals: merged(
-    title: '@' + confirmed_user.login + '/restart'
+    title: title('restart')
   )
 end
 
 get '/key' do
   haml :key, layout: :layout, locals: merged(
-    title: '@' + confirmed_user.login + '/key'
+    title: title('key')
   )
 end
 
@@ -507,7 +507,7 @@ end
 
 get '/api' do
   haml :api, layout: :layout, locals: merged(
-    title: '@' + confirmed_user.login + '/api'
+    title: title('api')
   )
 end
 
@@ -522,7 +522,7 @@ end
 
 get '/invoice' do
   haml :invoice, layout: :layout, locals: merged(
-    title: '@' + confirmed_user.login + '/invoice'
+    title: title('invoice')
   )
 end
 
@@ -535,7 +535,7 @@ end
 
 get '/callbacks' do
   haml :callbacks, layout: :layout, locals: merged(
-    title: '@' + confirmed_user.login + '/callbacks',
+    title: title('callbacks'),
     callbacks: settings.callbacks
   )
 end
@@ -568,7 +568,7 @@ end
 
 get '/migrate' do
   haml :migrate, layout: :layout, locals: merged(
-    title: '@' + confirmed_user.login + '/migrate'
+    title: title('migrate')
   )
 end
 
@@ -600,7 +600,7 @@ get '/btc' do
     address
   end
   haml :btc, layout: :layout, locals: merged(
-    title: '@' + confirmed_user.login + '/btc',
+    title: title('buy+sell'),
     gap: settings.zache.get(:gap, lifetime: 60) { settings.btc.gap }
   )
 end
@@ -696,7 +696,7 @@ end
 
 get '/payouts' do
   haml :payouts, layout: :layout, locals: merged(
-    title: '@' + confirmed_user.login + '/payouts',
+    title: title('payouts'),
     payouts: settings.payouts
   )
 end
@@ -967,6 +967,12 @@ end
 
 def sell_limit
   Zold::Amount.new(zld: 32.0)
+end
+
+def title(suffix = '')
+  raise UserError, 'title() cannot be used here' unless @locals[:guser]
+  login = user.login
+  (/^[0-9]/.match?(login) ? "+#{login}" : "@#{login}") + (suffix.empty? ? '' : '/' + suffix)
 end
 
 def anon_ip
