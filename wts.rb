@@ -870,6 +870,10 @@ get '/mobile/send' do
   phone = phone.to_i
   u = user(phone.to_s)
   u.create unless u.item.exists?
+  job(u) do
+    log(u).info("Just created a new wallet #{u.item.id}, going to push it...")
+    ops(u).push
+  end
   mcode = rand(1000..9999)
   u.item.mcode_set(mcode)
   settings.smss.send(phone, "Your authorization code for wts.zold.io is: #{mcode}")
