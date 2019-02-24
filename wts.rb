@@ -422,7 +422,7 @@ post '/do-pay' do
   elsif /^[a-zA-Z0-9]+@[a-f0-9]{16}$/.match?(params[:bnf])
     bnf = params[:bnf]
     raise UserError, 'You can\'t pay yourself' if bnf.split('@')[1] == user.item.id.to_s
-  elsif /^+[0-9]+$/.match?(params[:bnf])
+  elsif /^\\+[0-9]+$/.match?(params[:bnf])
     friend = user(params[:bnf][0..32].to_i.to_s)
     raise UserError, 'The user with this mobile phone is not registered yet' unless friend.item.exists?
     bnf = friend.item.id
