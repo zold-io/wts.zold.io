@@ -16,6 +16,11 @@
       %br
       Balance:
       = "#{w.balance.to_zld} ZLD (#{w.balance.to_i} zents)"
+      - if usd_rate
+        = '/'
+        approx.
+        = "$#{(usd_rate * w.balance.to_f).round(2)}"
+        %a{href: '/rate'} Why?
       %br
       Transactions:
       = w.txns.count

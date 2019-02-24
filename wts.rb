@@ -311,7 +311,8 @@ get '/home' do
   flash('/confirm', 'Time to save your keygap') unless user.confirmed?
   haml :home, layout: :layout, locals: merged(
     title: '@' + @locals[:guser],
-    start: params[:start] ? Time.parse(params[:start]) : nil
+    start: params[:start] ? Time.parse(params[:start]) : nil,
+    usd_rate: settings.zache.exists?(:rate) ? settings.zache.get(:rate)[:usd_rate] : nil
   )
 end
 
