@@ -16,7 +16,7 @@
       %br
       Balance:
       = "#{w.balance.to_zld} ZLD (#{w.balance.to_i} zents)"
-      - if usd_rate
+      - if usd_rate && !w.balance.zero?
         = '/'
         approx.
         = "$#{(usd_rate * w.balance.to_f).round(2)}"

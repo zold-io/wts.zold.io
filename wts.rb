@@ -304,21 +304,21 @@ end
 get '/' do
   redirect '/home' if @locals[:guser]
   haml :index, layout: :layout, locals: merged(
-    title: 'wts'
+    page_title: 'wts'
   )
 end
 
 get '/mobile_send' do
   redirect '/home' if @locals[:guser]
   haml :mobile_send, layout: :layout, locals: merged(
-    title: '/mobile'
+    page_title: '/mobile'
   )
 end
 
 get '/mobile_token' do
   redirect '/home' if @locals[:guser]
   haml :mobile_token, layout: :layout, locals: merged(
-    title: '/token',
+    page_title: '/token',
     phone: params[:phone]
   )
 end
@@ -327,12 +327,12 @@ get '/home' do
   unless user.item.exists?
     flash('/create', 'Time to create your wallet') unless File.exist?(latch(user.login))
     return haml :busy, layout: :layout, locals: merged(
-      title: title('busy')
+      page_title: title('busy')
     )
   end
   flash('/confirm', 'Time to save your keygap') unless user.confirmed?
   haml :home, layout: :layout, locals: merged(
-    title: title,
+    page_title: title,
     start: params[:start] ? Time.parse(params[:start]) : nil,
     usd_rate: settings.zache.exists?(:rate) ? settings.zache.get(:rate)[:usd_rate] : nil
   )
@@ -390,7 +390,7 @@ end
 get '/confirm' do
   raise UserError, 'You have done this already, your keygap has been generated' if user.confirmed?
   haml :confirm, layout: :layout, locals: merged(
-    title: title('keygap')
+    page_title: title('keygap')
   )
 end
 
@@ -408,7 +408,7 @@ end
 
 get '/pay' do
   haml :pay, layout: :layout, locals: merged(
-    title: title('pay')
+    page_title: title('pay')
   )
 end
 
@@ -465,13 +465,13 @@ end
 
 get '/restart' do
   haml :restart, layout: :layout, locals: merged(
-    title: title('restart')
+    page_title: title('restart')
   )
 end
 
 get '/key' do
   haml :key, layout: :layout, locals: merged(
-    title: title('key')
+    page_title: title('key')
   )
 end
 
@@ -509,7 +509,7 @@ end
 
 get '/api' do
   haml :api, layout: :layout, locals: merged(
-    title: title('api')
+    page_title: title('api')
   )
 end
 
@@ -524,7 +524,7 @@ end
 
 get '/invoice' do
   haml :invoice, layout: :layout, locals: merged(
-    title: title('invoice')
+    page_title: title('invoice')
   )
 end
 
@@ -537,7 +537,7 @@ end
 
 get '/callbacks' do
   haml :callbacks, layout: :layout, locals: merged(
-    title: title('callbacks'),
+    page_title: title('callbacks'),
     callbacks: settings.callbacks
   )
 end
@@ -570,7 +570,7 @@ end
 
 get '/migrate' do
   haml :migrate, layout: :layout, locals: merged(
-    title: title('migrate')
+    page_title: title('migrate')
   )
 end
 
@@ -602,7 +602,7 @@ get '/btc' do
     address
   end
   haml :btc, layout: :layout, locals: merged(
-    title: title('buy+sell'),
+    page_title: title('buy+sell'),
     gap: settings.zache.get(:gap, lifetime: 60) { settings.btc.gap }
   )
 end
@@ -698,7 +698,7 @@ end
 
 get '/payouts' do
   haml :payouts, layout: :layout, locals: merged(
-    title: title('payouts'),
+    page_title: title('payouts'),
     payouts: settings.payouts
   )
 end
@@ -793,7 +793,7 @@ end
 
 get '/remotes' do
   haml :remotes, layout: :layout, locals: merged(
-    title: '/remotes'
+    page_title: '/remotes'
   )
 end
 
@@ -835,7 +835,7 @@ get '/rate' do
   end
   flash('/', 'Still working on it, come back in a few seconds') unless settings.zache.exists?(:rate)
   haml :rate, layout: :layout, locals: merged(
-    title: '/rate',
+    page_title: '/rate',
     formula: settings.zache.get(:rate),
     mtime: settings.zache.mtime(:rate)
   )
@@ -902,7 +902,7 @@ end
 
 get '/gl' do
   haml :gl, layout: :layout, locals: merged(
-    title: 'General Ledger',
+    page_title: 'General Ledger',
     gl: settings.gl,
     since: params[:since] ? Zold::Txn.parse_time(params[:since]) : nil
   )
@@ -933,7 +933,7 @@ not_found do
   status 404
   content_type 'text/html', charset: 'utf-8'
   haml :not_found, layout: :layout, locals: merged(
-    title: 'Page not found'
+    page_title: 'Page not found'
   )
 end
 
@@ -951,7 +951,7 @@ error do
     :error,
     layout: :layout,
     locals: merged(
-      title: 'Error',
+      page_title: 'Error',
       error: Backtrace.new(e).to_s
     )
   )
@@ -979,7 +979,7 @@ end
 
 def title_md(u = user)
   if /^[0-9]/.match?(u.login)
-    "+#{u.login}"
+    "+#{u.login.gsub(/.{3}$/, 'xxx')}"
   else
     "[@#{u.login}](https://github.com/#{u.login})"
   end
