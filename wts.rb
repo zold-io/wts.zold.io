@@ -616,6 +616,7 @@ get '/btc-hook' do
   end
   boss = user(settings.config['exchange']['login'])
   job(boss) do
+    return if settings.hashes.seen?(hash)
     log(bnf).info("Accepting #{bitcoin} bitcoins from #{address}...")
     ops(boss, log: log(bnf)).pay(
       settings.config['exchange']['keygap'],
