@@ -22,9 +22,10 @@
 
 function wts_error(xhr) {
   $('#error').addClass('red').html(
-    'ERROR: "' + xhr.getResponseHeader('X-Zold-Error') + '". Most likely this ' +
+    'ERROR: <strong>' + xhr.getResponseHeader('X-Zold-Error') + '</strong>. If the description of the ' +
+    'error doesn\'t help, most likely this ' +
     'is our internal problem. Try to reload this page and start from scratch. ' +
-    'If this doesn\'t help, please submit a ticket our '+
+    'If this doesn\'t help, please submit a ticket to our '+
     '<a href="https://github.com/zold-io/wts.zold.io">GitHub repository</a> or ' +
     'seek help in our <a href="https://t.me/zold_io">Telegram group</a>.'
   );

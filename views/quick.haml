@@ -1,8 +1,12 @@
 %script{src: 'https://code.jquery.com/jquery-3.3.1.min.js'}
 %script{src: '/js/quick.js'}
 
+%h2
+  Zold: +4%/mo Guaranteed
+
 %p
-  %img{src: '/graph.svg?keys=Value&div=100&digits=2', style: 'width:320px;float:right;margin-left:.5em;margin-bottom:.5em;'}
+  %a{href: '/rate'}
+    %img{src: '/graph.svg?keys=Value&div=100&digits=2', style: 'width:320px;float:right;margin-left:1em;margin-bottom:1em;'}
   According to many analysts, the crypto market is expecting its next hype within the next few months.
   Most promising assets are the ones that are based on new and unique technologies.
   Zold is exactly that, with its own
@@ -31,7 +35,7 @@
   boring and ineffective management.
 
 %p{id: 'step1'}
-  How much are you going to invest:
+  How much are you going to convert:
   %input{type: 'number', id: 'btc', oninput: 'wts_recalc();', style: 'width:5em', autocomplete: 'off', required: true, tabindex: 1, autofocus: true, value: '0.1'}
   BTC
   (you will get
@@ -52,8 +56,15 @@
   your profit will be
   %span{id: 'profit'}
   USD.
+  %a{href: 'https://blog.zold.io/2019/01/16/make-me-rich.html'} Why?
 
 %p{id: 'step2', style: 'display: none'}
+  In order to create an account we have to identify you first.
+  Zold is a fully anonymous system: we don't track your IP and don't keep any logs.
+  All we need to know about you is your phone number, which will uniquely
+  identify your account here.
+  %br
+  %br
   Your mobile phone:
   %input{type: 'text', name: 'phone', id: 'phone', pattern: "[0-9]+", size: 17, placeholder: 'e.g. 14085551234', required: true, tabindex: 4}
   %span.small.gray{id: 'step2-help'}
@@ -92,9 +103,9 @@
 
 %p{id: 'step6'}
   %input{type: 'submit', id: 'button', tabindex: 5, value: 'Start'}
-  %br
-  %span.small.gray{id: 'error'}
-    To start over just reload the page.
+
+%p.small.gray{id: 'error'}
+  To start over just reload the page.
 
 %p.small.gray
   The information contained herein is not intended to be a source
