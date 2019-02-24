@@ -137,6 +137,7 @@ configure do
   set :config, config
   set :logging, true
   set :show_exceptions, false
+  set :raise_errors, false
   set :dump_errors, false
   set :server_settings, timeout: 25
   set :log, Zold::Log::REGULAR.dup
@@ -394,6 +395,11 @@ get '/confirm' do
   )
 end
 
+get '/confirmed' do
+  content_type 'text/plain'
+  user.confirmed? ? 'yes' : 'no'
+end
+
 get '/do-confirm' do
   raise UserError, 'You have done this already, your keygap has been generated' if user.confirmed?
   user.confirm(params[:keygap])
@@ -601,6 +607,7 @@ get '/btc' do
     )
     address
   end
+  headers['X-Zold-BtcAddress'] = confirmed_user.item.btc
   haml :btc, layout: :layout, locals: merged(
     page_title: title('buy+sell'),
     gap: settings.zache.get(:gap, lifetime: 60) { settings.btc.gap }
@@ -842,18 +849,27 @@ get '/rate' do
 end
 
 get '/rate.json' do
-  flash('/rate', 'Let me calculate first...') unless settings.zache.exists?(:rate)
   content_type 'application/json'
-  hash = settings.zache.get(:rate)
-  JSON.pretty_generate(
-    bank: hash[:bank],
-    boss: hash[:boss].to_i,
-    root: hash[:root].to_i,
-    rate: hash[:rate].round(8),
-    deficit: hash[:deficit].round(2),
-    price: hash[:price].round,
-    usd_rate: hash[:usd_rate].round(4)
-  )
+  if settings.zache.exists?(:rate)
+    hash = settings.zache.get(:rate)
+    JSON.pretty_generate(
+      valid: true,
+      bank: hash[:bank],
+      boss: hash[:boss].to_i,
+      root: hash[:root].to_i,
+      rate: hash[:rate].round(8),
+      effective_rate: rate,
+      deficit: hash[:deficit].round(2),
+      price: hash[:price].round,
+      usd_rate: hash[:usd_rate].round(4)
+    )
+  else
+    JSON.pretty_generate(
+      valid: false,
+      effective_rate: rate,
+      usd_rate: 1.11 # just for testing
+    )
+  end
 end
 
 get '/graph.svg' do
@@ -878,9 +894,12 @@ get '/mobile/send' do
   end
   mcode = rand(1000..9999)
   u.item.mcode_set(mcode)
-  settings.smss.send(phone, "Your authorization code for wts.zold.io is: #{mcode}")
-  return 'OK' if params[:noredirect]
-  flash("/mobile_token?phone=#{phone}", 'The SMS was sent with the auth code')
+  cid = settings.smss.send(phone, "Your authorization code for wts.zold.io is: #{mcode}")
+  if params[:noredirect]
+    content_type 'text/plain'
+    return cid.to_s
+  end
+  flash("/mobile_token?phone=#{phone}", "The SMS ##{cid} was sent with the auth code")
 end
 
 get '/mobile/token' do
@@ -893,9 +912,12 @@ get '/mobile/token' do
   raise UserError, 'Mobile confirmation code is required' if mcode.nil?
   raise UserError, "Invalid code #{mcode.inspect}" unless /^[0-9]{4}$/.match?(mcode)
   u = user(phone.to_s)
-  raise UserError, 'Invalid mobile code' unless u.item.mcode == mcode.to_i
+  raise UserError, 'Mobile code mismatch' unless u.item.mcode == mcode.to_i
   token = "#{u.login}-#{u.item.token}"
-  return token if params[:noredirect]
+  if params[:noredirect]
+    content_type 'text/plain'
+    return token
+  end
   cookies[:wts] = token
   flash('/home', 'You have been logged in successfully')
 end
@@ -905,6 +927,13 @@ get '/gl' do
     page_title: 'General Ledger',
     gl: settings.gl,
     since: params[:since] ? Zold::Txn.parse_time(params[:since]) : nil
+  )
+end
+
+get '/quick' do
+  haml :quick, layout: :layout, locals: merged(
+    page_title: 'Zold: Quick Start',
+    header_off: true
   )
 end
 
@@ -929,6 +958,11 @@ get '/css/*.css' do
   sass file.to_sym, views: "#{settings.root}/assets/sass"
 end
 
+get '/js/*.js' do
+  content_type 'application/javascript'
+  IO.read(File.join('assets/js', params[:splat].first) + '.js')
+end
+
 not_found do
   status 404
   content_type 'text/html', charset: 'utf-8'
@@ -943,17 +977,13 @@ error do
     settings.log.error("#{request.url}: #{e.message}")
     body(Backtrace.new(e).to_s)
     headers['X-Zold-Error'] = e.message[0..256]
-    flash('/', e.message, error: true)
+    flash('/', e.message, error: true) unless params[:noredirect]
   end
   status 503
   Raven.capture_exception(e)
-  haml(
-    :error,
-    layout: :layout,
-    locals: merged(
-      page_title: 'Error',
-      error: Backtrace.new(e).to_s
-    )
+  haml :error, layout: :layout, locals: merged(
+    page_title: 'Error',
+    error: Backtrace.new(e).to_s
   )
 end
 
@@ -997,7 +1027,8 @@ end
 def flash(uri, msg, error: false)
   cookies[:flash_msg] = msg
   cookies[:flash_color] = error ? 'darkred' : 'darkgreen'
-  redirect(uri, error ? 303 : 302)
+  redirect(uri, error ? 303 : 302) unless params[:noredirect]
+  msg
 end
 
 def context

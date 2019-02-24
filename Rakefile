@@ -18,6 +18,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+STDOUT.sync = true
+
 require 'rubygems'
 require 'rake'
 require 'rdoc'
@@ -131,8 +133,9 @@ task :sleep do
   end
 end
 
-task run: %i[dynamo pgsql] do
-  `rerun -b "RACK_ENV=test rackup"`
+task run: %i[dynamo pgsql liquibase] do
+  puts 'Starting the app...'
+  system('rerun -b "RACK_ENV=test ruby wts.rb"')
 end
 
 task :copyright do

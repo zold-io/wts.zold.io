@@ -1,10 +1,11 @@
 %h2
   Buy/Sell Zolds
 
-%p
-  Your current balance is
-  = succeed '.' do
-    %code= confirmed_user.wallet(&:balance)
+- if confirmed_user.wallet_exists?
+  %p
+    Your current balance is
+    = succeed '.' do
+      %code= confirmed_user.wallet(&:balance)
 
 %p
   The rate is
@@ -20,7 +21,7 @@
 %p
   - if confirmed_user.item.btc_arrived?
     The payment
-    %strong{style: 'color:darkgreen'} has arrived
+    %strong.green has arrived
     to the address
     %code= confirmed_user.item.btc
     assigned to your account, just
@@ -92,6 +93,6 @@
   (which is
   = succeed ').' do
     - if gap > 20
-      %span{style: 'color:darkred'} a problem
+      %span.red a problem
     - else
-      %span{style: 'color:darkgreen'} OK
+      %span.green OK

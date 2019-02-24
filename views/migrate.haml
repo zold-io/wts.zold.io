@@ -20,11 +20,11 @@
       %code= user.item.id
     - if total > 1000
       It is
-      %span{style: 'color:darkgreen'} highly recommended
+      %span.green highly recommended
       to migrate!
     - else
       It is
-      %span{style: 'color:darkred'} not recommended
+      %span.red not recommended
       to migrate yet, but you can, of course.
 
 %form{method: 'GET', action: '/do-migrate'}

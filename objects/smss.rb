@@ -39,19 +39,24 @@ class Smss
       'SELECT COUNT(*) FROM sms WHERE phone = $1 AND created > NOW() - INTERVAL \'4 HOURS\' ',
       [phone]
     )[0]['count'].to_i
-    raise UserError, 'We\'ve sent too many of them already, wait for a few hours and try again' if recent > 3
+    if recent > 3 && ENV['RACK_ENV'] != 'test'
+      raise UserError, 'We\'ve sent too many of them already, wait for a few hours and try again'
+    end
     total = @pgsql.exec('SELECT COUNT(*) FROM sms WHERE created > NOW() - INTERVAL \'4 HOURS\'')[0]['count'].to_i
-    raise UserError, 'We\'ve sent too many of them already, we have to relax for a while' if total > 50
-    response = @sns.publish(phone_number: "+#{phone}", message: msg)
+    if total > 50 && ENV['RACK_ENV'] != 'test'
+      raise UserError, 'We\'ve sent too many of them already, we have to relax for a while'
+    end
+    rid = 999
+    rid = @sns.publish(phone_number: "+#{phone}", message: msg)[:message_id] if ENV['RACK_ENV'] != 'test'
     cid = @pgsql.exec(
       [
         'INSERT INTO sms (phone, message_id)',
         'VALUES ($1, $2)',
         'RETURNING id'
       ].join(' '),
-      [phone, response[:message_id]]
+      [phone, rid]
     )[0]['id'].to_i
-    @log.info("New SMS ##{cid}/#{response[:message_id]} sent to +#{phone}")
+    @log.info("New SMS ##{cid}/#{rid} sent to +#{phone}: #{msg}")
     cid
   end
 end

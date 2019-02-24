@@ -30,7 +30,7 @@
           %td.right{style: 'color:' + (r[:errors] > 25 ? 'red' : 'inherit')}
             = r[:errors]
   - unless remotes.all.find { |r| r[:master] }
-    %p{style: 'color:darkred'}
+    %p.red
       There is not a single master node in the list!
       Most likely all PUSH and PULL operations will fail.
       Something is wrong with Zold network or our software here.

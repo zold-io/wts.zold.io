@@ -67,6 +67,12 @@ class AppTest < Minitest::Test
     assert_equal('text/html;charset=utf-8', last_response.content_type)
   end
 
+  def test_without_redirect
+    WebMock.allow_net_connect!
+    get('/rate.json?noredirect=1')
+    assert_equal(200, last_response.status)
+  end
+
   def test_200_user_pages
     WebMock.allow_net_connect!
     name = 'bill'
@@ -100,7 +106,7 @@ class AppTest < Minitest::Test
   def test_302_user_pages
     WebMock.allow_net_connect!
     login('nick')
-    ['/pull', '/rate', '/rate.json'].each do |p|
+    ['/pull', '/rate'].each do |p|
       get(p)
       assert_equal(302, last_response.status, "#{p} fails: #{last_response.body}")
     end

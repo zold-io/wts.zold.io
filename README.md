@@ -88,6 +88,12 @@ There are more entry points:
 
   * `GET /do-confirm`: removes the keygap from the database and returns `302`.
 
+  * `GET /rate.json`: returns JSON document with all the data you can
+    find [here](https://wts.zold.io/rate). If the data is not ready yet,
+    you will still get a JSON document, but it will have `valid`
+    attribute set to `false`. The only valid attribute there will be
+    `effective_rate`.
+
 ## Callback API
 
 If you want to integrate Zold into your website or mobile app, where your
@@ -132,11 +138,11 @@ If you want to create a mobile client, you may use our mobile API with two
 access points (the phone should be in
 [E.164](https://en.wikipedia.org/wiki/E.164) format, numbers only):
 
-  * `GET /mobile/send?phone=15551234567&noredirect`:
+  * `GET /mobile/send?phone=15551234567&noredirect=1`:
     returns `200` if the SMS has been sent to the user with the authentication code.
     If something is wrong, a non-200 code will be returned.
 
-  * `GET /mobile/token?phone=15551234567&code=6666&noredirect`:
+  * `GET /mobile/token?phone=15551234567&code=6666&noredirect=1`:
     returns `200` and the API access token in the body.
     The `code` is the code from the SMS.
     If something is wrong, a non-200 code will be returned

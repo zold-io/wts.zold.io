@@ -33,14 +33,14 @@
       = "#{w.mtime.utc.iso8601} (#{Zold::Age.new(w.mtime.utc.iso8601)} ago)"
 
 - if u.wallet_exists? && u.wallet(&:txns).count > 1000
-  %p{style: 'color: darkred'}
+  %p.red
     You have too many transactions in your wallet, which makes
     its processing too slow. It is recommended to
     %a{href: '/migrate'} migrate
     to a new wallet.
 
 - if u.wallet_exists? && u.wallet(&:balance).negative?
-  %p{style: 'color: darkred'}
+  %p.red
     Your balance is negative, which means that some of your
     transactions will be rolled back in the nearest future!
     Try to

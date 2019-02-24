@@ -20,30 +20,46 @@
                 %img.logo{src: 'https://www.zold.io/images/logo-blue.svg', alt: 'Zold logo'}
         %nav
           %ul
-            %li
-              - if defined? guser
-                %a{href: '/home'}
-                  = title
-              - else
-                %a{href: '/'}
-                  Login
-            %li
-              %a{href: '/rate'} Rate
-            %li{title: 'All wallets available in the local directory'}
-              Wallets:
-              = wallets.all.count
-            %li{title: 'All visible remote nodes'}
-              Remotes:
-              %a{href: '/remotes'}
-                = remotes.all.count
-            %li{title: 'Currently running jobs vs. jobs waiting in the line'}
-              Pool:
-              %a{href: '/log'}
-                = "#{pool.length}/#{pool.queue_length}"
-            - if defined? guser
+            - if defined? header_off
               %li
-                %a{href: '/logout'}
-                  Logout
+                An Experimental Non-Blockchain
+                Cryptocurrency for Fast Micro Payments
+              %br
+              %li
+                %a{href: 'https://github.com/zold-io/zold'} GitHub
+              %li
+                %a{href: 'https://t.me/zold_io'} Telegram
+              %li
+                %a{href: 'https://bitcointalk.org/index.php?topic=5095078'} Bitcointalk
+              %li
+                %a{href: 'https://facebook.com/zerocracy'} Facebook
+              %li
+                %a{href: 'https://twitter.com/0crat'} Twitter
+            - else
+              %li
+                - if defined? guser
+                  %a{href: '/home'}
+                    = title
+                - else
+                  %a{href: '/'}
+                    Login
+              %li
+                %a{href: '/rate'} Rate
+              %li{title: 'All wallets available in the local directory'}
+                Wallets:
+                = wallets.all.count
+              %li{title: 'All visible remote nodes'}
+                Remotes:
+                %a{href: '/remotes'}
+                  = remotes.all.count
+              %li{title: 'Currently running jobs vs. jobs waiting in the line'}
+                Pool:
+                %a{href: '/log'}
+                  = "#{pool.length}/#{pool.queue_length}"
+              - if defined? guser
+                %li
+                  %a{href: '/logout'}
+                    Logout
         - if defined? guser
           %nav
             %ul
@@ -51,21 +67,21 @@
                 - if user.wallet_exists?
                   %a{href: '/pay'} Pay
                 - else
-                  %span{style: 'color: gray'} Pay
+                  %span.gray Pay
               %li
                 %a{href: '/pull'} Pull
               %li
                 - if user.wallet_exists?
                   %a{href: '/invoice'} Invoice
                 - else
-                  %span{style: 'color: gray'} Invoice
+                  %span.gray Invoice
               %li
                 %a{href: '/migrate'} Migrate
               %li
                 - if user.wallet_exists?
                   %a{href: '/btc'} Buy/Sell
                 - else
-                  %span{style: 'color: gray'} Buy/Sell
+                  %span.gray Buy/Sell
               %li
                 %a{href: '/log', style: (File.exist?(latch) ? 'color:red' : '')} Log
               %li
@@ -87,23 +103,24 @@
 
       %article
         = yield
-      %footer{style: 'color:gray;font-size:0.8em;line-height:1.4em;'}
-        %nav
-          %ul
-            %li
-              %a{href: '/gl'} General Ledger
-            - if defined? guser
+      %footer.small.gray
+        - unless defined? header_off
+          %nav
+            %ul
               %li
-                %a{href: '/api'} API
+                %a{href: '/gl'} General Ledger
+              - if defined? guser
+                %li
+                  %a{href: '/api'} API
+                %li
+                  %a{href: '/callbacks'} Callbacks
+                %li
+                  %a{href: '/payouts'} Payouts
+          %nav
+            %ul
               %li
-                %a{href: '/callbacks'} Callbacks
-              %li
-                %a{href: '/payouts'} Payouts
-        %nav
-          %ul
-            %li
-              Subscribe to our status updates in
-              %a{href: 'https://t.me/zold_wts'} Telegram
+                Subscribe to our status updates in
+                %a{href: 'https://t.me/zold_wts'} Telegram
         %nav
           %ul
             %li
