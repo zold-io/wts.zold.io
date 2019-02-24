@@ -129,12 +129,13 @@ You may register up to 8 callbacks in one account.
 ## Mobile API
 
 If you want to create a mobile client, you may use our mobile API with two
-access points:
+access points (the phone should be in
+[E.164](https://en.wikipedia.org/wiki/E.164) format, numbers only):
 
-  * `GET /mobile/send?phone=+15551234567`:
+  * `GET /mobile/send?phone=15551234567`:
     returns `200` if the SMS has been sent to the user with the authentication code.
 
-  * `GET /mobile/token?phone=+15551234567&code=6666`:
+  * `GET /mobile/token?phone=15551234567&code=6666`:
     returns API access token. The `code` is the code from the SMS.
 
 Then, when you have the API token, you can manage the account of the user.
