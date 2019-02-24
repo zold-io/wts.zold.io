@@ -51,63 +51,67 @@
     in a few minutes to get it back to the normal state.
 
 - if u.wallet_exists?
-  %table
-    %colgroup
-      %col{style: 'width: 2em'}
-      %col{style: 'width: 5em'}
-      %col{style: 'width: 5em'}
-      %col{style: 'width: 10em'}
-      %col{style: ''}
-    %thead
-      %tr
-        %th
-          ID
-        %th
-          Amount
-        %th
-          Date
-        %th
-          From/To
-        %th
-          Details
-    %tbody
-      - if start
+  - if u.wallet(&:txns).empty?
+    %p
+      The wallet is empty.
+  - else
+    %table
+      %colgroup
+        %col{style: 'width: 2em'}
+        %col{style: 'width: 5em'}
+        %col{style: 'width: 5em'}
+        %col{style: 'width: 10em'}
+        %col{style: ''}
+      %thead
         %tr
-          %td.center{colspan: 5}
-            %a{href: '/home'} Show most recent transactions
-        %tr
-          %td.center{colspan: 5}
-            = 'Since ' + start.utc.iso8601
-      - txns = u.wallet(&:txns).sort_by(&:date).reverse.select { |t| start.nil? || t.date < start }.take(max)
-      - if txns.empty?
-        %tr
-          %td.center{colspan: 5}
-            No transactions in the wallet as of yet.
-      - else
-        - txns.each do |t|
-          - @last = t.date
-          %tr
-            %td
-              - if t.amount.negative?
-                = '#' + t.id.to_s
-              - else
-                = '-'
-            %td.right
-              %span{title: t.amount.to_i, style: 'color: ' + (t.amount.negative? ? 'darkred' : 'darkgreen')}
-                = t.amount.to_zld
-            %td
-              %span{title: t.date.utc.iso8601}
-                = Zold::Age.new(t.date)
-            %td
-              %a{href: "http://www.zold.io/ledger.html?wallet=#{t.bnf}"}
-                %code{title: 'prefix: ' + t.prefix}
-                  = t.bnf
-            %td
-              = t.details.gsub(/([^ ]{16})/, '\1&shy;')
-        - if @last && txns.count == max
+          %th
+            ID
+          %th
+            Amount
+          %th
+            Date
+          %th
+            From/To
+          %th
+            Details
+      %tbody
+        - if start
           %tr
             %td.center{colspan: 5}
-              %a{href: '?start=' + @last.utc.iso8601} Show more
+              %a{href: '/home'} Show most recent transactions
+          %tr
+            %td.center{colspan: 5}
+              = 'Since ' + start.utc.iso8601
+        - txns = u.wallet(&:txns).sort_by(&:date).reverse.select { |t| start.nil? || t.date < start }.take(max)
+        - if txns.empty?
+          %tr
+            %td.center{colspan: 5}
+              No transactions in the wallet as of yet.
+        - else
+          - txns.each do |t|
+            - @last = t.date
+            %tr
+              %td
+                - if t.amount.negative?
+                  = '#' + t.id.to_s
+                - else
+                  = '-'
+              %td.right
+                %span{title: t.amount.to_i, style: 'color: ' + (t.amount.negative? ? 'darkred' : 'darkgreen')}
+                  = t.amount.to_zld
+              %td
+                %span{title: t.date.utc.iso8601}
+                  = Zold::Age.new(t.date)
+              %td
+                %a{href: "http://www.zold.io/ledger.html?wallet=#{t.bnf}"}
+                  %code{title: 'prefix: ' + t.prefix}
+                    = t.bnf
+              %td
+                = t.details.gsub(/([^ ]{16})/, '\1&shy;')
+          - if @last && txns.count == max
+            %tr
+              %td.center{colspan: 5}
+                %a{href: '?start=' + @last.utc.iso8601} Show more
 - else
   %p
     Your wallet doesn't exist on our server yet.
