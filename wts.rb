@@ -267,7 +267,7 @@ before '/*' do
       @locals.delete(:guser)
     end
   end
-  header = request.env['HTTP_X_ZOLD_WTS']
+  header = request.env['HTTP_X_ZOLD_WTS'] || cookies[:wts] || nil
   if header
     login, token = header.strip.split('-', 2)
     raise UserError, 'User is absent' unless user(login).item.exists?
@@ -291,6 +291,7 @@ end
 
 get '/logout' do
   cookies.delete(:glogin)
+  cookies.delete(:wts)
   flash('/', 'You have been logged out')
 end
 
@@ -298,6 +299,21 @@ get '/' do
   redirect '/home' if @locals[:guser]
   haml :index, layout: :layout, locals: merged(
     title: 'wts'
+  )
+end
+
+get '/mobile_send' do
+  redirect '/home' if @locals[:guser]
+  haml :mobile_send, layout: :layout, locals: merged(
+    title: '/mobile'
+  )
+end
+
+get '/mobile_token' do
+  redirect '/home' if @locals[:guser]
+  haml :mobile_token, layout: :layout, locals: merged(
+    title: '/token',
+    phone: params[:phone]
   )
 end
 
@@ -617,7 +633,10 @@ get '/btc-hook' do
   end
   boss = user(settings.config['exchange']['login'])
   job(boss) do
-    unless settings.hashes.seen?(hash)
+    if settings.hashes.seen?(hash)
+      settings.log.info("A duplicate notification from Blockchain about #{bitcoin} bitcoins \
+arrival to #{address}, for @#{bnf.login}; we ignore it.")
+    else
       log(bnf).info("Accepting #{bitcoin} bitcoins from #{address}...")
       ops(boss, log: log(bnf)).pay(
         settings.config['exchange']['keygap'],
@@ -850,7 +869,7 @@ get '/mobile/send' do
   mcode = rand(1000..9999)
   u.item.mcode_set(mcode)
   settings.smss.send(phone, "Your authorization code for wts.zold.io is: #{mcode}")
-  flash('/', 'The SMS was sent with the auth code')
+  flash("/mobile_token?phone=#{phone}", 'The SMS was sent with the auth code')
 end
 
 get '/mobile/token' do
@@ -864,7 +883,10 @@ get '/mobile/token' do
   raise UserError, "Invalid code #{mcode.inspect}" unless /^[0-9]{4}$/.match?(mcode)
   u = user(phone.to_s)
   raise UserError, 'Invalid mobile code' unless u.item.mcode == mcode.to_i
-  "#{u.login}-#{u.item.token}"
+  token = "#{u.login}-#{u.item.token}"
+  headers['X-Zold-Wts'] = token
+  cookies[:wts] = token
+  flash('/home', 'You have been logged in successfully')
 end
 
 get '/gl' do

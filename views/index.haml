@@ -1,4 +1,11 @@
 %p
+  Login via
+  %a{href: login_link} GitHub
+  or
+  = succeed '.' do
+    %a{href: '/mobile_login'} mobile phone
+
+%p
   %a{href: 'https://www.zold.io'} Zold
   is a fast cryptocurrency for micro payments.
   Read the
@@ -21,3 +28,7 @@
   %strong= rate
   BTC per 1 ZLD.
 
+%p
+  Don't forget to give use a
+  %a{href: 'https://github.com/zold-io/zold/stargazers'} GitHub
+  star!

@@ -133,10 +133,11 @@ access points (the phone should be in
 [E.164](https://en.wikipedia.org/wiki/E.164) format, numbers only):
 
   * `GET /mobile/send?phone=15551234567`:
-    returns `200` if the SMS has been sent to the user with the authentication code.
+    returns `302` if the SMS has been sent to the user with the authentication code.
 
   * `GET /mobile/token?phone=15551234567&code=6666`:
-    returns API access token. The `code` is the code from the SMS.
+    returns `302` and the API access token will be in the HTTP `X-Zold-Wts` header.
+    The `code` is the code from the SMS.
 
 Then, when you have the API token, you can manage the account of the user.
 

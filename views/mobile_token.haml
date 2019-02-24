@@ -1,0 +1,15 @@
+%h2
+  Step 2: Enter Code
+
+%form{method: 'GET', action: '/mobile/token'}
+  %fieldset
+    %label
+      Enter your mobile phone in
+      %a{href: 'https://en.wikipedia.org/wiki/E.164'} E.164
+      format:
+    %input{type: 'text', name: 'phone', value: phone, autocomplete: 'off', required: true, editable: false}
+    %label
+      Enter the auth code received:
+    %input{type: 'text', name: 'code', maxlength: 4, size: 8, autocomplete: 'off', required: true, tabindex: 1}
+    %input{type: 'submit', tabindex: 2, value: 'Login'}
+
