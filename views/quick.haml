@@ -1,6 +1,35 @@
 %script{src: 'https://code.jquery.com/jquery-3.3.1.min.js'}
 %script{src: '/js/quick.js'}
 
+%p
+  %img{src: '/graph.svg?keys=Value&div=100&digits=2', style: 'width:320px;float:right;margin-left:.5em;margin-bottom:.5em;'}
+  According to many analysts, the crypto market is expecting its next hype within the next few months.
+  Most promising assets are the ones that are based on new and unique technologies.
+  Zold is exactly that, with its own
+  = succeed ',' do
+    %a{href: 'https://blog.zold.io/2018/08/02/consensus.html'} consensus algorithm
+  the software built from the group up,
+  and a quickly growing community of software developers. This is your
+  opportunity to jump into this quickly uprising trend and convert some of your
+  bitcoins to zolds.
+
+%p
+  Zold is designed by the R&D team of
+  %a{href: 'http://www.zerocracy.com'} Zerocracy
+  lead by
+  = succeed ',' do
+    %a{href: 'https://www.yegor256.com'} Yegor Bugayenko
+  their CEO: here is the
+  = succeed '.' do
+    %a{href: 'http://papers.zold.io/wp.pdf'} White Paper
+  Since 2009, the company, which is headquartered in Palo Alto, California and is backed
+  by venture capital and private funds of its founders, is developing
+  Artificial Intelligence (AI) software to simplify routine management operations
+  in software development projects. The
+  %a{href: 'https://blog.zold.io/2018/07/08/mission.html'} global mission
+  of Zold is to help the world of software developers get rid of
+  boring and ineffective management.
+
 %p{id: 'step1'}
   How much are you going to invest:
   %input{type: 'number', id: 'btc', oninput: 'wts_recalc();', style: 'width:5em', autocomplete: 'off', required: true, tabindex: 1, autofocus: true, value: '0.1'}
@@ -9,7 +38,9 @@
   %span{id: 'zld'}
   ZLD)
   %br
-  For how long you will hodl:
+  For how long you will
+  = succeed ':' do
+    %a{href: 'https://en.wikipedia.org/wiki/Hodl'} hodl
   %input{type: 'number', id: 'months', oninput: 'wts_recalc();', style: 'width:3em', autocomplete: 'off', required: true, tabindex: 2, value: '6'}
   months
   %br
@@ -65,3 +96,9 @@
   %span.small.gray{id: 'error'}
     To start over just reload the page.
 
+%p.small.gray
+  The information contained herein is not intended to be a source
+  of advice or credit analysis with respect to the material
+  presented, and the information and/or documents contained in this website
+  do not constitute investment advice. Make sure you understand
+  the risks associated with each and any investment.
