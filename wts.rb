@@ -270,9 +270,15 @@ before '/*' do
   header = request.env['HTTP_X_ZOLD_WTS'] || cookies[:wts] || nil
   if header
     login, token = header.strip.split('-', 2)
-    raise UserError, "User #{login} is absent" unless user(login).item.exists?
-    raise UserError, "Invalid token #{token.inspect} of #{login}" unless user(login).item.token == token
-    @locals[:guser] = login
+    unless user(login).item.exists?
+      settings.log.info("API login: User #{login} is absent")
+      return
+    end
+    unless user(login).item.token == token
+      settings.log.info("Invalid token #{token.inspect} of #{login}")
+      return
+    end
+    @locals[:guser] = login.downcase
   end
 end
 
