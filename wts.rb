@@ -860,7 +860,7 @@ get '/mobile/token' do
   mcode = params[:code]
   raise UserError, 'Mobile confirmation code is required' if mcode.nil?
   raise UserError, "Invalid code #{mcode.inspect}" unless /^[0-9]{4}$/.match?(mcode)
-  u = user(phone)
+  u = user(phone.to_s)
   raise UserError, 'Invalid mobile code' unless u.item.mcode == mcode.to_i
   "#{u.login}-#{u.item.token}"
 end
