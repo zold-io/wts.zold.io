@@ -7,7 +7,7 @@
       Enter your mobile phone in
       %a{href: 'https://en.wikipedia.org/wiki/E.164'} E.164
       format:
-    %input{type: 'text', name: 'phone', placeholder: '12125551122', autocomplete: 'off', required: true, tabindex: 1, autofocus: true}
+    %input{type: 'text', name: 'phone', placeholder: '12125551122', pattern: '[0-9]+', autocomplete: 'off', required: true, tabindex: 1, autofocus: true}
     %input{type: 'submit', tabindex: 3, value: 'Request'}
 
 %p

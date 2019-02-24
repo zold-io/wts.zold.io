@@ -10,7 +10,7 @@
     %input{type: 'text', name: 'phone', value: phone, autocomplete: 'off', required: true, readonly: true}
     %label
       Enter the auth code received:
-    %input{type: 'text', name: 'code', maxlength: 4, size: 8, autocomplete: 'off', required: true, tabindex: 1, autofocus: true}
+    %input{type: 'text', name: 'code', maxlength: 4, size: 8, pattern: '[0-9]+', autocomplete: 'off', required: true, tabindex: 1, autofocus: true}
     %input{type: 'submit', tabindex: 2, value: 'Login'}
 
 %p

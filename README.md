@@ -134,12 +134,15 @@ access points (the phone should be in
 
   * `GET /mobile/send?phone=15551234567&noredirect`:
     returns `200` if the SMS has been sent to the user with the authentication code.
+    If something is wrong, a non-200 code will be returned.
 
   * `GET /mobile/token?phone=15551234567&code=6666&noredirect`:
     returns `200` and the API access token in the body.
     The `code` is the code from the SMS.
+    If something is wrong, a non-200 code will be returned
 
-Then, when you have the API token, you can manage the account of the user.
+Then, when you have the API token, you can manage the account of the user,
+using the `X-Zold-Wts` HTTP header (see above).
 
 ## How to Contribute
 
