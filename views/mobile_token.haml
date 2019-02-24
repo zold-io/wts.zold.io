@@ -7,9 +7,14 @@
       Enter your mobile phone in
       %a{href: 'https://en.wikipedia.org/wiki/E.164'} E.164
       format:
-    %input{type: 'text', name: 'phone', value: phone, autocomplete: 'off', required: true, editable: false}
+    %input{type: 'text', name: 'phone', value: phone, autocomplete: 'off', required: true, readonly: true}
     %label
       Enter the auth code received:
     %input{type: 'text', name: 'code', maxlength: 4, size: 8, autocomplete: 'off', required: true, tabindex: 1}
     %input{type: 'submit', tabindex: 2, value: 'Login'}
 
+%p
+  If you didn't receive the code, go
+  %a{href: '/mobile_send'} back
+  and try again.
+  You are allowed to make three attempts per day.

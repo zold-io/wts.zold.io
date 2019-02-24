@@ -420,6 +420,10 @@ post '/do-pay' do
   elsif /^[a-zA-Z0-9]+@[a-f0-9]{16}$/.match?(params[:bnf])
     bnf = params[:bnf]
     raise UserError, 'You can\'t pay yourself' if bnf.split('@')[1] == user.item.id.to_s
+  elsif /^+[0-9]+$/.match?(params[:bnf])
+    friend = user(params[:bnf][0..32].to_i.to_s)
+    raise UserError, 'The user with this mobile phone is not registered yet' unless friend.item.exists?
+    bnf = friend.item.id
   else
     login = params[:bnf].strip.downcase.gsub(/^@/, '')
     raise UserError, "Invalid GitHub user name: #{params[:bnf].inspect}" unless login =~ /^[a-z0-9-]{3,32}$/
@@ -869,6 +873,7 @@ get '/mobile/send' do
   mcode = rand(1000..9999)
   u.item.mcode_set(mcode)
   settings.smss.send(phone, "Your authorization code for wts.zold.io is: #{mcode}")
+  return 'OK' if params[:noredirect]
   flash("/mobile_token?phone=#{phone}", 'The SMS was sent with the auth code')
 end
 
@@ -884,7 +889,7 @@ get '/mobile/token' do
   u = user(phone.to_s)
   raise UserError, 'Invalid mobile code' unless u.item.mcode == mcode.to_i
   token = "#{u.login}-#{u.item.token}"
-  headers['X-Zold-Wts'] = token
+  return token if params[:noredirect]
   cookies[:wts] = token
   flash('/home', 'You have been logged in successfully')
 end
