@@ -270,8 +270,8 @@ before '/*' do
   header = request.env['HTTP_X_ZOLD_WTS'] || cookies[:wts] || nil
   if header
     login, token = header.strip.split('-', 2)
-    raise UserError, "User @#{login} is absent" unless user(login).item.exists?
-    raise UserError, "Invalid token of @#{login}" unless user(login).item.token == token
+    raise UserError, "User #{login} is absent" unless user(login).item.exists?
+    raise UserError, "Invalid token #{token.inspect} of #{login}" unless user(login).item.token == token
     @locals[:guser] = login
   end
 end
@@ -338,7 +338,7 @@ get '/create' do
     user.create
     ops.push
     settings.telepost.spam(
-      "The user [@#{user.login}](https://github.com/#{user.login})",
+      "The user #{title_md}",
       "created a new wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})",
       "from #{anon_ip}"
     )
@@ -349,8 +349,7 @@ get '/create' do
         if boss.wallet(&:balance) < amount
           settings.telepost.spam(
             "A sign-up bonus of #{amount} can't be sent",
-            "to [@#{user.login}](https://github.com/#{user.login})",
-            "from #{anon_ip}",
+            "to #{title_md} from #{anon_ip}",
             "to their wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})",
             "from our wallet [#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id})",
             "of [#{boss.login}](https://github.com/#{boss.login})",
@@ -363,8 +362,7 @@ get '/create' do
           )
           settings.telepost.spam(
             "The sign-up bonus of #{amount} has been sent",
-            "to [@#{user.login}](https://github.com/#{user.login})",
-            "from #{anon_ip},",
+            "to #{title_md} from #{anon_ip},",
             "to their wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})",
             "from our wallet [#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id})",
             "of [#{boss.login}](https://github.com/#{boss.login})",
@@ -374,9 +372,7 @@ get '/create' do
       end
     else
       settings.telepost.spam(
-        "A sign-up bonus won't be sent to",
-        "[@#{user.login}](https://github.com/#{user.login})",
-        "from #{anon_ip}",
+        "A sign-up bonus won't be sent to #{title_md} from #{anon_ip}",
         "with the wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})",
         "because this user is not [known](https://www.0crat.com/known/#{user.login}) to Zerocracy"
       )
@@ -442,7 +438,7 @@ post '/do-pay' do
     log.info("Sending #{amount} to #{bnf}...")
     ops.pay(keygap, bnf, amount, details)
     settings.telepost.spam(
-      "Payment sent by [@#{user.login}](https://github.com/#{user.login})",
+      "Payment sent by #{title_md}",
       "from [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})",
       "with the balance of #{user.wallet(&:balance)}",
       "to [#{bnf}](http://www.zold.io/ledger.html?wallet=#{bnf})",
@@ -514,7 +510,7 @@ end
 get '/api-reset' do
   confirmed_user.item.token_reset
   settings.telepost.spam(
-    "API token has been reset by [@#{user.login}](https://github.com/#{user.login})",
+    "API token has been reset by #{title_md}",
     "from #{anon_ip}"
   )
   flash('/api', 'You got a new API token')
@@ -558,7 +554,7 @@ get '/wait-for' do
     params[:token] || 'none'
   )
   settings.telepost.spam(
-    "New callback no.#{id} created by [@#{user.login}](https://github.com/#{user.login}) from #{anon_ip}",
+    "New callback no.#{id} created by #{title_md} from #{anon_ip}",
     "for the wallet [#{wallet}](http://www.zold.io/ledger.html?wallet=#{wallet}),",
     "prefix `#{prefix}`, and regular expression `#{regexp}`"
   )
@@ -581,7 +577,7 @@ get '/do-migrate' do
       "with #{settings.wallets.acq(origin, &:txns).count} transactions",
       "and #{user.wallet(&:balance)}",
       "has been migrated to a new wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})",
-      "by [@#{user.login}](https://github.com/#{user.login}) from #{anon_ip}"
+      "by #{title_md} from #{anon_ip}"
     )
   end
   flash('/', 'You got a new wallet ID, your funds will be transferred soon...')
@@ -593,7 +589,7 @@ get '/btc' do
     settings.telepost.spam(
       'New Bitcoin address acquired',
       "[#{address[0..8]}](https://www.blockchain.com/btc/address/#{address})",
-      "by request of [@#{user.login}](https://github.com/#{user.login}) from #{anon_ip};",
+      "by request of #{title_md} from #{anon_ip};",
       "Blockchain.com gap is #{settings.btc.gap};",
       settings.btc.to_s
     )
@@ -620,13 +616,13 @@ get '/btc-hook' do
   bitcoin = (satoshi.to_f / 100_000_000).round(8)
   zld = Zold::Amount.new(zld: bitcoin / rate)
   bnf = user(settings.items.find_by_btc(address).login)
-  raise UserError, "The user @#{bnf.login} is not confirmed" unless bnf.confirmed?
+  raise UserError, "The user '#{bnf.login}' is not confirmed" unless bnf.confirmed?
   if confirmations.zero?
     bnf.item.btc_arrived
     settings.telepost.spam(
       "Bitcoin transaction arrived for #{bitcoin} BTC",
       "in [#{hash[0..8]}](https://www.blockchain.com/btc/tx/#{hash})",
-      "and was identified as belonging to [@#{bnf.login}](https://github.com/#{bnf.login}),",
+      "and was identified as belonging to #{title_md(bnf)},",
       "#{zld} will be deposited to the wallet",
       "[#{bnf.item.id}](http://www.zold.io/ledger.html?wallet=#{bnf.item.id})",
       "once we see enough confirmations, now it's #{confirmations} (may take up to an hour!)"
@@ -639,7 +635,7 @@ get '/btc-hook' do
   job(boss) do
     if settings.hashes.seen?(hash)
       settings.log.info("A duplicate notification from Blockchain about #{bitcoin} bitcoins \
-arrival to #{address}, for @#{bnf.login}; we ignore it.")
+arrival to #{address}, for #{bnf.login}; we ignore it.")
     else
       log(bnf).info("Accepting #{bitcoin} bitcoins from #{address}...")
       ops(boss, log: log(bnf)).pay(
@@ -652,7 +648,7 @@ arrival to #{address}, for @#{bnf.login}; we ignore it.")
       settings.hashes.add(hash, bnf.login, bnf.item.id)
       settings.telepost.spam(
         "In: #{bitcoin} BTC [exchanged](https://blog.zold.io/2018/12/09/btc-to-zld.html) to #{zld}",
-        "by [@#{bnf.login}](https://github.com/#{bnf.login})",
+        "by #{title_md(bnf)}",
         "in [#{hash[0..8]}](https://www.blockchain.com/btc/tx/#{hash})",
         "(#{params[:confirmations]} confirmations)",
         "via [#{address[0..8]}](https://www.blockchain.com/btc/address/#{address}),",
@@ -660,7 +656,7 @@ arrival to #{address}, for @#{bnf.login}; we ignore it.")
         "with the balance of #{bnf.wallet(&:balance)};",
         "the gap of Blockchain.com is #{settings.btc.gap};",
         "BTC price at the moment of exchange was [$#{settings.btc.price}](https://blockchain.info/ticker);",
-        "the payer is [@#{boss.login}](https://github.com/#{boss.login}) with the wallet",
+        "the payer is #{title_md(boss)} with the wallet",
         "[#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id}),",
         "the remaining balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t)"
       )
@@ -680,7 +676,7 @@ get '/queue' do
   raise UserError, 'You are not allowed to see this' unless user.login == 'yegor256'
   content_type 'text/plain', charset: 'utf-8'
   settings.items.all.map do |i|
-    "@#{i['login']} #{Zold::Age.new(Time.at(i['assigned']))} #{i['btc']} A=#{i['active'].to_i}"
+    "#{i['login']} #{Zold::Age.new(Time.at(i['assigned']))} #{i['btc']} A=#{i['active'].to_i}"
   end.join("\n")
 end
 
@@ -690,7 +686,7 @@ get '/queue-clean' do
   settings.items.all.map do |i|
     next if params[:login] && i['login'] != params[:login]
     user(i['login']).item.destroy_btc
-    "@#{i['login']} #{Zold::Age.new(Time.at(i['assigned']))} #{i['btc']}: destroyed"
+    "#{i['login']} #{Zold::Age.new(Time.at(i['assigned']))} #{i['btc']}: destroyed"
   end.compact.join("\n")
 end
 
@@ -736,7 +732,7 @@ post '/do-sell' do
     settings.bank.send(
       address,
       (usd * (1 - fee)).round(2),
-      "Exchange of #{amount.to_zld(8)} by @#{user.login} to #{user.item.id}, rate is #{rate}, fee is #{fee}"
+      "Exchange of #{amount.to_zld(8)} by #{title} to #{user.item.id}, rate is #{rate}, fee is #{fee}"
     )
     settings.payouts.add(
       user.login, user.item.id, amount,
@@ -744,7 +740,7 @@ post '/do-sell' do
     )
     settings.telepost.spam(
       "Out: #{amount} [exchanged](https://blog.zold.io/2018/12/09/btc-to-zld.html) to #{bitcoin} BTC",
-      "by [@#{user.login}](https://github.com/#{user.login}) from #{anon_ip}",
+      "by #{title_md} from #{anon_ip}",
       "from the wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})",
       "with the balance of #{user.wallet(&:balance)}",
       "to bitcoin address [#{address[0..8]}](https://www.blockchain.com/btc/address/#{address});",
@@ -975,6 +971,14 @@ def title(suffix = '')
   (/^[0-9]/.match?(login) ? "+#{login}" : "@#{login}") + (suffix.empty? ? '' : '/' + suffix)
 end
 
+def title_md(u = user)
+  if /^[0-9]/.match?(u.login)
+    "+#{u.login}"
+  else
+    "[@#{u.login}](https://github.com/#{u.login})"
+  end
+end
+
 def anon_ip
   "`#{request.ip.to_s.gsub(/\.[0-9]+$/, '.xx')}` (#{country})"
 end
@@ -1023,7 +1027,7 @@ end
 
 def confirmed_user(login = @locals[:guser])
   u = user(login)
-  raise UserError, "You @#{login} have to confirm your keygap first" unless u.confirmed?
+  raise UserError, "You, #{login}, have to confirm your keygap first" unless u.confirmed?
   u
 end
 
@@ -1142,7 +1146,7 @@ def pay_hosting_bonuses(boss)
     winners.map do |s|
       "[#{s.host}:#{s.port}](http://www.zold.io/ledger.html?wallet=#{s.invoice.split('@')[1]})/#{s.value}"
     end.join(', ') + ';',
-    "the payer is [@#{boss.login}](https://github.com/#{boss.login}) with the wallet",
+    "the payer is #{title_md(boss)} with the wallet",
     "[#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id}),",
     "the remaining balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t)"
   )
