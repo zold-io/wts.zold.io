@@ -616,8 +616,8 @@ get '/btc-hook' do
   end
   boss = user(settings.config['exchange']['login'])
   job(boss) do
-    log(boss).info("Accepting #{bitcoin} bitcoins from #{address}...")
-    ops(boss).pay(
+    log(bnf).info("Accepting #{bitcoin} bitcoins from #{address}...")
+    ops(boss, log: log(bnf)).pay(
       settings.config['exchange']['keygap'],
       bnf.item.id,
       zld,
@@ -1009,14 +1009,14 @@ def network
   ENV['RACK_ENV'] == 'test' ? 'test' : 'zold'
 end
 
-def ops(u = user)
+def ops(u = user, log: log(u.login))
   Ops.new(
     u.item,
     u,
     settings.wallets,
     settings.remotes,
     settings.copies,
-    log: log(u.login),
+    log: log,
     network: network
   )
 end
