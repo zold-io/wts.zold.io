@@ -20,6 +20,10 @@
  * SOFTWARE.
  */
 
+function wts_info(text) {
+  $('#error').removeClass('red').text('INFO:' + text);
+}
+
 function wts_error(xhr) {
   $('#error').addClass('red').html(
     'ERROR: <strong>' + xhr.getResponseHeader('X-Zold-Error') + '</strong>. If the description of the ' +
@@ -63,7 +67,7 @@ function wts_recalc() {
 function wts_step5(token) {
   $('#step4').hide();
   $('#amount').text($('#btc').text());
-  console.log('Requesting BTC address for user ' + token + '...');
+  wts_info('Requesting BTC address for user ' + token + '...');
   $.ajax({
     dataType: 'text',
     url: '/btc?noredirect=1',
@@ -71,24 +75,26 @@ function wts_step5(token) {
     success: function(data, textStatus, request) {
       var address = request.getResponseHeader('X-Zold-BtcAddress');
       $('#step5').show();
-      $('#step6').show();
+      $('#step6').hide();
       $('#address').text(address);
       $('#qr').attr('src', 'https://chart.googleapis.com/chart?chs=256x256&cht=qr&chl=bitcoin:' + address);
+      wts_info('BTC address for user ' + token + ' acquired');
     },
     error: function(xhr) { wts_error(xhr); }
   });
 }
 
 function wts_step4(token) {
-  console.log('Confirming keygap of ' + token + '...');
   $.ajax({
     dataType: 'text',
     url: '/confirmed?noredirect=1',
     headers: { 'X-Zold-Wts': token },
     success: function(text) {
       if (text == 'yes') {
+        wts_info('The keygap of ' + token + ' is already confirmed (existing account)');
         wts_step5(token);
       } else {
+        wts_info('Confirming keygap of ' + token + '...');
         $.ajax({
           dataType: 'text',
           url: '/keygap?noredirect=1',
@@ -97,12 +103,14 @@ function wts_step4(token) {
             var keygap = text;
             $('#step4').show();
             $('#keygap').text(keygap);
+            wts_info('Keygap of ' + token + ' retrieved and has to be confirmed...');
             $('#button').val('Confirm').off('click').on('click', function () {
               $.ajax({
                 dataType: 'text',
                 url: '/do-confirm?noredirect=1&keygap=' + keygap,
                 headers: { 'X-Zold-Wts': token },
                 success: function(text) {
+                  wts_info('Keygap of ' + token + ' confirmed, account is ready');
                   wts_step5(token);
                 },
                 error: function(xhr) { wts_error(xhr); }
@@ -119,7 +127,7 @@ function wts_step4(token) {
 function wts_step3() {
   var phone = $('#phone').text();
   var code = $('#code').val();
-  console.log('Confirming ' + phone + ' with ' + code + '...');
+  wts_info('Confirming ' + phone + ' with ' + code + '...');
   $.ajax({
     dataType: 'text',
     url: '/mobile/token?noredirect=1&phone=' + phone + '&code=' + code,
@@ -127,6 +135,7 @@ function wts_step3() {
       $('#step3').hide();
       $('#step5').hide();
       $('#step4').show();
+      wts_info('The auth code ' + code + ' was accepted for ' + phone);
       wts_step4(text);
     },
     error: function(xhr) { wts_error(xhr); }
@@ -135,16 +144,16 @@ function wts_step3() {
 
 function wts_step2() {
   var phone = $('#phone').val();
-  console.log('Sending SMS to phone ' + phone + '...');
+  wts_info('Sending SMS to phone ' + phone + '...');
   $.ajax({
     dataType: 'text',
     url: '/mobile/send?noredirect=1&phone=' + phone,
     success: function(text) {
       $('#step3').show();
       $('#phone').replaceWith('<strong id="phone">' + $('#phone').val() + '</strong>');
-      $('#step2-help').hide();
       $('#button').val('Confirm').off('click').on('click', wts_step3);
       $('#code').focus();
+      wts_info('The SMS has been delivered to ' + phone);
     },
     error: function(xhr) { wts_error(xhr); }
   });

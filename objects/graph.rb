@@ -69,7 +69,7 @@ class Graph
     sets.each do |k, v|
       data = Array.new(STEPS, nil)
       v.group_by { |p| ((p[:x] - min) / step).to_i }.each do |s, points|
-        data[s] = points.empty? ? 0 : points.map { |p| p[:y] }.inject(&:+) / points.size
+        data[s] = points.empty? ? 0 : points.map { |p| p[:y] }.max
       end
       g.add_data(title: k, data: data)
     end
