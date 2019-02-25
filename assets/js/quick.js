@@ -36,6 +36,7 @@ function wts_error(xhr) {
 }
 
 function wts_recalc() {
+  wts_info('Loading rates...')
   $.ajax({
     dataType: 'json',
     url: '/rate.json?noredirect=1',
@@ -56,6 +57,7 @@ function wts_recalc() {
       } else {
         $profit.addClass('red').removeClass('green');
       }
+      wts_info('The current rate of $' + rate + '/ZLD loaded')
     },
     error: function(xhr) {
       wts_error(xhr);
