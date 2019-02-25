@@ -36,5 +36,5 @@
           %td{title: p[:updated].utc.iso8601}
             = Zold::Age.new(p[:updated])
           %td
-            = Zold::Age.new(p[:updated])
+            %a{href: "http://#{p[:node]}/wallet/#{p[:id]}.txt"}= p[:node]
 
