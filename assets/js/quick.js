@@ -21,7 +21,7 @@
  */
 
 function wts_info(text) {
-  $('#error').removeClass('red').text('INFO:' + text);
+  $('#error').removeClass('red').text('INFO: ' + text);
 }
 
 function wts_error(xhr) {
@@ -46,11 +46,11 @@ function wts_recalc() {
       var zld = btc / json.effective_rate;
       $('#zld').text(Math.round(zld));
       var spend = zld * rate
-      $('#spend').text(Math.round(spend));
+      $('#spend').text('$' + Math.round(spend));
       var back = spend * Math.pow(1.04, months) * 0.92;
-      $('#back').text(Math.round(back));
+      $('#back').text('$' + Math.round(back));
       var $profit = $('#profit');
-      $profit.text(Math.round(back - spend));
+      $profit.text('$' + Math.round(back - spend));
       if (back > spend) {
         $profit.removeClass('red').addClass('green');
       } else {
