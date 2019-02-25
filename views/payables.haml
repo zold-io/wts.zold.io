@@ -14,6 +14,7 @@
       %col{style: 'width: 5em'}
       %col{style: 'width: 5em'}
       %col{style: 'width: 3em'}
+      %col{style: ''}
     %thead
       %tr
         %th
@@ -30,11 +31,12 @@
           %td
             %code
               %a{href: "http://www.zold.io/ledger.html?wallet=#{p[:id]}"}= p[:id]
-          %td
-          %td.right
+          %td.right{title: p[:balance].to_i.to_s}
             = p[:balance].to_zld
           %td{title: p[:updated].utc.iso8601}
             = Zold::Age.new(p[:updated])
           %td
             %a{href: "http://#{p[:node]}/wallet/#{p[:id]}.txt"}= p[:node]
-
+  %p
+    Total visible balance is:
+    = payables.balance.to_zld

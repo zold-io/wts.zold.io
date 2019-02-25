@@ -57,7 +57,7 @@ class Payables
   end
 
   # Fetch some balances
-  def update(max: 100)
+  def update(max: 512)
     start = Time.now
     ids = Queue.new
     @pgsql.exec('SELECT id FROM payable ORDER BY updated LIMIT $1', [max]).map { |r| r['id'] }.take(max).each do |id|
@@ -94,5 +94,10 @@ class Payables
         node: r['node']
       }
     end
+  end
+
+  # Total visible balance
+  def balance
+    Zold::Amount.new(zents: @pgsql.exec('SELECT SUM(balance) FROM payable')[0]['sum'].to_i)
   end
 end
