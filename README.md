@@ -134,7 +134,7 @@ You may register up to 8 callbacks in one account.
 
 ## Mobile API
 
-If you want to create a mobile client, you may use our mobile API with two
+If you want to create a mobile client, you may use our mobile API with a few
 access points (the phone should be in
 [E.164](https://en.wikipedia.org/wiki/E.164) format, numbers only):
 
@@ -146,6 +146,14 @@ access points (the phone should be in
     returns `200` and the API access token in the body.
     The `code` is the code from the SMS.
     If something is wrong, a non-200 code will be returned
+
+  * `GET /keygap` (with the auth token in `X-Zold-WTS`: returns 200 with the
+    keygap of the user. You have to show it to the client and make
+    sure the client confirms that the keygap is safely stored.
+
+  * `GET /do-confirm?keygap=...&noredirect=1`: deletes the keygap
+    from our database and allows the user to work with the wallet.
+    Returns 200 if everything is OK.
 
 Then, when you have the API token, you can manage the account of the user,
 using the `X-Zold-Wts` HTTP header (see above).
