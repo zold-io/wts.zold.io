@@ -32,6 +32,7 @@ class Daemon
 
   def run(min = 1)
     Thread.new do
+      sleep(10) # to let the code of wts.rb load into Ruby interpreter
       loop do
         begin
           yield
