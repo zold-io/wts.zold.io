@@ -147,11 +147,11 @@ access points (the phone should be in
     The `code` is the code from the SMS.
     If something is wrong, a non-200 code will be returned
 
-  * `GET /keygap` (with the auth token in `X-Zold-WTS`: returns 200 with the
+  * `GET /keygap` (with the auth token in `X-Zold-WTS` HTTP header, of course): returns 200 with the
     keygap of the user. You have to show it to the client and make
     sure the client confirms that the keygap is safely stored.
 
-  * `GET /do-confirm?keygap=...&noredirect=1`: deletes the keygap
+  * `GET /do-confirm?keygap=...&noredirect=1` (also with the `X-Zold-WTS` HTTP header): deletes the keygap
     from our database and allows the user to work with the wallet.
     Returns 200 if everything is OK.
 
