@@ -18,6 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require 'time'
 require 'zold/http'
 require 'zold/amount'
 require 'zold/id'
@@ -87,7 +88,8 @@ class Payables
     @pgsql.exec('SELECT * FROM payable ORDER BY balance DESC LIMIT $1', [max]).map do |r|
       {
         id: Zold::Id.new(r['id']),
-        balance: Zold::Amount.new(zents: r['balance'].to_i)
+        balance: Zold::Amount.new(zents: r['balance'].to_i),
+        updated: Time.parse(r['updated'])
       }
     end
   end
