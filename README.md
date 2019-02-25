@@ -30,7 +30,7 @@ Then, say, you want to send some zolds to `@yegor256`, your token is
 You do the following HTTP request:
 
 ```
-POST /do-pay HTTP/1.1
+POST /do-pay?noredirect=1 HTTP/1.1
 Content-Type: application/x-www-form-urlencoded
 Host: wts.zold.io
 X-Zold-Wts: user-111222333444
@@ -41,7 +41,7 @@ You can do the same from the command line, using
 [curl](https://en.wikipedia.org/wiki/CURL):
 
 ```bash
-curl https://wts.zold.io/do-pay \
+curl https://wts.zold.io/do-pay?noredirect=1 \
   --request POST \
   --header "Content-Type: application/x-www-form-urlencoded" \
   --header "X-Zold-Wts: user-111222333444" \
@@ -51,10 +51,14 @@ curl https://wts.zold.io/do-pay \
   --data "keygap=84Hjsow9"
 ```
 
-You will get `302`
-response no matter what. The `X-Zold-Job` header of the response will
-contain the ID of the job, which is executed on the server. Later,
-you can check the status of the job via the `/job` entry point, using its ID.
+You will get `200` response if the payment processing has been started.
+The `X-Zold-Job` header of the response will
+contain the ID of the job, which is executed on the server.
+Later, you can check the status of the job via the `/job` entry point, using its ID.
+
+If you get non-200 response, check the `X-Zold-Error` response HTTP header,
+it will explain the problem with a more or less human-readable error message.
+The response body will contain Ruby stacktrace
 
 There are more entry points:
 
