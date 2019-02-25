@@ -86,7 +86,7 @@ class Payables
   end
 
   def fetch(max: 100)
-    @pgsql.exec('SELECT * FROM payable ORDER BY balance DESC LIMIT $1', [max]).map do |r|
+    @pgsql.exec('SELECT * FROM payable ORDER BY ABS(balance) DESC LIMIT $1', [max]).map do |r|
       {
         id: Zold::Id.new(r['id']),
         balance: Zold::Amount.new(zents: r['balance'].to_i),
@@ -98,6 +98,11 @@ class Payables
 
   # Total visible balance
   def balance
-    Zold::Amount.new(zents: @pgsql.exec('SELECT SUM(balance) FROM payable')[0]['sum'].to_i)
+    Zold::Amount.new(zents: @pgsql.exec('SELECT SUM(ABS(balance)) FROM payable')[0]['sum'].to_i)
+  end
+
+  # Total visible and recently updated wallets
+  def total
+    @pgsql.exec('SELECT COUNT(balance) FROM payable WHERE updated > NOW() - INTERVAL \'30 DAYS\'')[0]['count'].to_i
   end
 end

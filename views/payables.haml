@@ -38,5 +38,8 @@
           %td
             %a{href: "http://#{p[:node]}/wallet/#{p[:id]}.txt"}= p[:node]
   %p
-    Total visible balance is:
-    = payables.balance.to_zld
+    Total visible balance is
+    %strong= payables.balance.to_zld
+    in
+    %strong= payables.total
+    wallets.
