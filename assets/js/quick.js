@@ -47,7 +47,7 @@ function wts_recalc() {
       $('#zld').text(Math.round(zld));
       var spend = zld * rate
       $('#spend').text('$' + Math.round(spend));
-      var back = spend * Math.pow(1.04, months) * 0.92;
+      var back = spend * Math.pow(1.04, months) * Math.pow(1.1, months) * 0.92;
       $('#back').text('$' + Math.round(back));
       var $profit = $('#profit');
       $profit.text('$' + Math.round(back - spend));
