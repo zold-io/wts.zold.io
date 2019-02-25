@@ -1,5 +1,6 @@
 %script{src: 'https://code.jquery.com/jquery-3.3.1.min.js'}
 %script{src: '/js/quick.js'}
+%link{type: 'text/css', href: url('css/quick.css'), rel: 'stylesheet'}
 
 %h1
   Convert Your Bitcoins to Zolds and Make 4% Each Month Guaranteed:
@@ -41,29 +42,69 @@
   of Zold is to help the world of software developers get rid of
   boring and ineffective management.
 
-%p{id: 'step1'}
-  How much are you going to convert:
-  %input{type: 'number', id: 'btc', oninput: 'wts_recalc();', style: 'width:5em', autocomplete: 'off', required: true, tabindex: 1, autofocus: true, value: '0.1'}
-  BTC
-  (you will get
-  %span{id: 'zld'}
-  ZLD).
-  %br
-  For how long you will
-  = succeed ':' do
-    %a{href: 'https://en.wikipedia.org/wiki/Hodl'} hodl
-  %input{type: 'number', id: 'months', oninput: 'wts_recalc();', style: 'width:3em', autocomplete: 'off', required: true, tabindex: 2, value: '6'}
-  months.
-  %br
-  You will spend
-  %span{id: 'spend'}
-  now and will get
-  %span{id: 'back'}
-  back.
-  Your profit will be
-  = succeed ',' do
-    %span{id: 'profit'}
-  %a{href: 'https://blog.zold.io/2019/01/16/make-me-rich.html'} Why?
+%table.quick
+  %colgroup
+    %col{style: 'width: 12em'}
+    %col{style: ''}
+  %tbody
+    %tr
+      %td.right
+        You convert now:
+      %td
+        %input{type: 'number', id: 'btc', oninput: 'wts_recalc();', style: 'width:5em', autocomplete: 'off', required: true, tabindex: 1, autofocus: true, value: '0.1'}
+        BTC
+        ➜
+        %span{id: 'zld'}
+        ZLD
+    %tr
+      %td.right
+        You
+        %a{href: 'https://en.wikipedia.org/wiki/Hodl'} hodl
+        for:
+      %td
+        %input{type: 'number', id: 'months', oninput: 'wts_recalc();', style: 'width:3em', autocomplete: 'off', required: true, tabindex: 2, value: '6'}
+        months
+
+%table.quick.pl
+  %colgroup
+    %col{style: 'width: 12em'}
+    %col{style: ''}
+    %col{style: ''}
+  %tbody
+    %tr
+      %td.right
+        Total investment:
+      %td.right
+        %span{id: 'spend'}
+    %tr
+      %td.right
+        Zerocracy increment:
+      %td.right.green
+        %span{id: 'zc_input'}
+      %td
+        %a{href: 'https://blog.zold.io/2019/01/16/make-me-rich.html'} Why?
+    %tr
+      %td.right
+        Bitcoin rate growth:
+      %td.right.green
+        %span{id: 'btc_growth'}
+      %td
+        = '~10%/month'
+    %tr
+      %td.right
+        Gross return:
+      %td.right.green
+        %span{id: 'gross'}
+    %tr
+      %td.right
+        Exchange fee:
+      %td.right.red
+        %span{id: 'fee'}
+    %tr
+      %td.right
+        Net profit:
+      %td.right{style: 'border: 1px solid gray;'}
+        %span{id: 'net'}
 
 %p{id: 'step2', style: 'display: none'}
   In order to create an account we have to identify you first.

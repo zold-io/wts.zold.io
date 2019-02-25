@@ -867,7 +867,7 @@ get '/rate.json' do
     JSON.pretty_generate(
       valid: false,
       effective_rate: rate,
-      usd_rate: 1.11 # just for testing
+      usd_rate: 1.0 # just for testing
     )
   end
 end

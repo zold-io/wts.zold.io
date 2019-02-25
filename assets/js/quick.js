@@ -22,17 +22,25 @@
 
 function wts_info(text) {
   $('#error').removeClass('red').text('INFO: ' + text);
+  $('#button').removeAttr('disabled');
 }
 
 function wts_error(xhr) {
+  var msg;
+  if (typeof xhr == 'string') {
+    msg = xhr;
+  } else {
+    msg = xhr.getResponseHeader('X-Zold-Error');
+  }
   $('#error').addClass('red').html(
-    'ERROR: <strong>' + xhr.getResponseHeader('X-Zold-Error') + '</strong>. If the description of the ' +
+    'ERROR: <strong>' + msg + '</strong>. If the description of the ' +
     'error doesn\'t help, most likely this ' +
     'is our internal problem. Try to reload this page and start from scratch. ' +
     'If this doesn\'t help, please submit a ticket to our '+
     '<a href="https://github.com/zold-io/wts.zold.io">GitHub repository</a> or ' +
     'seek help in our <a href="https://t.me/zold_io">Telegram group</a>.'
   );
+  $('#button').attr('disabled', true);
 }
 
 function wts_recalc() {
@@ -43,21 +51,35 @@ function wts_recalc() {
     success: function(json) {
       var rate = json.usd_rate;
       var btc = parseFloat($('#btc').val());
+      if (btc > 999) {
+        wts_error('That\'s too much');
+        return;
+      }
       var months = parseFloat($('#months').val());
+      if (months > 60) {
+        wts_error('That\'s too long');
+        return;
+      }
       var zld = btc / json.effective_rate;
       $('#zld').text(Math.round(zld));
       var spend = zld * rate
-      $('#spend').text('$' + Math.round(spend));
-      var back = spend * Math.pow(1.04, months) * Math.pow(1.1, months) * 0.92;
-      $('#back').text('$' + Math.round(back));
-      var $profit = $('#profit');
-      $profit.text('$' + Math.round(back - spend));
-      if (back > spend) {
-        $profit.removeClass('red').addClass('green');
+      $('#spend').text('$' + spend.toFixed(2));
+      var zc_input = spend * Math.pow(1.04, months) - spend;
+      $('#zc_input').text('$' + zc_input.toFixed(2));
+      var btc_growth = spend * Math.pow(1.1, months) - spend;
+      $('#btc_growth').text('$' + btc_growth.toFixed(2));
+      var gross = (spend + btc_growth + zc_input);
+      $('#gross').text('$' + gross.toFixed(2));
+      var fee = -1 * gross * 0.08;
+      $('#fee').text('$' + fee.toFixed(2));
+      var net = gross + fee - spend;
+      $('#net').text('$' + net.toFixed(2));
+      if (net > 0) {
+        $('#net').removeClass('red').addClass('green');
       } else {
-        $profit.addClass('red').removeClass('green');
+        $('#net').addClass('red').removeClass('green');
       }
-      wts_info('The current rate of $' + rate + '/ZLD loaded')
+      wts_info('The current rate of ' + json.effective_rate + 'BTC/ZLD and $' + json.usd_rate + '/ZLD loaded')
     },
     error: function(xhr) {
       wts_error(xhr);
