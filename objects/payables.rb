@@ -89,7 +89,8 @@ class Payables
       {
         id: Zold::Id.new(r['id']),
         balance: Zold::Amount.new(zents: r['balance'].to_i),
-        updated: Time.parse(r['updated'])
+        updated: Time.parse(r['updated']),
+        node: r['node']
       }
     end
   end

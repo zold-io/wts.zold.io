@@ -22,6 +22,8 @@
           Balance
         %th
           Updated
+        %th
+          Found at
     %tbody
       - list.each do |p|
         %tr
@@ -30,7 +32,9 @@
               %a{href: "http://www.zold.io/ledger.html?wallet=#{p[:id]}"}= p[:id]
           %td
           %td.right
-            = p[:amount].to_zld
+            = p[:balance].to_zld
           %td{title: p[:updated].utc.iso8601}
+            = Zold::Age.new(p[:updated])
+          %td
             = Zold::Age.new(p[:updated])
 
