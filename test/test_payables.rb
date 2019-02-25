@@ -20,19 +20,30 @@
 
 require 'minitest/autorun'
 require 'webmock/minitest'
+require 'zold/remotes'
 require 'zold/amount'
 require_relative 'test__helper'
 require_relative '../objects/pgsql'
-require_relative '../objects/payouts'
+require_relative '../objects/payables'
 
-class PayoutsTest < Minitest::Test
-  def test_register_and_check
-    WebMock.allow_net_connect!
-    payouts = Payouts.new(Pgsql::TEST.start, log: test_log)
-    login = 'yegor256'
-    payouts.add(login, Zold::Id::ROOT.to_s, Zold::Amount.new(zld: 16.0), 'just for fun')
-    assert_equal(1, payouts.fetch(login).count)
-    assert(payouts.fetch_all.count >= 1)
-    assert(payouts.allowed?(login, Zold::Amount.new(zld: 3.0)))
+class PayablesTest < Minitest::Test
+  def test_add_and_fetch
+    WebMock.disable_net_connect!
+    Dir.mktmpdir 'test' do |dir|
+      remotes = Zold::Remotes.new(file: File.join(dir, 'remotes.csv'))
+      remotes.clean
+      stub_request(:get, 'http://b2.zold.io:4096/wallets').to_return(
+        status: 200, body: '0000111122223333'
+      )
+      remotes.add('b2.zold.io', 4096)
+      stub_request(:get, 'http://b2.zold.io:4096/wallet/0000111122223333/balance').to_return(
+        status: 200, body: '1234567'
+      )
+      payables = Payables.new(Pgsql::TEST.start, remotes, log: test_log)
+      payables.discover
+      assert_equal(1, payables.fetch.count)
+      payables.update
+      assert_equal(Zold::Amount.new(zents: 1_234_567), payables.fetch[0][:balance])
+    end
   end
 end

@@ -1,0 +1,36 @@
+%h2
+  Payables
+
+- list = payables.fetch
+
+- if list.empty?
+  %p
+    There are no wallets.
+- else
+  %p
+    The largest wallets in the network:
+  %table.compact
+    %colgroup
+      %col{style: 'width: 5em'}
+      %col{style: 'width: 5em'}
+      %col{style: 'width: 3em'}
+    %thead
+      %tr
+        %th
+          Wallet
+        %th
+          Balance
+        %th
+          Updated
+    %tbody
+      - list.each do |p|
+        %tr
+          %td
+            %code
+              %a{href: "http://www.zold.io/ledger.html?wallet=#{p[:id]}"}= p[:id]
+          %td
+          %td.right
+            = p[:amount].to_zld
+          %td{title: p[:updated].utc.iso8601}
+            = Zold::Age.new(p[:updated])
+

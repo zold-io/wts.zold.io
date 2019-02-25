@@ -44,6 +44,7 @@ require 'zold/sync_wallets'
 require 'zold/cached_wallets'
 require_relative 'version'
 require_relative 'objects/callbacks'
+require_relative 'objects/payables'
 require_relative 'objects/smss'
 require_relative 'objects/payouts'
 require_relative 'objects/daemon'
@@ -168,6 +169,7 @@ configure do
     password: settings.config['pgsql']['password']
   ).start(1)
   set :gl, Gl.new(settings.pgsql, log: settings.log)
+  set :payables, Payables.new(settings.pgsql, settings.remotes, log: settings.log)
   set :payouts, Payouts.new(settings.pgsql, log: settings.log)
   set :callbacks, Callbacks.new(settings.pgsql, log: settings.log)
   set :codec, GLogin::Codec.new(config['api_secret'])
@@ -236,6 +238,10 @@ and dated of #{t[:date].utc.iso8601}")
         end
       end
     end
+  end
+  Daemon.new(settings.log).run(10) do
+    settings.payables.discover
+    settings.payables.update
   end
   settings.telepost.spam(
     '[WTS](https://wts.zold.io) server software',
@@ -920,6 +926,13 @@ get '/mobile/token' do
   end
   cookies[:wts] = token
   flash('/home', 'You have been logged in successfully')
+end
+
+get '/payables' do
+  haml :payables, layout: :layout, locals: merged(
+    page_title: 'Payables',
+    payables: settings.payables
+  )
 end
 
 get '/gl' do
