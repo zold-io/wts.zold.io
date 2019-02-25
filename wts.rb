@@ -919,6 +919,7 @@ get '/mobile/token' do
   raise UserError, "Invalid code #{mcode.inspect}, must be four digits" unless /^[0-9]{4}$/.match?(mcode)
   u = user(phone.to_s)
   raise UserError, 'Mobile code mismatch' unless u.item.mcode == mcode.to_i
+  u.item.mcode_remove
   token = "#{u.login}-#{u.item.token}"
   if params[:noredirect]
     content_type 'text/plain'

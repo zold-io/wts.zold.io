@@ -135,6 +135,13 @@ keygap is '#{keygap[0, 2]}#{'.' * (keygap.length - 2)}'")
     @aws.put_item(table_name: 'zold-wallets', item: item)
   end
 
+  # Destroys existing mobile code.
+  def mcode_remove
+    item = read
+    item.delete['mcode']
+    @aws.put_item(table_name: 'zold-wallets', item: item)
+  end
+
   # API token, if exists. Otherwise, resets it.
   def token
     item = read

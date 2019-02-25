@@ -40,6 +40,7 @@ class Payables
   # Discover
   def discover
     start = Time.now
+    @pgsql.exec('DELETE FROM payable WHERE updated < NOW() - INTERVAL \'30 DAYS\'')
     @remotes.iterate(@log) do |r|
       next unless r.master?
       res = r.http('/wallets').get
