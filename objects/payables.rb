@@ -98,7 +98,7 @@ class Payables
 
   # Total visible balance
   def balance
-    Zold::Amount.new(zents: @pgsql.exec('SELECT SUM(ABS(balance)) FROM payable')[0]['sum'].to_i)
+    Zold::Amount.new(zents: @pgsql.exec('SELECT SUM(balance) FROM payable WHERE balance > 0')[0]['sum'].to_i)
   end
 
   # Total visible and recently updated wallets

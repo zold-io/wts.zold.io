@@ -37,9 +37,12 @@
             = Zold::Age.new(p[:updated])
           %td
             %a{href: "http://#{p[:node]}/wallet/#{p[:id]}.txt"}= p[:node]
+  - balance = payables.balance
   %p
     Total visible balance is
-    %strong= payables.balance.to_zld
+    %strong= balance.to_zld
     in
-    %strong= payables.total
-    wallets.
+    = payables.total
+    wallets, which is worth around
+    = (balance.to_f * rate).round(2)
+    bitcoins.
