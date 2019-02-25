@@ -44,7 +44,7 @@ class Payables
       next unless r.master?
       res = r.http('/wallets').get
       r.assert_code(200, res)
-      ids = res.body.strip.split("\n").compact
+      ids = res.body.strip.split("\n").compact.select { |i| /^[a-f0-9]{16}$/.match?(i) }
       ids.each do |id|
         @pgsql.exec(
           'INSERT INTO payable (id, node) VALUES ($1, $2) ON CONFLICT (id) DO NOTHING',

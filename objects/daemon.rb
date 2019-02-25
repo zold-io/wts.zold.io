@@ -33,13 +33,13 @@ class Daemon
   def run(min = 1)
     Thread.new do
       loop do
-        sleep(min * 60)
         begin
           yield
         rescue StandardError => e
           Raven.capture_exception(e)
           @log.error(Backtrace.new(e))
         end
+        sleep(min * 60)
       end
     end
   end

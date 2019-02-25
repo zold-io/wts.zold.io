@@ -39,11 +39,11 @@ class Smss
       'SELECT COUNT(*) FROM sms WHERE phone = $1 AND created > NOW() - INTERVAL \'4 HOURS\' ',
       [phone]
     )[0]['count'].to_i
-    if recent > 3 && ENV['RACK_ENV'] != 'test'
+    if recent > 16 && ENV['RACK_ENV'] != 'test'
       raise UserError, 'We\'ve sent too many of them already, wait for a few hours and try again'
     end
     total = @pgsql.exec('SELECT COUNT(*) FROM sms WHERE created > NOW() - INTERVAL \'4 HOURS\'')[0]['count'].to_i
-    if total > 50 && ENV['RACK_ENV'] != 'test'
+    if total > 256 && ENV['RACK_ENV'] != 'test'
       raise UserError, 'We\'ve sent too many of them already, we have to relax for a while'
     end
     rid = 999

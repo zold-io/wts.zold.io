@@ -889,7 +889,7 @@ end
 get '/mobile/send' do
   phone = params[:phone]
   raise UserError, 'Mobile phone number is required' if phone.nil?
-  raise UserError, "Invalid phone #{phone.inspect}" unless /^[0-9]+$/.match?(phone)
+  raise UserError, "Invalid phone #{phone.inspect}, must be digits only as in E.164" unless /^[0-9]+$/.match?(phone)
   raise UserError, 'The phone shouldn\'t start with zeros' if /^0+/.match?(phone)
   phone = phone.to_i
   u = user(phone.to_s)
@@ -911,12 +911,12 @@ end
 get '/mobile/token' do
   phone = params[:phone]
   raise UserError, 'Mobile phone number is required' if phone.nil?
-  raise UserError, "Invalid phone #{phone.inspect}" unless /^[0-9]+$/.match?(phone)
+  raise UserError, "Invalid phone #{phone.inspect}, must be digits only as in E.164" unless /^[0-9]+$/.match?(phone)
   raise UserError, 'The phone shouldn\'t start with zeros' if /^0+/.match?(phone)
   phone = phone.to_i
   mcode = params[:code]
   raise UserError, 'Mobile confirmation code is required' if mcode.nil?
-  raise UserError, "Invalid code #{mcode.inspect}" unless /^[0-9]{4}$/.match?(mcode)
+  raise UserError, "Invalid code #{mcode.inspect}, must be four digits" unless /^[0-9]{4}$/.match?(mcode)
   u = user(phone.to_s)
   raise UserError, 'Mobile code mismatch' unless u.item.mcode == mcode.to_i
   token = "#{u.login}-#{u.item.token}"
