@@ -69,6 +69,10 @@ see this happening! #{e.message}"
       return if ENV['RACK_ENV'] == 'test'
       raise UserError, "There are no visible remote nodes, can\'t PUSH #{id}"
     end
+    unless @wallets.acq(id, &:exists?)
+      raise UserError, "The wallet #{id} of #{@user.login} is absent, can't PUSH; \
+most probably you just have to RESTART your wallet"
+    end
     require 'zold/commands/push'
     begin
       Zold::Push.new(wallets: @wallets, remotes: @remotes, log: @log).run(
