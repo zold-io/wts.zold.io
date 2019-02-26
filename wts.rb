@@ -249,7 +249,7 @@ and dated of #{t[:date].utc.iso8601}")
     settings.payables.update
   end
   Daemon.new(settings.log).run(10) do
-    settings.ticks.add('Volume24' => settings.gl.volume.to_f)
+    settings.ticks.add('Volume24' => settings.gl.volume.to_f) unless settings.ticks.exists?('Volume24')
   end
   settings.telepost.spam(
     '[WTS](https://wts.zold.io) server software',
