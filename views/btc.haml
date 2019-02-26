@@ -45,6 +45,8 @@
     = succeed '!' do
       %strong= "#{(30 - (Time.now - settings.addresses.mtime(confirmed_user.login)) / 60).round} minutes"
     When the payment is received, you will find a new address for the next payment, at this page.
+    %strong.red Don't
+    sent more than one payment to the same address!
 
 %p
   To

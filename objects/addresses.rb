@@ -91,7 +91,7 @@ class Addresses
 
   # Get BTC assignment time.
   def mtime(login)
-    Time.at(@pgsql.exec('SELECT assigned FROM address WHERE login = $1', [login])[0]['assigned'].to_i)
+    Time.parse(@pgsql.exec('SELECT assigned FROM address WHERE login = $1', [login])[0]['assigned'])
   end
 
   # Is something already arrived to this address?
