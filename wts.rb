@@ -987,7 +987,10 @@ error do
     settings.log.error("#{request.url}: #{e.message}")
     body(Backtrace.new(e).to_s)
     headers['X-Zold-Error'] = e.message[0..256]
-    return Backtrace.new(e).to_s if params[:noredirect]
+    if params[:noredirect]
+      content_type 'text/plain', charset: 'utf-8'
+      return Backtrace.new(e).to_s
+    end
     flash('/', e.message, error: true)
   end
   status 503
