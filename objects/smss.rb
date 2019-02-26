@@ -36,7 +36,7 @@ class Smss
   # Send a new SMS
   def send(phone, msg)
     recent = @pgsql.exec(
-      'SELECT COUNT(*) FROM sms WHERE phone = $1 AND created > NOW() - INTERVAL \'4 HOURS\' ',
+      'SELECT COUNT(*) FROM sms WHERE phone = $1 AND created > NOW() - INTERVAL \'4 HOURS\'',
       [phone]
     )[0]['count'].to_i
     if recent > 16 && ENV['RACK_ENV'] != 'test'

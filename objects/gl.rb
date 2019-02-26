@@ -70,6 +70,14 @@ class Gl
     end
   end
 
+  def volume(hours = 24)
+    Zold::Amount.new(
+      zents: @pgsql.exec(
+        "SELECT SUM(amount) FROM txn WHERE date > NOW() - INTERVAL \'#{hours} HOURS\'"
+      )[0]['sum'].to_i
+    )
+  end
+
   private
 
   def map(r)

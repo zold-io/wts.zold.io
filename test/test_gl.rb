@@ -71,4 +71,9 @@ class GlTest < Minitest::Test
       assert_equal('for pizza', row[:details], row)
     end
   end
+
+  def test_calc_volume
+    gl = Gl.new(Pgsql::TEST.start, log: test_log)
+    assert(!gl.volume(4).nil?)
+  end
 end
