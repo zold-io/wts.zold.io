@@ -21,20 +21,20 @@
 require 'backtrace'
 
 #
-# Job that reports its result to Zache.
+# Job that reports its result to SQL.
 #
-class ZacheJob
-  def initialize(job, key, zache)
+class TrackedJob
+  def initialize(job, id, jobs)
     @job = job
-    @key = key
-    @zache = zache
+    @id = id
+    @jobs = jobs
   end
 
   def call
     @job.call
-    @zache.put(@key, 'OK', lifetime: 60 * 60)
+    @jobs.update(id, 'OK')
   rescue StandardError => e
-    @zache.put(@key, Backtrace.new(e).to_s, lifetime: 4 * 60 * 60)
+    @jobs.update(id, Backtrace.new(e).to_s)
     raise e
   end
 end

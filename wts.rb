@@ -46,6 +46,7 @@ require_relative 'version'
 require_relative 'objects/toggles'
 require_relative 'objects/callbacks'
 require_relative 'objects/addresses'
+require_relative 'objects/jobs'
 require_relative 'objects/payables'
 require_relative 'objects/mcodes'
 require_relative 'objects/smss'
@@ -66,8 +67,8 @@ require_relative 'objects/pgsql'
 require_relative 'objects/async_job'
 require_relative 'objects/safe_job'
 require_relative 'objects/update_job'
+require_relative 'objects/tracked_job'
 require_relative 'objects/clean_job'
-require_relative 'objects/zache_job'
 require_relative 'objects/versioned_job'
 require_relative 'objects/file_log'
 require_relative 'objects/tee_log'
@@ -174,12 +175,12 @@ configure do
   set :toggles, Toggles.new(settings.pgsql, log: settings.log)
   set :addresses, Addresses.new(settings.pgsql, log: settings.log)
   set :hashes, Hashes.new(settings.pgsql, log: settings.log)
+  set :jobs, Jobs.new(settings.pgsql, log: settings.log)
   set :mcodes, Mcodes.new(settings.pgsql, log: settings.log)
   set :payouts, Payouts.new(settings.pgsql, log: settings.log)
   set :callbacks, Callbacks.new(settings.pgsql, log: settings.log)
   set :codec, GLogin::Codec.new(config['api_secret'])
   set :zache, Zache.new(dirty: true)
-  set :jobs, Zache.new
   set :ticks, Ticks.new(settings.dynamo, log: settings.log)
   set :pool, Concurrent::FixedThreadPool.new(16, max_queue: 64, fallback_policy: :abort)
   if settings.config['coinbase']['key'].empty?
@@ -790,10 +791,10 @@ post '/do-sell' do
 end
 
 get '/job' do
-  uuid = params['id']
-  raise UserError, "Job ID #{uuid} is not found" unless settings.jobs.exists?(uuid)
+  id = params['id']
+  raise UserError, "Job ID #{id} is not found" unless settings.jobs.exists?(id)
   content_type 'text/plain', charset: 'utf-8'
-  settings.jobs.get(uuid)
+  settings.jobs.read(id)
 end
 
 get '/log' do
@@ -1146,11 +1147,10 @@ def ops(u = user, log: log(u.login))
 end
 
 def job(u = user)
-  uuid = SecureRandom.uuid
-  settings.jobs.put(uuid, 'Running', lifetime: 60 * 60)
+  jid = settings.jobs.start
   lg = log(u.login)
   job = SafeJob.new(
-    ZacheJob.new(
+    TrackedJob.new(
       VersionedJob.new(
         CleanJob.new(
           UpdateJob.new(
@@ -1165,14 +1165,14 @@ def job(u = user)
         ),
         log: lg
       ),
-      uuid,
+      jid,
       settings.jobs
     ),
     log: lg
   )
   job = AsyncJob.new(job, settings.pool, latch(u.login)) unless ENV['RACK_ENV'] == 'test'
   job.call
-  uuid
+  jid
 end
 
 def pay_hosting_bonuses(boss)
