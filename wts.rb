@@ -721,7 +721,6 @@ post '/do-sell' do
   raise UserError, 'Bitcoin address is not provided' if params[:btc].nil?
   raise UserError, 'Keygap is not provided' if params[:keygap].nil?
   amount = Zold::Amount.new(zld: params[:amount].to_f)
-  raise UserError, "The amount #{amount} is too large for us now" if amount > sell_limit
   address = params[:btc]
   raise UserError, "Bitcoin address is not valid: #{address.inspect}" unless address =~ /^[a-zA-Z0-9]+$/
   raise UserError, 'Bitcoin address must start with 1, 3 or bc1' unless address =~ /^(1|3|bc1)/
@@ -1010,10 +1009,6 @@ end
 
 def fee
   known? ? 0.02 : 0.08
-end
-
-def sell_limit
-  Zold::Amount.new(zld: 32.0)
 end
 
 def title(suffix = '')

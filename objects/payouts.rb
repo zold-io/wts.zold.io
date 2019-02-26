@@ -61,14 +61,14 @@ amount #{amount}, and details: \"#{details}\"")
         [login]
       )[0]['sum'].to_i
     )
-    return false if daily + amount > Zold::Amount.new(zld: 32.0)
+    return false if daily + amount > Zold::Amount.new(zld: 128.0)
     weekly = Zold::Amount.new(
       zents: @pgsql.exec(
         'SELECT SUM(zents) FROM payout WHERE login = $1 AND created > NOW() - INTERVAL \'7 DAYS\'',
         [login]
       )[0]['sum'].to_i
     )
-    return false if weekly + amount > Zold::Amount.new(zld: 256.0)
+    return false if weekly + amount > Zold::Amount.new(zld: 1024.0)
     monthly = Zold::Amount.new(
       zents: @pgsql.exec(
         'SELECT SUM(zents) FROM payout WHERE login = $1 AND created > NOW() - INTERVAL \'31 DAYS\'',
