@@ -430,7 +430,7 @@ end
 
 post '/do-pay' do
   raise UserError, 'This feature is temporarily disabled' unless settings.toggles.get('stop:do-pay').empty?
-  if settings.toggles.get('banned').split(',').include?(confirmed_user.login)
+  if settings.toggles.get('ban:do-pay').split(',').include?(confirmed_user.login)
     raise UserError, 'You are not allowed to send any payments at the moment, sorry'
   end
   raise UserError, 'Parameter "bnf" is not provided' if params[:bnf].nil?
@@ -729,7 +729,7 @@ post '/do-sell' do
   unless settings.payouts.allowed?(user.login, amount)
     raise UserError, "With #{amount} you are going over your limits, sorry"
   end
-  if settings.toggles.get('banned').split(',').include?(user.login)
+  if settings.toggles.get('ban:do-sell').split(',').include?(user.login)
     raise UserError, 'You are not allowed to sell any ZLD at the moment, sorry'
   end
   price = settings.btc.price
