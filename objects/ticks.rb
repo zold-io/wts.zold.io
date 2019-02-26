@@ -25,19 +25,6 @@ require_relative 'pgsql'
 # Ticks in AWS DynamoDB.
 #
 class Ticks
-  def self.transfer(pgsql, aws, keys)
-    aws.scan(table_name: 'zold-ticks', select: 'ALL_ATTRIBUTES').items.each do |i|
-      time = Time.at(i['time'] / 1000)
-      i.each do |k, v|
-        next unless keys.include?(k)
-        pgsql.exec(
-          'INSERT INTO tick (key, value, created) VALUES ($1, $2, $3) ON CONFLICT (key, created) DO NOTHING',
-          [k, v, time]
-        )
-      end
-    end
-  end
-
   def initialize(pgsql, log: Zold::Log::NULL)
     @pgsql = pgsql
     @log = log
