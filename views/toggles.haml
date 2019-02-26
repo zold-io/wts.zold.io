@@ -2,8 +2,8 @@
   Feature Toggles
 
 %form{method: 'POST', action: '/set-toggle'}
-  %input{type: 'text', name: 'key', placeholder: 'Key', size: 12, autocomplete: 'off', required: true, tabindex: 1, autofocus: true}
-  %input{type: 'text', name: 'value', placeholder: 'Value', size: 35, autocomplete: 'off', required: true, tabindex: 2}
+  %input{type: 'text', name: 'key', placeholder: 'Key', size: 20, autocomplete: 'off', required: true, tabindex: 1, autofocus: true}
+  %input{type: 'text', name: 'value', placeholder: 'Value', size: 40, autocomplete: 'off', tabindex: 2}
   %input{type: 'submit', onclick: "return confirm('Are you sure?')", tabindex: 3, value: 'Set'}
 
 %p
@@ -19,9 +19,9 @@
       %th
         Key
       %th
-        Value
-      %th
         Updated
+      %th
+        Value
   %tbody
     - toggles.list.each do |t|
       %tr
