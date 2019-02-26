@@ -710,7 +710,7 @@ get '/queue' do
   end.join("\n")
   Ticks.transfer(
     settings.pgsql, settings.dynamo,
-    'Fund', 'Emission', 'Office', 'Rate', 'Coverage', 'Deficit', 'Price', 'Value', 'Pledge'
+    %w[Fund Emission Office Rate Coverage Deficit Price Value Pledge]
   )
 end
 
