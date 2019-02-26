@@ -39,6 +39,7 @@ class AddressesTest < Minitest::Test
     addresses.arrived(btc2, john)
     assert(addresses.arrived?(john))
     assert(!addresses.mtime(john).nil?)
+    addresses.destroy(btc2, john)
   end
 
   def test_swaps

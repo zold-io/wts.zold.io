@@ -75,7 +75,7 @@ class Addresses
   def destroy(hash, login)
     owner = find_user(hash)
     raise UserError, "The hash #{hash} doesn't belong to #{login}, but instead to #{owner}" unless owner == login
-    r = @pgsql.exec('SELECT * FROM address WHERE hash = $1', [hash])
+    r = @pgsql.exec('SELECT * FROM address WHERE hash = $1', [hash])[0]
     raise UserError, "The hash #{hash} hasn't arrived, why destroying?" unless r['arrived']
     @pgsql.exec('DELETE FROM address WHERE hash = $1', [hash])
   end

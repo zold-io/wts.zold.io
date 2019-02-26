@@ -885,12 +885,6 @@ get '/mobile/send' do
   raise UserError, "Invalid phone #{phone.inspect}, must be digits only as in E.164" unless /^[0-9]+$/.match?(phone)
   raise UserError, 'The phone shouldn\'t start with zeros' if /^0+/.match?(phone)
   phone = phone.to_i
-  u = user(phone.to_s)
-  u.create unless u.item.exists?
-  job(u) do
-    log(u).info("Just created a new wallet #{u.item.id}, going to push it...")
-    ops(u).push
-  end
   mcode = rand(1000..9999)
   settings.mcodes.set(phone, mcode)
   cid = settings.smss.send(phone, "Your authorization code for wts.zold.io is: #{mcode}")
@@ -910,9 +904,14 @@ get '/mobile/token' do
   mcode = params[:code]
   raise UserError, 'Mobile confirmation code is required' if mcode.nil?
   raise UserError, "Invalid code #{mcode.inspect}, must be four digits" unless /^[0-9]{4}$/.match?(mcode)
-  u = user(phone.to_s)
   raise UserError, 'Mobile code mismatch' unless settings.mcodes.get(phone) == mcode.to_i
   settings.mcodes.remove(phone)
+  u = user(phone.to_s)
+  u.create unless u.item.exists?
+  job(u) do
+    log(u).info("Just created a new wallet #{u.item.id}, going to push it...")
+    ops(u).push
+  end
   token = "#{u.login}-#{u.item.token}"
   if params[:noredirect]
     content_type 'text/plain'
