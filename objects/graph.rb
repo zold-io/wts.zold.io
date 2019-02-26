@@ -39,19 +39,16 @@ class Graph
 
   def svg(keys, div, digits)
     sets = {}
-    min = Time.now.to_f * 1000
-    max = (Time.now.to_f + STEPS * 24 * 60 * 60) * 1000
-    @ticks.fetch.each do |t|
-      time = t['time']
-      t.each do |k, v|
-        next unless keys.include?(k)
+    min = Time.now
+    max = Time.now + STEPS * 24 * 60 * 60
+    keys.each do |k|
+      @ticks.fetch(k).each do |t|
         sets[k] = [] if sets[k].nil?
-        sets[k] << { x: time, y: v / div }
+        sets[k] << { x: t[:created], y: t[:value] / div }
+        min = t[:created] if min > t[:created]
+        max = t[:created] if max < t[:created]
       end
-      min = time if min > time
-      max = time if max < time
     end
-    @log.debug("Min=#{Time.at(min / 1000).utc.iso8601}, max=#{Time.at(max / 1000).utc.iso8601}")
     raise UserError, 'There are no ticks, sorry' if sets.empty?
     step = (max - min) / STEPS
     raise UserError, 'Step is too small, can\'t render, sorry' if step.zero?
@@ -64,7 +61,7 @@ class Graph
       step_include_first_x_label: false,
       stagger_x_labels: true,
       number_format: "%.#{digits}f",
-      fields: (0..STEPS - 1).map { |i| Time.at((min + i * step) / 1000).strftime('%m/%d') }
+      fields: (0..STEPS - 1).map { |i| (min + i * step).strftime('%m/%d') }
     )
     sets.each do |k, v|
       data = Array.new(STEPS, nil)

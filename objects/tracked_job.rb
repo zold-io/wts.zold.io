@@ -32,9 +32,9 @@ class TrackedJob
 
   def call
     @job.call
-    @jobs.update(id, 'OK')
+    @jobs.update(@id, 'OK')
   rescue StandardError => e
-    @jobs.update(id, Backtrace.new(e).to_s)
+    @jobs.update(@id, Backtrace.new(e).to_s)
     raise e
   end
 end

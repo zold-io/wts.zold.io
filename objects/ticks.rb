@@ -18,44 +18,50 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require 'zold/log'
+require_relative 'pgsql'
+
 #
 # Ticks in AWS DynamoDB.
 #
 class Ticks
-  def initialize(aws, log: Zold::Log::NULL)
-    @aws = aws
+  def self.transfer(pgsql, aws, keys)
+    aws.scan(table_name: 'zold-ticks', select: 'ALL_ATTRIBUTES').items.each do |i|
+      time = Time.at(i['time'] / 1000)
+      i.each do |k, v|
+        next unless keys.include?(k)
+        pgsql.exec(
+          'INSERT INTO tick (key, value, created) VALUES ($1, $2, $3) ON CONFLICT (key, created) DO NOTHING',
+          [k, v, time]
+        )
+      end
+    end
+  end
+
+  def initialize(pgsql, log: Zold::Log::NULL)
+    @pgsql = pgsql
     @log = log
   end
 
   # Already exists for the current time?
-  def exists?(age = 6 * 60 * 60)
-    !@aws.query(
-      table_name: 'zold-ticks',
-      consistent_read: true,
-      limit: 1,
-      expression_attribute_names: { '#time' => 'time' },
-      expression_attribute_values: { ':t' => 'tick', ':i' => ((Time.now.to_f - age) * 1000).to_i },
-      key_condition_expression: 'tick = :t and #time > :i'
-    ).items.empty?
+  def exists?(key, seconds = 6 * 60 * 60)
+    !@pgsql.exec(
+      "SELECT FROM tick WHERE key = $1 AND created > NOW() - INTERVAL \'#{seconds} SECONDS\'",
+      [key]
+    ).empty?
   end
 
-  # Add tick.
+  # Add ticks.
   def add(hash)
-    @aws.put_item(
-      table_name: 'zold-ticks',
-      item: {
-        'tick' => 'tick',
-        'time' => (Time.now.to_f * 1000).to_i
-      }.merge(hash)
-    )
+    hash.each do |k, v|
+      @pgsql.exec('INSERT INTO tick (key, value) VALUES ($1, $2)', [k, v])
+    end
   end
 
   # Fetch them all.
-  def fetch
-    @aws.scan(
-      table_name: 'zold-ticks',
-      consistent_read: true,
-      select: 'ALL_ATTRIBUTES'
-    ).items
+  def fetch(key)
+    @pgsql.exec('SELECT * FROM tick WHERE key = $1', [key]).map do |r|
+      { key: r['key'], value: r['value'].to_f, created: Time.parse(r['created']) }
+    end
   end
 end

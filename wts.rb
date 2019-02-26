@@ -181,7 +181,7 @@ configure do
   set :callbacks, Callbacks.new(settings.pgsql, log: settings.log)
   set :codec, GLogin::Codec.new(config['api_secret'])
   set :zache, Zache.new(dirty: true)
-  set :ticks, Ticks.new(settings.dynamo, log: settings.log)
+  set :ticks, Ticks.new(settings.pgsql, log: settings.log)
   set :pool, Concurrent::FixedThreadPool.new(16, max_queue: 64, fallback_policy: :abort)
   if settings.config['coinbase']['key'].empty?
     set :bank, Bank::Fake.new
@@ -708,6 +708,10 @@ get '/queue' do
   settings.addresses.all.map do |a|
     "#{a[:login]} #{Zold::Age.new(a[:assigned])} #{a[:hash]} A=#{a[:arrived]}"
   end.join("\n")
+  Ticks.transfer(
+    settings.pgsql, settings.dynamo,
+    'Fund', 'Emission', 'Office', 'Rate', 'Coverage', 'Deficit', 'Price', 'Value', 'Pledge'
+  )
 end
 
 get '/payouts' do
@@ -835,7 +839,7 @@ get '/rate' do
       hash[:usd_rate] = hash[:price] * rate
       settings.zache.put(:rate, hash, lifetime: 10 * 60)
       settings.zache.remove_by { |k| k.to_s.start_with?('http', '/') }
-      unless settings.ticks.exists?
+      unless settings.ticks.exists?('Fund')
         settings.ticks.add(
           'Fund' => (hash[:bank] * 100_000_000).to_i, # in satoshi
           'Emission' => hash[:root].to_i, # in zents

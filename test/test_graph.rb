@@ -28,7 +28,7 @@ require_relative '../objects/graph'
 class GraphTest < Minitest::Test
   def test_renders_svg
     WebMock.allow_net_connect!
-    ticks = Ticks.new(Dynamo.new.aws)
+    ticks = Ticks.new(Pgsql::TEST.start, log: test_log)
     ticks.add('Price' => 1, 'time' => tme(-1))
     ticks.add('Price' => 3, 'time' => tme(-2))
     ticks.add('Price' => 2, 'time' => tme(-10))

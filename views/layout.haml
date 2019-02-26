@@ -4,12 +4,22 @@
     %title
       = page_title
     %meta{charset:'UTF-8'}
-    %meta{name:'viewport', content:'width=device-width, initial-scale=1.0'}
-    %meta{name:'keywords', content:'Zold, Cryptocurrency, Payments, Online Payments'}
-    %meta{name:'description', content:'Zold Web Wallets'}
-    %link{rel:'shortcut icon', href:'https://www.zold.io/images/logo-blue.png'}
+    %meta{name: 'viewport', content: 'width=device-width, initial-scale=1.0'}
+    %meta{name: 'keywords', content: 'Zold, Cryptocurrency, Payments, Online Payments'}
+    %meta{name: 'description', content: 'Zold Web Wallets'}
+    %link{rel: 'shortcut icon', href: 'https://www.zold.io/images/logo-blue.png'}
     %link{href: 'https://cdn.rawgit.com/yegor256/tacit/gh-pages/tacit-css.min.css', rel: 'stylesheet'}
-    %link{type:'text/css', href:url('css/main.css'), rel:'stylesheet'}
+    %link{type: 'text/css', href: url('css/main.css'), rel: 'stylesheet'}
+    %meta{name: 'twitter:creator', content: '@0crat'}
+    %meta{name: 'twitter:site', content: '@0crat'}
+    %meta{name: 'twitter:title', property: 'og:title', content: 'Zold'}
+    %meta{name: 'twitter:description', property: 'og:description', content: 'Experimental Non-Blockchain Cryptocurrency for Fast Micropayments'}
+    %meta{name: 'twitter:url', property: 'og:url', content: request.url}
+    %meta{name: 'telegram:channel', content: 'zold_io'}
+    %meta{name: 'og:image', content: 'https://blog.zold.io/images/ledger.jpg'}
+    %meta{name: 'twitter:image', content: 'https://blog.zold.io/images/ledger.jpg'}
+    %meta{name: 'twitter:card', content: 'summary'}
+    %meta{name: 'twitter:image:alt', content: 'Zold'}
   %body
     :javascript
       (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
@@ -21,13 +31,12 @@
       Cd.cookie="b=b";if(Cd.cookie)Cp+="&c=1";
       Cp+="&t="+(new Date()).getTimezoneOffset();
       if(self!=top)Cp+="&f=1";
-      <script language="javascript1.1" type="text/javascript"><!--
       if(navigator.javaEnabled())Cp+="&j=1";
       if(typeof(screen)!='undefined')Cp+="&w="+screen.width+"&h="+
       screen.height+"&d="+(screen.colorDepth?screen.colorDepth:screen.pixelDepth);
-      Cd.write("<img src='//c.hit.ua/hit?i=59533&g=0&x=2"+Cp+Cr+
-      "&r="+escape(Cd.referrer)+"&u="+escape(window.location.href)+
-      "' border='0' wi"+"dth='1' he"+"ight='1'/>");
+      Cd.write("<sc"+"ript src='//c.hit.ua/hit?i=59533&g=0&x=3"+Cp+Cr+
+      "&r="+escape(Cd.referrer)+"&u="+escape(window.location.href)+"'></sc"+"ript>");
+    %img{src: '//c.hit.ua/hit?i=59533&amp;g=0&amp;x=2'}
     %section
       %header
         %nav
