@@ -1,0 +1,32 @@
+%h2
+  Feature Toggles
+
+%form{method: 'POST', action: '/set-toggle'}
+  %input{type: 'text', name: 'key', placeholder: 'Key', size: 12, autocomplete: 'off', required: true, tabindex: 1, autofocus: true}
+  %input{type: 'text', name: 'value', placeholder: 'Value', size: 35, autocomplete: 'off', required: true, tabindex: 2}
+  %input{type: 'submit', onclick: "return confirm('Are you sure?')", tabindex: 3, value: 'Set'}
+
+%p
+  Full list of them:
+
+%table.compact
+  %colgroup
+    %col{style: 'width: 6em'}
+    %col{style: ''}
+  %thead
+    %tr
+      %th
+        Key
+      %th
+        Value
+      %th
+        Updated
+  %tbody
+    - toggles.list.each do |t|
+      %tr
+        %td
+          %code= t[:key]
+        %td
+          = t[:value]
+        %td{title: t[:updated].utc.iso8601}
+          = Zold::Age.new(t[:updated])

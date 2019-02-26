@@ -43,6 +43,7 @@ require 'zold/hands'
 require 'zold/sync_wallets'
 require 'zold/cached_wallets'
 require_relative 'version'
+require_relative 'objects/toggles'
 require_relative 'objects/callbacks'
 require_relative 'objects/addresses'
 require_relative 'objects/payables'
@@ -170,6 +171,7 @@ configure do
   ).start(1)
   set :gl, Gl.new(settings.pgsql, log: settings.log)
   set :payables, Payables.new(settings.pgsql, settings.remotes, log: settings.log)
+  set :toggles, Toggles.new(settings.pgsql, log: settings.log)
   set :addresses, Addresses.new(settings.pgsql, log: settings.log)
   set :hashes, Hashes.new(settings.pgsql, log: settings.log)
   set :mcodes, Mcodes.new(settings.pgsql, log: settings.log)
@@ -722,6 +724,9 @@ post '/do-sell' do
   unless settings.payouts.allowed?(user.login, amount)
     raise UserError, "With #{amount} you are going over your limits, sorry"
   end
+  if settings.toggles.get('ban:sell').split(',').include?(user.login)
+    raise UserError, 'You are not allowed to sell any ZLD at the moment, sorry'
+  end
   price = settings.btc.price
   bitcoin = (amount.to_zld(8).to_f * rate).round(8)
   usd = bitcoin * price
@@ -922,6 +927,20 @@ get '/mobile/token' do
   end
   cookies[:wts] = token
   flash('/home', 'You have been logged in successfully')
+end
+
+get '/toggles' do
+  haml :toggles, layout: :layout, locals: merged(
+    page_title: 'Toggles',
+    toggles: settings.toggles
+  )
+end
+
+post '/set-toggle' do
+  key = params[:key]
+  value = params[:value]
+  settings.toggles.set(key, value)
+  flash('/toggles', "The feature toggle #{key.inspect} set")
 end
 
 get '/payables' do
