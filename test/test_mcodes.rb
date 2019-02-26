@@ -20,49 +20,20 @@
 
 require 'minitest/autorun'
 require 'webmock/minitest'
-require 'openssl'
-require 'zold/key'
-require 'zold/id'
-require 'zold/http'
 require_relative 'test__helper'
-require_relative '../objects/dynamo'
-require_relative '../objects/item'
+require_relative '../objects/pgsql'
+require_relative '../objects/mcodes'
 
-class ItemTest < Minitest::Test
-  def test_create_and_read
+class McodesTest < Minitest::Test
+  def test_saves_and_gets
     WebMock.allow_net_connect!
-    item = Item.new('jeff', Dynamo.new.aws)
-    assert(!item.exists?)
-    pvt = OpenSSL::PKey::RSA.new(2048)
-    id = Zold::Id.new
-    item.create(id, Zold::Key.new(text: pvt.to_pem))
-    assert(item.exists?)
-  end
-
-  def test_wipes_keygap
-    WebMock.allow_net_connect!
-    item = Item.new('jeffrey1', Dynamo.new.aws)
-    pvt = OpenSSL::PKey::RSA.new(2048)
-    id = Zold::Id.new
-    pem = pvt.to_pem
-    key = Zold::Key.new(text: pem)
-    keygap = item.create(id, key)
-    assert_equal(key, item.key(keygap))
-    assert_equal(id, item.id)
-    assert(!item.wiped?)
-    item.wipe(keygap)
-    assert(item.wiped?)
-    assert_equal(key, item.key(keygap))
-  end
-
-  def test_sets_and_resets_api_token
-    WebMock.allow_net_connect!
-    item = Item.new('johnny2', Dynamo.new.aws)
-    pvt = OpenSSL::PKey::RSA.new(2048)
-    item.create(Zold::Id.new, Zold::Key.new(text: pvt.to_pem))
-    token = item.token
-    assert_equal(token, item.token)
-    item.token_reset
-    assert(token != item.token)
+    mcodes = Mcodes.new(Pgsql::TEST.start, log: test_log)
+    phone = 1_234_567_890
+    mcodes.set(phone, 1234)
+    assert_equal(1234, mcodes.get(phone))
+    mcodes.remove(phone)
+    assert_raises UserError do
+      mcodes.get(phone)
+    end
   end
 end

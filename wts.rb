@@ -46,6 +46,7 @@ require_relative 'version'
 require_relative 'objects/callbacks'
 require_relative 'objects/addresses'
 require_relative 'objects/payables'
+require_relative 'objects/mcodes'
 require_relative 'objects/smss'
 require_relative 'objects/payouts'
 require_relative 'objects/daemon'
@@ -171,6 +172,7 @@ configure do
   set :payables, Payables.new(settings.pgsql, settings.remotes, log: settings.log)
   set :addresses, Addresses.new(settings.pgsql, log: settings.log)
   set :hashes, Hashes.new(settings.pgsql, log: settings.log)
+  set :mcodes, Mcodes.new(settings.pgsql, log: settings.log)
   set :payouts, Payouts.new(settings.pgsql, log: settings.log)
   set :callbacks, Callbacks.new(settings.pgsql, log: settings.log)
   set :codec, GLogin::Codec.new(config['api_secret'])
@@ -650,7 +652,7 @@ get '/btc-hook' do
     )
   end
   unless settings.btc.exists?(hash, satoshi, address, confirmations)
-    raise UserError, "Tx #{hash}/#{satoshi}/#{bnf.item.btc} not found yet or is not yet confirmed enough"
+    raise UserError, "Tx #{hash}/#{satoshi}/#{address} not found yet or is not yet confirmed enough"
   end
   boss = user(settings.config['exchange']['login'])
   job(boss) do
@@ -890,7 +892,7 @@ get '/mobile/send' do
     ops(u).push
   end
   mcode = rand(1000..9999)
-  u.item.mcode_set(mcode)
+  settings.mcodes.set(phone, mcode)
   cid = settings.smss.send(phone, "Your authorization code for wts.zold.io is: #{mcode}")
   if params[:noredirect]
     content_type 'text/plain'
@@ -909,8 +911,8 @@ get '/mobile/token' do
   raise UserError, 'Mobile confirmation code is required' if mcode.nil?
   raise UserError, "Invalid code #{mcode.inspect}, must be four digits" unless /^[0-9]{4}$/.match?(mcode)
   u = user(phone.to_s)
-  raise UserError, 'Mobile code mismatch' unless u.item.mcode == mcode.to_i
-  u.item.mcode_remove
+  raise UserError, 'Mobile code mismatch' unless settings.mcodes.get(phone) == mcode.to_i
+  settings.mcodes.remove(phone)
   token = "#{u.login}-#{u.item.token}"
   if params[:noredirect]
     content_type 'text/plain'
