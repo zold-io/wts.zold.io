@@ -882,6 +882,7 @@ end
 get '/mobile/send' do
   phone = params[:phone]
   raise UserError, 'Mobile phone number is required' if phone.nil?
+  raise UserError, 'Phone number can\'t be empty, format it according to E.164' if phone.empty?
   raise UserError, "Invalid phone #{phone.inspect}, must be digits only as in E.164" unless /^[0-9]+$/.match?(phone)
   raise UserError, 'The phone shouldn\'t start with zeros' if /^0+/.match?(phone)
   phone = phone.to_i
@@ -898,11 +899,13 @@ end
 get '/mobile/token' do
   phone = params[:phone]
   raise UserError, 'Mobile phone number is required' if phone.nil?
+  raise UserError, 'Phone number can\'t be empty, format it according to E.164' if phone.empty?
   raise UserError, "Invalid phone #{phone.inspect}, must be digits only as in E.164" unless /^[0-9]+$/.match?(phone)
   raise UserError, 'The phone shouldn\'t start with zeros' if /^0+/.match?(phone)
   phone = phone.to_i
   mcode = params[:code]
   raise UserError, 'Mobile confirmation code is required' if mcode.nil?
+  raise UserError, 'Mobile confirmation code can\'t be empty' if mcode.empty?
   raise UserError, "Invalid code #{mcode.inspect}, must be four digits" unless /^[0-9]{4}$/.match?(mcode)
   raise UserError, 'Mobile code mismatch' unless settings.mcodes.get(phone) == mcode.to_i
   settings.mcodes.remove(phone)
@@ -984,14 +987,19 @@ error do
     settings.log.error("#{request.url}: #{e.message}")
     body(Backtrace.new(e).to_s)
     headers['X-Zold-Error'] = e.message[0..256]
-    flash('/', e.message, error: true) unless params[:noredirect]
+    return Backtrace.new(e).to_s if params[:noredirect]
+    flash('/', e.message, error: true)
   end
   status 503
   Raven.capture_exception(e)
-  haml :error, layout: :layout, locals: merged(
-    page_title: 'Error',
-    error: Backtrace.new(e).to_s
-  )
+  if params[:noredirect]
+    Backtrace.new(e).to_s
+  else
+    haml :error, layout: :layout, locals: merged(
+      page_title: 'Error',
+      error: Backtrace.new(e).to_s
+    )
+  end
 end
 
 private
