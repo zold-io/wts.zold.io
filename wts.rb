@@ -429,6 +429,10 @@ get '/pay' do
 end
 
 post '/do-pay' do
+  raise UserError, 'This feature is temporarily disabled' unless settings.toggles.get('stop:do-pay').empty?
+  if settings.toggles.get('banned').split(',').include?(confirmed_user.login)
+    raise UserError, 'You are not allowed to send any payments at the moment, sorry'
+  end
   raise UserError, 'Parameter "bnf" is not provided' if params[:bnf].nil?
   raise UserError, 'Parameter "amount" is not provided' if params[:amount].nil?
   raise UserError, 'Parameter "details" is not provided' if params[:details].nil?
@@ -713,6 +717,7 @@ get '/payouts' do
 end
 
 post '/do-sell' do
+  raise UserError, 'This feature is temporarily disabled' unless settings.toggles.get('stop:do-sell').empty?
   raise UserError, 'Amount is not provided' if params[:amount].nil?
   raise UserError, 'Bitcoin address is not provided' if params[:btc].nil?
   raise UserError, 'Keygap is not provided' if params[:keygap].nil?
@@ -724,7 +729,7 @@ post '/do-sell' do
   unless settings.payouts.allowed?(user.login, amount)
     raise UserError, "With #{amount} you are going over your limits, sorry"
   end
-  if settings.toggles.get('ban:sell').split(',').include?(user.login)
+  if settings.toggles.get('banned').split(',').include?(user.login)
     raise UserError, 'You are not allowed to sell any ZLD at the moment, sorry'
   end
   price = settings.btc.price
@@ -930,6 +935,7 @@ get '/mobile/token' do
 end
 
 get '/toggles' do
+  raise UserError, 'You are not allowed to see this' unless user.login == 'yegor256'
   haml :toggles, layout: :layout, locals: merged(
     page_title: 'Toggles',
     toggles: settings.toggles
@@ -937,6 +943,7 @@ get '/toggles' do
 end
 
 post '/set-toggle' do
+  raise UserError, 'You are not allowed to see this' unless user.login == 'yegor256'
   key = params[:key]
   value = params[:value]
   settings.toggles.set(key, value)

@@ -11,7 +11,8 @@
 
 %table.compact
   %colgroup
-    %col{style: 'width: 6em'}
+    %col{style: 'width: 12em'}
+    %col{style: 'width: 4em'}
     %col{style: ''}
   %thead
     %tr
@@ -26,7 +27,10 @@
       %tr
         %td
           %code= t[:key]
-        %td
-          = t[:value]
         %td{title: t[:updated].utc.iso8601}
           = Zold::Age.new(t[:updated])
+        %td
+          - if t[:value].empty?
+            = '&mdash;'
+          - else
+            = t[:value]

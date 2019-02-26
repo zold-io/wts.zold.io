@@ -34,5 +34,7 @@ class TogglesTest < Minitest::Test
     assert_equal('hello, world!', toggles.get(key))
     toggles.set(key, 'bye')
     assert_equal('bye', toggles.get(key))
+    toggles.set(key, '')
+    assert_equal('', toggles.get(key))
   end
 end
