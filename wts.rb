@@ -44,6 +44,7 @@ require 'zold/sync_wallets'
 require 'zold/cached_wallets'
 require_relative 'version'
 require_relative 'objects/callbacks'
+require_relative 'objects/addresses'
 require_relative 'objects/payables'
 require_relative 'objects/smss'
 require_relative 'objects/payouts'
@@ -51,7 +52,6 @@ require_relative 'objects/daemon'
 require_relative 'objects/ticks'
 require_relative 'objects/graph'
 require_relative 'objects/item'
-require_relative 'objects/items'
 require_relative 'objects/user'
 require_relative 'objects/btc'
 require_relative 'objects/bank'
@@ -143,7 +143,6 @@ configure do
   set :server_settings, timeout: 25
   set :log, Zold::Log::REGULAR.dup
   set :dynamo, Dynamo.new(config).aws
-  set :items, Items.new(settings.dynamo, log: settings.log)
   set :glogin, GLogin::Auth.new(
     config['github']['client_id'],
     config['github']['client_secret'],
@@ -170,6 +169,8 @@ configure do
   ).start(1)
   set :gl, Gl.new(settings.pgsql, log: settings.log)
   set :payables, Payables.new(settings.pgsql, settings.remotes, log: settings.log)
+  set :addresses, Addresses.new(settings.pgsql, log: settings.log)
+  set :hashes, Hashes.new(settings.pgsql, log: settings.log)
   set :payouts, Payouts.new(settings.pgsql, log: settings.log)
   set :callbacks, Callbacks.new(settings.pgsql, log: settings.log)
   set :codec, GLogin::Codec.new(config['api_secret'])
@@ -186,7 +187,6 @@ configure do
       settings.config['coinbase']['account']
     )
   end
-  set :hashes, Hashes.new(settings.dynamo)
   if settings.config['blockchain']['xpub'].empty?
     set :btc, Btc::Fake.new
   else
@@ -602,7 +602,7 @@ get '/do-migrate' do
 end
 
 get '/btc' do
-  confirmed_user.item.btc do
+  address = settings.addresses.acquire(confirmed_user.login) do
     address = settings.btc.create
     settings.telepost.spam(
       'New Bitcoin address acquired',
@@ -613,10 +613,11 @@ get '/btc' do
     )
     address
   end
-  headers['X-Zold-BtcAddress'] = confirmed_user.item.btc
+  headers['X-Zold-BtcAddress'] = address
   haml :btc, layout: :layout, locals: merged(
     page_title: title('buy+sell'),
-    gap: settings.zache.get(:gap, lifetime: 60) { settings.btc.gap }
+    gap: settings.zache.get(:gap, lifetime: 60) { settings.btc.gap },
+    address: address
   )
 end
 
@@ -634,12 +635,13 @@ get '/btc-hook' do
   satoshi = params[:value].to_i
   bitcoin = (satoshi.to_f / 100_000_000).round(8)
   zld = Zold::Amount.new(zld: bitcoin / rate)
-  bnf = user(settings.items.find_by_btc(address).login)
+  bnf = user(settings.addresses.find_user(address))
   raise UserError, "The user '#{bnf.login}' is not confirmed" unless bnf.confirmed?
   if confirmations.zero?
-    bnf.item.btc_arrived
+    settings.addresses.arrived(address, bnf.login)
     settings.telepost.spam(
       "Bitcoin transaction arrived for #{bitcoin} BTC",
+      "to [#{address[0..8]}](https://www.blockchain.com/btc/address/#{address})",
       "in [#{hash[0..8]}](https://www.blockchain.com/btc/tx/#{hash})",
       "and was identified as belonging to #{title_md(bnf)},",
       "#{zld} will be deposited to the wallet",
@@ -663,7 +665,7 @@ arrival to #{address}, for #{bnf.login}; we ignore it.")
         zld,
         "BTC exchange of #{bitcoin} at #{hash[0..8]}, rate is #{rate}"
       )
-      bnf.item.destroy_btc
+      settings.addresses.destroy(address, bnf.login)
       settings.hashes.add(hash, bnf.login, bnf.item.id)
       settings.telepost.spam(
         "In: #{bitcoin} BTC [exchanged](https://blog.zold.io/2018/12/09/btc-to-zld.html) to #{zld}",
@@ -694,19 +696,9 @@ end
 get '/queue' do
   raise UserError, 'You are not allowed to see this' unless user.login == 'yegor256'
   content_type 'text/plain', charset: 'utf-8'
-  settings.items.all.map do |i|
-    "#{i['login']} #{Zold::Age.new(Time.at(i['assigned']))} #{i['btc']} A=#{i['active'].to_i}"
+  settings.addresses.all.map do |a|
+    "#{a[:login]} #{Zold::Age.new(a[:assigned])} #{a[:hash]} A=#{a[:arrived]}"
   end.join("\n")
-end
-
-get '/queue-clean' do
-  raise UserError, 'You are not allowed to see this' unless user.login == 'yegor256'
-  content_type 'text/plain', charset: 'utf-8'
-  settings.items.all.map do |i|
-    next if params[:login] && i['login'] != params[:login]
-    user(i['login']).item.destroy_btc
-    "#{i['login']} #{Zold::Age.new(Time.at(i['assigned']))} #{i['btc']}: destroyed"
-  end.compact.join("\n")
 end
 
 get '/payouts' do
@@ -1018,7 +1010,7 @@ def title(suffix = '')
 end
 
 def title_md(u = user)
-  if /^[0-9]/.match?(u.login)
+  if /^[0-9]{6,}$/.match?(u.login)
     "+#{u.login.gsub(/.{3}$/, 'xxx')}"
   else
     "[@#{u.login}](https://github.com/#{u.login})"

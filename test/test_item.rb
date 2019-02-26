@@ -55,24 +55,6 @@ class ItemTest < Minitest::Test
     assert_equal(key, item.key(keygap))
   end
 
-  def test_reads_btc_address
-    WebMock.allow_net_connect!
-    jeff = Item.new('jeffrey2', Dynamo.new.aws)
-    sarah = Item.new('sarah2', Dynamo.new.aws)
-    pvt = OpenSSL::PKey::RSA.new(2048)
-    jeff.create(Zold::Id.new, Zold::Key.new(text: pvt.to_pem))
-    sarah.create(Zold::Id.new, Zold::Key.new(text: pvt.to_pem))
-    btc1 = '32wtFfKbjWHpu9WFzX9adGssnAosqPkSp6'
-    assert(jeff.btc { btc1 })
-    assert_equal(btc1, jeff.btc)
-    btc2 = '32wtFfKbjWHpu9WFzX9adGssnAosqPkSp7'
-    assert(sarah.btc { btc2 })
-    assert_equal(btc2, sarah.btc)
-    sleep 2
-    assert(jeff.btc(lifetime: 1) { raise 'Should not happen' })
-    assert(btc1 != jeff.btc)
-  end
-
   def test_sets_and_resets_api_token
     WebMock.allow_net_connect!
     item = Item.new('johnny2', Dynamo.new.aws)

@@ -18,35 +18,24 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'time'
+require 'zold/log'
+require_relative 'pgsql'
+require_relative 'user_error'
 
 #
 # BTC hashes.
 #
 class Hashes
-  def initialize(aws)
-    @aws = aws
+  def initialize(pgsql, log: Log::NULL)
+    @pgsql = pgsql
+    @log = log
   end
 
   def seen?(hash)
-    !@aws.query(
-      table_name: 'zold-btc',
-      consistent_read: true,
-      limit: 1,
-      expression_attribute_values: { ':h' => hash },
-      key_condition_expression: 'txhash=:h'
-    ).items.empty?
+    !@pgsql.exec('SELECT * FROM btx WHERE hash = $1', [hash]).empty?
   end
 
   def add(hash, login, wallet)
-    @aws.put_item(
-      table_name: 'zold-btc',
-      item: {
-        'txhash' => hash,
-        'login' => login,
-        'wallet' => wallet,
-        'time' => Time.now.to_i
-      }
-    )
+    @pgsql.exec('INSERT INTO btx (hash, login, wallet) VALUES ($1, $2, $3)', [hash, login, wallet.to_s])
   end
 end
