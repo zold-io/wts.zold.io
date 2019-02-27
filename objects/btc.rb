@@ -84,8 +84,8 @@ class Btc
   def exists?(hash, amount, address, confirmations)
     attempt = 0
     begin
-      res = Zold::Http.new(uri: "https://blockchain.info/rawtx/#{hash}").get
-      raise "Invalid response code #{res.status}" unless res.status == 200
+      res = Zold::Http.new(uri: "https://blockchain.info/rawtx/#{hash}").get(timeout: 16)
+      raise "Invalid response code #{res.status}: #{res.body}" unless res.status == 200
       txn = Zold::JsonPage.new(res.body).to_hash
       return false if txn['out'].find { |t| t['addr'] == address && t['value'] == amount }.nil?
       return false if confirmations.zero?

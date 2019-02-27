@@ -43,9 +43,9 @@ class Toggles
     )
   end
 
-  def get(key)
+  def get(key, default = '')
     r = @pgsql.exec('SELECT value FROM toggle WHERE key = $1', [key])[0]
-    return '' if r.nil?
+    return default if r.nil?
     r['value']
   end
 

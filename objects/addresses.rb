@@ -115,13 +115,13 @@ class Addresses
   def swap(login, friend)
     @pgsql.connect do |c|
       c.transaction do |con|
-        row = con.exec_params('SELECT hash FROM address WHERE login = $1', [login])[0]
-        raise "Source user #{login} has no BTC address assigned" if row.nil?
-        mine = row['hash']
+        rows = con.exec_params('SELECT hash FROM address WHERE login = $1', [login])
+        raise "Source user #{login} has no BTC address assigned" if rows.ntuples.zero?
+        mine = rows[0]['hash']
         con.exec_params('DELETE FROM address WHERE login = $1', [login])
-        row = con.exec_params('SELECT hash FROM address WHERE login = $1', [friend])[0]
-        raise "Target user #{friend} has no BTC address assigned" if row.nil?
-        theirs = row['hash']
+        rows = con.exec_params('SELECT hash FROM address WHERE login = $1', [friend])
+        raise "Target user #{friend} has no BTC address assigned" if rows.ntuples.zero?
+        theirs = rows[0]['hash']
         con.exec_params('DELETE FROM address WHERE login = $1', [friend])
         con.exec_params('INSERT INTO address (hash, login) VALUES ($1, $2)', [mine, friend])
         con.exec_params('INSERT INTO address (hash, login) VALUES ($1, $2)', [theirs, login])

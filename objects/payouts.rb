@@ -54,28 +54,32 @@ amount #{amount}, and details: \"#{details}\"")
   end
 
   # Still allowed to send a payout for this amount to this user?
-  def allowed?(login, amount)
+  def allowed?(login, amount, limits = '64/128/256')
+    daily_limit, weekly_limit, monthly_limit = limits.split('/')
+    daily_limit = Zold::Amount.new(zld: daily_limit.to_f)
+    weekly_limit = Zold::Amount.new(zld: weekly_limit.to_f)
+    monthly_limit = Zold::Amount.new(zld: monthly_limit.to_f)
     daily = Zold::Amount.new(
       zents: @pgsql.exec(
         'SELECT SUM(zents) FROM payout WHERE login = $1 AND created > NOW() - INTERVAL \'24 HOURS\'',
         [login]
       )[0]['sum'].to_i
     )
-    return false if daily + amount > Zold::Amount.new(zld: 128.0)
+    return false if daily + amount > daily_limit
     weekly = Zold::Amount.new(
       zents: @pgsql.exec(
         'SELECT SUM(zents) FROM payout WHERE login = $1 AND created > NOW() - INTERVAL \'7 DAYS\'',
         [login]
       )[0]['sum'].to_i
     )
-    return false if weekly + amount > Zold::Amount.new(zld: 1024.0)
+    return false if weekly + amount > weekly_limit
     monthly = Zold::Amount.new(
       zents: @pgsql.exec(
         'SELECT SUM(zents) FROM payout WHERE login = $1 AND created > NOW() - INTERVAL \'31 DAYS\'',
         [login]
       )[0]['sum'].to_i
     )
-    return false if monthly + amount > Zold::Amount.new(zld: 2048.0)
+    return false if monthly + amount > monthly_limit
     true
   end
 

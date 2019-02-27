@@ -473,7 +473,7 @@ post '/do-pay' do
       "with the balance of #{user.wallet(&:balance)}",
       "to [#{bnf}](http://www.zold.io/ledger.html?wallet=#{bnf})",
       "for #{amount} from #{anon_ip}:",
-      "\"#{details}\""
+      "\"#{safe_md(details)}\""
     )
   end
   flash('/', "Payment has been sent to #{bnf} for #{amount}")
@@ -586,7 +586,7 @@ get '/wait-for' do
   settings.telepost.spam(
     "New callback no.#{id} created by #{title_md} from #{anon_ip}",
     "for the wallet [#{wallet}](http://www.zold.io/ledger.html?wallet=#{wallet}),",
-    "prefix `#{prefix}`, and regular expression `#{regexp}`"
+    "prefix `#{prefix}`, and regular expression `#{md_safe(regexp)}`"
   )
   content_type 'text/plain'
   id.to_s
@@ -711,10 +711,6 @@ get '/queue' do
   settings.addresses.all.map do |a|
     "#{a[:login]} #{Zold::Age.new(a[:assigned])} #{a[:hash]} A=#{a[:arrived]}"
   end.join("\n")
-  Ticks.transfer(
-    settings.pgsql, settings.dynamo,
-    %w[Fund Emission Office Rate Coverage Deficit Price Value Pledge]
-  )
 end
 
 get '/payouts' do
@@ -734,8 +730,9 @@ post '/do-sell' do
   raise UserError, "Bitcoin address is not valid: #{address.inspect}" unless address =~ /^[a-zA-Z0-9]+$/
   raise UserError, 'Bitcoin address must start with 1, 3 or bc1' unless address =~ /^(1|3|bc1)/
   raise UserError, "You don't have enough to send #{amount}" if confirmed_user.wallet(&:balance) < amount
-  unless settings.payouts.allowed?(user.login, amount)
-    raise UserError, "With #{amount} you are going over your limits, sorry"
+  limits = settings.toggles.get('limits', '64/128/256')
+  unless settings.payouts.allowed?(user.login, amount, limits)
+    raise UserError, "With #{amount} you are going over your limits (#{limits}), sorry"
   end
   if settings.toggles.get('ban:do-sell').split(',').include?(user.login)
     raise UserError, 'You are not allowed to sell any ZLD at the moment, sorry'
@@ -751,13 +748,13 @@ post '/do-sell' do
       keygap,
       boss.item.id,
       amount * (1 - fee),
-      "ZLD exchange to #{bitcoin} BTC at #{address}, rate is #{rate}, fee is #{fee}"
+      "ZLD exchange to #{bitcoin} BTC at #{address[0..8]}, rate is #{rate}, fee is #{fee}"
     )
     ops.pay(
       keygap,
       rewards.item.id,
       amount * fee,
-      "Fee for exchange of #{bitcoin} BTC at #{address}, rate is #{rate}, fee is #{fee}"
+      "Fee for exchange of #{bitcoin} BTC at #{address[0..8]}, rate is #{rate}, fee is #{fee}"
     )
     settings.bank.send(
       address,
@@ -1242,4 +1239,8 @@ def pay_hosting_bonuses(boss)
     "[#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id}),",
     "the balance is #{boss.wallet(&:balance)}"
   )
+end
+
+def safe_md(txt)
+  txt.gsub(/[_*`]/, ' ')
 end
