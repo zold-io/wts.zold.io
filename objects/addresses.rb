@@ -58,7 +58,7 @@ class Addresses
       return mine[0]['hash'] if age < lifetime
       return mine[0]['hash'] if mine[0]['arrived'] && age < lifetime * 10
     end
-    friend = candidates(lifetime)[0]
+    friend = candidates(login, lifetime)[0]
     if friend.nil?
       hash = yield
       friend = ".reserve-#{rand(9999)}"
@@ -103,8 +103,8 @@ class Addresses
 
   # Find the best candidates (list of logins) to take the BTC address away from him
   # and give it to someone else
-  def candidates(lifetime)
-    rows = @pgsql.exec('SELECT * FROM address ORDER BY assigned').select do |r|
+  def candidates(mine, lifetime)
+    rows = @pgsql.exec('SELECT * FROM address WHERE login != $1 ORDER BY assigned', [mine]).select do |r|
       age = Time.now - Time.parse(r['assigned'])
       r['arrived'] ? age > lifetime * 10 : age > lifetime
     end
@@ -113,6 +113,7 @@ class Addresses
 
   # Swap hashes and return the one taken from the friend
   def swap(login, friend)
+    raise "Can't move itself: #{friend}" if friend == login
     @pgsql.connect do |c|
       c.transaction do |con|
         rows = con.exec_params('SELECT hash FROM address WHERE login = $1', [login])
@@ -132,6 +133,7 @@ class Addresses
 
   # Move from friend to me (and delete the friend)
   def move(friend, login)
+    raise "Can't move itself: #{friend}" if friend == login
     @pgsql.connect do |c|
       c.transaction do |con|
         hash = con.exec_params('SELECT hash FROM address WHERE login = $1', [friend])[0]['hash']
