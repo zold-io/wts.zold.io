@@ -652,8 +652,7 @@ get '/do-migrate' do
 end
 
 get '/btc' do
-  raise UserError, 'This page doesn\'t work, temporarily' unless user.login == 'yegor256'
-  address = settings.btc.acquire(confirmed_user.login, settings.btc)
+  address = settings.addresses.acquire(confirmed_user.login, settings.btc)
   headers['X-Zold-BtcAddress'] = address
   haml :btc, layout: :layout, locals: merged(
     page_title: title('buy+sell'),
@@ -689,7 +688,7 @@ post '/do-sell' do
   raise UserError, 'Bitcoin address is not provided' if params[:btc].nil?
   raise UserError, 'Keygap is not provided' if params[:keygap].nil?
   amount = Zold::Amount.new(zld: params[:amount].to_f)
-  address = params[:btc]
+  address = params[:btc].strip
   raise UserError, "Bitcoin address is not valid: #{address.inspect}" unless address =~ /^[a-zA-Z0-9]+$/
   raise UserError, 'Bitcoin address must start with 1, 3 or bc1' unless address =~ /^(1|3|bc1)/
   raise UserError, "You don't have enough to send #{amount}" if confirmed_user.wallet(&:balance) < amount
@@ -702,7 +701,6 @@ post '/do-sell' do
   end
   price = settings.btc.price
   bitcoin = (amount.to_zld(8).to_f * rate).round(8)
-  usd = bitcoin * price
   boss = user(settings.config['exchange']['login'])
   rewards = user(settings.config['rewards']['login'])
   job do
@@ -719,11 +717,7 @@ post '/do-sell' do
       amount * fee,
       "Fee for exchange of #{bitcoin} BTC at #{address[0..8]}, rate is #{rate}, fee is #{fee}"
     )
-    settings.btc.send(
-      address,
-      (usd * (1 - fee)).round(2),
-      "Exchange of #{amount.to_zld(8)} by #{title} to #{user.item.id}, rate is #{rate}, fee is #{fee}"
-    )
+    settings.btc.send(settings.assets, address, (bitcoin * 100_000_000 * (1 - fee)).round)
     settings.payouts.add(
       user.login, user.item.id, amount,
       "#{bitcoin} BTC sent to #{address}, the price was $#{price.round}/BTC, the fee was #{(fee * 100).round(2)}%"

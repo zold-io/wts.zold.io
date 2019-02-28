@@ -44,6 +44,17 @@ class AppTest < Minitest::Test
     Sinatra::Application
   end
 
+  # Fake BTC
+  class FakeBtc
+    def initialize(addr)
+      @addr = addr
+    end
+
+    def create
+      { hash: @addr, pvt: 'empty' }
+    end
+  end
+
   def test_renders_pages
     WebMock.allow_net_connect!
     [
@@ -53,6 +64,7 @@ class AppTest < Minitest::Test
       '/css/main.css',
       '/gl',
       '/payables',
+      '/assets',
       '/context',
       '/remotes'
     ].each do |p|
@@ -120,36 +132,6 @@ class AppTest < Minitest::Test
     assert_equal(200, last_response.status, last_response.body)
   end
 
-  def test_buy_zld
-    WebMock.allow_net_connect!
-    boss = User.new(
-      '0crat', Item.new('0crat', Dynamo.new.aws, log: test_log),
-      Sinatra::Application.settings.wallets, log: test_log
-    )
-    boss.create
-    boss.confirm(boss.keygap)
-    login = 'jeff009'
-    user = User.new(
-      login, Item.new(login, Dynamo.new.aws, log: test_log),
-      Sinatra::Application.settings.wallets, log: test_log
-    )
-    user.create
-    keygap = user.keygap
-    user.confirm(keygap)
-    btc = "1N1R2HP9JD4LvAtp7rTkpRqF19GH7PH#{rand(999)}"
-    Sinatra::Application.settings.addresses.acquire(user.login) { btc }
-    get(
-      '/btc-hook?' + form(
-        'transaction_hash': 'c3c0a51ff985618dd8373eadf3540fd1bea44d676452dbab47fe0cc07209547d',
-        'address': btc,
-        'confirmations': 10,
-        'value': 27_900
-      )
-    )
-    assert_equal(200, last_response.status, last_response.body)
-    assert_equal('Thanks!', last_response.body)
-  end
-
   def test_sell_zld
     WebMock.allow_net_connect!
     name = 'jeff079'
@@ -176,6 +158,8 @@ class AppTest < Minitest::Test
         )
       )
     end
+    assets = Assets.new(Pgsql::TEST.start, log: test_log)
+    assets.add("32wtFfKbjWHpu9WFzX9adGsFFAosqPk#{rand(999)}", 10_000_000, 'pvt')
     post(
       '/do-sell',
       form(

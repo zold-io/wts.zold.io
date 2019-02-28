@@ -57,7 +57,7 @@ class Assets
     batch = []
     left = satoshi
     rows = @pgsql.exec('SELECT * FROM asset ORDER BY satoshi')
-    while left > 0
+    while left.positive?
       raise "Can't find enough satoshi to send #{satoshi}" if rows.empty?
       row = rows.shift
       batch << { hash: row['hash'], satoshi: row['satoshi'].to_i, pvt: row['pvt'] }

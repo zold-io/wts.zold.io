@@ -25,21 +25,34 @@ require_relative '../objects/pgsql'
 require_relative '../objects/addresses'
 
 class AddressesTest < Minitest::Test
+  # Fake BTC
+  class FakeBtc
+    def initialize(addr)
+      @addr = addr
+    end
+
+    def create
+      { hash: @addr, pvt: 'empty' }
+    end
+  end
+
   def test_reads_btc_address
     WebMock.allow_net_connect!
     addresses = Addresses.new(Pgsql::TEST.start, log: test_log)
     btc1 = "32wtFfKbjWHpu9WFzX9adGsstAosqPk#{rand(999)}"
-    assert_equal(btc1, addresses.acquire("jeff-#{rand(999)}") { btc1 })
+    assert_equal(btc1, addresses.acquire("jeff-#{rand(999)}", FakeBtc.new(btc1)))
     btc2 = "32wtFfKbjWHpu9WFzX9adGsFFAosqPk#{rand(999)}"
     john = "john-#{rand(999)}"
-    assert_equal(btc2, addresses.acquire(john) { btc2 })
+    assert_equal(btc2, addresses.acquire(john, FakeBtc.new(btc2)))
     assert_equal(john, addresses.find_user(btc2))
     assert(addresses.all.count >= 2)
     assert(!addresses.arrived?(john))
     addresses.arrived(btc2, john)
     assert(addresses.arrived?(john))
     assert(!addresses.mtime(john).nil?)
-    addresses.destroy(btc2, john)
+    addresses.destroy(btc2, john) do |pvt|
+      assert(!pvt.nil?)
+    end
   end
 
   def test_swaps
@@ -47,7 +60,7 @@ class AddressesTest < Minitest::Test
     addresses = Addresses.new(Pgsql::TEST.start, log: test_log)
     btc = "32wtFfKbjWHpu9WFzX9adGsFTAosqPk#{rand(999)}"
     john = "john-#{rand(999)}"
-    assert_equal(btc, addresses.acquire(john) { btc })
-    assert(btc != addresses.acquire(john, lifetime: 0) { btc })
+    assert_equal(btc, addresses.acquire(john, FakeBtc.new(btc)))
+    assert(btc != addresses.acquire(john, FakeBtc.new(btc), lifetime: 0))
   end
 end

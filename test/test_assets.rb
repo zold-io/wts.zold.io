@@ -34,7 +34,8 @@ class AssetsTest < Minitest::Test
     batch = assets.prepare(500)
     assert(batch.count >= 3)
     assets.spent(batch)
+    assets.add("32wtFfKbjWHpu9WFzX9adGsFFAosqPk#{rand(999)}", 201, 'pvt')
     batch = assets.prepare(200)
-    assert_equal(1, batch.count)
+    assert(batch.count >= 1)
   end
 end

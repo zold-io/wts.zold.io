@@ -118,11 +118,11 @@ class Addresses
     raise "Can't move itself: #{friend}" if friend == login
     @pgsql.connect do |c|
       c.transaction do |con|
-        rows = con.exec_params('SELECT hash FROM address WHERE login = $1', [login])
+        rows = con.exec_params('SELECT * FROM address WHERE login = $1', [login])
         raise "Source user #{login} has no BTC address assigned" if rows.ntuples.zero?
         mine = rows[0]
         con.exec_params('DELETE FROM address WHERE login = $1', [login])
-        rows = con.exec_params('SELECT hash FROM address WHERE login = $1', [friend])
+        rows = con.exec_params('SELECT * FROM address WHERE login = $1', [friend])
         raise "Target user #{friend} has no BTC address assigned" if rows.ntuples.zero?
         theirs = rows[0]
         con.exec_params('DELETE FROM address WHERE login = $1', [friend])
@@ -134,7 +134,7 @@ class Addresses
           'INSERT INTO address (hash, login, pvt) VALUES ($1, $2, $3)',
           [theirs['hash'], login, theirs['pvt']]
         )
-        theirs
+        theirs['hash']
       end
     end
   end
@@ -144,13 +144,13 @@ class Addresses
     raise "Can't move itself: #{friend}" if friend == login
     @pgsql.connect do |c|
       c.transaction do |con|
-        theirs = con.exec_params('SELECT hash FROM address WHERE login = $1', [friend])[0]
+        theirs = con.exec_params('SELECT * FROM address WHERE login = $1', [friend])[0]
         con.exec_params('DELETE FROM address WHERE login = $1', [friend])
         con.exec_params(
           'INSERT INTO address (hash, login, pvt) VALUES ($1, $2, $3)',
           [theirs['hash'], login, theirs['pvt']]
         )
-        hash
+        theirs['hash']
       end
     end
   end
