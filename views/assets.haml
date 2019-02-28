@@ -1,0 +1,28 @@
+%h2
+  Assets
+
+%p
+  This is a full list of our Bitcoin assets:
+
+%table.compact
+  %colgroup
+    %col{style: 'width: 5em'}
+    %col{style: 'width: 5em'}
+    %col{style: 'width: 5em'}
+  %thead
+    %tr
+      %th
+        Address
+      %th
+        Balance
+      %th
+        Updated
+  %tbody
+    - assets.all.each do |a|
+      %tr
+        %td
+          %a{href: "https://www.blockchain.com/btc/address/#{a[:hash]}"}= a[:hash]
+        %td.right{title: a[:satoshi]}
+          = (p[:satoshi] / 100_000_000).round(4)
+        %td{title: a[:updated].utc.iso8601}
+          = Zold::Age.new(a[:updated])

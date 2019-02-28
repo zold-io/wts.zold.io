@@ -21,19 +21,20 @@
 require 'minitest/autorun'
 require 'webmock/minitest'
 require_relative 'test__helper'
-require_relative '../objects/btc'
+require_relative '../objects/pgsql'
+require_relative '../objects/assets'
 
-class BtcTest < Minitest::Test
-  def test_creates_address
-    WebMock.disable_net_connect!
-    btc = Btc.new(log: test_log)
-    address = btc.create
-    assert(!address[:hash].nil?)
-    assert(!address[:pvt].nil?)
-  end
-
-  def test_validates_txn
-    btc = Btc.new(log: test_log)
-    assert(btc.trustable?(27_900, 6))
+class AssetsTest < Minitest::Test
+  def test_prepares_and_spends_batch
+    WebMock.allow_net_connect!
+    assets = Assets.new(Pgsql::TEST.start, log: test_log)
+    assets.add("32wtFfKbjWHpu9WFzX9adGsFFAosqPk#{rand(999)}", 1000, 'pvt')
+    assets.add("32wtFfKbjWHpu9WFzX9adGsFFAosqPk#{rand(999)}", 100, 'pvt')
+    assets.add("32wtFfKbjWHpu9WFzX9adGsFFAosqPk#{rand(999)}", 10, 'pvt')
+    batch = assets.prepare(500)
+    assert(batch.count >= 3)
+    assets.spent(batch)
+    batch = assets.prepare(200)
+    assert_equal(1, batch.count)
   end
 end

@@ -44,8 +44,10 @@ require 'zold/sync_wallets'
 require 'zold/cached_wallets'
 require_relative 'version'
 require_relative 'objects/toggles'
-require_relative 'objects/callbacks'
 require_relative 'objects/addresses'
+require_relative 'objects/assets'
+require_relative 'objects/hashes'
+require_relative 'objects/callbacks'
 require_relative 'objects/jobs'
 require_relative 'objects/payables'
 require_relative 'objects/mcodes'
@@ -57,9 +59,7 @@ require_relative 'objects/graph'
 require_relative 'objects/item'
 require_relative 'objects/user'
 require_relative 'objects/btc'
-require_relative 'objects/bank'
 require_relative 'objects/dynamo'
-require_relative 'objects/hashes'
 require_relative 'objects/user_error'
 require_relative 'objects/ops'
 require_relative 'objects/gl'
@@ -173,34 +173,18 @@ configure do
   set :gl, Gl.new(settings.pgsql, log: settings.log)
   set :payables, Payables.new(settings.pgsql, settings.remotes, log: settings.log)
   set :toggles, Toggles.new(settings.pgsql, log: settings.log)
-  set :addresses, Addresses.new(settings.pgsql, log: settings.log)
-  set :hashes, Hashes.new(settings.pgsql, log: settings.log)
+  set :btc, Btc.new(log: settings.log)
   set :jobs, Jobs.new(settings.pgsql, log: settings.log)
   set :mcodes, Mcodes.new(settings.pgsql, log: settings.log)
+  set :assets, Assets.new(settings.pgsql, log: settings.log)
   set :payouts, Payouts.new(settings.pgsql, log: settings.log)
   set :callbacks, Callbacks.new(settings.pgsql, log: settings.log)
+  set :hashes, Hashes.new(settings.pgsql, log: settings.log)
+  set :addresses, Addresses.new(settings.pgsql, log: settings.log)
   set :codec, GLogin::Codec.new(config['api_secret'])
   set :zache, Zache.new(dirty: true)
   set :ticks, Ticks.new(settings.pgsql, log: settings.log)
   set :pool, Concurrent::FixedThreadPool.new(16, max_queue: 64, fallback_policy: :abort)
-  if settings.config['coinbase']['key'].empty?
-    set :bank, Bank::Fake.new
-  else
-    set :bank, Bank.new(
-      settings.config['coinbase']['key'],
-      settings.config['coinbase']['secret'],
-      settings.config['coinbase']['account']
-    )
-  end
-  if settings.config['blockchain']['xpub'].empty?
-    set :btc, Btc::Fake.new
-  else
-    set :btc, Btc.new(
-      settings.config['blockchain']['xpub'],
-      settings.config['blockchain']['key'],
-      log: settings.log
-    )
-  end
   set :smss, Smss.new(
     settings.pgsql,
     Aws::SNS::Client.new(
@@ -250,6 +234,60 @@ and dated of #{t[:date].utc.iso8601}")
   end
   Daemon.new(settings.log).run(10) do
     settings.ticks.add('Volume24' => settings.gl.volume.to_f) unless settings.ticks.exists?('Volume24')
+  end
+  Daemon.new(settings.log).run(1) do
+    settings.btc.monitor(settings.addresses) do |address, hash, satoshi, confirmations|
+      bitcoin = (satoshi.to_f / 100_000_000).round(8)
+      zld = Zold::Amount.new(zld: bitcoin / rate)
+      bnf = user(settings.addresses.find_user(address))
+      raise UserError, "The user '#{bnf.login}' is not confirmed" unless bnf.confirmed?
+      if confirmations.zero?
+        settings.addresses.arrived(address, bnf.login)
+        settings.telepost.spam(
+          "Bitcoin transaction arrived for #{bitcoin} BTC",
+          "to [#{address[0..8]}](https://www.blockchain.com/btc/address/#{address})",
+          "in [#{hash[0..8]}](https://www.blockchain.com/btc/tx/#{hash})",
+          "and was identified as belonging to #{title_md(bnf)},",
+          "#{zld} will be deposited to the wallet",
+          "[#{bnf.item.id}](http://www.zold.io/ledger.html?wallet=#{bnf.item.id})",
+          "once we see enough confirmations, now it's #{confirmations} (may take up to an hour!)"
+        )
+      end
+      next unless settings.btc.trustable?(satoshi, confirmations)
+      boss = user(settings.config['exchange']['login'])
+      job(boss) do
+        if settings.hashes.seen?(hash)
+          settings.log.info("A duplicate notification from Blockchain about #{bitcoin} bitcoins \
+arrival to #{address}, for #{bnf.login}; we ignore it.")
+        else
+          log(bnf).info("Accepting #{bitcoin} bitcoins from #{address}...")
+          ops(boss, log: log(bnf)).pay(
+            settings.config['exchange']['keygap'],
+            bnf.item.id,
+            zld,
+            "BTC exchange of #{bitcoin} at #{hash[0..8]}, rate is #{rate}"
+          )
+          settings.addresses.destroy(address, bnf.login) do |pvt|
+            settings.assets.add(address, satoshi, pvt)
+          end
+          settings.hashes.add(hash, bnf.login, bnf.item.id)
+          settings.telepost.spam(
+            "In: #{bitcoin} BTC [exchanged](https://blog.zold.io/2018/12/09/btc-to-zld.html) to #{zld}",
+            "by #{title_md(bnf)}",
+            "in [#{hash[0..8]}](https://www.blockchain.com/btc/tx/#{hash})",
+            "(#{params[:confirmations]} confirmations)",
+            "via [#{address[0..8]}](https://www.blockchain.com/btc/address/#{address}),",
+            "to the wallet [#{bnf.item.id}](http://www.zold.io/ledger.html?wallet=#{bnf.item.id})",
+            "with the balance of #{bnf.wallet(&:balance)};",
+            "the gap of Blockchain.com is #{settings.btc.gap};",
+            "BTC price at the moment of exchange was [$#{settings.btc.price}](https://blockchain.info/ticker);",
+            "the payer is #{title_md(boss)} with the wallet",
+            "[#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id}),",
+            "the remaining balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t)"
+          )
+        end
+      end
+    end
   end
   settings.telepost.spam(
     '[WTS](https://wts.zold.io) server software',
@@ -614,88 +652,13 @@ get '/do-migrate' do
 end
 
 get '/btc' do
-  address = settings.addresses.acquire(confirmed_user.login) do
-    address = settings.btc.create
-    settings.telepost.spam(
-      'New Bitcoin address acquired',
-      "[#{address[0..8]}](https://www.blockchain.com/btc/address/#{address})",
-      "by request of #{title_md} from #{anon_ip};",
-      "Blockchain.com gap is #{settings.btc.gap};",
-      settings.btc.to_s
-    )
-    address
-  end
+  raise UserError, 'This page doesn\'t work, temporarily' unless user.login == 'yegor256'
+  address = settings.btc.acquire(confirmed_user.login, settings.btc)
   headers['X-Zold-BtcAddress'] = address
   haml :btc, layout: :layout, locals: merged(
     page_title: title('buy+sell'),
-    gap: settings.zache.get(:gap, lifetime: 60) { settings.btc.gap },
     address: address
   )
-end
-
-# See https://www.blockchain.com/api/api_receive
-get '/btc-hook' do
-  settings.log.info("Blockchain.com hook arrived: #{params}")
-  raise UserError, 'Confirmations is not provided' if params[:confirmations].nil?
-  confirmations = params[:confirmations].to_i
-  raise UserError, 'Address is not provided' if params[:address].nil?
-  address = params[:address]
-  raise UserError, 'Tx hash is not provided' if params[:transaction_hash].nil?
-  hash = params[:transaction_hash]
-  return '*ok*' if settings.hashes.seen?(hash)
-  raise UserError, 'Tx value is not provided' if params[:value].nil?
-  satoshi = params[:value].to_i
-  bitcoin = (satoshi.to_f / 100_000_000).round(8)
-  zld = Zold::Amount.new(zld: bitcoin / rate)
-  bnf = user(settings.addresses.find_user(address))
-  raise UserError, "The user '#{bnf.login}' is not confirmed" unless bnf.confirmed?
-  if confirmations.zero?
-    settings.addresses.arrived(address, bnf.login)
-    settings.telepost.spam(
-      "Bitcoin transaction arrived for #{bitcoin} BTC",
-      "to [#{address[0..8]}](https://www.blockchain.com/btc/address/#{address})",
-      "in [#{hash[0..8]}](https://www.blockchain.com/btc/tx/#{hash})",
-      "and was identified as belonging to #{title_md(bnf)},",
-      "#{zld} will be deposited to the wallet",
-      "[#{bnf.item.id}](http://www.zold.io/ledger.html?wallet=#{bnf.item.id})",
-      "once we see enough confirmations, now it's #{confirmations} (may take up to an hour!)"
-    )
-  end
-  unless settings.btc.exists?(hash, satoshi, address, confirmations)
-    raise UserError, "Tx #{hash}/#{satoshi}/#{address} not found yet or is not yet confirmed enough"
-  end
-  boss = user(settings.config['exchange']['login'])
-  job(boss) do
-    if settings.hashes.seen?(hash)
-      settings.log.info("A duplicate notification from Blockchain about #{bitcoin} bitcoins \
-arrival to #{address}, for #{bnf.login}; we ignore it.")
-    else
-      log(bnf).info("Accepting #{bitcoin} bitcoins from #{address}...")
-      ops(boss, log: log(bnf)).pay(
-        settings.config['exchange']['keygap'],
-        bnf.item.id,
-        zld,
-        "BTC exchange of #{bitcoin} at #{hash[0..8]}, rate is #{rate}"
-      )
-      settings.addresses.destroy(address, bnf.login)
-      settings.hashes.add(hash, bnf.login, bnf.item.id)
-      settings.telepost.spam(
-        "In: #{bitcoin} BTC [exchanged](https://blog.zold.io/2018/12/09/btc-to-zld.html) to #{zld}",
-        "by #{title_md(bnf)}",
-        "in [#{hash[0..8]}](https://www.blockchain.com/btc/tx/#{hash})",
-        "(#{params[:confirmations]} confirmations)",
-        "via [#{address[0..8]}](https://www.blockchain.com/btc/address/#{address}),",
-        "to the wallet [#{bnf.item.id}](http://www.zold.io/ledger.html?wallet=#{bnf.item.id})",
-        "with the balance of #{bnf.wallet(&:balance)};",
-        "the gap of Blockchain.com is #{settings.btc.gap};",
-        "BTC price at the moment of exchange was [$#{settings.btc.price}](https://blockchain.info/ticker);",
-        "the payer is #{title_md(boss)} with the wallet",
-        "[#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id}),",
-        "the remaining balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t)"
-      )
-    end
-  end
-  'Thanks!'
 end
 
 get '/zache-flush' do
@@ -708,7 +671,7 @@ end
 get '/queue' do
   raise UserError, 'You are not allowed to see this' unless user.login == 'yegor256'
   content_type 'text/plain', charset: 'utf-8'
-  settings.addresses.all.map do |a|
+  settings.btc.all.map do |a|
     "#{a[:login]} #{Zold::Age.new(a[:assigned])} #{a[:hash]} A=#{a[:arrived]}"
   end.join("\n")
 end
@@ -756,7 +719,7 @@ post '/do-sell' do
       amount * fee,
       "Fee for exchange of #{bitcoin} BTC at #{address[0..8]}, rate is #{rate}, fee is #{fee}"
     )
-    settings.bank.send(
+    settings.btc.send(
       address,
       (usd * (1 - fee)).round(2),
       "Exchange of #{amount.to_zld(8)} by #{title} to #{user.item.id}, rate is #{rate}, fee is #{fee}"
@@ -772,8 +735,8 @@ post '/do-sell' do
       "with the balance of #{user.wallet(&:balance)}",
       "to bitcoin address [#{address[0..8]}](https://www.blockchain.com/btc/address/#{address});",
       "BTC price at the time of exchange was [$#{price.round}](https://blockchain.info/ticker);",
-      "our bitcoin wallet still has #{settings.bank.balance.round(3)} BTC",
-      "(worth about $#{(settings.bank.balance * price).round});",
+      "our bitcoin wallet still has #{settings.assets.balance.round(3)} BTC",
+      "(worth about $#{(settings.assets.balance * price).round});",
       "zolds were deposited to [#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id})",
       "of [#{boss.login}](https://github.com/#{boss.login}),",
       "the balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t);",
@@ -828,7 +791,7 @@ get '/rate' do
         wallets: settings.wallets, remotes: settings.remotes, copies: settings.copies, log: settings.log
       ).run(['pull', Zold::Id::ROOT.to_s, "--network=#{network}"])
       hash = {
-        bank: settings.bank.balance,
+        bank: settings.assets.balance,
         boss: settings.wallets.acq(boss.item.id, &:balance),
         root: settings.wallets.acq(Zold::Id::ROOT, &:balance) * -1,
         boss_wallet: boss.item.id
@@ -967,6 +930,13 @@ get '/gl' do
     page_title: 'General Ledger',
     gl: settings.gl,
     since: params[:since] ? Zold::Txn.parse_time(params[:since]) : nil
+  )
+end
+
+get '/assets' do
+  haml :assets, layout: :layout, locals: merged(
+    page_title: 'Assets',
+    assets: settings.assets
   )
 end
 

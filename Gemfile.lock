@@ -36,6 +36,9 @@ GEM
       thread_safe (~> 0.3, >= 0.3.1)
     backports (3.11.4)
     backtrace (0.3.0)
+    bitcoin (0.2.0)
+      bitcoin-ruby
+    bitcoin-ruby (0.0.18)
     codecov (0.1.13)
       json
       simplecov
@@ -237,6 +240,7 @@ DEPENDENCIES
   aws-sdk-sns (= 1.9.0)
   backports (= 3.11.4)
   backtrace (= 0.3.0)
+  bitcoin (= 0.2.0)
   codecov (= 0.1.13)
   coinbase (= 4.2.0)
   concurrent-ruby (>= 1.1)

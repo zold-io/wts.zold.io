@@ -22,7 +22,7 @@ require 'zold/log'
 require_relative 'pgsql'
 require_relative 'user_error'
 
-# Incoming Blockchain addresses.
+# Incoming Bitcoin addresses.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
@@ -51,7 +51,7 @@ class Addresses
 
   # Returns BTC address if possible to get it (one of the existing ones),
   # otherwise generate a new one, using the block.
-  def acquire(login, lifetime: 30 * 60)
+  def acquire(login, btc, lifetime: 30 * 60)
     mine = @pgsql.exec('SELECT * FROM address WHERE login = $1', [login])
     unless mine.empty?
       age = Time.now - Time.parse(mine[0]['assigned'])
@@ -60,9 +60,9 @@ class Addresses
     end
     friend = candidates(login, lifetime)[0]
     if friend.nil?
-      hash = yield
+      addr = btc.create
       friend = ".reserve-#{rand(9999)}"
-      @pgsql.exec('INSERT INTO address (hash, login) VALUES ($1, $2)', [hash, friend])
+      @pgsql.exec('INSERT INTO address (hash, login, pvt) VALUES ($1, $2, $3)', [addr[:hash], friend, addr[:pvt]])
     end
     if mine.empty?
       move(friend, login)
@@ -78,6 +78,7 @@ class Addresses
     r = @pgsql.exec('SELECT * FROM address WHERE hash = $1', [hash])[0]
     raise UserError, "The hash #{hash} hasn't arrived, why destroying?" unless r['arrived']
     @pgsql.exec('DELETE FROM address WHERE hash = $1', [hash])
+    yield r['pvt']
   end
 
   # Mark this BTC as "in processing" and don't give it to anyone else
@@ -104,7 +105,8 @@ class Addresses
   # Find the best candidates (list of logins) to take the BTC address away from him
   # and give it to someone else
   def candidates(mine, lifetime)
-    rows = @pgsql.exec('SELECT * FROM address WHERE login != $1 ORDER BY assigned', [mine]).select do |r|
+    query = 'SELECT * FROM address WHERE login != $1 AND arrived IS NULL ORDER BY assigned'
+    rows = @pgsql.exec(query, [mine]).select do |r|
       age = Time.now - Time.parse(r['assigned'])
       r['arrived'] ? age > lifetime * 10 : age > lifetime
     end
@@ -118,14 +120,20 @@ class Addresses
       c.transaction do |con|
         rows = con.exec_params('SELECT hash FROM address WHERE login = $1', [login])
         raise "Source user #{login} has no BTC address assigned" if rows.ntuples.zero?
-        mine = rows[0]['hash']
+        mine = rows[0]
         con.exec_params('DELETE FROM address WHERE login = $1', [login])
         rows = con.exec_params('SELECT hash FROM address WHERE login = $1', [friend])
         raise "Target user #{friend} has no BTC address assigned" if rows.ntuples.zero?
-        theirs = rows[0]['hash']
+        theirs = rows[0]
         con.exec_params('DELETE FROM address WHERE login = $1', [friend])
-        con.exec_params('INSERT INTO address (hash, login) VALUES ($1, $2)', [mine, friend])
-        con.exec_params('INSERT INTO address (hash, login) VALUES ($1, $2)', [theirs, login])
+        con.exec_params(
+          'INSERT INTO address (hash, login, pvt) VALUES ($1, $2, $3)',
+          [mine['hash'], friend, mine['pvt']]
+        )
+        con.exec_params(
+          'INSERT INTO address (hash, login, pvt) VALUES ($1, $2, $3)',
+          [theirs['hash'], login, theirs['pvt']]
+        )
         theirs
       end
     end
@@ -136,9 +144,12 @@ class Addresses
     raise "Can't move itself: #{friend}" if friend == login
     @pgsql.connect do |c|
       c.transaction do |con|
-        hash = con.exec_params('SELECT hash FROM address WHERE login = $1', [friend])[0]['hash']
+        theirs = con.exec_params('SELECT hash FROM address WHERE login = $1', [friend])[0]
         con.exec_params('DELETE FROM address WHERE login = $1', [friend])
-        con.exec_params('INSERT INTO address (hash, login) VALUES ($1, $2)', [hash, login])
+        con.exec_params(
+          'INSERT INTO address (hash, login, pvt) VALUES ($1, $2, $3)',
+          [theirs['hash'], login, theirs['pvt']]
+        )
         hash
       end
     end
