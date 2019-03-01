@@ -176,7 +176,7 @@
             %li{title: 'Currently consumed memory vs. total system memory, in Mb'}
               = "#{(mem / (1024 * 1024)).round}/#{(total_mem / (1024 * 1024)).round}"
             %li{title: 'Your visible IP address'}
-              = request.ip
+              = "#{request.ip}/#{country}"
         %nav
           %ul
             %a{href: 'https://github.com/zold-io/wts.zold.io/stargazers'}

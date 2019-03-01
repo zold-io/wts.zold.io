@@ -128,7 +128,7 @@ class AppTest < Minitest::Test
     )
     boss.create
     boss.confirm(boss.keygap)
-    login = 'jeff009'
+    login = 'jeff00977'
     user = User.new(
       login, Item.new(login, Dynamo.new.aws, log: test_log),
       Sinatra::Application.settings.wallets, log: test_log
