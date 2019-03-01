@@ -35,6 +35,6 @@ class TogglesTest < Minitest::Test
     toggles.set(key, 'bye')
     assert_equal('bye', toggles.get(key))
     toggles.set(key, '')
-    assert_equal('', toggles.get(key))
+    assert_equal('the default', toggles.get(key, 'the default'))
   end
 end

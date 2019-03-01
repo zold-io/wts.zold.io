@@ -33,14 +33,18 @@ class Toggles
   end
 
   def set(key, value)
-    @pgsql.exec(
-      [
-        'INSERT INTO toggle (key, value)',
-        'VALUES ($1, $2)',
-        'ON CONFLICT (key) DO UPDATE SET value = $2, updated = NOW()'
-      ].join(' '),
-      [key, value]
-    )
+    if value.empty?
+      @pgsql.exec('DELETE FROM toggle WHERE key = $1', [key])
+    else
+      @pgsql.exec(
+        [
+          'INSERT INTO toggle (key, value)',
+          'VALUES ($1, $2)',
+          'ON CONFLICT (key) DO UPDATE SET value = $2, updated = NOW()'
+        ].join(' '),
+        [key, value]
+      )
+    end
   end
 
   def get(key, default = '')

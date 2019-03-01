@@ -354,6 +354,7 @@ get '/home' do
 end
 
 get '/create' do
+  prohibit('create')
   job do
     log.info('Creating a new wallet by /create request...')
     user.create
@@ -534,12 +535,14 @@ get '/id_rsa' do
 end
 
 get '/api' do
+  prohibit('api')
   haml :api, layout: :layout, locals: merged(
     page_title: title('api')
   )
 end
 
 get '/api-reset' do
+  prohibit('api')
   confirmed_user.item.token_reset
   settings.telepost.spam(
     "API token has been reset by #{title_md}",
@@ -562,6 +565,7 @@ get '/invoice.json' do
 end
 
 get '/callbacks' do
+  prohibit('api')
   haml :callbacks, layout: :layout, locals: merged(
     page_title: title('callbacks'),
     callbacks: settings.callbacks
@@ -574,6 +578,7 @@ get '/null' do
 end
 
 get '/wait-for' do
+  prohibit('api')
   wallet = params[:wallet]
   raise UserError, 'The parameter "wallet" is mandatory' if wallet.nil?
   prefix = params[:prefix]
@@ -703,13 +708,6 @@ arrival to #{address}, for #{bnf.login}; we ignore it.")
   'Thanks!'
 end
 
-get '/zache-flush' do
-  raise UserError, 'You are not allowed to see this' unless user.login == 'yegor256'
-  settings.zache.remove_all
-  content_type 'text/plain', charset: 'utf-8'
-  'done'
-end
-
 get '/queue' do
   raise UserError, 'You are not allowed to see this' unless user.login == 'yegor256'
   content_type 'text/plain', charset: 'utf-8'
@@ -804,6 +802,7 @@ post '/do-sell' do
 end
 
 get '/job' do
+  prohibit('api')
   id = params['id']
   raise UserError, "Job ID #{id} is not found" unless settings.jobs.exists?(id)
   content_type 'text/plain', charset: 'utf-8'
@@ -904,6 +903,7 @@ get '/graph.svg' do
 end
 
 get '/mobile/send' do
+  prohibit('api')
   phone = params[:phone]
   raise UserError, 'Mobile phone number is required' if phone.nil?
   raise UserError, 'Phone number can\'t be empty, format it according to E.164' if phone.empty?
@@ -921,6 +921,7 @@ get '/mobile/send' do
 end
 
 get '/mobile/token' do
+  prohibit('api')
   phone = params[:phone]
   raise UserError, 'Mobile phone number is required' if phone.nil?
   raise UserError, 'Phone number can\'t be empty, format it according to E.164' if phone.empty?
@@ -958,10 +959,10 @@ end
 
 post '/set-toggle' do
   raise UserError, 'You are not allowed to see this' unless user.login == 'yegor256'
-  key = params[:key]
-  value = params[:value]
+  key = params[:key].strip
+  value = params[:value].strip
   settings.toggles.set(key, value)
-  flash('/toggles', "The feature toggle #{key.inspect} set")
+  flash('/toggles', "The feature toggle #{key.inspect} re/set")
 end
 
 get '/payables' do
@@ -975,12 +976,13 @@ get '/gl' do
   haml :gl, layout: :layout, locals: merged(
     page_title: 'General Ledger',
     gl: settings.gl,
-    query: params[:query] || '',
+    query: (params[:query] || '').strip,
     since: params[:since] ? Zold::Txn.parse_time(params[:since]) : nil
   )
 end
 
 get '/quick' do
+  prohibit('quick')
   flash('/home', 'Please logout first') if @locals[:guser]
   haml :quick, layout: :layout, locals: merged(
     page_title: 'Zold: Quick Start',
@@ -1190,6 +1192,7 @@ def job(u = user)
 end
 
 def pay_hosting_bonuses(boss)
+  prohibit('bonuses')
   bonus = Zold::Amount.new(zld: 1.0)
   ops(boss).pull
   latest = boss.wallet(&:txns).reverse.find { |t| t.amount.negative? }
@@ -1252,7 +1255,7 @@ def pay_hosting_bonuses(boss)
 end
 
 def prohibit(feature)
-  return if settings.toggles.get("stop:#{feature}").empty?
+  return unless settings.toggles.get("stop:#{feature}", 'no') == 'yes'
   raise UserError, "This feature \"#{feature}\" is temporarily disabled, sorry"
 end
 
