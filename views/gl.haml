@@ -4,6 +4,11 @@
 %p
   %img{style: 'display:inline-block', src: '/graph.svg?keys=Volume24&digits=0'}
 
+%p
+  24-hour volume:
+  %strong= gl.volume.to_zld
+  ZLD.
+
 - max = 50
 
 %p
@@ -12,10 +17,6 @@
   nodes. They are not fully confirmed. You can't rely on this
   information. We collect this data in order to stay informed
   about the movements in the network.
-
-%form{method: 'GET', action: '/gl'}
-  %input{type: 'text', name: 'query', size: 40, placeholder: 'Wallet ID or keyword...', autocomplete: 'off', required: true, tabindex: 1, autofocus: true, value: query}
-  %input{type: 'submit', tabindex: 2, value: 'Search'}
 
 %table.compact
   %colgroup
@@ -47,7 +48,7 @@
       %tr
         %td.center{colspan: 6}
           = 'Since ' + since.utc.iso8601
-    - txns = gl.fetch(since: since ? since : Time.now, limit: max, query: query)
+    - txns = gl.fetch(since: since ? since : Time.now, limit: max)
     - if txns.empty?
       %tr
         %td.center{colspan: 6}
