@@ -628,7 +628,7 @@ get '/btc' do
     address = settings.btc.create
     settings.telepost.spam(
       'New Bitcoin address acquired',
-      "[#{address[0..8]}](https://www.blockchain.com/btc/address/#{address})",
+      "[#{address}](https://www.blockchain.com/btc/address/#{address})",
       "by request of #{title_md} from #{anon_ip};",
       "Blockchain.com gap is #{settings.btc.gap};",
       settings.btc.to_s
@@ -663,8 +663,8 @@ get '/btc-hook' do
     settings.addresses.arrived(address, bnf.login)
     settings.telepost.spam(
       "Bitcoin transaction arrived for #{bitcoin} BTC",
-      "to [#{address[0..8]}](https://www.blockchain.com/btc/address/#{address})",
-      "in [#{hash[0..8]}](https://www.blockchain.com/btc/tx/#{hash})",
+      "to [#{address}](https://www.blockchain.com/btc/address/#{address})",
+      "in [#{hash}](https://www.blockchain.com/btc/tx/#{hash})",
       "and was identified as belonging to #{title_md(bnf)},",
       "#{zld} will be deposited to the wallet",
       "[#{bnf.item.id}](http://www.zold.io/ledger.html?wallet=#{bnf.item.id})",
@@ -685,16 +685,16 @@ arrival to #{address}, for #{bnf.login}; we ignore it.")
         settings.config['exchange']['keygap'],
         bnf.item.id,
         zld,
-        "BTC exchange of #{bitcoin} at #{hash[0..8]}, rate is #{rate}"
+        "BTC exchange of #{bitcoin} at #{hash}, rate is #{rate}"
       )
       settings.addresses.destroy(address, bnf.login)
       settings.hashes.add(hash, bnf.login, bnf.item.id)
       settings.telepost.spam(
         "In: #{bitcoin} BTC [exchanged](https://blog.zold.io/2018/12/09/btc-to-zld.html) to #{zld}",
         "by #{title_md(bnf)}",
-        "in [#{hash[0..8]}](https://www.blockchain.com/btc/tx/#{hash})",
+        "in [#{hash}](https://www.blockchain.com/btc/tx/#{hash})",
         "(#{params[:confirmations]} confirmations)",
-        "via [#{address[0..8]}](https://www.blockchain.com/btc/address/#{address}),",
+        "via [#{address}](https://www.blockchain.com/btc/address/#{address}),",
         "to the wallet [#{bnf.item.id}](http://www.zold.io/ledger.html?wallet=#{bnf.item.id})",
         "with the balance of #{bnf.wallet(&:balance)};",
         "the gap of Blockchain.com is #{settings.btc.gap};",
@@ -755,13 +755,13 @@ post '/do-sell' do
       keygap,
       boss.item.id,
       amount * (1 - fee),
-      "ZLD exchange to #{bitcoin} BTC at #{address[0..8]}, rate is #{rate}, fee is #{fee}"
+      "ZLD exchange to #{bitcoin} BTC at #{address}, rate is #{rate}, fee is #{fee}"
     )
     ops.pay(
       keygap,
       rewards.item.id,
       amount * fee,
-      "Fee for exchange of #{bitcoin} BTC at #{address[0..8]}, rate is #{rate}, fee is #{fee}"
+      "Fee for exchange of #{bitcoin} BTC at #{address}, rate is #{rate}, fee is #{fee}"
     )
     settings.bank.send(
       address,
@@ -777,7 +777,7 @@ post '/do-sell' do
       "by #{title_md} from #{anon_ip}",
       "from the wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})",
       "with the balance of #{user.wallet(&:balance)}",
-      "to bitcoin address [#{address[0..8]}](https://www.blockchain.com/btc/address/#{address});",
+      "to bitcoin address [#{address}](https://www.blockchain.com/btc/address/#{address});",
       "BTC price at the time of exchange was [$#{price.round}](https://blockchain.info/ticker);",
       "our bitcoin wallet still has #{settings.bank.balance.round(3)} BTC",
       "(worth about $#{(settings.bank.balance * price).round});",
