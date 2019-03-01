@@ -63,9 +63,14 @@ class Gl
     end
   end
 
-  def fetch(since: Time.now, limit: 50)
+  def fetch(since: Time.now, limit: 50, query: '')
     raise 'Since has to be of time Time' unless since.is_a?(Time)
-    @pgsql.exec('SELECT * FROM txn WHERE date <= $1 ORDER BY date DESC LIMIT $2', [since.utc.iso8601, limit]).map do |r|
+    q = [
+      'SELECT * FROM txn WHERE date <= $1',
+      'AND ($3 = \'\' OR source = $3 OR target = $3 OR details LIKE $3)',
+      'ORDER BY date DESC LIMIT $2'
+    ].join(' ')
+    @pgsql.exec(q, [since.utc.iso8601, limit, query]).map do |r|
       map(r)
     end
   end

@@ -13,6 +13,10 @@
   information. We collect this data in order to stay informed
   about the movements in the network.
 
+%form{method: '/gl', action: 'GET'}
+  %input{type: 'text', name: 'query', size: 40, placeholder: 'source:0000000000000000', autocomplete: 'off', required: true, tabindex: 1, autofocus: true, value: query}
+  %input{type: 'submit', tabindex: 2, value: 'Search'}
+
 %table.compact
   %colgroup
     %col{style: 'width: 2em'}
@@ -43,7 +47,7 @@
       %tr
         %td.center{colspan: 6}
           = 'Since ' + since.utc.iso8601
-    - txns = gl.fetch(since: since ? since : Time.now, limit: max)
+    - txns = gl.fetch(since: since ? since : Time.now, limit: max, query: query)
     - if txns.empty?
       %tr
         %td.center{colspan: 6}

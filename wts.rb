@@ -427,13 +427,14 @@ get '/keygap' do
 end
 
 get '/pay' do
+  prohibit('pay')
   haml :pay, layout: :layout, locals: merged(
     page_title: title('pay')
   )
 end
 
 post '/do-pay' do
-  raise UserError, 'This feature is temporarily disabled' unless settings.toggles.get('stop:do-pay').empty?
+  prohibit('pay')
   if settings.toggles.get('ban:do-pay').split(',').include?(confirmed_user.login)
     raise UserError, 'You are not allowed to send any payments at the moment, sorry'
   end
@@ -488,6 +489,7 @@ get '/pull' do
 end
 
 get '/restart' do
+  prohibit('restart')
   haml :restart, layout: :layout, locals: merged(
     page_title: title('restart')
   )
@@ -593,12 +595,14 @@ get '/wait-for' do
 end
 
 get '/migrate' do
+  prohibit('migrate')
   haml :migrate, layout: :layout, locals: merged(
     page_title: title('migrate')
   )
 end
 
 get '/do-migrate' do
+  prohibit('migrate')
   headers['X-Zold-Job'] = job do
     origin = user.item.id
     ops.migrate(keygap)
@@ -614,6 +618,7 @@ get '/do-migrate' do
 end
 
 get '/btc' do
+  prohibit('btc')
   address = settings.addresses.acquire(confirmed_user.login) do
     address = settings.btc.create
     settings.telepost.spam(
@@ -721,7 +726,7 @@ get '/payouts' do
 end
 
 post '/do-sell' do
-  raise UserError, 'This feature is temporarily disabled' unless settings.toggles.get('stop:do-sell').empty?
+  prohibit('sell')
   raise UserError, 'Amount is not provided' if params[:amount].nil?
   raise UserError, 'Bitcoin address is not provided' if params[:btc].nil?
   raise UserError, 'Keygap is not provided' if params[:keygap].nil?
@@ -970,6 +975,7 @@ get '/gl' do
   haml :gl, layout: :layout, locals: merged(
     page_title: 'General Ledger',
     gl: settings.gl,
+    query: params[:query] || '',
     since: params[:since] ? Zold::Txn.parse_time(params[:since]) : nil
   )
 end
@@ -1243,6 +1249,11 @@ def pay_hosting_bonuses(boss)
     "[#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id}),",
     "the balance is #{boss.wallet(&:balance)}"
   )
+end
+
+def prohibit(feature)
+  return if settings.toggles.get("stop:#{feature}").empty?
+  raise UserError, "This feature \"#{feature}\" is temporarily disabled, sorry"
 end
 
 def safe_md(txt)

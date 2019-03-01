@@ -61,7 +61,7 @@ class GlTest < Minitest::Test
       gl.scan(remotes) do |t|
         assert_equal(id, t[:id], t)
       end
-      assert(gl.fetch.count.positive?)
+      assert(gl.fetch(query: '0000111122223333').count.positive?)
       row = gl.fetch[0]
       assert_equal(id, row[:id], row)
       assert_equal('0000111122223333', row[:source].to_s, row)
