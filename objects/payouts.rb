@@ -80,6 +80,12 @@ amount #{amount}, and details: \"#{details}\"")
       )[0]['sum'].to_i
     )
     return false if monthly + amount > monthly_limit
+    daily = Zold::Amount.new(
+      zents: @pgsql.exec(
+        'SELECT SUM(zents) FROM payout WHERE created > NOW() - INTERVAL \'24 HOURS\''
+      )[0]['sum'].to_i
+    )
+    return false if daily + amount > Zold::Amount.new(zld: 512.0)
     true
   end
 
