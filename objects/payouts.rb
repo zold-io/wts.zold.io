@@ -80,12 +80,33 @@ amount #{amount}, and details: \"#{details}\"")
       )[0]['sum'].to_i
     )
     return false if monthly + amount > monthly_limit
+    true
+  end
+
+  # Is it safe to send that money now?
+  def safe?(amount, limits = '64/128/256')
+    daily_limit, weekly_limit, monthly_limit = limits.split('/')
+    daily_limit = Zold::Amount.new(zld: daily_limit.to_f)
+    weekly_limit = Zold::Amount.new(zld: weekly_limit.to_f)
+    monthly_limit = Zold::Amount.new(zld: monthly_limit.to_f)
     daily = Zold::Amount.new(
       zents: @pgsql.exec(
         'SELECT SUM(zents) FROM payout WHERE created > NOW() - INTERVAL \'24 HOURS\''
       )[0]['sum'].to_i
     )
-    return false if daily + amount > Zold::Amount.new(zld: 512.0)
+    return false if daily + amount > daily_limit
+    weekly = Zold::Amount.new(
+      zents: @pgsql.exec(
+        'SELECT SUM(zents) FROM payout WHERE created > NOW() - INTERVAL \'7 DAYS\''
+      )[0]['sum'].to_i
+    )
+    return false if weekly + amount > weekly_limit
+    monthly = Zold::Amount.new(
+      zents: @pgsql.exec(
+        'SELECT SUM(zents) FROM payout WHERE created > NOW() - INTERVAL \'31 DAYS\''
+      )[0]['sum'].to_i
+    )
+    return false if monthly + amount > monthly_limit
     true
   end
 

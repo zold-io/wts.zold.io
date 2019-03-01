@@ -734,6 +734,10 @@ post '/do-sell' do
   unless settings.payouts.allowed?(user.login, amount, limits)
     raise UserError, "With #{amount} you are going over your limits (#{limits}), sorry"
   end
+  limits = settings.toggles.get('system-limits', '512/2048/8196')
+  unless settings.payouts.safe?(amount, limits)
+    raise UserError, "With #{amount} you are going over our limits (#{limits}), sorry"
+  end
   if settings.toggles.get('ban:do-sell').split(',').include?(user.login)
     raise UserError, 'You are not allowed to sell any ZLD at the moment, sorry'
   end
