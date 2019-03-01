@@ -13,8 +13,8 @@
   information. We collect this data in order to stay informed
   about the movements in the network.
 
-%form{method: '/gl', action: 'GET'}
-  %input{type: 'text', name: 'query', size: 40, placeholder: 'source:0000000000000000', autocomplete: 'off', required: true, tabindex: 1, autofocus: true, value: query}
+%form{method: 'GET', action: '/gl'}
+  %input{type: 'text', name: 'query', size: 40, placeholder: 'Wallet ID or keyword...', autocomplete: 'off', required: true, tabindex: 1, autofocus: true, value: query}
   %input{type: 'submit', tabindex: 2, value: 'Search'}
 
 %table.compact

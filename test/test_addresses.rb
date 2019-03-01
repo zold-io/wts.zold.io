@@ -48,6 +48,6 @@ class AddressesTest < Minitest::Test
     btc = "32wtFfKbjWHpu9WFzX9adGsFTAosqPk#{rand(999)}"
     john = "john-#{rand(999)}"
     assert_equal(btc, addresses.acquire(john) { btc })
-    assert(btc != addresses.acquire(john, lifetime: 0) { btc })
+    assert(btc != addresses.acquire(john, lifetime: 0) { "32wtFfKbjWHpu9WFzX9adGSSTAosqPk#{rand(999)}" })
   end
 end
