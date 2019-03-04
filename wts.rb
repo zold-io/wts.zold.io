@@ -1228,7 +1228,7 @@ def job(u = user)
       VersionedJob.new(
         CleanJob.new(
           UpdateJob.new(
-            proc { yield },
+            proc { yield(jid) },
             settings.remotes,
             log: lg,
             network: network
