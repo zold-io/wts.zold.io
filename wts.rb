@@ -278,6 +278,7 @@ before '/*' do
         settings.config['github']['encryption_secret'],
         context
       ).to_user[:login]&.downcase
+      raise "@#{@locals[:guser]} doesn't work in Zerocracy, can't login via GitHub, sorry" unless known?
     rescue OpenSSL::Cipher::CipherError => _
       @locals.delete(:guser)
     end
@@ -1146,6 +1147,7 @@ end
 # This user is known as Zerocracy contributor.
 def known?
   return false unless @locals[:guser]
+  return true if ENV['RACK_ENV'] == 'test'
   Zold::Http.new(uri: 'https://www.0crat.com/known/' + user.login).get.code == 200
 end
 

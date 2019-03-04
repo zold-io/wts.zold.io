@@ -14,6 +14,12 @@
   However, this will happen only if you are a member of Zerocracy
   = succeed '.' do
     %a{href: 'https://www.0crat.com/team'} team
+  BTW, you can use your GitHub account to
+  = succeed ',' do
+    %a{href: login_link} login
+  but only if you work in
+  = succeed '.' do
+    %a{href: 'https://www.0crat.com/team'} Zerocracy
 
 %p
   The exchange rate is
@@ -22,6 +28,5 @@
 
 %p
   Don't forget to give us
-  %a{href: login_link} a
   %a{href: 'https://github.com/zold-io/zold/stargazers'} GitHub
   star!
