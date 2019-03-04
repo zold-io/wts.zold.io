@@ -437,7 +437,7 @@ end
 post '/do-pay' do
   prohibit('pay')
   if settings.toggles.get('ban:do-pay').split(',').include?(confirmed_user.login)
-    raise UserError, 'You are not allowed to send any payments at the moment, sorry'
+    raise UserError, 'Your account is not allowed to send any payments at the moment, sorry'
   end
   raise UserError, 'Parameter "bnf" is not provided' if params[:bnf].nil?
   raise UserError, 'Parameter "amount" is not provided' if params[:amount].nil?
@@ -742,7 +742,7 @@ post '/do-sell' do
     raise UserError, "With #{amount} you are going over our limits (#{limits}), sorry"
   end
   if settings.toggles.get('ban:do-sell').split(',').include?(user.login)
-    raise UserError, 'You are not allowed to sell any ZLD at the moment, sorry'
+    raise UserError, 'Your accont is not allowed to sell any ZLD at the moment, email us'
   end
   price = settings.btc.price
   bitcoin = (amount.to_zld(8).to_f * rate).round(8)
@@ -1051,7 +1051,7 @@ end
 private
 
 def rate
-  0.00026
+  settings.toggles.get('rate', '0.00025').to_f
 end
 
 def fee
