@@ -69,7 +69,7 @@ GEM
       temple (>= 0.8.0)
       tilt
     hashdiff (0.3.8)
-    i18n (1.5.3)
+    i18n (1.6.0)
       concurrent-ruby (~> 1.0)
     ice_nine (0.11.2)
     ipaddr (1.2.2)
@@ -166,7 +166,7 @@ GEM
       virtus
     telepost (0.2.3)
       telebot (= 0.1.2)
-    temple (0.8.0)
+    temple (0.8.1)
     thin (1.7.2)
       daemons (~> 1.0, >= 1.0.9)
       eventmachine (~> 1.0, >= 1.0.4)

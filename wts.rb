@@ -735,11 +735,21 @@ post '/do-sell' do
   raise UserError, "You don't have enough to send #{amount}" if confirmed_user.wallet(&:balance) < amount
   limits = settings.toggles.get('limits', '64/128/256')
   unless settings.payouts.allowed?(user.login, amount, limits)
-    raise UserError, "With #{amount} you are going over your limits (#{limits}), sorry"
+    consumed = settings.payouts.consumed(user.login)
+    settings.telepost.spam(
+      "The user #{title_md} from #{anon_ip} just attempted to go",
+      "over their account limits \"#{consumed}\", while allowed thresholds are \"#{limits}\""
+    )
+    raise UserError, "With #{amount} you are going over your limits: #{consumed} vs #{limits}"
   end
   limits = settings.toggles.get('system-limits', '512/2048/8196')
   unless settings.payouts.safe?(amount, limits)
-    raise UserError, "With #{amount} you are going over our limits (#{limits}), sorry"
+    consumed = settings.payouts.system_consumed
+    settings.telepost.spam(
+      "The user #{title_md} from #{anon_ip} just attempted to go",
+      "over our account limits \"#{consumed}\", while allowed thresholds are \"#{limits}\""
+    )
+    raise UserError, "With #{amount} you are going over our limits: #{consumed} vs #{limits}"
   end
   if settings.toggles.get('ban:do-sell').split(',').include?(user.login)
     raise UserError, 'Your accont is not allowed to sell any ZLD at the moment, email us'

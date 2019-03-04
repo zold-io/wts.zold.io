@@ -53,6 +53,28 @@ amount #{amount}, and details: \"#{details}\"")
     @pgsql.exec('SELECT * FROM payout WHERE login = $1 ORDER BY created DESC', [login]).map { |r| map(r) }
   end
 
+  def consumed(login)
+    daily = Zold::Amount.new(
+      zents: @pgsql.exec(
+        'SELECT SUM(zents) FROM payout WHERE login = $1 AND created > NOW() - INTERVAL \'24 HOURS\'',
+        [login]
+      )[0]['sum'].to_i
+    )
+    weekly = Zold::Amount.new(
+      zents: @pgsql.exec(
+        'SELECT SUM(zents) FROM payout WHERE login = $1 AND created > NOW() - INTERVAL \'7 DAYS\'',
+        [login]
+      )[0]['sum'].to_i
+    )
+    monthly = Zold::Amount.new(
+      zents: @pgsql.exec(
+        'SELECT SUM(zents) FROM payout WHERE login = $1 AND created > NOW() - INTERVAL \'31 DAYS\'',
+        [login]
+      )[0]['sum'].to_i
+    )
+    "#{daily.to_zld(0)}/#{weekly.to_zld(0)}/#{monthly.to_zld(0)}"
+  end
+
   # Still allowed to send a payout for this amount to this user?
   def allowed?(login, amount, limits = '64/128/256')
     daily_limit, weekly_limit, monthly_limit = limits.split('/')
@@ -81,6 +103,25 @@ amount #{amount}, and details: \"#{details}\"")
     )
     return false if monthly + amount > monthly_limit
     true
+  end
+
+  def system_consumed
+    daily = Zold::Amount.new(
+      zents: @pgsql.exec(
+        'SELECT SUM(zents) FROM payout WHERE created > NOW() - INTERVAL \'24 HOURS\''
+      )[0]['sum'].to_i
+    )
+    weekly = Zold::Amount.new(
+      zents: @pgsql.exec(
+        'SELECT SUM(zents) FROM payout WHERE created > NOW() - INTERVAL \'7 DAYS\''
+      )[0]['sum'].to_i
+    )
+    monthly = Zold::Amount.new(
+      zents: @pgsql.exec(
+        'SELECT SUM(zents) FROM payout WHERE created > NOW() - INTERVAL \'31 DAYS\''
+      )[0]['sum'].to_i
+    )
+    "#{daily.to_zld(0)}/#{weekly.to_zld(0)}/#{monthly.to_zld(0)}"
   end
 
   # Is it safe to send that money now?
