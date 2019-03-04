@@ -2,7 +2,7 @@
   Payouts
 
 %p
-  Total system consumption:
+  Total system consumption (day/week/month):
   = succeed ';' do
     %code= system_consumed
   system limits:
@@ -12,10 +12,10 @@
 %p
   Your consumption:
   = succeed ';' do
-    %code= system_consumed
+    %code= consumed
   your limits:
   = succeed '.' do
-    %code= system_limits
+    %code= limits
 
 - list = payouts.fetch(confirmed_user.login)
 
