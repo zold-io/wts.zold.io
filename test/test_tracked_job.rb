@@ -32,10 +32,9 @@ class TrackedJobTest < Minitest::Test
     id = jobs.start
     job = TrackedJob.new(
       proc { done = true },
-      id,
       jobs
     )
-    job.call
+    job.call(id)
     assert_equal('OK', jobs.read(id))
   end
 end

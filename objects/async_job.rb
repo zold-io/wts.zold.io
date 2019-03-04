@@ -35,10 +35,10 @@ class AsyncJob
     @log = log
   end
 
-  def call
+  def call(jid)
     @pool.post do
       Futex.new(@lock, lock: @lock, log: @log, timeout: 10 * 60).open do
-        @job.call
+        @job.call(jid)
       end
     rescue StandardError => e
       @log.error(Backtrace.new(e))

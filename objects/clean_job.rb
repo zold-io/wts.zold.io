@@ -32,7 +32,7 @@ class CleanJob
     @log = log
   end
 
-  def call
+  def call(jid)
     if @item.exists?
       Zold::Remove.new(wallets: @wallets, log: @log).run(
         ['remove', @item.id.to_s, '--force']
@@ -40,6 +40,6 @@ class CleanJob
     else
       @log.info("The user #{@item.login} doesn't have a wallet yet")
     end
-    @job.call
+    @job.call(jid)
   end
 end

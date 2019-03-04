@@ -30,10 +30,11 @@ class VersionedJob
     @job = job
   end
 
-  def call
+  def call(jid)
     @log.info("\n\nZold gem version: #{Zold::VERSION}/#{Zold::PROTOCOL}")
     @log.info("WTS version: #{VERSION}")
     @log.info("Current time is: #{Time.now.utc.iso8601}")
-    @job.call
+    @log.info("Job ID: #{jid}")
+    @job.call(jid)
   end
 end

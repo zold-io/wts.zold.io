@@ -24,17 +24,16 @@ require 'backtrace'
 # Job that reports its result to SQL.
 #
 class TrackedJob
-  def initialize(job, id, jobs)
+  def initialize(job, jobs)
     @job = job
-    @id = id
     @jobs = jobs
   end
 
-  def call
-    @job.call
-    @jobs.update(@id, 'OK')
+  def call(jid)
+    @job.call(jid)
+    @jobs.update(jid, 'OK')
   rescue StandardError => e
-    @jobs.update(@id, Backtrace.new(e).to_s)
+    @jobs.update(jid, Backtrace.new(e).to_s)
     raise e
   end
 end

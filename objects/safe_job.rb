@@ -32,8 +32,8 @@ class SafeJob
     @job = job
   end
 
-  def call
-    @job.call
+  def call(jid)
+    @job.call(jid)
   rescue UserError => e
     @log.error(Backtrace.new(e).to_s)
   rescue StandardError => e
