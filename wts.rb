@@ -302,14 +302,14 @@ after do
 end
 
 get '/github-callback' do
-  login = GLogin::Cookie::Open.new(
+  c = GLogin::Cookie::Open.new(
     settings.glogin.user(params[:code]),
     settings.config['github']['encryption_secret'],
     context
-  ).to_s
-  cookies[:glogin] = login
-  raise "@#{login} doesn't work in Zerocracy, can't login via GitHub, sorry" unless known?(login)
-  flash('/', 'You have been logged in')
+  )
+  cookies[:glogin] = c.to_s
+  raise "@#{c.login} doesn't work in Zerocracy, can't login via GitHub, sorry" unless known?(c.login)
+  flash('/', "You have been logged in as @#{c.login}")
 end
 
 get '/logout' do
