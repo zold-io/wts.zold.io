@@ -741,7 +741,7 @@ post '/do-sell' do
   unless settings.payouts.allowed?(user.login, amount, limits)
     consumed = settings.payouts.consumed(user.login)
     settings.telepost.spam(
-      "The user #{title_md} from #{anon_ip} just attempted to go",
+      "The user #{title_md} from #{anon_ip} with #{amount} payment just attempted to go",
       "over their account limits \"#{consumed}\", while allowed thresholds are \"#{limits}\""
     )
     raise UserError, "With #{amount} you are going over your limits: #{consumed} vs #{limits}"
@@ -750,7 +750,7 @@ post '/do-sell' do
   unless settings.payouts.safe?(amount, limits)
     consumed = settings.payouts.system_consumed
     settings.telepost.spam(
-      "The user #{title_md} from #{anon_ip} just attempted to go",
+      "The user #{title_md} from #{anon_ip} with #{amount} payment just attempted to go",
       "over our account limits \"#{consumed}\", while allowed thresholds are \"#{limits}\""
     )
     raise UserError, "With #{amount} you are going over our limits: #{consumed} vs #{limits}"
