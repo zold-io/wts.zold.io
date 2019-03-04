@@ -144,11 +144,13 @@
                   %a{href: '/callbacks'} Callbacks
                 %li
                   %a{href: '/payouts'} Payouts
-                - if guser == 'yegor256'
+                - if vip?
                   %li
                     %a{href: '/queue'} Queue
                   %li
                     %a{href: '/toggles'} Toggles
+                  %li
+                    %a{href: '/sql'} SQL
           %nav
             %ul
               %li

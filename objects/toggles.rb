@@ -54,7 +54,7 @@ class Toggles
   end
 
   def list
-    @pgsql.exec('SELECT * FROM toggle').map do |r|
+    @pgsql.exec('SELECT * FROM toggle ORDER BY key').map do |r|
       {
         key: r['key'],
         value: r['value'],

@@ -308,8 +308,8 @@ get '/github-callback' do
     context
   )
   cookies[:glogin] = c.to_s
-  unless known?(c.login) || settings.toggles.get('vip').split(',').include?(c.login.downcase)
-    raise UserError, "@#{c.login} doesn't work in Zerocracy, can't login via GitHub, sorry"
+  unless known?(c.login) || vip?
+    raise UserError, "@#{c.login} doesn't work in Zerocracy, can't login via GitHub, use mobile phone instead"
   end
   flash('/', "You have been logged in as @#{c.login}")
 end
@@ -719,11 +719,21 @@ arrival to #{address}, for #{bnf.login}; we ignore it.")
 end
 
 get '/queue' do
-  raise UserError, 'You are not allowed to see this' unless user.login == 'yegor256'
+  raise UserError, 'You are not allowed to see this' unless vip?
   content_type 'text/plain', charset: 'utf-8'
   settings.addresses.all.map do |a|
     "#{a[:login]} #{Zold::Age.new(a[:assigned])} #{a[:hash]} A=#{a[:arrived]}"
   end.join("\n")
+end
+
+get '/sql' do
+  raise UserError, 'You are not allowed to see this' unless vip?
+  query = params[:query] || 'SELECT * FROM txn LIMIT 5'
+  haml :sql, layout: :layout, locals: merged(
+    page_title: title('SQL'),
+    query: query,
+    result: settings.pgsql.exec(query)
+  )
 end
 
 get '/payouts' do
@@ -757,7 +767,7 @@ post '/do-sell' do
     raise UserError, 'Your accont is not allowed to sell any ZLD at the moment, email us'
   end
   limits = settings.toggles.get('limits', '64/128/256')
-  unless settings.payouts.allowed?(user.login, amount, limits)
+  unless settings.payouts.allowed?(user.login, amount, limits) || vip?
     consumed = settings.payouts.consumed(user.login)
     settings.telepost.spam(
       "The user #{title_md} from #{anon_ip} with #{amount} payment just attempted to go",
@@ -768,7 +778,7 @@ post '/do-sell' do
     raise UserError, "With #{amount} you are going over your limits: #{consumed} vs #{limits}"
   end
   limits = settings.toggles.get('system-limits', '512/2048/8196')
-  unless settings.payouts.safe?(amount, limits)
+  unless settings.payouts.safe?(amount, limits) || vip?
     consumed = settings.payouts.system_consumed
     settings.telepost.spam(
       "The user #{title_md} from #{anon_ip} with #{amount} payment just attempted to go",
@@ -984,7 +994,7 @@ get '/mobile/token' do
 end
 
 get '/toggles' do
-  raise UserError, 'You are not allowed to see this' unless user.login == 'yegor256'
+  raise UserError, 'You are not allowed to see this' unless vip?
   haml :toggles, layout: :layout, locals: merged(
     page_title: 'Toggles',
     toggles: settings.toggles
@@ -992,7 +1002,7 @@ get '/toggles' do
 end
 
 post '/set-toggle' do
-  raise UserError, 'You are not allowed to see this' unless user.login == 'yegor256'
+  raise UserError, 'You are not allowed to see this' unless vip?
   key = params[:key].strip
   value = params[:value].strip
   settings.toggles.set(key, value)
@@ -1296,4 +1306,9 @@ end
 
 def safe_md(txt)
   txt.gsub(/[_*`]/, ' ')
+end
+
+def vip?(login = user.login)
+  return true if ENV['RACK_ENV'] == 'test'
+  settings.toggles.get('vip').split(',').include?(login.downcase)
 end
