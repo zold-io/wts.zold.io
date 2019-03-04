@@ -278,7 +278,6 @@ before '/*' do
         settings.config['github']['encryption_secret'],
         context
       ).to_user[:login]&.downcase
-      raise "@#{@locals[:guser]} doesn't work in Zerocracy, can't login via GitHub, sorry" unless known?
     rescue OpenSSL::Cipher::CipherError => _
       @locals.delete(:guser)
     end
@@ -303,11 +302,13 @@ after do
 end
 
 get '/github-callback' do
-  cookies[:glogin] = GLogin::Cookie::Open.new(
+  login = GLogin::Cookie::Open.new(
     settings.glogin.user(params[:code]),
     settings.config['github']['encryption_secret'],
     context
   ).to_s
+  cookies[:glogin] = login
+  raise "@#{login} doesn't work in Zerocracy, can't login via GitHub, sorry" unless known?(login)
   flash('/', 'You have been logged in')
 end
 
@@ -1145,10 +1146,10 @@ def confirmed_user(login = @locals[:guser])
 end
 
 # This user is known as Zerocracy contributor.
-def known?
-  return false unless @locals[:guser]
+def known?(login = @locals[:guser])
+  return false unless login
   return true if ENV['RACK_ENV'] == 'test'
-  Zold::Http.new(uri: 'https://www.0crat.com/known/' + user.login).get.code == 200
+  Zold::Http.new(uri: 'https://www.0crat.com/known/' + login).get.code == 200
 end
 
 def keygap
