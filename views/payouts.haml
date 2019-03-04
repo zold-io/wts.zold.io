@@ -1,6 +1,22 @@
 %h2
   Payouts
 
+%p
+  Total system consumption:
+  = succeed ';' do
+    %code= system_consumed
+  system limits:
+  = succeed '.' do
+    %code= system_limits
+
+%p
+  Your consumption:
+  = succeed ';' do
+    %code= system_consumed
+  your limits:
+  = succeed '.' do
+    %code= system_limits
+
 - list = payouts.fetch(confirmed_user.login)
 
 - if list.empty?

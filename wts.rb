@@ -719,7 +719,11 @@ end
 get '/payouts' do
   haml :payouts, layout: :layout, locals: merged(
     page_title: title('payouts'),
-    payouts: settings.payouts
+    payouts: settings.payouts,
+    system_limits: settings.toggles.get('system-limits'),
+    limits: settings.toggles.get('limits'),
+    system_consumed: settings.payouts.system_consumed,
+    consumed: settings.payouts.consumed(confirmed_user.login)
   )
 end
 
