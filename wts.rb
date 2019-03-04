@@ -308,7 +308,9 @@ get '/github-callback' do
     context
   )
   cookies[:glogin] = c.to_s
-  raise "@#{c.login} doesn't work in Zerocracy, can't login via GitHub, sorry" unless known?(c.login)
+  unless known?(c.login) || settings.toggles.get('vip').split(',').include?(c.login.downcase)
+    raise UserError, "@#{c.login} doesn't work in Zerocracy, can't login via GitHub, sorry"
+  end
   flash('/', "You have been logged in as @#{c.login}")
 end
 
@@ -438,12 +440,18 @@ end
 
 post '/do-pay' do
   prohibit('pay')
-  if settings.toggles.get('ban:do-pay').split(',').include?(confirmed_user.login)
-    raise UserError, 'Your account is not allowed to send any payments at the moment, sorry'
-  end
   raise UserError, 'Parameter "bnf" is not provided' if params[:bnf].nil?
   raise UserError, 'Parameter "amount" is not provided' if params[:amount].nil?
   raise UserError, 'Parameter "details" is not provided' if params[:details].nil?
+  if settings.toggles.get('ban:do-pay').split(',').include?(confirmed_user.login)
+    settings.telepost.spam(
+      "The user #{title_md} from #{anon_ip} is trying to send #{amount} out,",
+      'while their account is banned via "ban:do-pay";',
+      "the balance of the user is #{user.wallet(&:balance)}",
+      "at the wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})"
+    )
+    raise UserError, 'Your account is not allowed to send any payments at the moment, sorry'
+  end
   if /^[a-f0-9]{16}$/.match?(params[:bnf])
     bnf = Zold::Id.new(params[:bnf])
     raise UserError, 'You can\'t pay yourself' if bnf == user.item.id
@@ -739,6 +747,15 @@ post '/do-sell' do
   raise UserError, "Bitcoin address is not valid: #{address.inspect}" unless address =~ /^[a-zA-Z0-9]+$/
   raise UserError, 'Bitcoin address must start with 1, 3 or bc1' unless address =~ /^(1|3|bc1)/
   raise UserError, "You don't have enough to send #{amount}" if confirmed_user.wallet(&:balance) < amount
+  if settings.toggles.get('ban:do-sell').split(',').include?(user.login)
+    settings.telepost.spam(
+      "The user #{title_md} from #{anon_ip} is trying to sell #{amount},",
+      'while their account is banned via "ban:do-sell";',
+      "the balance of the user is #{user.wallet(&:balance)}",
+      "at the wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})"
+    )
+    raise UserError, 'Your accont is not allowed to sell any ZLD at the moment, email us'
+  end
   limits = settings.toggles.get('limits', '64/128/256')
   unless settings.payouts.allowed?(user.login, amount, limits)
     consumed = settings.payouts.consumed(user.login)
@@ -760,9 +777,6 @@ post '/do-sell' do
       "at the wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})"
     )
     raise UserError, "With #{amount} you are going over our limits: #{consumed} vs #{limits}"
-  end
-  if settings.toggles.get('ban:do-sell').split(',').include?(user.login)
-    raise UserError, 'Your accont is not allowed to sell any ZLD at the moment, email us'
   end
   price = settings.btc.price
   bitcoin = (amount.to_zld(8).to_f * rate).round(8)
