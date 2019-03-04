@@ -72,6 +72,7 @@ require_relative 'objects/clean_job'
 require_relative 'objects/versioned_job'
 require_relative 'objects/file_log'
 require_relative 'objects/tee_log'
+require_relative 'objects/db_log'
 
 if ENV['RACK_ENV'] != 'test'
   require 'rack/ssl'
@@ -225,8 +226,8 @@ configure do
     login = settings.config['rewards']['login']
     boss = user(login)
     if boss.item.exists?
-      job(boss) do |jid|
-        pay_hosting_bonuses(boss, jid)
+      job(boss) do |jid, log|
+        pay_hosting_bonuses(boss, jid, log)
       end
     end
   end
@@ -363,10 +364,10 @@ end
 
 get '/create' do
   prohibit('create')
-  job do |jid|
+  job do |jid, log|
     log.info('Creating a new wallet by /create request...')
     user.create
-    ops.push
+    ops(log: log).push
     settings.telepost.spam(
       "The user #{title_md}",
       "created a new wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})",
@@ -376,7 +377,7 @@ get '/create' do
     if known?
       boss = user(settings.config['rewards']['login'])
       amount = Zold::Amount.new(zld: 0.256)
-      job(boss) do |jid2|
+      job(boss) do |jid2, log2|
         if boss.wallet(&:balance) < amount
           settings.telepost.spam(
             "A sign-up bonus of #{amount} can't be sent",
@@ -388,7 +389,7 @@ get '/create' do
             job_link(jid2)
           )
         else
-          ops(boss).pay(
+          ops(boss, log: log2).pay(
             settings.config['rewards']['keygap'], user.item.id,
             amount, "WTS signup bonus to #{user.login}"
           )
@@ -484,9 +485,9 @@ post '/do-pay' do
   amount = Zold::Amount.new(zld: params[:amount].to_f)
   details = params[:details]
   raise UserError, "Invalid details \"#{details}\"" unless details =~ %r{^[a-zA-Z0-9\ @!?*_\-.:,'/]+$}
-  headers['X-Zold-Job'] = job do |jid|
+  headers['X-Zold-Job'] = job do |jid, log|
     log.info("Sending #{amount} to #{bnf}...")
-    ops.pay(keygap, bnf, amount, details)
+    ops(log: log).pay(keygap, bnf, amount, details)
     settings.telepost.spam(
       "Payment sent by #{title_md}",
       "from [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})",
@@ -501,9 +502,9 @@ post '/do-pay' do
 end
 
 get '/pull' do
-  headers['X-Zold-Job'] = job do
+  headers['X-Zold-Job'] = job do |_jid, log|
     log.info("Pulling wallet #{user.item.id} via /pull...")
-    ops.pull
+    ops(log: log).pull
   end
   flash('/', "Your wallet #{user.item.id} will be pulled soon")
 end
@@ -627,9 +628,9 @@ end
 
 get '/do-migrate' do
   prohibit('migrate')
-  headers['X-Zold-Job'] = job do |jid|
+  headers['X-Zold-Job'] = job do |jid, log|
     origin = user.item.id
-    ops.migrate(keygap)
+    ops(log: log).migrate(keygap)
     settings.telepost.spam(
       "The wallet [#{origin}](http://www.zold.io/ledger.html?wallet=#{origin})",
       "with #{settings.wallets.acq(origin, &:txns).count} transactions",
@@ -695,13 +696,13 @@ get '/btc-hook' do
     raise UserError, "Tx #{hash}/#{satoshi}/#{address} not found yet or is not yet confirmed enough"
   end
   boss = user(settings.config['exchange']['login'])
-  job(boss) do |jid|
+  job(boss) do |jid, log|
     if settings.hashes.seen?(hash)
-      settings.log.info("A duplicate notification from Blockchain about #{bitcoin} bitcoins \
+      log.info("A duplicate notification from Blockchain about #{bitcoin} bitcoins \
 arrival to #{address}, for #{bnf.login}; we ignore it.")
     else
-      log(bnf).info("Accepting #{bitcoin} bitcoins from #{address}...")
-      ops(boss, log: log(bnf)).pay(
+      log.info("Accepting #{bitcoin} bitcoins from #{address}...")
+      ops(boss, log: log).pay(
         settings.config['exchange']['keygap'],
         bnf.item.id,
         zld,
@@ -804,15 +805,15 @@ post '/do-sell' do
   usd = bitcoin * price
   boss = user(settings.config['exchange']['login'])
   rewards = user(settings.config['rewards']['login'])
-  job do |jid|
+  job do |jid, log|
     log.info("Sending #{bitcoin} bitcoins to #{address}...")
-    ops.pay(
+    ops(log: log).pay(
       keygap,
       boss.item.id,
       amount * (1 - fee),
       "ZLD exchange to #{bitcoin} BTC at #{address}, rate is #{rate}, fee is #{fee}"
     )
-    ops.pay(
+    ops(log: log).pay(
       keygap,
       rewards.item.id,
       amount * fee,
@@ -846,7 +847,7 @@ post '/do-sell' do
       job_link(jid)
     )
     if boss.wallet(&:txns).count > 1000
-      ops(boss).migrate(settings.config['exchange']['keygap'])
+      ops(boss, log: log).migrate(settings.config['exchange']['keygap'])
       settings.telepost.spam(
         'The office wallet has been migrated to a new place',
         "[#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id}),",
@@ -866,9 +867,17 @@ get '/job' do
   settings.jobs.read(id)
 end
 
+get '/output' do
+  prohibit('api')
+  id = params['id']
+  raise UserError, "Job ID #{id} is not found" unless settings.jobs.exists?(id)
+  content_type 'text/plain', charset: 'utf-8'
+  settings.jobs.output(id)
+end
+
 get '/log' do
   content_type 'text/plain', charset: 'utf-8'
-  log.content + "\n\n\n" + [
+  user_log.content + "\n\n\n" + [
     'If you see any errors here, which you don\'t understand,',
     'please submit an issue to our GitHub repository here and copy the entire log over there:',
     'https://github.com/zold-io/wts.zold.io/issues;',
@@ -886,8 +895,8 @@ end
 get '/rate' do
   unless settings.zache.exists?(:rate) && !settings.zache.expired?(:rate)
     boss = user(settings.config['exchange']['login'])
-    job(boss) do
-      ops(boss).pull
+    job(boss) do |_jid, log|
+      ops(boss, log: log).pull
       require 'zold/commands/pull'
       Zold::Pull.new(
         wallets: settings.wallets, remotes: settings.remotes, copies: settings.copies, log: settings.log
@@ -993,9 +1002,9 @@ get '/mobile/token' do
   settings.mcodes.remove(phone)
   u = user(phone.to_s)
   u.create unless u.item.exists?
-  job(u) do
-    log(u).info("Just created a new wallet #{u.item.id}, going to push it...")
-    ops(u).push
+  job(u) do |_jid, log|
+    log.info("Just created a new wallet #{u.item.id}, going to push it...")
+    ops(u, log: log).push
   end
   token = "#{u.login}-#{u.item.token}"
   if params[:noredirect]
@@ -1161,7 +1170,7 @@ def merged(hash)
   out
 end
 
-def log(u = user.login)
+def user_log(u = user.login)
   TeeLog.new(
     settings.log,
     FileLog.new(File.join(settings.root, ".zold-wts/logs/#{u}"))
@@ -1171,8 +1180,8 @@ end
 def user(login = @locals[:guser])
   raise UserError, 'You have to login first' unless login
   User.new(
-    login, Item.new(login, settings.dynamo, log: log(login)),
-    settings.wallets, log: log(login)
+    login, Item.new(login, settings.dynamo, log: user_log(login)),
+    settings.wallets, log: user_log(login)
   )
 end
 
@@ -1208,7 +1217,7 @@ def network
   ENV['RACK_ENV'] == 'test' ? 'test' : 'zold'
 end
 
-def ops(u = user, log: log(u.login))
+def ops(u = user, log: user_log(u.login))
   Ops.new(
     u.item,
     u,
@@ -1222,33 +1231,33 @@ end
 
 def job(u = user)
   jid = settings.jobs.start
-  lg = log(u.login)
+  log = TeeLog.new(user_log(u.login), DbLog.new(settings.pgsql, jid))
   job = SafeJob.new(
     TrackedJob.new(
       VersionedJob.new(
         CleanJob.new(
           UpdateJob.new(
-            proc { yield(jid) },
+            proc { yield(jid, log) },
             settings.remotes,
-            log: lg,
+            log: log,
             network: network
           ),
           settings.wallets,
           u.item,
-          log: lg
+          log: log
         ),
-        log: lg
+        log: log
       ),
       settings.jobs
     ),
-    log: lg
+    log: log
   )
   job = AsyncJob.new(job, settings.pool, latch(u.login)) unless ENV['RACK_ENV'] == 'test'
   job.call(jid)
   jid
 end
 
-def pay_hosting_bonuses(boss, jid)
+def pay_hosting_bonuses(boss, jid, log)
   prohibit('bonuses')
   bonus = Zold::Amount.new(zld: 1.0)
   ops(boss).pull
@@ -1269,7 +1278,7 @@ def pay_hosting_bonuses(boss, jid)
     return
   end
   require 'zold/commands/remote'
-  cmd = Zold::Remote.new(remotes: settings.remotes, log: log(boss.login))
+  cmd = Zold::Remote.new(remotes: settings.remotes, log: log)
   cmd.run(%w[remote update --depth=5])
   cmd.run(%w[remote show])
   winners = cmd.run(%w[remote elect --min-score=2 --max-winners=8 --ignore-masters])
@@ -1332,5 +1341,5 @@ def vip?(login = user.login)
 end
 
 def job_link(jid)
-  "full log is [here](http://wts.zold.io/job?id=#{jid})"
+  "full log is [here](http://wts.zold.io/output?id=#{jid})"
 end

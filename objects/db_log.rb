@@ -18,52 +18,41 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'zold/log'
-require 'securerandom'
-require_relative 'pgsql'
-require_relative 'user_error'
-
 #
-# Background jobs.
+# Log that writes to Pgsql.
 #
-class Jobs
-  def initialize(pgsql, log: Log::NULL)
+class DbLog
+  def initialize(pgsql, jid)
     @pgsql = pgsql
-    @log = log
+    @jid = jid
   end
 
-  # Does it exist?
-  def exists?(id)
-    !@pgsql.exec('SELECT * FROM job WHERE id = $1', [id]).empty?
+  def debug(msg)
+    update('DEBUG', msg)
   end
 
-  # Start a new job and return its ID
-  def start
+  def debug?
+    true
+  end
+
+  def info(msg)
+    update('INFO', msg)
+  end
+
+  def info?
+    true
+  end
+
+  def error(msg)
+    update('ERROR', msg)
+  end
+
+  private
+
+  def update(level, msg)
     @pgsql.exec(
-      'UPDATE job SET log = $1 WHERE started < NOW() - INTERVAL \'1 HOURS\'',
-      ['We are sorry, but most probably the job is lost; try again...']
+      'UPDATE job SET output = output || $1 WHERE id = $2',
+      ["#{level}: #{msg}\n", @jid]
     )
-    uuid = SecureRandom.uuid
-    @pgsql.exec('INSERT INTO job (id, log) VALUES ($1, $2)', [uuid, 'Running'])
-    uuid
-  end
-
-  # Read the Job result (OK, or backtrace or 'Running')
-  def read(id)
-    rows = @pgsql.exec('SELECT log FROM job WHERE id = $1', [id])
-    raise UserError, "Job #{id} not found" if rows.empty?
-    rows[0]['log']
-  end
-
-  # Update the log
-  def update(id, log)
-    @pgsql.exec('UPDATE job SET log = $2 WHERE id = $1', [id, log])
-  end
-
-  # Read the Job full output
-  def output(id)
-    rows = @pgsql.exec('SELECT output FROM job WHERE id = $1', [id])
-    raise UserError, "Job #{id} not found" if rows.empty?
-    rows[0]['output']
   end
 end

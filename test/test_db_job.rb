@@ -12,45 +12,27 @@
 #
 # THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFINGEMENT. IN NO EVENT SHALL THE
 # AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-#
-# Tee log.
-#
-class TeeLog
-  def initialize(first, second)
-    @first = first
-    @second = second
-  end
+require 'minitest/autorun'
+require 'webmock/minitest'
+require_relative 'test__helper'
+require_relative '../objects/pgsql'
+require_relative '../objects/jobs'
+require_relative '../objects/db_log'
 
-  def content
-    @second.content
-  end
-
-  def debug(msg)
-    @first.debug(msg)
-    @second.debug(msg)
-  end
-
-  def debug?
-    @first.debug? || @second.debug?
-  end
-
-  def info(msg)
-    @first.info(msg)
-    @second.info(msg)
-  end
-
-  def info?
-    @first.info? || @second.info?
-  end
-
-  def error(msg)
-    @first.error(msg)
-    @second.error(msg)
+class DbLogTest < Minitest::Test
+  def test_updates_log
+    WebMock.allow_net_connect!
+    jobs = Jobs.new(Pgsql::TEST.start, log: test_log)
+    id = jobs.start
+    log = DbLog.new(Pgsql::TEST.start, id)
+    log.info('hello, world!')
+    log.error('bye')
+    assert_equal("INFO: hello, world!\nERROR: bye\n", jobs.output(id))
   end
 end
