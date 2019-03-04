@@ -742,7 +742,9 @@ post '/do-sell' do
     consumed = settings.payouts.consumed(user.login)
     settings.telepost.spam(
       "The user #{title_md} from #{anon_ip} with #{amount} payment just attempted to go",
-      "over their account limits \"#{consumed}\", while allowed thresholds are \"#{limits}\""
+      "over their account limits \"#{consumed}\", while allowed thresholds are \"#{limits}\";",
+      "the balance of the user is #{user.wallet(&:balance)}",
+      "at the wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})"
     )
     raise UserError, "With #{amount} you are going over your limits: #{consumed} vs #{limits}"
   end
@@ -751,7 +753,9 @@ post '/do-sell' do
     consumed = settings.payouts.system_consumed
     settings.telepost.spam(
       "The user #{title_md} from #{anon_ip} with #{amount} payment just attempted to go",
-      "over our account limits \"#{consumed}\", while allowed thresholds are \"#{limits}\""
+      "over our account limits \"#{consumed}\", while allowed thresholds are \"#{limits}\";",
+      "the balance of the user is #{user.wallet(&:balance)}",
+      "at the wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})"
     )
     raise UserError, "With #{amount} you are going over our limits: #{consumed} vs #{limits}"
   end
