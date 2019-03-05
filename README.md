@@ -84,6 +84,8 @@ There are more entry points:
     Returns `200` and a full stack trace as plain text if the job is finished with an exception.
     We keep the information about the job in memory for 4 hours (it gets destroyed if the server reboots).
 
+  * `GET /output`: returns the entire log of a particular job, expecting `id` as a query argument.
+
   * `GET /id_rsa`: returns private RSA key of the user, expecting the keygap
     as an argument.
 
@@ -91,6 +93,9 @@ There are more entry points:
     if it's still not confirmed (as plain text).
 
   * `GET /do-confirm`: removes the keygap from the database and returns `302`.
+
+  * `GET /confirmed`: returns `yes` or `no`, depending on the status of the user---whether
+    he already confirmed his keygap or not.
 
   * `GET /rate.json`: returns JSON document with all the data you can
     find [here](https://wts.zold.io/rate). If the data is not ready yet,
