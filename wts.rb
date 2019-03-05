@@ -977,7 +977,11 @@ get '/mobile/send' do
   raise UserError, 'The phone shouldn\'t start with zeros' if /^0+/.match?(phone)
   phone = phone.to_i
   mcode = rand(1000..9999)
-  settings.mcodes.set(phone, mcode)
+  if settings.mcodes.exists?(phone)
+    mcode = settings.mcodes.get(phone)
+  else
+    settings.mcodes.set(phone, mcode)
+  end
   cid = settings.smss.send(phone, "Your authorization code for wts.zold.io is: #{mcode}")
   if params[:noredirect]
     content_type 'text/plain'

@@ -29,7 +29,9 @@ class McodesTest < Minitest::Test
     WebMock.allow_net_connect!
     mcodes = Mcodes.new(Pgsql::TEST.start, log: test_log)
     phone = 1_234_567_890
+    assert(!mcodes.exists?(phone))
     mcodes.set(phone, 1234)
+    assert(mcodes.exists?(phone))
     assert_equal(1234, mcodes.get(phone))
     mcodes.remove(phone)
     assert_raises UserError do

@@ -31,6 +31,10 @@ class Mcodes
     @log = log
   end
 
+  def exists?(phone)
+    !@pgsql.exec('SELECT code FROM mcode WHERE phone = $1', [phone]).empty?
+  end
+
   def set(phone, code)
     raise "Code must be over 1000: #{code}" if code < 1000
     raise "Code must be less than 10000: #{code}" if code > 9999
