@@ -69,7 +69,6 @@ require_relative 'objects/async_job'
 require_relative 'objects/safe_job'
 require_relative 'objects/update_job'
 require_relative 'objects/tracked_job'
-require_relative 'objects/clean_job'
 require_relative 'objects/versioned_job'
 require_relative 'objects/file_log'
 require_relative 'objects/tee_log'
@@ -1269,16 +1268,11 @@ def job(u = user)
   job = SafeJob.new(
     TrackedJob.new(
       VersionedJob.new(
-        CleanJob.new(
-          UpdateJob.new(
-            proc { yield(jid, log) },
-            settings.remotes,
-            log: log,
-            network: network
-          ),
-          settings.wallets,
-          u.item,
-          log: log
+        UpdateJob.new(
+          proc { yield(jid, log) },
+          settings.remotes,
+          log: log,
+          network: network
         ),
         log: log
       ),
