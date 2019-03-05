@@ -92,6 +92,7 @@ class AppTest < Minitest::Test
       '/balance',
       '/restart',
       '/log',
+      '/referrals',
       '/invoice',
       '/invoice.json',
       '/api',

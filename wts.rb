@@ -50,6 +50,7 @@ require_relative 'objects/jobs'
 require_relative 'objects/payables'
 require_relative 'objects/mcodes'
 require_relative 'objects/smss'
+require_relative 'objects/referrals'
 require_relative 'objects/payouts'
 require_relative 'objects/daemon'
 require_relative 'objects/ticks'
@@ -176,6 +177,7 @@ configure do
   set :toggles, Toggles.new(settings.pgsql, log: settings.log)
   set :addresses, Addresses.new(settings.pgsql, log: settings.log)
   set :hashes, Hashes.new(settings.pgsql, log: settings.log)
+  set :referrals, Referrals.new(settings.pgsql, log: settings.log)
   set :jobs, Jobs.new(settings.pgsql, log: settings.log)
   set :mcodes, Mcodes.new(settings.pgsql, log: settings.log)
   set :payouts, Payouts.new(settings.pgsql, log: settings.log)
@@ -300,6 +302,7 @@ before '/*' do
     end
     @locals[:guser] = login.downcase
   end
+  cookies[:ref] = params[:ref] if params[:ref]
 end
 
 after do
@@ -316,6 +319,7 @@ get '/github-callback' do
   unless known?(c.login) || vip?
     raise UserError, "@#{c.login} doesn't work in Zerocracy, can't login via GitHub, use mobile phone instead"
   end
+  settings.referrals.register(c.login, cookies[:ref]) if cookies[:ref] && !settings.referrals.exists?(c.login)
   flash('/', "You have been logged in as @#{c.login}")
 end
 
@@ -713,6 +717,14 @@ arrival to #{address}, for #{bnf.login}; we ignore it.")
         zld,
         "BTC exchange of #{bitcoin} at #{hash}, rate is #{rate}"
       )
+      if settings.referrals.exists?(bnf.login)
+        fee = settings.toggles.get('referral-fee', '0.04').to_f
+        ops(boss, log: log).pay(
+          settings.config['exchange']['keygap'],
+          user(settings.referrals.get(bnf.login)).item.id,
+          zld * fee, "#{(fee * 100).round(2)}% referral fee for BTC exchange"
+        )
+      end
       ops(boss, log: log).push
       settings.addresses.destroy(address, bnf.login)
       settings.hashes.add(hash, bnf.login, bnf.item.id)
@@ -754,6 +766,14 @@ get '/sql' do
   )
 end
 
+get '/referrals' do
+  haml :referrals, layout: :layout, locals: merged(
+    page_title: title('referrals'),
+    referrals: settings.referrals,
+    fee: settings.toggles.get('referral-fee', '0.04').to_f
+  )
+end
+
 get '/payouts' do
   haml :payouts, layout: :layout, locals: merged(
     page_title: title('payouts'),
@@ -782,7 +802,7 @@ post '/do-sell' do
       "the balance of the user is #{user.wallet(&:balance)}",
       "at the wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})"
     )
-    raise UserError, 'Your accont is not allowed to sell any ZLD at the moment, email us'
+    raise UserError, 'Your account is not allowed to sell any ZLD at the moment, email us'
   end
   limits = settings.toggles.get('limits', '64/128/256')
   unless settings.payouts.allowed?(user.login, amount, limits) || vip?
@@ -1025,6 +1045,7 @@ get '/mobile/token' do
     return token
   end
   cookies[:wts] = token
+  settings.referrals.register(u.login, cookies[:ref]) if cookies[:ref] && !settings.referrals.exists?(u.login)
   flash('/home', 'You have been logged in successfully')
 end
 

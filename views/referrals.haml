@@ -1,0 +1,38 @@
+%h2
+  Referrals
+
+%p
+  You can refer a friend to us and get
+  = "#{(fee * 100).round(2)}%"
+  from every BTC-to-ZLD operation they perform.
+  Just add
+  %code= "?ref=#{confirmed_user.login}"
+  to the URL you give them.
+  For example, give them this URL when you recommend Zold:
+  %code= "https://wts.zold.io?ref=#{confirmed_user.login}"
+
+- list = referrals.fetch(confirmed_user.login)
+
+- if list.empty?
+  %p
+    There are no sign-ups as of yet.
+- else
+  %p
+    The full list of your sign-ups:
+  %table.compact
+    %colgroup
+      %col{style: 'width: 6em'}
+      %col{style: 'width: 4em'}
+    %thead
+      %tr
+        %th
+          User
+        %th
+          When
+    %tbody
+      - list.each do |r|
+        %tr
+          %td
+            = r[:login]
+          %td{title: r[:created].utc.iso8601}
+            = Zold::Age.new(r[:created])
