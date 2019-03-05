@@ -90,7 +90,6 @@ most probably you just have to RESTART your wallet"
     raise "The account #{@user.login} is not confirmed yet" unless @user.confirmed?
     start = Time.now
     id = @item.id
-    pull
     unless @wallets.acq(id, &:exists?)
       return if ENV['RACK_ENV'] == 'test'
       raise 'There is no wallet file after PULL, can\'t pay taxes'
@@ -102,7 +101,6 @@ most probably you just have to RESTART your wallet"
         ['taxes', 'pay', "--network=#{@network}", '--private-key=' + f.path, id.to_s]
       )
     end
-    push
     @log.info("Taxes paid for #{id} in #{Zold::Age.new(start)}")
   end
 
@@ -113,7 +111,6 @@ most probably you just have to RESTART your wallet"
     raise "The account #{@user.login} is not confirmed yet" unless @user.confirmed?
     start = Time.now
     id = @item.id
-    pull
     unless @wallets.acq(id, &:exists?)
       return if ENV['RACK_ENV'] == 'test'
       raise 'There is no wallet file after PULL, can\'t pay'
@@ -125,12 +122,12 @@ most probably you just have to RESTART your wallet"
         ['pay', "--network=#{@network}", '--private-key=' + f.path, id.to_s, bnf.to_s, "#{amount.to_i}z", details]
       )
     end
-    push
     @log.info("Paid #{amount} from #{id} to #{bnf} in #{Zold::Age.new(start)}: #{details}")
   end
 
   def migrate(keygap)
     start = Time.now
+    pull
     pay_taxes(keygap)
     origin = @user.item.id
     balance = @user.wallet(&:balance)
@@ -142,8 +139,8 @@ most probably you just have to RESTART your wallet"
       )
     end
     pay(keygap, target, balance, 'Migrated')
-    @user.item.replace_id(target)
     push
+    @user.item.replace_id(target)
     @log.info("Wallet of #{@user.login} migrated from #{origin} to #{target} \
 with #{balance}, in #{Zold::Age.new(start)}")
   end

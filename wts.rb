@@ -389,10 +389,12 @@ get '/create' do
             job_link(jid2)
           )
         else
+          ops(boss, log: log2).pull
           ops(boss, log: log2).pay(
             settings.config['rewards']['keygap'], user.item.id,
             amount, "WTS signup bonus to #{user.login}"
           )
+          ops(boss, log: log2).push
           settings.telepost.spam(
             "The sign-up bonus of #{amount} has been sent",
             "to #{title_md} from #{anon_ip},",
@@ -487,7 +489,9 @@ post '/do-pay' do
   raise UserError, "Invalid details \"#{details}\"" unless details =~ %r{^[a-zA-Z0-9\ @!?*_\-.:,'/]+$}
   headers['X-Zold-Job'] = job do |jid, log|
     log.info("Sending #{amount} to #{bnf}...")
+    ops(log: log).pull
     ops(log: log).pay(keygap, bnf, amount, details)
+    ops(log: log).push
     settings.telepost.spam(
       "Payment sent by #{title_md}",
       "from [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})",
@@ -702,12 +706,14 @@ get '/btc-hook' do
 arrival to #{address}, for #{bnf.login}; we ignore it.")
     else
       log.info("Accepting #{bitcoin} bitcoins from #{address}...")
+      ops(boss, log: log).pull
       ops(boss, log: log).pay(
         settings.config['exchange']['keygap'],
         bnf.item.id,
         zld,
         "BTC exchange of #{bitcoin} at #{hash}, rate is #{rate}"
       )
+      ops(boss, log: log).push
       settings.addresses.destroy(address, bnf.login)
       settings.hashes.add(hash, bnf.login, bnf.item.id)
       settings.telepost.spam(
@@ -807,6 +813,7 @@ post '/do-sell' do
   rewards = user(settings.config['rewards']['login'])
   job do |jid, log|
     log.info("Sending #{bitcoin} bitcoins to #{address}...")
+    ops(log: log).pull
     ops(log: log).pay(
       keygap,
       boss.item.id,
@@ -819,6 +826,7 @@ post '/do-sell' do
       amount * fee,
       "Fee for exchange of #{bitcoin} BTC at #{address}, rate is #{rate}, fee is #{fee}"
     )
+    ops(log: log).push
     settings.bank.send(
       address,
       (usd * (1 - fee)).round(2),
@@ -975,6 +983,8 @@ get '/mobile/send' do
   raise UserError, 'Phone number can\'t be empty, format it according to E.164' if phone.empty?
   raise UserError, "Invalid phone #{phone.inspect}, must be digits only as in E.164" unless /^[0-9]+$/.match?(phone)
   raise UserError, 'The phone shouldn\'t start with zeros' if /^0+/.match?(phone)
+  raise UserError, "The phone number #{phone.inspect} is too short" if phone.length < 6
+  raise UserError, "The phone number #{phone.inspect} is too long" if phone.length > 14
   phone = phone.to_i
   mcode = rand(1000..9999)
   if settings.mcodes.exists?(phone)
@@ -996,7 +1006,6 @@ get '/mobile/token' do
   raise UserError, 'Mobile phone number is required' if phone.nil?
   raise UserError, 'Phone number can\'t be empty, format it according to E.164' if phone.empty?
   raise UserError, "Invalid phone #{phone.inspect}, must be digits only as in E.164" unless /^[0-9]+$/.match?(phone)
-  raise UserError, 'The phone shouldn\'t start with zeros' if /^0+/.match?(phone)
   phone = phone.to_i
   mcode = params[:code]
   raise UserError, 'Mobile confirmation code is required' if mcode.nil?
@@ -1287,12 +1296,14 @@ def pay_hosting_bonuses(boss, jid, log)
   cmd.run(%w[remote show])
   winners = cmd.run(%w[remote elect --min-score=2 --max-winners=8 --ignore-masters])
   winners.each do |score|
+    ops(boss).pull
     ops(boss).pay(
       settings.config['rewards']['keygap'],
       score.invoice,
       bonus / winners.count,
       "Hosting bonus for #{score.host} #{score.port} #{score.value}"
     )
+    ops(boss).push
   end
   if winners.empty?
     settings.telepost.spam(
