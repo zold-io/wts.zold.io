@@ -452,15 +452,6 @@ post '/do-pay' do
   raise UserError, 'Parameter "bnf" is not provided' if params[:bnf].nil?
   raise UserError, 'Parameter "amount" is not provided' if params[:amount].nil?
   raise UserError, 'Parameter "details" is not provided' if params[:details].nil?
-  if settings.toggles.get('ban:do-pay').split(',').include?(confirmed_user.login)
-    settings.telepost.spam(
-      "The user #{title_md} from #{anon_ip} is trying to send #{amount} out,",
-      'while their account is banned via "ban:do-pay";',
-      "the balance of the user is #{user.wallet(&:balance)}",
-      "at the wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})"
-    )
-    raise UserError, 'Your account is not allowed to send any payments at the moment, sorry'
-  end
   if /^[a-f0-9]{16}$/.match?(params[:bnf])
     bnf = Zold::Id.new(params[:bnf])
     raise UserError, 'You can\'t pay yourself' if bnf == user.item.id
@@ -483,6 +474,15 @@ post '/do-pay' do
     bnf = friend.item.id
   end
   amount = Zold::Amount.new(zld: params[:amount].to_f)
+  if settings.toggles.get('ban:do-pay').split(',').include?(confirmed_user.login)
+    settings.telepost.spam(
+      "The user #{title_md} from #{anon_ip} is trying to send #{amount} out,",
+      'while their account is banned via "ban:do-pay";',
+      "the balance of the user is #{user.wallet(&:balance)}",
+      "at the wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})"
+    )
+    raise UserError, 'Your account is not allowed to send any payments at the moment, sorry'
+  end
   details = params[:details]
   raise UserError, "Invalid details \"#{details}\"" unless details =~ %r{^[a-zA-Z0-9\ @!?*_\-.:,'/]+$}
   headers['X-Zold-Job'] = job do |jid, log|
