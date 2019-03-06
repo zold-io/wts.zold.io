@@ -46,6 +46,7 @@ class Ops
     end
     require 'zold/commands/pull'
     begin
+      @log.info("Pulling #{id} from the network...")
       Zold::Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
         ['pull', id.to_s, "--network=#{@network}", '--retry=4', '--shallow']
       )
@@ -75,6 +76,7 @@ most probably you just have to RESTART your wallet"
     end
     require 'zold/commands/push'
     begin
+      @log.info("Pushing #{id} to the network...")
       Zold::Push.new(wallets: @wallets, remotes: @remotes, log: @log).run(
         ['push', id.to_s, "--network=#{@network}", '--retry=4']
       )
@@ -97,6 +99,7 @@ most probably you just have to RESTART your wallet"
     Tempfile.open do |f|
       File.write(f, @item.key(keygap))
       require 'zold/commands/taxes'
+      @log.info("Paying taxes for #{id}...")
       Zold::Taxes.new(wallets: @wallets, remotes: @remotes, log: @log).run(
         ['taxes', 'pay', "--network=#{@network}", '--private-key=' + f.path, id.to_s]
       )
@@ -118,6 +121,7 @@ most probably you just have to RESTART your wallet"
     Tempfile.open do |f|
       File.write(f, @item.key(keygap))
       require 'zold/commands/pay'
+      @log.info("Paying #{amoung} from #{id} to #{bnf}...")
       Zold::Pay.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
         ['pay', "--network=#{@network}", '--private-key=' + f.path, id.to_s, bnf.to_s, "#{amount.to_i}z", details]
       )

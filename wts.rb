@@ -833,6 +833,8 @@ post '/do-sell' do
   job do |jid, log|
     log.info("Sending #{bitcoin} bitcoins to #{address}...")
     ops(log: log).pull
+    ops(rewards, log: log).pull
+    ops(boss, log: log).pull
     ops(log: log).pay(
       keygap,
       boss.item.id,
@@ -1262,7 +1264,7 @@ def ops(u = user, log: user_log(u.login))
 end
 
 def job(u = user)
-  jid = settings.jobs.start
+  jid = settings.jobs.start(u.login)
   log = TeeLog.new(user_log(u.login), DbLog.new(settings.pgsql, jid))
   job = SafeJob.new(
     TrackedJob.new(

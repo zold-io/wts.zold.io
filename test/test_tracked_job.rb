@@ -29,7 +29,7 @@ class TrackedJobTest < Minitest::Test
     done = false
     WebMock.allow_net_connect!
     jobs = Jobs.new(Pgsql::TEST.start, log: test_log)
-    id = jobs.start
+    id = jobs.start('me')
     job = TrackedJob.new(
       proc { done = true },
       jobs

@@ -38,13 +38,13 @@ class Jobs
   end
 
   # Start a new job and return its ID
-  def start
+  def start(login)
     @pgsql.exec(
       'UPDATE job SET log = $1 WHERE started < NOW() - INTERVAL \'1 HOURS\'',
       ['We are sorry, but most probably the job is lost; try again...']
     )
     uuid = SecureRandom.uuid
-    @pgsql.exec('INSERT INTO job (id, log) VALUES ($1, $2)', [uuid, 'Running'])
+    @pgsql.exec('INSERT INTO job (id, log, login) VALUES ($1, $2, $3)', [uuid, 'Running', login])
     uuid
   end
 
