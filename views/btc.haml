@@ -23,7 +23,7 @@
     The payment
     %strong.green has arrived
     to the address
-    %code= address
+    %code= "#{address[0..16]}..."
     assigned to your account, just
     %strong= ((Time.now - settings.addresses.mtime(confirmed_user.login)) / 60).round
     minutes ago. Once we receive a few more Blockchain confirmations,
@@ -32,6 +32,9 @@
     If not, ask for help in our
     = succeed '.' do
       %a{href: 'https://t.me/zold_io'} Telegram group
+    %strong.red Don't
+    send any more bitcoins to the same address!
+    Wait until we process the current payment and give you a new address.
   - else
     %img{style: 'float:right;margin-left:1em;margin-bottom:1em;', src: "https://chart.googleapis.com/chart?chs=128x128&cht=qr&chl=bitcoin:#{address}"}
     To
