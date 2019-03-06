@@ -47,7 +47,7 @@ class Ops
   def remove
     @log.info("Removing the local copy of #{@item.id}...")
     Zold::Remove.new(wallets: @wallets, log: @log).run(
-      ['remove', @item.id.to_s]
+      ['remove', @item.id.to_s, '--force']
     )
   end
 
