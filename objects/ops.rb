@@ -130,7 +130,7 @@ most probably you just have to RESTART your wallet"
     end
     Tempfile.open do |f|
       File.write(f, @item.key(keygap))
-      @log.info("Paying #{amoung} from #{id} to #{bnf}...")
+      @log.info("Paying #{amount} from #{id} to #{bnf}...")
       Zold::Pay.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
         ['pay', "--network=#{@network}", '--private-key=' + f.path, id.to_s, bnf.to_s, "#{amount.to_i}z", details]
       )

@@ -70,7 +70,7 @@
             %code
               %a{href: "http://www.zold.io/ledger.html?wallet=#{t[:target]}"}= t[:target]
           %td
-            = t[:details]
+            = t[:details].gsub(/([^ ]{16})/, '\1&shy;')
       - if @last && txns.count == max
         %tr
           %td.center{colspan: 6}
