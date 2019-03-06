@@ -511,6 +511,7 @@ end
 get '/pull' do
   headers['X-Zold-Job'] = job do |_jid, log|
     log.info("Pulling wallet #{user.item.id} via /pull...")
+    ops(log: log).remove
     ops(log: log).pull
   end
   flash('/', "Your wallet #{user.item.id} will be pulled soon")

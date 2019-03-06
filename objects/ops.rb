@@ -22,6 +22,12 @@ require 'tempfile'
 require 'openssl'
 require 'zold/log'
 require 'zold/age'
+require 'zold/commands/pull'
+require 'zold/commands/remove'
+require 'zold/commands/push'
+require 'zold/commands/pay'
+require 'zold/commands/taxes'
+require 'zold/commands/create'
 require_relative 'user_error'
 
 #
@@ -38,13 +44,19 @@ class Ops
     @network = network
   end
 
+  def remove
+    @log.info("Removing the local copy of #{id}...")
+    Zold::Remove.new(wallets: @wallets, log: @log).run(
+      ['remove', id.to_s]
+    )
+  end
+
   def pull(id = @item.id)
     start = Time.now
     if @remotes.all.empty?
       return if ENV['RACK_ENV'] == 'test'
       raise UserError, "There are no visible remote nodes, can\'t PULL #{id}"
     end
-    require 'zold/commands/pull'
     begin
       @log.info("Pulling #{id} from the network...")
       Zold::Pull.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
@@ -74,7 +86,6 @@ see this happening! #{e.message}"
       raise UserError, "The wallet #{id} of #{@user.login} is absent, can't PUSH; \
 most probably you just have to RESTART your wallet"
     end
-    require 'zold/commands/push'
     begin
       @log.info("Pushing #{id} to the network...")
       Zold::Push.new(wallets: @wallets, remotes: @remotes, log: @log).run(
@@ -98,7 +109,6 @@ most probably you just have to RESTART your wallet"
     end
     Tempfile.open do |f|
       File.write(f, @item.key(keygap))
-      require 'zold/commands/taxes'
       @log.info("Paying taxes for #{id}...")
       Zold::Taxes.new(wallets: @wallets, remotes: @remotes, log: @log).run(
         ['taxes', 'pay', "--network=#{@network}", '--private-key=' + f.path, id.to_s]
@@ -120,7 +130,6 @@ most probably you just have to RESTART your wallet"
     end
     Tempfile.open do |f|
       File.write(f, @item.key(keygap))
-      require 'zold/commands/pay'
       @log.info("Paying #{amoung} from #{id} to #{bnf}...")
       Zold::Pay.new(wallets: @wallets, remotes: @remotes, copies: @copies, log: @log).run(
         ['pay', "--network=#{@network}", '--private-key=' + f.path, id.to_s, bnf.to_s, "#{amount.to_i}z", details]
@@ -137,7 +146,6 @@ most probably you just have to RESTART your wallet"
     balance = @user.wallet(&:balance)
     target = Tempfile.open do |f|
       File.write(f, @user.wallet(&:key).to_s)
-      require 'zold/commands/create'
       Zold::Create.new(wallets: @wallets, log: @log).run(
         ['create', '--public-key=' + f.path]
       )
