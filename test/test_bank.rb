@@ -46,4 +46,11 @@ class BankTest < Minitest::Test
     bank = Bank.new('key', 'secret', 'account', log: test_log)
     assert_equal(1.0, bank.balance)
   end
+
+  def test_sends_real_bitcoins
+    skip
+    WebMock.allow_net_connect!
+    bank = Bank.new('...', '...', '...', log: test_log)
+    bank.send('16KU4QyyEDXZUeiAPMEj4HWz4V57sLLuL3', 3.3, 'Just a test')
+  end
 end

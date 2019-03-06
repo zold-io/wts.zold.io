@@ -4,12 +4,14 @@
 %p
   You can refer a friend to us and get
   = "#{(fee * 100).round(2)}%"
-  from every BTC-to-ZLD operation they perform.
+  from every BTC-to-ZLD operation they perform during the first 32 days after signing up.
   Just add
   %code= "?ref=#{confirmed_user.login}"
   to the URL you give them.
   For example, give them this URL when you recommend Zold:
-  %code= "https://wts.zold.io?ref=#{confirmed_user.login}"
+  - link = "https://wts.zold.io/quick?ref=#{confirmed_user.login}"
+  %a{href: link}<
+    %code= link
 
 - list = referrals.fetch(confirmed_user.login)
 

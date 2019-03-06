@@ -883,7 +883,7 @@ post '/do-sell' do
       )
     end
   end
-  flash('/btc', "We took #{amount} from your wallet and sent you #{bitcoin} BTC")
+  flash('/btc', "We took #{amount} from your wallet and sent you #{bitcoin} BTC, more details in the log")
 end
 
 get '/job' do
@@ -1158,7 +1158,6 @@ def fee
 end
 
 def title(suffix = '')
-  raise UserError, 'title() cannot be used here' unless @locals[:guser]
   login = user.login
   (/^[0-9]/.match?(login) ? "+#{login}" : "@#{login}") + (suffix.empty? ? '' : '/' + suffix)
 end
