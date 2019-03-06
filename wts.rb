@@ -257,6 +257,12 @@ and dated of #{t[:date].utc.iso8601}")
   Daemon.new(settings.log).run(10) do
     settings.ticks.add('Volume24' => settings.gl.volume.to_f) unless settings.ticks.exists?('Volume24')
   end
+  Daemon.new(settings.log).run(10) do
+    boss = user(settings.config['rewards']['login'])
+    job(boss) do
+      settings.ticks.add('Nodes' => settings.remotes.all.count) unless settings.ticks.exists?('Nodes')
+    end
+  end
   settings.telepost.spam(
     '[WTS](https://wts.zold.io) server software',
     "[#{VERSION}](https://github.com/zold-io/wts.zold.io/releases/tag/#{VERSION})",
