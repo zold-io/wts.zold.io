@@ -760,9 +760,11 @@ end
 get '/transfer' do
   raise UserError, 'You are not allowed to see this' unless vip?
   settings.dynamo.scan(table_name: 'zold-wallets', select: 'ALL_ATTRIBUTES').items.each do |i|
-    @pgsql.exec('INSERT INTO item (login, id, pem) VALUES ($1, $2, $3)', [i['login'], i['id'], i['pem']])
-    @pgsql.exec('INSERT INTO token (login, token) VALUES ($1, $2)', [i['login'], i['token']]) if i['token']
-    @pgsql.exec('INSERT INTO keygap (login, keygap) VALUES ($1, $2)', [i['login'], i['keygap']]) if i['keygap']
+    settings.pgsql.exec(
+      'INSERT INTO item (login, id, pem) VALUES ($1, $2, $3)', [i['login'], i['id'], i['pem']]
+    )
+    settings.pgsql.exec('INSERT INTO token (login, token) VALUES ($1, $2)', [i['login'], i['token']]) if i['token']
+    settings.pgsql.exec('INSERT INTO keygap (login, keygap) VALUES ($1, $2)', [i['login'], i['keygap']]) if i['keygap']
   end
   'done'
 end
