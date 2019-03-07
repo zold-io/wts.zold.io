@@ -816,7 +816,8 @@ post '/do-sell' do
       "the balance of the user is #{user.wallet(&:balance)}",
       "at the wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})"
     )
-    raise UserError, "With #{amount} you are going over your limits: #{consumed} vs #{limits}"
+    raise UserError, "With #{amount} you are going over your limits, #{consumed} were sold already, \
+while we allow one user to sell up to #{limits} (daily/weekly/monthly)"
   end
   limits = settings.toggles.get('system-limits', '512/2048/8196')
   unless settings.payouts.safe?(amount, limits) || vip?
@@ -827,7 +828,8 @@ post '/do-sell' do
       "the balance of the user is #{user.wallet(&:balance)}",
       "at the wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})"
     )
-    raise UserError, "With #{amount} you are going over our limits: #{consumed} vs #{limits}"
+    raise UserError, "With #{amount} you are going over our limits, #{consumed} were sold by ALL \
+users of WTS, while our limits are #{limits} (daily/weekly/monthly), sorry about this :("
   end
   price = settings.btc.price
   bitcoin = (amount.to_zld(8).to_f * rate).round(8)
