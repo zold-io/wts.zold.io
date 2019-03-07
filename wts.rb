@@ -304,6 +304,9 @@ before '/*' do
     @locals[:guser] = login.downcase
   end
   cookies[:ref] = params[:ref] if params[:ref]
+  request.env['rack.request.query_hash'].each do |k, v|
+    raise UserError, "Invalid encoding of #{k.inspect} param" unless v.valid_encoding?
+  end
 end
 
 after do
@@ -999,7 +1002,7 @@ get '/graph.svg' do
   content_type 'image/svg+xml'
   settings.zache.clean
   settings.zache.get(request.url, lifetime: 10 * 60) do
-    Graph.new(settings.ticks).svg(params['keys'].split(' '), params['div'].to_i, params['digits'].to_i)
+    Graph.new(settings.ticks).svg(params[:keys].split(' '), params[:div].to_i, params[:digits].to_i)
   end
 end
 
@@ -1144,7 +1147,7 @@ error do
     flash('/', e.message, error: true)
   end
   status 503
-  Raven.capture_exception(e)
+  Raven.capture_exception(e, extra: { 'request_url' => request.url })
   if params[:noredirect]
     Backtrace.new(e).to_s
   else
