@@ -26,7 +26,6 @@ require 'zold/remotes'
 require 'zold/id'
 require 'webmock/minitest'
 require_relative 'test__helper'
-require_relative '../objects/dynamo'
 require_relative '../objects/user'
 require_relative '../objects/item'
 
@@ -37,7 +36,7 @@ class UserTest < Minitest::Test
       wallets = Zold::Wallets.new(File.join(dir, 'wallets'))
       login = 'jeffrey'
       user = User.new(
-        login, Item.new(login, Dynamo.new.aws, log: test_log),
+        login, Item.new(login, Pgsql::TEST.start, log: test_log),
         wallets, log: test_log
       )
       user.create

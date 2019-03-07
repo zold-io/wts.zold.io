@@ -25,23 +25,24 @@ require 'zold/key'
 require 'zold/id'
 require 'zold/http'
 require_relative 'test__helper'
-require_relative '../objects/dynamo'
+require_relative '../objects/pgsql'
 require_relative '../objects/item'
 
 class ItemTest < Minitest::Test
   def test_create_and_read
     WebMock.allow_net_connect!
-    item = Item.new('jeff', Dynamo.new.aws)
+    item = Item.new("jeff#{rand(999)}", Pgsql::TEST.start, log: test_log)
     assert(!item.exists?)
     pvt = OpenSSL::PKey::RSA.new(2048)
     id = Zold::Id.new
     item.create(id, Zold::Key.new(text: pvt.to_pem))
     assert(item.exists?)
+    assert_equal(id, item.id)
   end
 
   def test_wipes_keygap
     WebMock.allow_net_connect!
-    item = Item.new('jeffrey1', Dynamo.new.aws)
+    item = Item.new("jeff#{rand(999)}", Pgsql::TEST.start, log: test_log)
     pvt = OpenSSL::PKey::RSA.new(2048)
     id = Zold::Id.new
     pem = pvt.to_pem
@@ -53,16 +54,5 @@ class ItemTest < Minitest::Test
     item.wipe(keygap)
     assert(item.wiped?)
     assert_equal(key, item.key(keygap))
-  end
-
-  def test_sets_and_resets_api_token
-    WebMock.allow_net_connect!
-    item = Item.new('johnny2', Dynamo.new.aws)
-    pvt = OpenSSL::PKey::RSA.new(2048)
-    item.create(Zold::Id.new, Zold::Key.new(text: pvt.to_pem))
-    token = item.token
-    assert_equal(token, item.token)
-    item.token_reset
-    assert(token != item.token)
   end
 end

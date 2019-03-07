@@ -12,34 +12,39 @@
 #
 # THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFINGEMENT. IN NO EVENT SHALL THE
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 # AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'minitest/autorun'
-require 'webmock/minitest'
-require_relative 'test__helper'
-require_relative '../objects/ticks'
-require_relative '../objects/graph'
+require 'zold/log'
+require 'securerandom'
+require_relative 'user_error'
 
-class GraphTest < Minitest::Test
-  def test_renders_svg
-    WebMock.allow_net_connect!
-    ticks = Ticks.new(Pgsql::TEST.start, log: test_log)
-    ticks.add('Price' => 1, 'time' => tme(-1))
-    ticks.add('Price' => 3, 'time' => tme(-2))
-    ticks.add('Price' => 2, 'time' => tme(-10))
-    ticks.add('Price' => 1.5, 'time' => tme(-14))
-    ticks.add('Price' => 1.2, 'time' => tme(-50))
-    FileUtils.mkdir_p('target')
-    IO.write('target/graph.svg', Graph.new(ticks, log: test_log).svg(['Price'], 1, 0))
+#
+# Tokens of users.
+#
+class Tokens
+  def initialize(pgsql, log: Zold::Log::NULL)
+    @pgsql = pgsql
+    @log = log
   end
 
-  private
+  # API token, if exists. Otherwise, resets it.
+  def get(login)
+    row = @pgsql.exec('SELECT token FROM token WHERE login = $1', [login])[0]
+    return row['token'] unless row.nil?
+    reset(login)
+  end
 
-  def tme(days)
-    ((Time.now.to_f + days * 24 * 60 * 60) * 1000).to_i
+  # Sets a new API token to the user.
+  def reset(login)
+    token = SecureRandom.uuid.gsub(/[^a-f0-9]/, '')
+    @pgsql.exec(
+      'INSERT INTO token (login, token) VALUES ($1, $2) ON CONFLICT (login) DO UPDATE SET token = $2',
+      [login, token]
+    )
+    token
   end
 end

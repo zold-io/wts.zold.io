@@ -26,7 +26,6 @@ require 'zold/wallets'
 require 'zold/remotes'
 require 'zold/id'
 require_relative 'test__helper'
-require_relative '../objects/dynamo'
 require_relative '../objects/user'
 require_relative '../objects/ops'
 
@@ -38,12 +37,12 @@ class OpsTest < Minitest::Test
       remotes = Zold::Remotes.new(file: File.join(dir, 'remotes.csv'))
       remotes.clean
       login = 'jeff01'
-      item = Item.new(login, Dynamo.new.aws, log: test_log)
+      item = Item.new(login, Pgsql::TEST.start, log: test_log)
       user = User.new(login, item, wallets, log: test_log)
       user.create
       keygap = user.keygap
       user.confirm(keygap)
-      friend = User.new('friend', Item.new('friend', Dynamo.new.aws, log: test_log), wallets, log: test_log)
+      friend = User.new('friend', Item.new('friend', Pgsql::TEST.start, log: test_log), wallets, log: test_log)
       friend.create
       # copies = File.join(dir, 'copies')
       # Ops.new(item, user, wallets, remotes, copies, log: test_log).pay(

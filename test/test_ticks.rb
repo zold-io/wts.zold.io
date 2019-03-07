@@ -21,7 +21,6 @@
 require 'minitest/autorun'
 require 'webmock/minitest'
 require_relative 'test__helper'
-require_relative '../objects/dynamo'
 require_relative '../objects/ticks'
 
 class TicksTest < Minitest::Test

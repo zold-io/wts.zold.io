@@ -45,6 +45,7 @@ require 'zold/cached_wallets'
 require_relative 'version'
 require_relative 'objects/toggles'
 require_relative 'objects/callbacks'
+require_relative 'objects/tokens'
 require_relative 'objects/addresses'
 require_relative 'objects/jobs'
 require_relative 'objects/payables'
@@ -176,6 +177,7 @@ configure do
   set :toggles, Toggles.new(settings.pgsql, log: settings.log)
   set :addresses, Addresses.new(settings.pgsql, log: settings.log)
   set :hashes, Hashes.new(settings.pgsql, log: settings.log)
+  set :tokens, Tokens.new(settings.pgsql, log: settings.log)
   set :referrals, Referrals.new(settings.pgsql, log: settings.log)
   set :jobs, Jobs.new(settings.pgsql, log: settings.log)
   set :mcodes, Mcodes.new(settings.pgsql, log: settings.log)
@@ -301,7 +303,7 @@ before '/*' do
       settings.log.info("API login: User #{login} is absent")
       return
     end
-    unless user(login).item.token == token
+    unless settings.tokens.get(login) == token
       settings.log.info("Invalid token #{token.inspect} of #{login}")
       return
     end
@@ -571,13 +573,14 @@ end
 get '/api' do
   prohibit('api')
   haml :api, layout: :layout, locals: merged(
-    page_title: title('api')
+    page_title: title('api'),
+    token: "#{confirmed_user.login}-#{settings.tokens.get(confirmed_user.login)}"
   )
 end
 
 get '/api-reset' do
   prohibit('api')
-  confirmed_user.item.token_reset
+  settings.tokens.reset(confirmed_user.login)
   settings.telepost.spam(
     "API token has been reset by #{title_md}",
     "from #{anon_ip}"
@@ -752,6 +755,14 @@ arrival to #{address}, for #{bnf.login}; we ignore it.")
     end
   end
   'Thanks!'
+end
+
+get '/transfer' do
+  raise UserError, 'You are not allowed to see this' unless vip?
+  settings.dynamo.scan(table_name: 'zold-wallets', select: 'ALL_ATTRIBUTES').items do |i|
+    @pgsql.exec('INSERT INTO item (login, id, pem) VALUES ($1, $2, $3)', [i['login'], i['id'], i['pem']])
+    @pgsql.exec('INSERT INTO token (login, token) VALUES ($1, $2)', [i['login'], i['token']]) if i['token']
+  end
 end
 
 get '/queue' do
@@ -1047,7 +1058,7 @@ get '/mobile/token' do
     log.info("Just created a new wallet #{u.item.id}, going to push it...")
     ops(u, log: log).push
   end
-  token = "#{u.login}-#{u.item.token}"
+  token = "#{u.login}-#{settings.tokens.get(u.login)}"
   if params[:noredirect]
     content_type 'text/plain'
     return token
@@ -1221,7 +1232,7 @@ end
 def user(login = @locals[:guser])
   raise UserError, 'You have to login first' unless login
   User.new(
-    login, Item.new(login, settings.dynamo, log: user_log(login)),
+    login, Item.new(login, settings.pgsql, log: user_log(login)),
     settings.wallets, log: user_log(login)
   )
 end
@@ -1296,7 +1307,7 @@ end
 def pay_hosting_bonuses(boss, jid, log)
   prohibit('bonuses')
   bonus = Zold::Amount.new(zld: 1.0)
-  ops(boss).pull
+  ops(boss, log: log).pull
   latest = boss.wallet(&:txns).reverse.find { |t| t.amount.negative? }
   return if !latest.nil? && latest.date > Time.now - 60 * 60
   if boss.wallet(&:balance) < bonus
@@ -1319,14 +1330,14 @@ def pay_hosting_bonuses(boss, jid, log)
   cmd.run(%w[remote show])
   winners = cmd.run(%w[remote elect --min-score=2 --max-winners=8 --ignore-masters])
   winners.each do |score|
-    ops(boss).pull
-    ops(boss).pay(
+    ops(boss, log: log).pull
+    ops(boss, log: log).pay(
       settings.config['rewards']['keygap'],
       score.invoice,
       bonus / winners.count,
       "Hosting bonus for #{score.host} #{score.port} #{score.value}"
     )
-    ops(boss).push
+    ops(boss, log: log).push
   end
   if winners.empty?
     settings.telepost.spam(
@@ -1353,11 +1364,12 @@ def pay_hosting_bonuses(boss, jid, log)
     job_link(jid)
   )
   return if boss.wallet(&:txns).count < 1000
-  ops(boss).migrate(settings.config['rewards']['keygap'])
+  before = boss.item.id
+  ops(boss, log: log).migrate(settings.config['rewards']['keygap'])
   settings.telepost.spam(
     'The wallet with hosting [bonuses](https://blog.zold.io/2018/08/14/hosting-bonuses.html)',
-    'has been migrated to a new place',
-    "[#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id}),",
+    "has been migrated from [#{before}](http://www.zold.io/ledger.html?wallet=#{before})",
+    "to a new place [#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id}),",
     "the balance is #{boss.wallet(&:balance)};",
     job_link(jid)
   )

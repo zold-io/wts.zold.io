@@ -21,25 +21,21 @@
 require 'minitest/autorun'
 require 'webmock/minitest'
 require_relative 'test__helper'
-require_relative '../objects/ticks'
-require_relative '../objects/graph'
+require_relative '../objects/pgsql'
+require_relative '../objects/tokens'
 
-class GraphTest < Minitest::Test
-  def test_renders_svg
+class TokensTest < Minitest::Test
+  def test_sets_and_resets
     WebMock.allow_net_connect!
-    ticks = Ticks.new(Pgsql::TEST.start, log: test_log)
-    ticks.add('Price' => 1, 'time' => tme(-1))
-    ticks.add('Price' => 3, 'time' => tme(-2))
-    ticks.add('Price' => 2, 'time' => tme(-10))
-    ticks.add('Price' => 1.5, 'time' => tme(-14))
-    ticks.add('Price' => 1.2, 'time' => tme(-50))
-    FileUtils.mkdir_p('target')
-    IO.write('target/graph.svg', Graph.new(ticks, log: test_log).svg(['Price'], 1, 0))
-  end
-
-  private
-
-  def tme(days)
-    ((Time.now.to_f + days * 24 * 60 * 60) * 1000).to_i
+    tokens = Tokens.new(Pgsql::TEST.start, log: test_log)
+    login = "jeff#{rand(999)}"
+    item = Item.new(login, Pgsql::TEST.start, log: test_log)
+    item.create(Zold::Id.new, Zold::Key.new(text: OpenSSL::PKey::RSA.new(2048).to_pem))
+    before = tokens.get(login)
+    assert(!before.nil?)
+    assert_equal(before, tokens.get(login))
+    after = tokens.reset(login)
+    assert(before != after)
+    assert(tokens.reset(login) != after)
   end
 end

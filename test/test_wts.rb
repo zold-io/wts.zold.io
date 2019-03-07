@@ -79,7 +79,7 @@ class AppTest < Minitest::Test
     name = 'bill'
     login(name)
     user = User.new(
-      name, Item.new(name, Dynamo.new.aws, log: test_log),
+      name, Item.new(name, Pgsql::TEST.start, log: test_log),
       Sinatra::Application.settings.wallets, log: test_log
     )
     user.create
@@ -124,14 +124,14 @@ class AppTest < Minitest::Test
   def test_buy_zld
     WebMock.allow_net_connect!
     boss = User.new(
-      '0crat', Item.new('0crat', Dynamo.new.aws, log: test_log),
+      '0crat', Item.new('0crat', Pgsql::TEST.start, log: test_log),
       Sinatra::Application.settings.wallets, log: test_log
     )
     boss.create
     boss.confirm(boss.keygap)
     login = 'jeff00977'
     user = User.new(
-      login, Item.new(login, Dynamo.new.aws, log: test_log),
+      login, Item.new(login, Pgsql::TEST.start, log: test_log),
       Sinatra::Application.settings.wallets, log: test_log
     )
     user.create
@@ -156,12 +156,12 @@ class AppTest < Minitest::Test
     name = 'jeff079'
     login(name)
     boss = User.new(
-      '0crat', Item.new('0crat', Dynamo.new.aws, log: test_log),
+      '0crat', Item.new('0crat', Pgsql::TEST.start, log: test_log),
       Sinatra::Application.settings.wallets, log: test_log
     )
     boss.create
     user = User.new(
-      name, Item.new(name, Dynamo.new.aws, log: test_log),
+      name, Item.new(name, Pgsql::TEST.start, log: test_log),
       Sinatra::Application.settings.wallets, log: test_log
     )
     user.create
