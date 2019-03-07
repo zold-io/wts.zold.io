@@ -22,6 +22,7 @@ STDOUT.sync = true
 
 require 'aws-sdk-sns'
 require 'haml'
+require 'yaml'
 require 'geocoder'
 require 'sinatra'
 require 'sinatra/cookies'
