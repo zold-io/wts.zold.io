@@ -45,12 +45,15 @@ amount #{amount}, and details: \"#{details}\"")
     pid
   end
 
-  def fetch_all
-    @pgsql.exec('SELECT * FROM payout ORDER BY created DESC LIMIT 50').map { |r| map(r) }
+  def fetch_all(limit: 50)
+    @pgsql.exec('SELECT * FROM payout ORDER BY created DESC LIMIT $1', [limit]).map { |r| map(r) }
   end
 
-  def fetch(login)
-    @pgsql.exec('SELECT * FROM payout WHERE login = $1 ORDER BY created DESC', [login]).map { |r| map(r) }
+  def fetch(login, limit: 50)
+    @pgsql.exec(
+      'SELECT * FROM payout WHERE login = $1 ORDER BY created DESC LIMIT $2',
+      [login, limit]
+    ).map { |r| map(r) }
   end
 
   def consumed(login)
