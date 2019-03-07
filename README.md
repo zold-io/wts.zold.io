@@ -103,6 +103,9 @@ There are more entry points:
     attribute set to `false`. The only valid attribute there will be
     `effective_rate`.
 
+  * `GET /create`: creates a new wallet, assigns a new wallet ID to the user,
+    leaving the keygap and private RSA key the same.
+
 Make sure you always use the `noredirect=1` query parameter. Without it
 you may get unpredictable response codes, like 302/303, and HTML in response
 body.
