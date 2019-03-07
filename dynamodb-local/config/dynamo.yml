@@ -1,3 +1,0 @@
-port: ${dynamo.port}
-key: ${dynamo.key}
-secret: ${dynamo.secret}

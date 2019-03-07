@@ -60,7 +60,6 @@ require_relative 'objects/item'
 require_relative 'objects/user'
 require_relative 'objects/btc'
 require_relative 'objects/bank'
-require_relative 'objects/dynamo'
 require_relative 'objects/hashes'
 require_relative 'objects/user_error'
 require_relative 'objects/ops'
@@ -100,11 +99,6 @@ configure do
       },
       'api_secret' => 'test',
       'sentry' => '',
-      'dynamo' => {
-        'region' => '?',
-        'key' => '?',
-        'secret' => '?'
-      },
       'pgsql' => {
         'host' => 'localhost',
         'port' => 0,
@@ -147,7 +141,6 @@ configure do
   set :dump_errors, false
   set :server_settings, timeout: 25
   set :log, Zold::Log::REGULAR.dup
-  set :dynamo, Dynamo.new(config).aws
   set :glogin, GLogin::Auth.new(
     config['github']['client_id'],
     config['github']['client_secret'],
@@ -755,18 +748,6 @@ arrival to #{address}, for #{bnf.login}; we ignore it.")
     end
   end
   'Thanks!'
-end
-
-get '/transfer' do
-  raise UserError, 'You are not allowed to see this' unless vip?
-  settings.dynamo.scan(table_name: 'zold-wallets', select: 'ALL_ATTRIBUTES').items.each do |i|
-    settings.pgsql.exec(
-      'INSERT INTO item (login, id, pem) VALUES ($1, $2, $3)', [i['login'], i['id'], i['pem']]
-    )
-    settings.pgsql.exec('INSERT INTO token (login, token) VALUES ($1, $2)', [i['login'], i['token']]) if i['token']
-    settings.pgsql.exec('INSERT INTO keygap (login, keygap) VALUES ($1, $2)', [i['login'], i['keygap']]) if i['keygap']
-  end
-  'done'
 end
 
 get '/queue' do

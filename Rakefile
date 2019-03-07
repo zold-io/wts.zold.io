@@ -22,10 +22,10 @@ STDOUT.sync = true
 
 require 'rubygems'
 require 'rake'
+require 'yaml'
 require 'rdoc'
 require 'rake/clean'
 require 'English'
-require_relative 'objects/dynamo'
 
 ENV['RACK_ENV'] = 'test'
 
@@ -33,7 +33,7 @@ task default: %i[clean test rubocop xcop copyright]
 
 require 'rake/testtask'
 desc 'Run all unit tests'
-Rake::TestTask.new(test: %i[dynamo liquibase]) do |test|
+Rake::TestTask.new(test: :liquibase) do |test|
   Rake::Cleaner.cleanup_files(['coverage'])
   test.libs << 'lib' << 'test'
   test.pattern = 'test/**/test_*.rb'
@@ -54,26 +54,6 @@ Xcop::RakeTask.new :xcop do |task|
   task.license = 'LICENSE.txt'
   task.includes = ['**/*.xml', '**/*.xsl', '**/*.xsd', '**/*.html']
   task.excludes = ['target/**/*', 'coverage/**/*']
-end
-
-desc 'Start DynamoDB Local server'
-task :dynamo do
-  FileUtils.rm_rf('dynamodb-local/target')
-  pid = Process.spawn('mvn', 'install', '--quiet', chdir: 'dynamodb-local')
-  at_exit do
-    `kill -TERM #{pid}`
-    puts "DynamoDB Local killed in PID #{pid}"
-  end
-  begin
-    puts 'DynamoDB Local table: ' + Dynamo.new.aws.describe_table(
-      table_name: 'zold-wallets'
-    )[:table][:table_status]
-  rescue Exception => e
-    puts e.message
-    sleep(5)
-    retry
-  end
-  puts "DynamoDB Local is running in PID #{pid}"
 end
 
 desc 'Start PostgreSQL Local server'
@@ -119,7 +99,7 @@ task :pgsql do
 end
 
 desc 'Update the database via Liquibase'
-task liquibase: %i[pgsql] do
+task liquibase: :pgsql do
   yml = YAML.safe_load(File.open(File.exist?('config.yml') ? 'config.yml' : 'target/config.yml'))
   system("mvn -f liquibase verify \"-Durl=#{yml['pgsql']['url']}\" --errors 2>&1")
   raise unless $CHILD_STATUS.exitstatus.zero?
@@ -133,7 +113,7 @@ task :sleep do
   end
 end
 
-task run: %i[dynamo pgsql liquibase] do
+task run: :liquibase do
   puts 'Starting the app...'
   system('rerun -b "RACK_ENV=test ruby wts.rb"')
 end
