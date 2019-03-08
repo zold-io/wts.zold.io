@@ -153,6 +153,7 @@ most probably you just have to RESTART your wallet"
     pay(keygap, target, balance, 'Migrated')
     push
     @user.item.replace_id(target)
+    push
     @log.info("Wallet of #{@user.login} migrated from #{origin} to #{target} \
 with #{balance}, in #{Zold::Age.new(start)}")
   end
