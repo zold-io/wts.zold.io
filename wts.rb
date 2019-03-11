@@ -850,30 +850,31 @@ users of WTS, while our limits are #{limits} (daily/weekly/monthly), sorry about
   rewards = user(settings.config['rewards']['login'])
   job do |jid, log|
     log.info("Sending #{bitcoin} bitcoins to #{address}...")
+    f = fee
     ops(log: log).pull
     ops(rewards, log: log).pull
     ops(boss, log: log).pull
     ops(log: log).pay(
       keygap,
       boss.item.id,
-      amount * (1 - fee),
-      "ZLD exchange to #{bitcoin} BTC at #{address}, rate is #{rate}, fee is #{fee}"
+      amount * (1.0 - f),
+      "ZLD exchange to #{bitcoin} BTC at #{address}, rate is #{rate}, fee is #{f}"
     )
     ops(log: log).pay(
       keygap,
       rewards.item.id,
-      amount * fee,
-      "Fee for exchange of #{bitcoin} BTC at #{address}, rate is #{rate}, fee is #{fee}"
+      amount * f,
+      "Fee for exchange of #{bitcoin} BTC at #{address}, rate is #{rate}, fee is #{f}"
     )
     ops(log: log).push
     settings.bank.send(
       address,
-      (usd * (1 - fee)).round(2),
-      "Exchange of #{amount.to_zld(8)} by #{title} to #{user.item.id}, rate is #{rate}, fee is #{fee}"
+      (usd * (1.0 - f)).round(2),
+      "Exchange of #{amount.to_zld(8)} by #{title} to #{user.item.id}, rate is #{rate}, fee is #{f}"
     )
     settings.payouts.add(
       user.login, user.item.id, amount,
-      "#{bitcoin} BTC sent to #{address}, the price was $#{price.round}/BTC, the fee was #{(fee * 100).round(2)}%"
+      "#{bitcoin} BTC sent to #{address}, the price was $#{price.round}/BTC, the fee was #{(f * 100).round(2)}%"
     )
     settings.telepost.spam(
       "Out: #{amount} [exchanged](https://blog.zold.io/2018/12/09/btc-to-zld.html) to #{bitcoin} BTC",
@@ -887,7 +888,7 @@ users of WTS, while our limits are #{limits} (daily/weekly/monthly), sorry about
       "zolds were deposited to [#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id})",
       "of [#{boss.login}](https://github.com/#{boss.login}),",
       "the balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t);",
-      "the exchange fee of #{amount * fee}",
+      "the exchange fee of #{amount * f}",
       "was deposited to [#{rewards.item.id}](http://www.zold.io/ledger.html?wallet=#{rewards.item.id})",
       "of [#{rewards.login}](https://github.com/#{rewards.login}),",
       "the balance is #{rewards.wallet(&:balance)} (#{rewards.wallet(&:txns).count}t);",
