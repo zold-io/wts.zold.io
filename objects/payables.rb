@@ -86,6 +86,13 @@ class Payables
     @log.info("Payables: #{total} wallet balances updated in #{Zold::Age.new(start)}")
   end
 
+  # Discover
+  def remove_banned
+    Zold::Id::BANNED.each do |id|
+      @pgsql.exec('DELETE FROM payable WHERE id = $1', [id])
+    end
+  end
+
   def fetch(max: 100)
     @pgsql.exec('SELECT * FROM payable ORDER BY ABS(balance) DESC LIMIT $1', [max]).map do |r|
       {
