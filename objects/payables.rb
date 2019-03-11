@@ -60,26 +60,27 @@ class Payables
   def update(max: 512)
     start = Time.now
     ids = Queue.new
-    @pgsql.exec('SELECT id FROM payable ORDER BY updated LIMIT $1', [max]).map { |r| r['id'] }.take(max).each do |id|
-      ids << id
+    @pgsql.exec('SELECT id FROM payable ORDER BY updated ASC LIMIT $1', [max]).each do |r|
+      ids << r['id']
     end
     total = 0
     @remotes.iterate(@log) do |r|
-      next unless r.master?
-      loop do
-        id = nil
-        begin
-          id = ids.pop(true)
-        rescue ThreadError
-          break
+      if r.master?
+        loop do
+          id = nil
+          begin
+            id = ids.pop(true)
+          rescue ThreadError
+            break
+          end
+          res = r.http("/wallet/#{id}/balance").get
+          r.assert_code(200, res)
+          @pgsql.exec(
+            'UPDATE payable SET balance = $2, updated = NOW() WHERE id = $1',
+            [id, res.body.to_i]
+          )
+          total += 1
         end
-        res = r.http("/wallet/#{id}/balance").get
-        r.assert_code(200, res)
-        @pgsql.exec(
-          'UPDATE payable SET balance = $2, updated = NOW() WHERE id = $1',
-          [id, res.body.to_i]
-        )
-        total += 1
       end
     end
     @log.info("Payables: #{total} wallet balances updated in #{Zold::Age.new(start)}")

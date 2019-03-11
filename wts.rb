@@ -567,6 +567,14 @@ get '/id_rsa' do
   confirmed_user.item.key(keygap).to_s
 end
 
+get '/download' do
+  response.headers['Content-Type'] = 'application/octet-stream'
+  response.headers['Content-Disposition'] = "attachment; filename='#{confirmed_user.item.id}#{Zold::Wallet::EXT}'"
+  confirmed_user.wallet do |w|
+    IO.read(w.path)
+  end
+end
+
 get '/api' do
   prohibit('api')
   haml :api, layout: :layout, locals: merged(

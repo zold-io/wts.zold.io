@@ -96,6 +96,8 @@ class AppTest < Minitest::Test
       '/invoice',
       '/invoice.json',
       '/api',
+      "/download?keygap=#{keygap}",
+      "/id_rsa?keygap=#{keygap}",
       '/callbacks',
       '/payouts',
       '/btc'

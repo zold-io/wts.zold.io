@@ -28,6 +28,8 @@
       %br
       File size:
       = "#{Zold::Size.new(w.size)}"
+      = '/'
+      %a{href: '/download'} Download
       %br
       Modified:
       = "#{w.mtime.utc.iso8601} (#{Zold::Age.new(w.mtime.utc.iso8601)} ago)"
