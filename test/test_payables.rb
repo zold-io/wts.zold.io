@@ -43,6 +43,7 @@ class PayablesTest < Minitest::Test
       payables.discover
       assert_equal(1, payables.fetch.count)
       payables.update
+      payables.remove_banned
       assert_equal(Zold::Amount.new(zents: 1_234_567), payables.fetch[0][:balance])
       assert(payables.total >= 1)
       assert(payables.balance > Zold::Amount::ZERO)

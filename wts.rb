@@ -249,6 +249,7 @@ and dated of #{t[:date].utc.iso8601}")
   Daemon.new(settings.log).run(10) do
     settings.payables.discover
     settings.payables.update
+    settings.payables.remove_banned
   end
   Daemon.new(settings.log).run(10) do
     settings.ticks.add('Volume24' => settings.gl.volume.to_f) unless settings.ticks.exists?('Volume24')
