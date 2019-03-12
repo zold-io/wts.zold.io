@@ -84,7 +84,9 @@ keygap is '#{keygap[0, 2]}#{'.' * (keygap.length - 2)}'")
 
   # Return Wallet ID as Zold::Id
   def id
-    Zold::Id.new(@pgsql.exec('SELECT id FROM item WHERE login = $1', [@login])[0]['id'])
+    row = @pgsql.exec('SELECT id FROM item WHERE login = $1', [@login])[0]
+    raise "User #{@login} is not yet registered" if row.nil?
+    Zold::Id.new(row['id'])
   end
 
   # Returns user Keygap temporarily stored in the database. We should not

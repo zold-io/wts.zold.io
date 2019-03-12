@@ -54,10 +54,11 @@ class AppTest < Minitest::Test
       '/gl',
       '/payables',
       '/context',
-      '/remotes'
+      '/remotes',
+      '/quick'
     ].each do |p|
       get(p)
-      assert(last_response.ok?, p)
+      assert(last_response.ok?, last_response.body)
     end
   end
 

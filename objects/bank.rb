@@ -32,6 +32,10 @@ class Bank
     def send(_address, _usd, _description)
       # nothing
     end
+
+    def balance
+      1
+    end
   end
 
   def initialize(key, secret, account, log: Zold::Log::NULL)

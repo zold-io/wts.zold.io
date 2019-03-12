@@ -1104,9 +1104,14 @@ end
 get '/quick' do
   prohibit('quick')
   flash('/home', 'Please logout first') if @locals[:guser]
+  page = params[:haml] || 'default'
+  raise UserError, 'HAML page name is not valid' unless /^[a-zA-Z0-9]{,64}$/.match?(page)
+  http = Zold::Http.new(uri: "https://raw.githubusercontent.com/zold-io/quick/master/#{page}.haml").get
+  raise UserError, "Can\'t fetch HAML template #{page.inspect}" unless http.code == 200
   haml :quick, layout: :layout, locals: merged(
     page_title: 'Zold: Quick Start',
-    header_off: true
+    header_off: true,
+    html: Haml::Engine.new(http.body).render(self)
   )
 end
 
