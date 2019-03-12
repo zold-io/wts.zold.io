@@ -622,8 +622,7 @@ end
 
 get '/wait-for' do
   prohibit('api')
-  wallet = params[:wallet]
-  raise UserError, 'The parameter "wallet" is mandatory' if wallet.nil?
+  wallet = params[:wallet] || confirmed_user.item.id.to_s
   prefix = params[:prefix]
   raise UserError, 'The parameter "prefix" is mandatory' if prefix.nil?
   regexp = params[:regexp] ? Regexp.new(params[:regexp]) : /^.*$/
@@ -920,6 +919,7 @@ get '/output' do
   id = params['id']
   raise UserError, "Job ID #{id} is not found" unless settings.jobs.exists?(id)
   content_type 'text/plain', charset: 'utf-8'
+  headers['X-Zold-JobStatus'] = settings.jobs.status(id)
   settings.jobs.output(id)
 end
 

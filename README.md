@@ -84,7 +84,9 @@ There are more entry points:
     Returns `200` and a full stack trace as plain text if the job is finished with an exception.
     We keep the information about the job in memory for 4 hours (it gets destroyed if the server reboots).
 
-  * `GET /output`: returns the entire log of a particular job, expecting `id` as a query argument.
+  * `GET /output`: returns the entire log of a particular job, expecting `id` as a query argument;
+    the HTTP header `X-Zold-JobStatus` will contain either `OK`, `Running`, or `Error`,
+    depending on the status of the job.
 
   * `GET /id_rsa`: returns private RSA key of the user, expecting the keygap
     as an argument.
@@ -116,7 +118,7 @@ If you want to integrate Zold into your website or mobile app, where your
 customers are sending payments to you, you may try our callback API. First, you
 send a `GET` request to `/wait-for` and specify:
 
-  * `wallet`: the ID of the wallet you expect payments to
+  * `wallet`: the ID of the wallet you expect payments to (your wallet, if not provided)
   * `prefix`: the prefix you expect them to arrive to (get it at `/invoice.json` first)
   * `regexp`: the regular expression to match payment details, e.g. `pizza$` (the text has to end with `pizza`)
   * `uri`: the URI where the callback should arrive once we see the payment

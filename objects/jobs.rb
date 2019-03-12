@@ -48,6 +48,13 @@ class Jobs
     uuid
   end
 
+  # Returns job status, like "OK", "Running", or "Error"
+  def status(id)
+    status = read(id)
+    status = 'Error' if status != 'OK' && status != 'Running'
+    status
+  end
+
   # Read the Job result (OK, or backtrace or 'Running')
   def read(id)
     rows = @pgsql.exec('SELECT log FROM job WHERE id = $1', [id])
