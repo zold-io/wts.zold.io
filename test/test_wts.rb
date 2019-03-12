@@ -101,7 +101,10 @@ class AppTest < Minitest::Test
       "/id_rsa?keygap=#{keygap}",
       '/callbacks',
       '/payouts',
-      '/btc'
+      '/buy-sell',
+      '/btc-to-zld',
+      '/zld-to-btc',
+      '/zld-to-paypal'
     ].each do |p|
       get(p)
       assert_equal(200, last_response.status, "#{p} fails: #{last_response.body}")
@@ -181,7 +184,7 @@ class AppTest < Minitest::Test
       )
     end
     post(
-      '/do-sell',
+      '/do-zld-to-btc',
       form(
         'amount': '1',
         'btc': '1N1R2HP9JD4LvAtp7rTkpRqF19GH7PH2ZF',

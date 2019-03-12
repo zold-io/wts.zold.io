@@ -61,6 +61,7 @@ require_relative 'objects/item'
 require_relative 'objects/user'
 require_relative 'objects/btc'
 require_relative 'objects/bank'
+require_relative 'objects/paypal'
 require_relative 'objects/hashes'
 require_relative 'objects/user_error'
 require_relative 'objects/ops'
@@ -92,6 +93,10 @@ configure do
       'exchange' => {
         'login' => '0crat',
         'keygap' => '?'
+      },
+      'paypal' => {
+        'id' => '?',
+        'secret' => '?'
       },
       'github' => {
         'client_id' => '?',
@@ -181,6 +186,10 @@ configure do
   set :zache, Zache.new(dirty: true)
   set :ticks, Ticks.new(settings.pgsql, log: settings.log)
   set :pool, Concurrent::FixedThreadPool.new(16, max_queue: 64, fallback_policy: :abort)
+  set :paypal, PayPalGate.new(
+    settings.config['paypal']['id'],
+    settings.config['paypal']['secret']
+  )
   if settings.config['coinbase']['key'].empty?
     set :bank, Bank::Fake.new
   else
@@ -665,7 +674,7 @@ get '/do-migrate' do
   flash('/', 'You got a new wallet ID, your funds will be transferred soon...')
 end
 
-get '/btc' do
+get '/btc-to-zld' do
   prohibit('btc')
   address = settings.addresses.acquire(confirmed_user.login) do
     address = settings.btc.create
@@ -679,8 +688,8 @@ get '/btc' do
     address
   end
   headers['X-Zold-BtcAddress'] = address
-  haml :btc, layout: :layout, locals: merged(
-    page_title: title('buy+sell'),
+  haml :btc_to_zld, layout: :layout, locals: merged(
+    page_title: title('buy'),
     gap: settings.zache.get(:gap, lifetime: 60) { settings.btc.gap },
     address: address
   )
@@ -799,13 +808,128 @@ get '/payouts' do
   )
 end
 
-post '/do-sell' do
+get '/buy-sell' do
+  prohibit('buy-sell')
+  haml :buy_sell, layout: :layout, locals: merged(
+    page_title: title('buy/sell')
+  )
+end
+
+get '/zld-to-paypal' do
+  prohibit('paypal')
+  raise UserError, 'You have to work in Zerocracy in order to cash out to PayPal' unless known?
+  haml :zld_to_paypal, layout: :layout, locals: merged(
+    page_title: title('paypal')
+  )
+end
+
+post '/do-zld-to-paypal' do
+  prohibit('paypal')
+  raise UserError, 'Amount is not provided' if params[:amount].nil?
+  raise UserError, 'Email address is not provided' if params[:email].nil?
+  raise UserError, 'Keygap is not provided' if params[:keygap].nil?
+  amount = Zold::Amount.new(zld: params[:amount].to_f)
+  email = params[:email].strip
+  raise UserError, "You don't have enough to send #{amount}" if confirmed_user.wallet(&:balance) < amount
+  if settings.toggles.get('ban:do-sell').split(',').include?(user.login)
+    settings.telepost.spam(
+      "The user #{title_md} from #{anon_ip} is trying to send #{amount} to PayPal,",
+      'while their account is banned via "ban:do-sell";',
+      "the balance of the user is #{user.wallet(&:balance)}",
+      "at the wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})"
+    )
+    raise UserError, 'Your account is not allowed to sell any ZLD at the moment, email us'
+  end
+  limits = settings.toggles.get('limits', '64/128/256')
+  unless settings.payouts.allowed?(user.login, amount, limits) || vip?
+    consumed = settings.payouts.consumed(user.login)
+    settings.telepost.spam(
+      "The user #{title_md} from #{anon_ip} with #{amount} payment to PayPal just attempted to go",
+      "over their account limits: \"#{consumed}\", while allowed thresholds are \"#{limits}\";",
+      "the balance of the user is #{user.wallet(&:balance)}",
+      "at the wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})"
+    )
+    raise UserError, "With #{amount} you are going over your limits, #{consumed} were sold already, \
+while we allow one user to sell up to #{limits} (daily/weekly/monthly)"
+  end
+  limits = settings.toggles.get('system-limits', '512/2048/8196')
+  unless settings.payouts.safe?(amount, limits) || vip?
+    consumed = settings.payouts.system_consumed
+    settings.telepost.spam(
+      "The user #{title_md} from #{anon_ip} with #{amount} payment to PayPal just attempted to go",
+      "over our limits: \"#{consumed}\", while allowed thresholds are \"#{limits}\";",
+      "the balance of the user is #{user.wallet(&:balance)}",
+      "at the wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})"
+    )
+    raise UserError, "With #{amount} you are going over our limits, #{consumed} were sold by ALL \
+users of WTS, while our limits are #{limits} (daily/weekly/monthly), sorry about this :("
+  end
+  price = settings.btc.price
+  bitcoin = (amount.to_zld(8).to_f * rate).round(8)
+  usd = bitcoin * price
+  boss = user(settings.config['exchange']['login'])
+  rewards = user(settings.config['rewards']['login'])
+  job do |jid, log|
+    log.info("Sending #{bitcoin} bitcoins to #{email}...")
+    f = fee
+    ops(log: log).pull
+    ops(rewards, log: log).pull
+    ops(boss, log: log).pull
+    ops(log: log).pay(
+      keygap,
+      boss.item.id,
+      amount * (1.0 - f),
+      "ZLD exchange to $#{usd} PayPal, rate is #{rate}, fee is #{f}"
+    )
+    ops(log: log).pay(
+      keygap,
+      rewards.item.id,
+      amount * f,
+      "Fee for exchange of $#{usd} PayPal, rate is #{rate}, fee is #{f}"
+    )
+    ops(log: log).push
+    settings.paypal.send(
+      email,
+      (usd * (1.0 - f)).round(2),
+      "Exchange of #{amount.to_zld(8)} by #{title} to #{user.item.id}, rate is #{rate}, fee is #{f}"
+    )
+    settings.payouts.add(
+      user.login, user.item.id, amount,
+      "$#{usd} sent to #{email}, the price was $#{price.round}/BTC, the fee was #{(f * 100).round(2)}%"
+    )
+    settings.telepost.spam(
+      "Out: #{amount} [exchanged](https://blog.zold.io/2018/12/09/btc-to-zld.html) to $#{usd} PayPal",
+      "by #{title_md} from #{anon_ip}",
+      "from the wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})",
+      "with the balance of #{user.wallet(&:balance)};",
+      "BTC price at the time of exchange was [$#{price.round}](https://blockchain.info/ticker);",
+      "zolds were deposited to [#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id})",
+      "of [#{boss.login}](https://github.com/#{boss.login}),",
+      "the balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t);",
+      "the exchange fee of #{amount * f}",
+      "was deposited to [#{rewards.item.id}](http://www.zold.io/ledger.html?wallet=#{rewards.item.id})",
+      "of [#{rewards.login}](https://github.com/#{rewards.login}),",
+      "the balance is #{rewards.wallet(&:balance)} (#{rewards.wallet(&:txns).count}t);",
+      job_link(jid)
+    )
+  end
+  flash('/btc', "We took #{amount} from your wallet and sent you $#{usd} PayPal, more details in the log")
+end
+
+get '/zld-to-btc' do
+  prohibit('btc')
+  haml :zld_to_btc, layout: :layout, locals: merged(
+    page_title: title('sell')
+  )
+end
+
+post '/do-zld-to-btc' do
   prohibit('sell')
   raise UserError, 'Amount is not provided' if params[:amount].nil?
   raise UserError, 'Bitcoin address is not provided' if params[:btc].nil?
   raise UserError, 'Keygap is not provided' if params[:keygap].nil?
   amount = Zold::Amount.new(zld: params[:amount].to_f)
-  address = params[:btc]
+  address = params[:btc].strip
   raise UserError, "Bitcoin address is not valid: #{address.inspect}" unless address =~ /^[a-zA-Z0-9]+$/
   raise UserError, 'Bitcoin address must start with 1, 3 or bc1' unless address =~ /^(1|3|bc1)/
   raise UserError, "You don't have enough to send #{amount}" if confirmed_user.wallet(&:balance) < amount

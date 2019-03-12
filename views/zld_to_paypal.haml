@@ -1,0 +1,40 @@
+%h2
+  Sell Zolds and Receive PayPal
+
+- if confirmed_user.wallet_exists?
+  %p
+    Your current balance is
+    = succeed '.' do
+      %code= confirmed_user.wallet(&:balance)
+
+%p
+  The rate is
+  %strong= rate
+  BTC per 1 ZLD.
+  %a{href: '/rate'} Why?
+
+%p
+  If any issues or the payment is lost, contact us in our
+  = succeed '.' do
+    %a{href: 'https://t.me/zold_io'} Telegram group
+
+%p
+  To sell your ZLD and receive PayPal just fill this form
+  and we will send you the payment promptly, deducting
+  = "#{(fee * 100)}%"
+  fee:
+
+%form{method: 'POST', action: '/do-zld-to-paypal'}
+  %fieldset
+    %label
+      Your
+      = succeed ':' do
+        %a{href: 'https://blog.zold.io/2018/07/18/keygap.html'} keygap
+    %input{type: 'password', name: 'keygap', autocomplete: 'off', tabindex: 1, autofocus: true}
+    %label The amount of ZLD to sell:
+    %input{type: 'text', name: 'amount', size: 12, autocomplete: 'off', tabindex: 2}
+    %label
+      %a{href: 'https://www.paypal.com'} PayPal
+      email:
+    %input{type: 'text', name: 'email', maxlength: 50, size: 45, autocomplete: 'off', tabindex: 3}
+    %input{type: 'submit', onclick: "return confirm('Are you sure? This operation is not reversable!')", tabindex: 4}
