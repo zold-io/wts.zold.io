@@ -644,7 +644,7 @@ get '/wait-for' do
   settings.telepost.spam(
     "New callback no.#{id} created by #{title_md} from #{anon_ip}",
     "for the wallet [#{wallet}](http://www.zold.io/ledger.html?wallet=#{wallet}),",
-    "prefix `#{prefix}`, and regular expression `#{md_safe(regexp)}`"
+    "prefix `#{prefix}`, and regular expression `#{safe_md(regexp.to_s)}`"
   )
   content_type 'text/plain'
   id.to_s
@@ -1231,11 +1231,13 @@ get '/quick' do
   page = params[:haml] || 'default'
   raise UserError, 'HAML page name is not valid' unless /^[a-zA-Z0-9]{,64}$/.match?(page)
   http = Zold::Http.new(uri: "https://raw.githubusercontent.com/zold-io/quick/master/#{page}.haml").get
-  raise UserError, "Can\'t fetch HAML template #{page.inspect}" unless http.code == 200
+  html = Haml::Engine.new(
+    http.status == 200 ? http.body : IO.read(File.join(__dir__, 'views/quick_default.haml'))
+  ).render(self)
   haml :quick, layout: :layout, locals: merged(
     page_title: 'Zold: Quick Start',
     header_off: true,
-    html: Haml::Engine.new(http.body).render(self)
+    html: html
   )
 end
 

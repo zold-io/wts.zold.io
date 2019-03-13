@@ -216,6 +216,13 @@ class AppTest < Minitest::Test
     assert_equal(302, last_response.status, last_response.body)
   end
 
+  def test_register_callback
+    WebMock.allow_net_connect!
+    login('yegor565')
+    get('/wait-for?prefix=abcdefgh&regexp=.*&uri=http://localhost/')
+    assert_equal(200, last_response.status, last_response.body)
+  end
+
   private
 
   def form(params)
