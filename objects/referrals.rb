@@ -46,7 +46,6 @@ class Referrals
 
   # Register it, if doesn't exist yet.
   def register(login, ref, source: '', medium: '', campaign: '')
-    @pgsql.exec('DELETE FROM referral WHERE created < NOW() - INTERVAL \'32 DAYS\'')
     @pgsql.exec(
       [
         'INSERT INTO referral (login, ref, utm_source, utm_medium, utm_campaign)',
@@ -58,9 +57,12 @@ class Referrals
     @log.info("New referral registered at #{login} by #{ref}")
   end
 
-  # Was this guy referred to us by someone?
+  # Was this guy referred to us by someone and this ref is not expired?
   def exists?(login)
-    !@pgsql.exec('SELECT ref FROM referral WHERE login = $1', [login]).empty?
+    !@pgsql.exec(
+      'SELECT ref FROM referral WHERE login = $1 AND created > NOW() - INTERVAL \'32 DAYS\'',
+      [login]
+    ).empty?
   end
 
   # Get referral.
