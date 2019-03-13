@@ -36,7 +36,10 @@ class Referrals
     @pgsql.exec('SELECT * FROM referral WHERE ref = $1', [login]).map do |r|
       {
         login: r['login'],
-        created: Time.parse(r['created'])
+        created: Time.parse(r['created']),
+        utm_source: r['utm_source'],
+        utm_medium: r['utm_medium'],
+        utm_campaign: r['utm_campaign']
       }
     end
   end
