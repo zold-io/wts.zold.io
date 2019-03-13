@@ -314,6 +314,9 @@ before '/*' do
     @locals[:guser] = login.downcase
   end
   cookies[:ref] = params[:ref] if params[:ref]
+  cookies[:utm_source] = params[:utm_source] if params[:utm_source]
+  cookies[:utm_medium] = params[:utm_medium] if params[:utm_medium]
+  cookies[:utm_campaign] = params[:utm_campaign] if params[:utm_campaign]
   request.env['rack.request.query_hash'].each do |k, v|
     raise UserError, "Invalid encoding of #{k.inspect} param" unless v.valid_encoding?
   end
@@ -333,7 +336,7 @@ get '/github-callback' do
   unless known?(c.login) || vip?
     raise UserError, "@#{c.login} doesn't work in Zerocracy, can't login via GitHub, use mobile phone instead"
   end
-  settings.referrals.register(c.login, cookies[:ref]) if cookies[:ref] && !settings.referrals.exists?(c.login)
+  register_referral(c.login)
   flash('/', "You have been logged in as @#{c.login}")
 end
 
@@ -1189,7 +1192,7 @@ get '/mobile/token' do
     return token
   end
   cookies[:wts] = token
-  settings.referrals.register(u.login, cookies[:ref]) if cookies[:ref] && !settings.referrals.exists?(u.login)
+  register_referral(u.login)
   flash('/home', 'You have been logged in successfully')
 end
 
@@ -1524,4 +1527,12 @@ end
 
 def job_link(jid)
   "full log is [here](http://wts.zold.io/output?id=#{jid})"
+end
+
+def register_referral(login)
+  return unless cookies[:ref] && !settings.referrals.exists?(login)
+  settings.referrals.register(
+    login, cookies[:ref],
+    cookies[:utm_source], cookies[:utm_medium], cookies[:utm_campaign]
+  )
 end

@@ -42,15 +42,15 @@ class Referrals
   end
 
   # Register it, if doesn't exist yet.
-  def register(login, ref)
+  def register(login, ref, source: '', medium: '', campaign: '')
     @pgsql.exec('DELETE FROM referral WHERE created < NOW() - INTERVAL \'32 DAYS\'')
     @pgsql.exec(
       [
-        'INSERT INTO referral (login, ref)',
-        'VALUES ($1, $2)',
+        'INSERT INTO referral (login, ref, utm_source, utm_medium, utm_campaign)',
+        'VALUES ($1, $2, $3, $4, $5)',
         'ON CONFLICT (login, ref) DO NOTHING'
       ].join(' '),
-      [login, ref]
+      [login, ref, source, medium, campaign]
     )
     @log.info("New referral registered at #{login} by #{ref}")
   end
