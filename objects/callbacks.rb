@@ -111,21 +111,10 @@ prefix \"#{prefix}\", regexp #{regexp}, and URI: #{uri}")
         }
         uri = r['uri'] + '?' + args.map { |k, v| "#{k}=#{CGI.escape(v.to_s)}" }.join('&')
         res = Zold::Http.new(uri: uri).get
-        failure = ''
-        msg = "The callback ##{cid} of #{login} "
-        if res.code == 200 && res.body == 'OK'
-          msg += "success at #{uri}, wallet=#{r['wallet']}, amount=#{t.amount}"
-        else
-          msg += "failure at #{uri}: #{res.code} #{res.status_line.inspect} #{res.body.inspect}"
-          failure = msg
-        end
         @pgsql.exec(
           'UPDATE match SET failure = $1 WHERE id = $2',
-          [failure.empty? ? '' : "#{Time.now.utc.iso8601}: #{failure}", r['mid'].to_i]
+          [failure(res, uri), r['mid'].to_i]
         )
-        msg += "; there are still \
-#{@pgsql.exec('SELECT COUNT(*) FROM callback WHERE login=$1', [login])[0]['count']} callbacks active"
-        @log.info(msg)
       end
     end
   end
@@ -167,6 +156,18 @@ prefix \"#{prefix}\", regexp #{regexp}, and URI: #{uri}")
   end
 
   private
+
+  def failure(res, uri)
+    if res.code != 200
+      "#{Time.now.utc.iso8601}: HTTP response code at #{uri} was #{res.code} \
+instead of 200: #{res.status_line.inspect}"
+    elsif res.body != 'OK'
+      "#{Time.now.utc.iso8601}: HTTP response body at #{uri} was not equal to 'OK' \
+even though response code was 200: #{res.body.inspect}"
+    else
+      ''
+    end
+  end
 
   def map(r)
     {
