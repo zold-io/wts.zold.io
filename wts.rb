@@ -252,7 +252,7 @@ and dated of #{t[:date].utc.iso8601}")
     end
   end
   Daemon.new(settings.log).run(5) do
-    settings.callbacks.ping(settings.telepost) do |login, id, pfx, regexp|
+    settings.callbacks.ping do |login, id, pfx, regexp|
       ops(user(login)).pull(id)
       settings.wallets.acq(id) do |wallet|
         wallet.txns.select do |t|
