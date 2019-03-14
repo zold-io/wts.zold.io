@@ -116,7 +116,7 @@ prefix \"#{prefix}\", regexp #{regexp}, and URI: #{uri}")
         if res.code == 200 && res.body == 'OK'
           msg += "success at #{uri}, wallet=#{r['wallet']}, amount=#{t.amount}"
         else
-          msg += "failure at #{uri}: #{res.code} #{res.status_line.inspect}"
+          msg += "failure at #{uri}: #{res.code} #{res.status_line.inspect} #{res.body.inspect}"
           failure = msg
         end
         @pgsql.exec(
