@@ -1320,7 +1320,7 @@ end
 
 def title(suffix = '')
   login = user.login
-  (/^[0-9]/.match?(login) ? "+#{login}" : "@#{login}") + (suffix.empty? ? '' : '/' + suffix)
+  (/^[0-9]+$/.match?(login) ? "+#{login}" : "@#{login}") + (suffix.empty? ? '' : '/' + suffix)
 end
 
 def title_md(u = user)

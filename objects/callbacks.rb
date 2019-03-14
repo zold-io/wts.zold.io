@@ -73,14 +73,16 @@ prefix \"#{prefix}\", regexp #{regexp}, and URI: #{uri}")
     found
   end
 
-  def fetch(login)
+  def fetch(login, limit: 50)
     @pgsql.exec(
       [
         'SELECT callback.*, match.created AS matched FROM callback',
         'LEFT JOIN match ON match.callback = callback.id',
-        'WHERE login = $1'
+        'WHERE login = $1',
+        'ORDER BY matched DESC, callback.created DESC',
+        'LIMIT $2'
       ].join(' '),
-      [login]
+      [login, limit]
     ).map { |r| map(r) }
   end
 
