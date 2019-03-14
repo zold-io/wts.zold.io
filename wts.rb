@@ -360,7 +360,7 @@ get '/github-callback' do
     context
   )
   cookies[:glogin] = c.to_s
-  unless known?(c.login) || vip?
+  unless known?(c.login) || vip?(c.login)
     raise UserError, "@#{c.login} doesn't work in Zerocracy, can't login via GitHub, use mobile phone instead"
   end
   register_referral(c.login)
