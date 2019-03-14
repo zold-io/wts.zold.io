@@ -54,10 +54,10 @@
           %td
             = r[:login]
           %td
-            = r[:utm_source].gsub(/([^ ]{16})/, '\1&shy;')
+            = CGI.escapeHTML(r[:utm_source]).gsub(/([^ ]{16})/, '\1&shy;')
           %td
-            = r[:utm_medium].gsub(/([^ ]{16})/, '\1&shy;')
+            = CGI.escapeHTML(r[:utm_medium]).gsub(/([^ ]{16})/, '\1&shy;')
           %td
-            = r[:utm_campaign].gsub(/([^ ]{16})/, '\1&shy;')
+            = CGI.escapeHTML(r[:utm_campaign]).gsub(/([^ ]{16})/, '\1&shy;')
           %td{title: r[:created].utc.iso8601}
             = Zold::Age.new(r[:created])
