@@ -1409,6 +1409,8 @@ end
 def known?(login = @locals[:guser])
   return false unless login
   return true if ENV['RACK_ENV'] == 'test'
+  return true if login == settings.config['rewards']['login']
+  return true if login == settings.config['exchange']['login']
   Zold::Http.new(uri: 'https://www.0crat.com/known/' + login).get.code == 200
 end
 
