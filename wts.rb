@@ -244,8 +244,9 @@ for #{t[:amount].to_zld(6)} from #{t[:source]} to #{t[:target]} with details \"#
 and dated of #{t[:date].utc.iso8601}")
       settings.callbacks.match(t[:target], t[:prefix], t[:details]) do |c, mid|
         settings.telepost.spam(
-          "The callback #{c[:id]} owned by #{title_md(user(c[:login]))} just matched",
-          "in #{c[:wallet]}/#{c[:prefix]} with #{c[:details].inspect}, match ID is #{mid}"
+          "The callback no.#{c[:id]} owned by #{title_md(user(c[:login]))} just matched",
+          "in [#{c[:wallet]}](http://www.zold.io/ledger.html?wallet=#{c[:wallet]})",
+          "with prefix `#{c[:prefix]}` and details #{c[:details].inspect}, match ID is #{mid}"
         )
       end
     end

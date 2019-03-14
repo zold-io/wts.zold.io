@@ -20,6 +20,7 @@
 
 require 'time'
 require 'zold/http'
+require 'zold/id'
 require_relative 'pgsql'
 require_relative 'user_error'
 
@@ -131,6 +132,7 @@ prefix \"#{prefix}\", regexp #{regexp}, and URI: #{uri}")
     {
       id: r['id'].to_i,
       login: r['login'],
+      wallet: Zold::Id.new(r['wallet']),
       prefix: r['prefix'],
       regexp: Regexp.new(r['prefix']),
       matched: r['matched'] ? Time.parse(r['matched']) : nil,
