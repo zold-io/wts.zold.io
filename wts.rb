@@ -1562,6 +1562,6 @@ def register_referral(login)
   return unless cookies[:ref] && !settings.referrals.exists?(login)
   settings.referrals.register(
     login, cookies[:ref],
-    cookies[:utm_source], cookies[:utm_medium], cookies[:utm_campaign]
+    source: cookies[:utm_source], medium: cookies[:utm_medium], campaign: cookies[:utm_campaign]
   )
 end
