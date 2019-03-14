@@ -41,10 +41,11 @@
       %col{style: 'width: 2em'}
       %col{style: 'width: 5em'}
       %col{style: 'width: 5em'}
-      %col{style: ''}
+      %col{style: 'width: 8em'}
       %col{style: 'width: 3em'}
-      %col{style: 'width: 10em'}
-      %col{style: 'width: 10em'}
+      %col{style: 'width: 5em'}
+      %col{style: 'width: 5em'}
+      %col{style: ''}
     %thead
       %tr
         %th
@@ -61,6 +62,8 @@
           Created
         %th
           Matched
+        %th
+          Latest ping
     %tbody
       - list.each do |c|
         %tr
@@ -73,7 +76,7 @@
           %td
             %code= c[:regexp]
           %td
-            %a{href: c[:uri]} URI
+            %a{href: c[:uri]}= '&#128279;'
           %td{title: c[:created].utc.iso8601}
             = Zold::Age.new(c[:created])
           %td
@@ -82,5 +85,16 @@
                 = Zold::Age.new(c[:matched])
             - else
               = '&mdash;'
+          %td
+            - if c[:failure].nil?
+              = '&mdash;'
+            - else
+              = c[:failure].gsub(/([^ ]{16})/, '\1&shy;')
   %p
     If callback is not matched within 24 hours, it will automatically be deleted.
+
+%p
+  To monitor our Callback API activity you may want
+  to subscribe to this
+  = succeed '.' do
+    %a{href: 'https://t.me/zold_wts'} Telegram channel

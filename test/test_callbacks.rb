@@ -21,6 +21,7 @@
 require 'minitest/autorun'
 require 'webmock/minitest'
 require 'zold/amount'
+require 'telepost'
 require_relative 'test__helper'
 require_relative '../objects/pgsql'
 require_relative '../objects/callbacks'
@@ -48,6 +49,9 @@ class CallbacksTest < Minitest::Test
         )
       ]
     end
+    callbacks.delete_succeeded
+    callbacks.delete_failed
+    callbacks.delete_expired
     assert_requested(get, times: 1)
   end
 end

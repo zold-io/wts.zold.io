@@ -246,19 +246,40 @@ and dated of #{t[:date].utc.iso8601}")
         settings.telepost.spam(
           "The callback no.#{c[:id]} owned by #{title_md(user(c[:login]))} just matched",
           "in [#{c[:wallet]}](http://www.zold.io/ledger.html?wallet=#{c[:wallet]})",
-          "with prefix `#{c[:prefix]}` and details #{c[:details].inspect}, match ID is #{mid}"
+          "with prefix `#{c[:prefix]}` and details #{t[:details].inspect}, match ID is #{mid}"
         )
       end
     end
   end
   Daemon.new(settings.log).run(5) do
-    settings.callbacks.ping do |login, id, pfx, regexp|
+    settings.callbacks.ping(settings.telepost) do |login, id, pfx, regexp|
       ops(user(login)).pull(id)
       settings.wallets.acq(id) do |wallet|
         wallet.txns.select do |t|
           t.prefix == pfx && regexp.match?(t.details)
         end
       end
+    end
+    settings.callbacks.delete_succeeded do |c|
+      settings.telepost.spam(
+        "The callback no.#{c[:id]} owned by #{title_md(user(c[:login]))} was deleted, since it was delivered;",
+        "the wallet was [#{c[:wallet]}](http://www.zold.io/ledger.html?wallet=#{c[:wallet]})",
+        "the prefix was `#{c[:prefix]}` and the regeex was #{c[:regex].inspect}"
+      )
+    end
+    settings.callbacks.delete_expired do |c|
+      settings.telepost.spam(
+        "The callback no.#{c[:id]} owned by #{title_md(user(c[:login]))} was deleted, since it was never matched;",
+        "the wallet was [#{c[:wallet]}](http://www.zold.io/ledger.html?wallet=#{c[:wallet]})",
+        "the prefix was `#{c[:prefix]}` and the regeex was #{c[:regex].inspect}"
+      )
+    end
+    settings.callbacks.delete_failed do |c|
+      settings.telepost.spam(
+        "The callback no.#{c[:id]} owned by #{title_md(user(c[:login]))} was deleted, since it was failed;",
+        "the wallet was [#{c[:wallet]}](http://www.zold.io/ledger.html?wallet=#{c[:wallet]})",
+        "the prefix was `#{c[:prefix]}` and the regeex was #{c[:regex].inspect}"
+      )
     end
   end
   Daemon.new(settings.log).run(10) do

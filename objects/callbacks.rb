@@ -76,7 +76,7 @@ prefix \"#{prefix}\", regexp #{regexp}, and URI: #{uri}")
   def fetch(login, limit: 50)
     @pgsql.exec(
       [
-        'SELECT callback.*, match.created AS matched FROM callback',
+        'SELECT callback.*, match.created AS matched, match.failure AS failure FROM callback',
         'LEFT JOIN match ON match.callback = callback.id',
         'WHERE login = $1',
         'ORDER BY matched DESC, callback.created DESC',
@@ -88,14 +88,11 @@ prefix \"#{prefix}\", regexp #{regexp}, and URI: #{uri}")
 
   # Ping them all.
   def ping
-    @pgsql.exec('DELETE FROM callback WHERE created < NOW() - INTERVAL \'24 HOURS\'')
-    @pgsql.exec(
-      [
-        'DELETE FROM callback WHERE id IN',
-        '(SELECT callback FROM match WHERE created < NOW() - INTERVAL \'4 HOURS\')'
-      ].join(' ')
-    )
-    @pgsql.exec('SELECT callback.* FROM callback JOIN match ON callback.id = match.callback').each do |r|
+    q = [
+      'SELECT callback.*, match.id AS mid',
+      'FROM callback JOIN match ON callback.id = match.callback'
+    ].join(' ')
+    @pgsql.exec(q).each do |r|
       login = r['login']
       cid = r['id'].to_i
       txns = yield(login, Zold::Id.new(r['wallet']), r['prefix'], Regexp.new(r['regexp']))
@@ -112,19 +109,60 @@ prefix \"#{prefix}\", regexp #{regexp}, and URI: #{uri}")
           details: t.details,
           token: r['token']
         }
-        res = Zold::Http.new(uri: r['uri'] + '?' + args.map { |k, v| "#{k}=#{CGI.escape(v.to_s)}" }.join('&')).get
+        uri = r['uri'] + '?' + args.map { |k, v| "#{k}=#{CGI.escape(v.to_s)}" }.join('&')
+        res = Zold::Http.new(uri: uri).get
+        failure = ''
         msg = "The callback ##{cid} of #{login} "
         if res.code == 200 && res.body == 'OK'
-          @pgsql.exec('DELETE FROM callback WHERE id = $1', [cid])
-          @log.info("Callback ##{cid} of #{login} deleted")
-          msg += "success at #{r['uri']}, wallet=#{r['wallet']}, amount=#{t.amount}"
+          msg += "success at #{uri}, wallet=#{r['wallet']}, amount=#{t.amount}"
         else
-          msg += "failure at #{r['uri']}: #{res.code} #{res.status_line}"
+          msg += "failure at #{uri}: #{res.code} #{res.status_line.inspect}"
+          failure = msg
         end
+        @pgsql.exec(
+          'UPDATE match SET failure = $1 WHERE id = $2',
+          ["#{Time.now.utc.iso8601}: #{failure}", r['mid'].to_i]
+        )
         msg += "; there are still \
 #{@pgsql.exec('SELECT COUNT(*) FROM callback WHERE login=$1', [login])[0]['count']} callbacks active"
         @log.info(msg)
       end
+    end
+  end
+
+  # Delete all succeeded callbacks.
+  def delete_succeeded
+    q = [
+      'SELECT callback.* FROM callback',
+      'JOIN match ON match.callback = callback.id',
+      'WHERE match.failure = \'\''
+    ].join(' ')
+    @pgsql.exec(q).each do |r|
+      c = map(r)
+      @pgsql.exec('DELETE FROM callback WHERE id = $1', [c[:id]])
+      yield c if block_given?
+    end
+  end
+
+  # Delete all expired callbacks.
+  def delete_expired
+    @pgsql.exec('SELECT * FROM callback WHERE created < NOW() - INTERVAL \'24 HOURS\'').each do |r|
+      c = map(r)
+      @pgsql.exec('DELETE FROM callback WHERE id = $1', [c[:id]])
+      yield c if block_given?
+    end
+  end
+
+  def delete_failed
+    q = [
+      'SELECT callback.* FROM callback',
+      'JOIN match ON match.callback = callback.id',
+      'WHERE match.created < NOW() - INTERVAL \'4 HOURS\''
+    ].join(' ')
+    @pgsql.exec(q).each do |r|
+      c = map(r)
+      @pgsql.exec('DELETE FROM callback WHERE id = $1', [c[:id]])
+      yield c if block_given?
     end
   end
 
@@ -137,8 +175,9 @@ prefix \"#{prefix}\", regexp #{regexp}, and URI: #{uri}")
       uri: URI(r['uri']),
       wallet: Zold::Id.new(r['wallet']),
       prefix: r['prefix'],
-      regexp: Regexp.new(r['prefix']),
+      regexp: Regexp.new(r['regexp']),
       matched: r['matched'] ? Time.parse(r['matched']) : nil,
+      failure: r['failure'],
       created: Time.parse(r['created'])
     }
   end
