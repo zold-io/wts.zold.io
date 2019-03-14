@@ -42,6 +42,8 @@
       %col{style: 'width: 5em'}
       %col{style: 'width: 5em'}
       %col{style: ''}
+      %col{style: 'width: 3em'}
+      %col{style: 'width: 10em'}
       %col{style: 'width: 10em'}
     %thead
       %tr
@@ -53,6 +55,8 @@
           Prefix
         %th
           RegExp
+        %th
+          URI
         %th
           Created
         %th
@@ -68,6 +72,8 @@
             %code= c[:prefix]
           %td
             %code= c[:regexp]
+          %td
+            %a{href: c[:uri]} URI
           %td{title: c[:created].utc.iso8601}
             = Zold::Age.new(c[:created])
           %td

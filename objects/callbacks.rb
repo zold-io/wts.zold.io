@@ -134,6 +134,7 @@ prefix \"#{prefix}\", regexp #{regexp}, and URI: #{uri}")
     {
       id: r['id'].to_i,
       login: r['login'],
+      uri: URI(r['uri']),
       wallet: Zold::Id.new(r['wallet']),
       prefix: r['prefix'],
       regexp: Regexp.new(r['prefix']),
