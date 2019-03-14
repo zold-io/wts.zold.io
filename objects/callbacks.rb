@@ -121,7 +121,7 @@ prefix \"#{prefix}\", regexp #{regexp}, and URI: #{uri}")
         end
         @pgsql.exec(
           'UPDATE match SET failure = $1 WHERE id = $2',
-          ["#{Time.now.utc.iso8601}: #{failure}", r['mid'].to_i]
+          [failure.empty? ? '' : "#{Time.now.utc.iso8601}: #{failure}", r['mid'].to_i]
         )
         msg += "; there are still \
 #{@pgsql.exec('SELECT COUNT(*) FROM callback WHERE login=$1', [login])[0]['count']} callbacks active"
