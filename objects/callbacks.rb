@@ -18,6 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require 'time'
 require 'zold/http'
 require_relative 'pgsql'
 require_relative 'user_error'
@@ -66,8 +67,7 @@ prefix \"#{prefix}\", regexp #{regexp}, and URI: #{uri}")
       next if id.empty?
       mid = id[0]['id'].to_i
       found << mid
-      @log.info("Callback ##{r['id']} of #{r['login']} just matched in #{wallet}/#{prefix} \
-with \"#{details}\", match ##{mid}")
+      yield(map(r), mid) if block_given?
     end
     found
   end
@@ -80,7 +80,7 @@ with \"#{details}\", match ##{mid}")
         'WHERE login = $1'
       ].join(' '),
       [login]
-    )
+    ).map { |r| map(r) }
   end
 
   # Ping them all.
@@ -123,5 +123,18 @@ with \"#{details}\", match ##{mid}")
         @log.info(msg)
       end
     end
+  end
+
+  private
+
+  def map(r)
+    {
+      id: r['id'].to_i,
+      login: r['login'],
+      prefix: r['prefix'],
+      regexp: Regexp.new(r['prefix']),
+      matched: r['matched'] ? Time.parse(r['matched']) : nil,
+      created: Time.parse(r['created'])
+    }
   end
 end

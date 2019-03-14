@@ -33,9 +33,9 @@ class CallbacksTest < Minitest::Test
     login = 'yegor256'
     callbacks.add(login, id.to_s, 'NOPREFIX', /pizza/, 'http://localhost:888/')
     assert_equal(1, callbacks.fetch(login).count)
-    assert(callbacks.fetch(login)[0]['matched'].nil?)
+    assert(callbacks.fetch(login)[0][:matched].nil?)
     assert(!callbacks.match(id.to_s, 'NOPREFIX', 'for pizza').empty?)
-    assert(!callbacks.fetch(login)[0]['matched'].nil?)
+    assert(!callbacks.fetch(login)[0][:matched].nil?)
     assert(callbacks.match(id.to_s, 'NOPREFIX', 'for pizza').empty?)
     get = stub_request(:get, /localhost:888/).to_return(status: 200, body: 'OK')
     callbacks.ping do

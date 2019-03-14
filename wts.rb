@@ -242,7 +242,12 @@ configure do
       settings.log.info("A new transaction added to the General Ledger \
 for #{t[:amount].to_zld(6)} from #{t[:source]} to #{t[:target]} with details \"#{t[:details]}\" \
 and dated of #{t[:date].utc.iso8601}")
-      settings.callbacks.match(t[:target], t[:prefix], t[:details])
+      settings.callbacks.match(t[:target], t[:prefix], t[:details]) do |c, mid|
+        settings.telepost.spam(
+          "The callback #{c[:id]} owned by #{title_md(user(c[:login]))} just matched",
+          "in #{c[:wallet]}/#{c[:prefix]} with #{c[:details].inspect}, match ID is #{mid}"
+        )
+      end
     end
   end
   Daemon.new(settings.log).run(5) do

@@ -60,22 +60,19 @@
     %tbody
       - list.each do |c|
         %tr
-          %td
-            = c['id']
-          %td
-            %code
-              %a{href: "http://www.zold.io/ledger.html?wallet=#{c['wallet']}"}= c['wallet']
+          %td= c[:id]
           %td
             %code
-              = c['prefix']
+              %a{href: "http://www.zold.io/ledger.html?wallet=#{c[:wallet]}"}= c[:wallet]
           %td
-            %code
-              = c['regexp']
-          %td{title: Time.parse(c['created']).utc.iso8601}
-            = Zold::Age.new(Time.parse(c['created']))
+            %code= c[:prefix]
           %td
-            - if c['matched']
-              %span{title: Time.parse(c['matched']).utc.iso8601}
-                = Zold::Age.new(Time.parse(c['matched']))
+            %code= c[:regexp]
+          %td{title: c[:created].utc.iso8601}
+            = Zold::Age.new(c[:created])
+          %td
+            - if c[:matched]
+              %span{title: c[:matched].utc.iso8601}
+                = Zold::Age.new(c[:matched])
             - else
               = '&mdash;'
