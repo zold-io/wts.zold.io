@@ -21,6 +21,7 @@
 require 'raven'
 require 'backtrace'
 require 'zold/log'
+require_relative 'user_error'
 
 #
 # Daemon thread.
@@ -36,6 +37,8 @@ class Daemon
       loop do
         begin
           yield
+        rescue UserError => e
+          @log.error(Backtrace.new(e))
         rescue StandardError => e
           Raven.capture_exception(e)
           @log.error(Backtrace.new(e))
