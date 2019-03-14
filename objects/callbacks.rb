@@ -36,6 +36,11 @@ class Callbacks
   def add(login, wallet, prefix, regexp, uri, token = 'none')
     total = @pgsql.exec('SELECT COUNT(*) FROM callback WHERE login = $1', [login])[0]['count'].to_i
     raise UserError, "You have too many of them already: #{total}" if total >= 8
+    found = @pgsql.exec(
+      'SELECT id FROM callback WHERE login = $1 AND wallet = $2 AND prefix = $3 AND regexp = $4 AND uri = $5',
+      [login, wallet, prefix, regexp, uri]
+    )[0]
+    raise UserErorr, "You already have a callback ##{found['id']} registered with similar params" unless found.nil?
     cid = @pgsql.exec(
       [
         'INSERT INTO callback (login, wallet, prefix, regexp, uri, token)',
