@@ -63,7 +63,8 @@ class Ops
         ['pull', id.to_s, "--network=#{@network}", '--retry=4', '--shallow']
       )
     rescue Zold::Fetch::NotFound => e
-      raise UserError, "We didn't manage to find your wallet in any of visible Zold nodes (#{@user.login}). \
+      raise UserError, "We didn't manage to find your wallet #{user.item.id} \
+in any of visible Zold nodes (#{@user.login}). \
 You should try to PULL again. If it doesn't work, most likely your wallet #{id} is lost \
 and can't be recovered. If you have its copy locally, you can push it to the \
 network from the console app, using PUSH command. Otherwise, go for \
@@ -146,7 +147,7 @@ most probably you just have to RESTART your wallet"
     balance = @user.wallet(&:balance)
     target = Tempfile.open do |f|
       File.write(f, @user.wallet(&:key).to_s)
-      Zold::Create.new(wallets: @wallets, log: @log).run(
+      Zold::Create.new(wallets: @wallets, remotes: @remotes, log: @log).run(
         ['create', '--public-key=' + f.path]
       )
     end

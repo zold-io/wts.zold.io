@@ -264,21 +264,22 @@ and dated of #{t[:date].utc.iso8601}")
       settings.telepost.spam(
         "The callback no.#{c[:id]} owned by #{title_md(user(c[:login]))} was deleted, since it was delivered;",
         "the wallet was [#{c[:wallet]}](http://www.zold.io/ledger.html?wallet=#{c[:wallet]})",
-        "the prefix was `#{c[:prefix]}` and the regeex was #{c[:regex].inspect}"
+        "the prefix was `#{c[:prefix]}` and the regexp was `#{c[:regexp].inspect}`"
       )
     end
     settings.callbacks.delete_expired do |c|
       settings.telepost.spam(
         "The callback no.#{c[:id]} owned by #{title_md(user(c[:login]))} was deleted, since it was never matched;",
         "the wallet was [#{c[:wallet]}](http://www.zold.io/ledger.html?wallet=#{c[:wallet]})",
-        "the prefix was `#{c[:prefix]}` and the regeex was #{c[:regex].inspect}"
+        "the prefix was `#{c[:prefix]}` and the regexp was `#{c[:regexp].inspect}`"
       )
     end
     settings.callbacks.delete_failed do |c|
       settings.telepost.spam(
-        "The callback no.#{c[:id]} owned by #{title_md(user(c[:login]))} was deleted, since it was failed;",
+        "The callback no.#{c[:id]} owned by #{title_md(user(c[:login]))} was deleted,",
+        'since it was failed for over four hours;',
         "the wallet was [#{c[:wallet]}](http://www.zold.io/ledger.html?wallet=#{c[:wallet]})",
-        "the prefix was `#{c[:prefix]}` and the regeex was #{c[:regex].inspect}"
+        "the prefix was `#{c[:prefix]}` and the regexp was `#{c[:regexp].inspect}`"
       )
     end
   end
@@ -414,7 +415,7 @@ get '/create' do
   prohibit('create')
   job do |jid, log|
     log.info('Creating a new wallet by /create request...')
-    user.create
+    user.create(settings.remotes)
     ops(log: log).push
     settings.telepost.spam(
       "The user #{title_md}",
@@ -518,7 +519,7 @@ post '/do-pay' do
     raise UserError, 'You can\'t pay yourself' if login == user.login
     friend = user(login)
     unless friend.item.exists?
-      friend.create
+      friend.create(settings.remotes)
       ops(friend).push
     end
     bnf = friend.item.id
@@ -1068,6 +1069,18 @@ get '/job' do
   settings.jobs.read(id)
 end
 
+get '/job.json' do
+  prohibit('api')
+  id = params['id']
+  raise UserError, "Job ID #{id} is not found" unless settings.jobs.exists?(id)
+  content_type 'application/json'
+  JSON.pretty_generate(
+    id: id,
+    status: settings.jobs.status(id),
+    output_length: settings.jobs.output(id).length
+  )
+end
+
 get '/output' do
   prohibit('api')
   id = params['id']
@@ -1208,7 +1221,7 @@ get '/mobile/token' do
   raise UserError, 'Mobile code mismatch' unless settings.mcodes.get(phone) == mcode.to_i
   settings.mcodes.remove(phone)
   u = user(phone.to_s)
-  u.create unless u.item.exists?
+  u.create(settings.remotes) unless u.item.exists?
   job(u) do |_jid, log|
     log.info("Just created a new wallet #{u.item.id}, going to push it...")
     ops(u, log: log).push

@@ -88,6 +88,17 @@ There are more entry points:
     the HTTP header `X-Zold-JobStatus` will contain either `OK`, `Running`, or `Error`,
     depending on the status of the job.
 
+  * `GET /job.json`: returns a simple JSON document with full information about
+    a particular job, expecting `id` as a query argument:
+
+```json
+{
+  "id": "sjks-8sjs-sjUJs-sjkIIL",
+  "status": "OK" // could be "Running" or "Error"
+  "output_length": 15362 // the length of the job log
+}
+```
+
   * `GET /id_rsa`: returns private RSA key of the user, expecting the keygap
     as an argument.
 

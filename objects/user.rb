@@ -36,13 +36,13 @@ class User
   end
 
   # Create it, if it's absent (returns TRUE if it was created just now)
-  def create
+  def create(remotes = Zold::Remotes::Empty.new)
     rsa = OpenSSL::PKey::RSA.new(2048)
     pvt = Zold::Key.new(text: rsa.to_pem)
     wallet = Tempfile.open do |f|
       File.write(f, rsa.public_key.to_pem)
       require 'zold/commands/create'
-      Zold::Create.new(wallets: @wallets, log: @log).run(
+      Zold::Create.new(wallets: @wallets, remotes: remotes, log: @log).run(
         ['create', '--public-key=' + f.path]
       )
     end
