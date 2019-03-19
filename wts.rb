@@ -593,6 +593,13 @@ get '/find' do
   end.join("\n")
 end
 
+get '/txns.json' do
+  content_type 'application/json'
+  confirmed_user.wallet do |wallet|
+    JSON.pretty_generate(wallet.txns.map(&:to_json))
+  end
+end
+
 get '/id_rsa' do
   response.headers['Content-Type'] = 'application/octet-stream'
   response.headers['Content-Disposition'] = 'attachment; filename=id_rsa'
