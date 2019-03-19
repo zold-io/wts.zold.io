@@ -93,6 +93,7 @@ class AppTest < Minitest::Test
       '/balance',
       '/restart',
       '/log',
+      '/txns.json',
       '/referrals',
       '/invoice',
       '/invoice.json',

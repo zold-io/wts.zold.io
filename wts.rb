@@ -598,7 +598,11 @@ get '/txns.json' do
   confirmed_user.wallet do |wallet|
     list = wallet.txns
     list.reverse if params[:sort] && params[:sort] == 'desc'
-    JSON.pretty_generate(list.map(&:to_json))
+    JSON.pretty_generate(
+      list.map do |t|
+        t.to_json.merge(tid: t.amount.negative? ? "#{wallet.id}:#{t.id}" : "#{t.bnf}:#{t.id}")
+      end
+    )
   end
 end
 
