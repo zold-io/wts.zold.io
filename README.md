@@ -78,6 +78,7 @@ There are more entry points:
     You can match by all transaction fields (see the [White Paper](https://papers.zold.io/wp.pdf)).
 
   * `GET /txns.json`: returns a full list of transactions in the wallet, in JSON.
+    You can specify the sorting order via `sort=asc` or `sort=desc`.
 
   * `GET /job`: checks the status of the jobs, expecting `id` as a query argument.
     Returns `200` and plain text `OK` if the job is completed.

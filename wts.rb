@@ -596,7 +596,9 @@ end
 get '/txns.json' do
   content_type 'application/json'
   confirmed_user.wallet do |wallet|
-    JSON.pretty_generate(wallet.txns.map(&:to_json))
+    list = wallet.txns
+    list.reverse if params[:sort] && params[:sort] == 'desc'
+    JSON.pretty_generate(list.map(&:to_json))
   end
 end
 
