@@ -190,15 +190,6 @@ configure do
     settings.config['paypal']['id'],
     settings.config['paypal']['secret']
   )
-  if settings.config['coinbase']['key'].empty?
-    set :bank, Bank::Fake.new
-  else
-    set :bank, Bank.new(
-      settings.config['coinbase']['key'],
-      settings.config['coinbase']['secret'],
-      settings.config['coinbase']['account']
-    )
-  end
   if settings.config['blockchain']['xpub'].empty?
     set :btc, Btc::Fake.new
   else
@@ -1021,7 +1012,7 @@ users of WTS, while our limits are #{limits} (daily/weekly/monthly), sorry about
       "Fee for exchange of #{bitcoin} BTC at #{address}, rate is #{rate}, fee is #{f}"
     )
     ops(log: log).push
-    settings.bank.send(
+    bank(log: log).send(
       address,
       (usd * (1.0 - f)).round(2),
       "Exchange of #{amount.to_zld(8)} by #{title} to #{user.item.id}, rate is #{rate}, fee is #{f}"
@@ -1037,8 +1028,8 @@ users of WTS, while our limits are #{limits} (daily/weekly/monthly), sorry about
       "with the balance of #{user.wallet(&:balance)}",
       "to bitcoin address [#{address}](https://www.blockchain.com/btc/address/#{address});",
       "BTC price at the time of exchange was [$#{price.round}](https://blockchain.info/ticker);",
-      "our bitcoin wallet still has #{settings.bank.balance.round(3)} BTC",
-      "(worth about $#{(settings.bank.balance * price).round});",
+      "our bitcoin wallet still has #{bank.balance.round(3)} BTC",
+      "(worth about $#{(bank.balance * price).round});",
       "zolds were deposited to [#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id})",
       "of [#{boss.login}](https://github.com/#{boss.login}),",
       "the balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t);",
@@ -1117,7 +1108,7 @@ get '/rate' do
         wallets: settings.wallets, remotes: settings.remotes, copies: settings.copies, log: settings.log
       ).run(['pull', Zold::Id::ROOT.to_s, "--network=#{network}"])
       hash = {
-        bank: settings.bank.balance,
+        bank: bank(log: log).balance,
         boss: settings.wallets.acq(boss.item.id, &:balance),
         root: settings.wallets.acq(Zold::Id::ROOT, &:balance) * -1,
         boss_wallet: boss.item.id
@@ -1577,4 +1568,17 @@ def register_referral(login)
     login, cookies[:ref],
     source: cookies[:utm_source], medium: cookies[:utm_medium], campaign: cookies[:utm_campaign]
   )
+end
+
+def bank(log: settings.log)
+  if settings.config['coinbase']['key'].empty?
+    Bank::Fake.new
+  else
+    Bank.new(
+      settings.config['coinbase']['key'],
+      settings.config['coinbase']['secret'],
+      settings.config['coinbase']['account'],
+      log: log
+    )
+  end
 end
