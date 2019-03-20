@@ -948,7 +948,7 @@ users of WTS, while our limits are #{limits} (daily/weekly/monthly), sorry about
       job_link(jid)
     )
   end
-  flash('/btc', "We took #{amount} from your wallet and sent you $#{usd} PayPal, more details in the log")
+  flash('/zlt-to-paypal', "We took #{amount} from your wallet and sent you $#{usd} PayPal, more details in the log")
 end
 
 get '/zld-to-btc' do
@@ -1062,7 +1062,7 @@ users of WTS, while our limits are #{limits} (daily/weekly/monthly), sorry about
       )
     end
   end
-  flash('/btc', "We took #{amount} from your wallet and sent you #{bitcoin} BTC, more details in the log")
+  flash('/zld-to-btc', "We took #{amount} from your wallet and sent you #{bitcoin} BTC, more details in the log")
 end
 
 get '/job' do
