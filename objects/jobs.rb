@@ -67,6 +67,21 @@ class Jobs
     @pgsql.exec('UPDATE job SET log = $2 WHERE id = $1', [id, log])
   end
 
+  # Add result of the job.
+  def result(id, key, value)
+    @pgsql.exec(
+      'INSERT INTO result (job, key, value) VALUES ($1, $2, $3) ON CONFLICT (job, key) DO UPDATE SET value = $3',
+      [id, key, value]
+    )
+  end
+
+  # Get all job results.
+  def results(id)
+    @pgsql.exec('SELECT key, value FROM result WHERE job = $1', [id]).map do |r|
+      [r['key'], r['value']]
+    end.to_h
+  end
+
   # Read the Job full output
   def output(id)
     rows = @pgsql.exec('SELECT output FROM job WHERE id = $1', [id])

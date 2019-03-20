@@ -1079,9 +1079,11 @@ get '/job.json' do
   raise UserError, "Job ID #{id} is not found" unless settings.jobs.exists?(id)
   content_type 'application/json'
   JSON.pretty_generate(
-    id: id,
-    status: settings.jobs.status(id),
-    output_length: settings.jobs.output(id).length
+    {
+      id: id,
+      status: settings.jobs.status(id),
+      output_length: settings.jobs.output(id).length
+    }.merge(settings.job.results(id))
   )
 end
 

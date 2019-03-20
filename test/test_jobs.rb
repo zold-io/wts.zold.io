@@ -37,4 +37,13 @@ class JobsTest < Minitest::Test
     assert_equal('OK', jobs.read(id))
     assert_equal('OK', jobs.status(id))
   end
+
+  def test_saves_and_reads_results
+    WebMock.allow_net_connect!
+    jobs = Jobs.new(Pgsql::TEST.start, log: test_log)
+    id = jobs.start('tester')
+    jobs.result(id, 'foo', 'hello!')
+    jobs.result(id, 'bar', 'Bye!')
+    assert_equal('Bye!', jobs.results(id)['bar'])
+  end
 end
