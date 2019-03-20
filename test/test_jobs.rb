@@ -43,6 +43,7 @@ class JobsTest < Minitest::Test
     jobs = Jobs.new(Pgsql::TEST.start, log: test_log)
     id = jobs.start('tester')
     jobs.result(id, 'foo', 'hello!')
+    jobs.result(id, 'bar', 'Hm...')
     jobs.result(id, 'bar', 'Bye!')
     assert_equal('Bye!', jobs.results(id)['bar'])
   end
