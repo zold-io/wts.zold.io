@@ -530,7 +530,9 @@ post '/do-pay' do
   headers['X-Zold-Job'] = job do |jid, log|
     log.info("Sending #{amount} to #{bnf}...")
     ops(log: log).pull
-    ops(log: log).pay(keygap, bnf, amount, details)
+    txn = ops(log: log).pay(keygap, bnf, amount, details)
+    settings.jobs.result(jid, 'txn', txn.id.to_s)
+    settings.jobs.result(jid, 'tid', "#{user.item.id}:#{txn.id}")
     ops(log: log).push
     settings.telepost.spam(
       "Payment sent by #{title_md}",
@@ -1068,6 +1070,7 @@ end
 get '/job' do
   prohibit('api')
   id = params['id']
+  raise UserError, "Job in 'id' query parameter is mandatory" if id.nil? || id.empty?
   raise UserError, "Job ID #{id} is not found" unless settings.jobs.exists?(id)
   content_type 'text/plain', charset: 'utf-8'
   settings.jobs.read(id)
@@ -1076,6 +1079,7 @@ end
 get '/job.json' do
   prohibit('api')
   id = params['id']
+  raise UserError, "Job in 'id' query parameter is mandatory" if id.nil? || id.empty?
   raise UserError, "Job ID #{id} is not found" unless settings.jobs.exists?(id)
   content_type 'application/json'
   JSON.pretty_generate(
@@ -1083,13 +1087,14 @@ get '/job.json' do
       id: id,
       status: settings.jobs.status(id),
       output_length: settings.jobs.output(id).length
-    }.merge(settings.job.results(id))
+    }.merge(settings.jobs.results(id))
   )
 end
 
 get '/output' do
   prohibit('api')
   id = params['id']
+  raise UserError, "Job in 'id' query parameter is mandatory" if id.nil? || id.empty?
   raise UserError, "Job ID #{id} is not found" unless settings.jobs.exists?(id)
   content_type 'text/plain', charset: 'utf-8'
   headers['X-Zold-JobStatus'] = settings.jobs.status(id)

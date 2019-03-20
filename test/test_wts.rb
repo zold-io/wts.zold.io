@@ -208,6 +208,13 @@ class AppTest < Minitest::Test
       )
     )
     assert_equal(302, last_response.status, last_response.body)
+    job = last_response.headers['X-Zold-Job']
+    get("/job?id=#{job}")
+    assert_equal(200, last_response.status, last_response.body)
+    get("/output?id=#{job}")
+    assert_equal(200, last_response.status, last_response.body)
+    get("/job.json?id=#{job}")
+    assert_equal(200, last_response.status, last_response.body)
   end
 
   def test_migrate

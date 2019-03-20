@@ -97,10 +97,14 @@ There are more entry points:
 ```json
 {
   "id": "sjks-8sjs-sjUJs-sjkIIL",
-  "status": "OK" // could be "Running" or "Error"
+  "status": "OK", // could be "Running" or "Error"
   "output_length": 15362 // the length of the job log
 }
 ```
+
+    The JSON may also contain some additional data. For example, when you send
+    a payment via `/do-pay` it will contain `txn` with the ID of the transaction
+    just sent.
 
   * `GET /id_rsa`: returns private RSA key of the user, expecting the keygap
     as an argument.
