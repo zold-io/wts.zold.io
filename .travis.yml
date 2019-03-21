@@ -7,10 +7,13 @@ branches:
   only:
     - master
 addons:
+  postgresql: "10"
   apt:
     packages:
       - libmagic1
       - libmagic-dev
+      - postgresql-10
+      - postgresql-client-10
 install:
   - travis_retry bundle update
 services:
