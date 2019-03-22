@@ -54,7 +54,7 @@ require_relative 'objects/mcodes'
 require_relative 'objects/smss'
 require_relative 'objects/referrals'
 require_relative 'objects/payouts'
-require_relative 'objects/daemon'
+require_relative 'objects/daemons'
 require_relative 'objects/ticks'
 require_relative 'objects/graph'
 require_relative 'objects/item'
@@ -182,6 +182,7 @@ configure do
   set :mcodes, Mcodes.new(settings.pgsql, log: settings.log)
   set :payouts, Payouts.new(settings.pgsql, log: settings.log)
   set :callbacks, Callbacks.new(settings.pgsql, log: settings.log)
+  set :daemons, Daemons.new(settings.pgsql, log: settings.log)
   set :codec, GLogin::Codec.new(config['api_secret'])
   set :zache, Zache.new(dirty: true)
   set :ticks, Ticks.new(settings.pgsql, log: settings.log)
@@ -215,11 +216,11 @@ configure do
       settings.config['telegram']['token'],
       chats: ['@zold_wts']
     )
-    Daemon.new(settings.log).run(0) do
+    settings.daemons.start('telepost') do
       settings.telepost.run
     end
   end
-  Daemon.new(settings.log).run(10) do
+  settings.daemons.start('hosting-bonuses', 10 * 60) do
     login = settings.config['rewards']['login']
     boss = user(login)
     if boss.item.exists?
@@ -228,7 +229,7 @@ configure do
       end
     end
   end
-  Daemon.new(settings.log).run do
+  settings.daemons.start('scan-general-ledger') do
     settings.gl.scan(settings.remotes) do |t|
       settings.log.info("A new transaction added to the General Ledger \
 for #{t[:amount].to_zld(6)} from #{t[:source]} to #{t[:target]} with details \"#{t[:details]}\" \
@@ -242,7 +243,7 @@ and dated of #{t[:date].utc.iso8601}")
       end
     end
   end
-  Daemon.new(settings.log).run(5) do
+  settings.daemons.start('callbacks', 5 * 60) do
     settings.callbacks.ping do |login, id, pfx, regexp|
       ops(user(login)).pull(id)
       settings.wallets.acq(id) do |wallet|
@@ -274,15 +275,13 @@ and dated of #{t[:date].utc.iso8601}")
       )
     end
   end
-  Daemon.new(settings.log).run(10) do
+  settings.daemons.start('payables', 10 * 60) do
     settings.payables.discover
     settings.payables.update
     settings.payables.remove_banned
   end
-  Daemon.new(settings.log).run(10) do
+  settings.daemons.start('ticks', 10 * 60) do
     settings.ticks.add('Volume24' => settings.gl.volume.to_f) unless settings.ticks.exists?('Volume24')
-  end
-  Daemon.new(settings.log).run(10) do
     boss = user(settings.config['rewards']['login'])
     job(boss) do
       settings.ticks.add('Nodes' => settings.remotes.all.count) unless settings.ticks.exists?('Nodes')

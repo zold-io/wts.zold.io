@@ -21,20 +21,23 @@
 require 'raven'
 require 'backtrace'
 require 'zold/log'
+require_relative 'pgsql'
 require_relative 'user_error'
 
 #
-# Daemon thread.
+# Daemons.
 #
-class Daemon
-  def initialize(log)
+class Daemons
+  def initialize(pgsql, log)
+    @pgsql = pgsql
     @log = log
+    @threads = {}
   end
 
-  def run(min = 1)
-    Thread.new do
-      sleep(10) # to let the code of wts.rb load into Ruby interpreter
+  def start(id, seconds = 60)
+    @threads[id] = Thread.new do
       loop do
+        sleep([seconds - age(id), 0].max)
         begin
           yield
         rescue UserError => e
@@ -43,8 +46,17 @@ class Daemon
           Raven.capture_exception(e)
           @log.error(Backtrace.new(e))
         end
-        sleep(min * 60)
+        @pgsql.exec('INSERT INTO daemon (id) VALUES ($1) ON CONFLICT (id) DO UPDATE SET executed = NOW()', [id])
       end
     end
+  end
+
+  private
+
+  # The age of the daemon in seconds, or zero if not yet found
+  def age(id)
+    row = @pgsql.exec('SELECT executed FROM daemon WHERE id = $1', [id])[0]
+    return 0 if row.nil?
+    Time.now - Time.parse(row['executed'])
   end
 end
