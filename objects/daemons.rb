@@ -29,7 +29,7 @@ require_relative 'user_error'
 # Daemons.
 #
 class WTS::Daemons
-  def initialize(pgsql, log)
+  def initialize(pgsql, log: Zold::Log::NULL)
     @pgsql = pgsql
     @log = log
     @threads = {}
