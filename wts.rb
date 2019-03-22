@@ -1188,6 +1188,9 @@ get '/rate.json' do
 end
 
 get '/graph.svg' do
+  raise UserError, "Param 'keys' is mandatory" unless params[:keys]
+  raise UserError, "Param 'div' is mandatory" unless params[:div]
+  raise UserError, "Param 'digits' is mandatory" unless params[:digits]
   content_type 'image/svg+xml'
   settings.zache.clean
   settings.zache.get(request.url, lifetime: 10 * 60) do
