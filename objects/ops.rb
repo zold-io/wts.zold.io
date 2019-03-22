@@ -63,7 +63,7 @@ class Ops
         ['pull', id.to_s, "--network=#{@network}", '--retry=4', '--shallow']
       )
     rescue Zold::Fetch::NotFound => e
-      raise UserError, "We didn't manage to find your wallet #{user.item.id} \
+      raise UserError, "We didn't manage to find your wallet #{@user.item.id} \
 in any of visible Zold nodes (#{@user.login}). \
 You should try to PULL again. If it doesn't work, most likely your wallet #{id} is lost \
 and can't be recovered. If you have its copy locally, you can push it to the \
