@@ -57,7 +57,7 @@ class WTS::Daemons
   # The age of the daemon in seconds, or zero if not yet found
   def age(id)
     row = @pgsql.exec('SELECT executed FROM daemon WHERE id = $1', [id])[0]
-    return 0 if row.nil?
+    return 10_000_000_000 if row.nil?
     Time.now - Time.parse(row['executed'])
   end
 end
