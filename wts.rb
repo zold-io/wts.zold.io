@@ -337,6 +337,7 @@ before '/*' do
   cookies[:utm_medium] = params[:utm_medium] if params[:utm_medium]
   cookies[:utm_campaign] = params[:utm_campaign] if params[:utm_campaign]
   request.env['rack.request.query_hash'].each do |k, v|
+    raise UserError, "The param #{k.inspect} can't be empty" if v.nil?
     raise UserError, "Invalid encoding of #{k.inspect} param" unless v.valid_encoding?
   end
 end
