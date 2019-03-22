@@ -36,6 +36,7 @@ require 'base64'
 require 'concurrent'
 require 'tempfile'
 require 'telepost'
+require 'telebot'
 require 'rack/ssl'
 require 'get_process_mem'
 require 'total'
@@ -286,6 +287,18 @@ and dated of #{t[:date].utc.iso8601}")
     job(boss) do
       settings.ticks.add('Nodes' => settings.remotes.all.count) unless settings.ticks.exists?('Nodes')
     end
+  end
+  settings.daemons.start('snapshot', 24 * 60 * 60) do
+    settings.telepost.spam(
+      'Daily update!',
+      "Wallets: #{settings.payables.total};",
+      "Total emission: #{settings.payables.balance};",
+      "24-hours volume: #{settings.gl.volume};",
+      "Nodes: #{settings.remotes.all.count};",
+      "Bitcoin price: $#{settings.btc.price.round};",
+      "Rate: #{rate} ($#{(settings.btc.price * rate).round(4)})",
+      "Fund: #{settings.bank.balance.round(4)} BTC ($#{(settings.btc.price * settings.bank.balance).round})"
+    )
   end
   settings.telepost.spam(
     '[WTS](https://wts.zold.io) server software',
