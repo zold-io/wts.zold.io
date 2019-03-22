@@ -58,6 +58,10 @@ class Payables
 
   # Fetch some balances
   def update(max: 512)
+    if @remotes.all.empty?
+      @log.error('The list of remote nodes is empty, can\'t update payables')
+      return
+    end
     start = Time.now
     ids = Queue.new
     @pgsql.exec('SELECT id FROM payable ORDER BY updated ASC LIMIT $1', [max]).each do |r|
@@ -65,25 +69,29 @@ class Payables
     end
     total = 0
     @remotes.iterate(@log) do |r|
-      if r.master?
-        loop do
-          id = nil
-          begin
-            id = ids.pop(true)
-          rescue ThreadError
-            break
-          end
-          res = r.http("/wallet/#{id}/balance").get
-          r.assert_code(200, res)
-          @pgsql.exec(
-            'UPDATE payable SET balance = $2, updated = NOW() WHERE id = $1',
-            [id, res.body.to_i]
-          )
-          total += 1
+      next unless r.master?
+      loop do
+        id = nil
+        begin
+          id = ids.pop(true)
+        rescue ThreadError
+          break
         end
+        res = r.http("/wallet/#{id}/balance").get
+        r.assert_code(200, res)
+        @pgsql.exec(
+          'UPDATE payable SET balance = $2, updated = NOW() WHERE id = $1',
+          [id, res.body.to_i]
+        )
+        total += 1
       end
     end
-    @log.info("Payables: #{total} wallet balances updated in #{Zold::Age.new(start)}")
+    if total < max
+      @log.error("For some reason not enough wallet balances were updated, just #{total} instead of #{max}")
+    else
+      @log.info("Payables: #{total} wallet balances updated from #{@remotes.all.count} remotes \
+in #{Zold::Age.new(start)}")
+    end
   end
 
   # Discover

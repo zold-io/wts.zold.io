@@ -32,17 +32,25 @@ class PayablesTest < Minitest::Test
     Dir.mktmpdir 'test' do |dir|
       remotes = Zold::Remotes.new(file: File.join(dir, 'remotes.csv'))
       remotes.clean
-      stub_request(:get, 'http://b2.zold.io:4096/wallets').to_return(
-        status: 200, body: '0000111122223333'
+      remotes.masters
+      m = remotes.all[0]
+      remotes.all.each_with_index { |r, idx| remotes.remove(r[:host], r[:port]) if idx.positive? }
+      wallets = %w[0000111122223333 ffffeeeeddddcccc 0123456701234567]
+      stub_request(:get, "http://#{m[:host]}:#{m[:port]}/wallets").to_return(
+        status: 200, body: wallets.join("\n")
       )
-      remotes.add('b2.zold.io', 4096)
-      stub_request(:get, 'http://b2.zold.io:4096/wallet/0000111122223333/balance').to_return(
-        status: 200, body: '1234567'
-      )
+      remotes.add('localhost', 444)
+      remotes.add(m[:host], m[:port])
+      remotes.add('localhost', 123)
+      wallets.each do |id|
+        stub_request(:get, "http://#{m[:host]}:#{m[:port]}/wallet/#{id}/balance").to_return(
+          status: 200, body: '1234567'
+        )
+      end
       payables = Payables.new(Pgsql::TEST.start, remotes, log: test_log)
       payables.discover
-      assert_equal(1, payables.fetch.count)
-      payables.update
+      assert_equal(wallets.count, payables.fetch.count)
+      payables.update(max: wallets.count)
       payables.remove_banned
       assert_equal(Zold::Amount.new(zents: 1_234_567), payables.fetch[0][:balance])
       assert(payables.total >= 1)
