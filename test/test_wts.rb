@@ -64,9 +64,11 @@ class AppTest < Minitest::Test
 
   def test_not_found
     WebMock.allow_net_connect!
-    get('/unknown_path')
-    assert_equal(404, last_response.status)
-    assert_equal('text/html;charset=utf-8', last_response.content_type)
+    ['/unknown_path', '/js/x/y/z/not-found.js', '/css/a/b/c/not-found.css'].each do |p|
+      get(p)
+      assert_equal(404, last_response.status, last_response.body)
+      assert_equal('text/html;charset=utf-8', last_response.content_type)
+    end
   end
 
   def test_without_redirect
