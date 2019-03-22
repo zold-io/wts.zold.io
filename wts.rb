@@ -923,7 +923,7 @@ users of WTS, while our limits are #{limits} (daily/weekly/monthly), sorry about
   end
   price = settings.btc.price
   bitcoin = (amount.to_zld(8).to_f * rate).round(8)
-  usd = bitcoin * price
+  usd = (bitcoin * price).round(2)
   boss = user(settings.config['exchange']['login'])
   rewards = user(settings.config['rewards']['login'])
   job do |jid, log|
@@ -936,7 +936,7 @@ users of WTS, while our limits are #{limits} (daily/weekly/monthly), sorry about
       keygap,
       boss.item.id,
       amount * (1.0 - f),
-      "ZLD exchange to $#{usd} PayPal, rate is #{rate}, fee is #{f}"
+      "ZLD exchange to #{usd} PayPal, rate is #{rate}, fee is #{f}"
     )
     ops(log: log).pay(
       keygap,
@@ -970,7 +970,7 @@ users of WTS, while our limits are #{limits} (daily/weekly/monthly), sorry about
       job_link(jid)
     )
   end
-  flash('/zlt-to-paypal', "We took #{amount} from your wallet and sent you $#{usd} PayPal, more details in the log")
+  flash('/zld-to-paypal', "We took #{amount} from your wallet and sent you $#{usd} PayPal, more details in the log")
 end
 
 get '/zld-to-btc' do
