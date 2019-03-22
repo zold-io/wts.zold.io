@@ -21,7 +21,7 @@
 #
 # File log.
 #
-class FileLog
+class WTS::FileLog
   def initialize(file)
     @file = file
     FileUtils.mkdir_p(File.dirname(@file))

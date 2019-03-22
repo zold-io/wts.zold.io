@@ -24,7 +24,7 @@ require 'time'
 #
 # Job that shows Zold version.
 #
-class VersionedJob
+class WTS::VersionedJob
   def initialize(job, log: Zold::Log::NULL)
     @log = log
     @job = job

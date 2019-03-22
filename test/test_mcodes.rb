@@ -24,17 +24,17 @@ require_relative 'test__helper'
 require_relative '../objects/pgsql'
 require_relative '../objects/mcodes'
 
-class McodesTest < Minitest::Test
+class WTS::McodesTest < Minitest::Test
   def test_saves_and_gets
     WebMock.allow_net_connect!
-    mcodes = Mcodes.new(Pgsql::TEST.start, log: test_log)
+    mcodes = WTS::Mcodes.new(WTS::Pgsql::TEST.start, log: test_log)
     phone = 1_234_567_890
     assert(!mcodes.exists?(phone))
     mcodes.set(phone, 1234)
     assert(mcodes.exists?(phone))
     assert_equal(1234, mcodes.get(phone))
     mcodes.remove(phone)
-    assert_raises UserError do
+    assert_raises WTS::UserError do
       mcodes.get(phone)
     end
   end

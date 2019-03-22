@@ -26,8 +26,8 @@ require_relative 'user_error'
 #
 # Feature toggles.
 #
-class Toggles
-  def initialize(pgsql, log: Log::NULL)
+class WTS::Toggles
+  def initialize(pgsql, log: Zold::Log::NULL)
     @pgsql = pgsql
     @log = log
   end

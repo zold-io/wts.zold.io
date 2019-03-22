@@ -26,7 +26,7 @@ require_relative 'test__helper'
 require_relative '../objects/pgsql'
 require_relative '../objects/payables'
 
-class PayablesTest < Minitest::Test
+class WTS::PayablesTest < Minitest::Test
   def test_add_and_fetch
     WebMock.disable_net_connect!
     Dir.mktmpdir 'test' do |dir|
@@ -47,7 +47,7 @@ class PayablesTest < Minitest::Test
           status: 200, body: '1234567'
         )
       end
-      payables = Payables.new(Pgsql::TEST.start, remotes, log: test_log)
+      payables = WTS::Payables.new(WTS::Pgsql::TEST.start, remotes, log: test_log)
       payables.discover
       assert_equal(wallets.count, payables.fetch.count)
       payables.update(max: wallets.count)

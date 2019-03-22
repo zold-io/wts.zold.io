@@ -21,6 +21,6 @@
 #
 # User error
 #
-class UserError < StandardError
+class WTS::UserError < StandardError
   # Nothing special
 end

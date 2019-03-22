@@ -20,14 +20,15 @@
 
 require 'zold/log'
 require 'securerandom'
+require_relative 'wts'
 require_relative 'pgsql'
 require_relative 'user_error'
 
 #
 # Background jobs.
 #
-class Jobs
-  def initialize(pgsql, log: Log::NULL)
+class WTS::Jobs
+  def initialize(pgsql, log: Zold::Log::NULL)
     @pgsql = pgsql
     @log = log
   end
@@ -58,7 +59,7 @@ class Jobs
   # Read the Job result (OK, or backtrace or 'Running')
   def read(id)
     rows = @pgsql.exec('SELECT log FROM job WHERE id = $1', [id])
-    raise UserError, "Job #{id} not found" if rows.empty?
+    raise WTS::UserError, "Job #{id} not found" if rows.empty?
     rows[0]['log']
   end
 
@@ -85,7 +86,7 @@ class Jobs
   # Read the Job full output
   def output(id)
     rows = @pgsql.exec('SELECT output FROM job WHERE id = $1', [id])
-    raise UserError, "Job #{id} not found" if rows.empty?
+    raise WTS::UserError, "Job #{id} not found" if rows.empty?
     rows[0]['output']
   end
 end

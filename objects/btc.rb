@@ -21,12 +21,13 @@
 require 'backtrace'
 require 'zold/http'
 require 'zold/json_page'
+require_relative 'wts'
 require_relative 'user_error'
 
 #
 # BTC gateway.
 #
-class Btc
+class WTS::Btc
   # Fake gateway to blockchain.com
   class Fake
     def price
@@ -66,7 +67,7 @@ class Btc
     uri = uri('/receive', 'xpub': @xpub, 'callback': 'https://wts.zold.io/btc-hook', 'key': @key)
     res = Zold::Http.new(uri: uri).get
     unless res.code == 200
-      raise UserError, "Can't acquire Bitcoin address from Blockchain.com (#{res.code}, try to reload the page)"
+      raise WTS::UserError, "Can't acquire Bitcoin address from Blockchain.com (#{res.code}, try to reload the page)"
     end
     Zold::JsonPage.new(res.body).to_hash['address']
   end
@@ -75,7 +76,7 @@ class Btc
     uri = uri('/receive/checkgap', 'xpub': @xpub, 'key': @key)
     res = Zold::Http.new(uri: uri).get
     unless res.code == 200
-      raise UserError, "Can't get the gap from Blockchain.com (#{res.code}, try to reload the page)"
+      raise WTS::UserError, "Can't get the gap from Blockchain.com (#{res.code}, try to reload the page)"
     end
     Zold::JsonPage.new(res.body).to_hash['gap']
   end

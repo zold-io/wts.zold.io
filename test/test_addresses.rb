@@ -24,10 +24,10 @@ require_relative 'test__helper'
 require_relative '../objects/pgsql'
 require_relative '../objects/addresses'
 
-class AddressesTest < Minitest::Test
+class WTS::AddressesTest < Minitest::Test
   def test_reads_btc_address
     WebMock.allow_net_connect!
-    addresses = Addresses.new(Pgsql::TEST.start, log: test_log)
+    addresses = WTS::Addresses.new(WTS::Pgsql::TEST.start, log: test_log)
     btc1 = "32wtFfKbjWHpu9WFzX9adGsstAosqPk#{rand(999)}"
     assert_equal(btc1, addresses.acquire("jeff-#{rand(999)}") { btc1 })
     btc2 = "32wtFfKbjWHpu9WFzX9adGsFFAosqPk#{rand(999)}"
@@ -44,7 +44,7 @@ class AddressesTest < Minitest::Test
 
   def test_swaps
     WebMock.allow_net_connect!
-    addresses = Addresses.new(Pgsql::TEST.start, log: test_log)
+    addresses = WTS::Addresses.new(WTS::Pgsql::TEST.start, log: test_log)
     btc = "32wtFfKbjWHpu9WFzX9adGsFTAosqPk#{rand(999)}"
     john = "john-#{rand(999)}"
     assert_equal(btc, addresses.acquire(john) { btc })

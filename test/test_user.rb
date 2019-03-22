@@ -29,14 +29,14 @@ require_relative 'test__helper'
 require_relative '../objects/user'
 require_relative '../objects/item'
 
-class UserTest < Minitest::Test
+class WTS::UserTest < Minitest::Test
   def test_creates
     WebMock.allow_net_connect!
     Dir.mktmpdir 'test' do |dir|
       wallets = Zold::Wallets.new(File.join(dir, 'wallets'))
       login = 'jeffrey'
-      user = User.new(
-        login, Item.new(login, Pgsql::TEST.start, log: test_log),
+      user = WTS::User.new(
+        login, WTS::Item.new(login, WTS::Pgsql::TEST.start, log: test_log),
         wallets, log: test_log
       )
       user.create

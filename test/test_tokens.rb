@@ -24,12 +24,12 @@ require_relative 'test__helper'
 require_relative '../objects/pgsql'
 require_relative '../objects/tokens'
 
-class TokensTest < Minitest::Test
+class WTS::TokensTest < Minitest::Test
   def test_sets_and_resets
     WebMock.allow_net_connect!
-    tokens = Tokens.new(Pgsql::TEST.start, log: test_log)
+    tokens = WTS::Tokens.new(WTS::Pgsql::TEST.start, log: test_log)
     login = "jeff#{rand(999)}"
-    item = Item.new(login, Pgsql::TEST.start, log: test_log)
+    item = WTS::Item.new(login, WTS::Pgsql::TEST.start, log: test_log)
     item.create(Zold::Id.new, Zold::Key.new(text: OpenSSL::PKey::RSA.new(2048).to_pem))
     before = tokens.get(login)
     assert(!before.nil?)

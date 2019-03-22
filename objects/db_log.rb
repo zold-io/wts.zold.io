@@ -21,7 +21,7 @@
 #
 # Log that writes to Pgsql.
 #
-class DbLog
+class WTS::DbLog
   def initialize(pgsql, jid)
     @pgsql = pgsql
     @jid = jid

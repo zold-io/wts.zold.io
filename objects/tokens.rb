@@ -25,7 +25,7 @@ require_relative 'user_error'
 #
 # Tokens of users.
 #
-class Tokens
+class WTS::Tokens
   def initialize(pgsql, log: Zold::Log::NULL)
     @pgsql = pgsql
     @log = log

@@ -24,10 +24,10 @@ require_relative 'test__helper'
 require_relative '../objects/pgsql'
 require_relative '../objects/daemons'
 
-class DaemonsTest < Minitest::Test
+class WTS::DaemonsTest < Minitest::Test
   def test_start_and_stop
     WebMock.allow_net_connect!
-    daemons = Daemons.new(Pgsql::TEST.start, log: test_log)
+    daemons = WTS::Daemons.new(WTS::Pgsql::TEST.start, log: test_log)
     started = false
     daemons.start('test', 0) do
       started = true

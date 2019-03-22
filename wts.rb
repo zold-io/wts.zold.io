@@ -45,6 +45,7 @@ require 'zold/hands'
 require 'zold/sync_wallets'
 require 'zold/cached_wallets'
 require_relative 'version'
+require_relative 'objects/wts'
 require_relative 'objects/toggles'
 require_relative 'objects/callbacks'
 require_relative 'objects/tokens'
@@ -165,43 +166,43 @@ configure do
     network: ENV['RACK_ENV'] == 'test' ? 'test' : 'zold'
   )
   set :copies, File.join(settings.root, '.zold-wts/copies')
-  set :pgsql, Pgsql.new(
+  set :pgsql, WTS::Pgsql.new(
     host: settings.config['pgsql']['host'],
     port: settings.config['pgsql']['port'],
     dbname: settings.config['pgsql']['dbname'],
     user: settings.config['pgsql']['user'],
     password: settings.config['pgsql']['password']
   ).start(1)
-  set :gl, Gl.new(settings.pgsql, log: settings.log)
-  set :payables, Payables.new(settings.pgsql, settings.remotes, log: settings.log)
-  set :toggles, Toggles.new(settings.pgsql, log: settings.log)
-  set :addresses, Addresses.new(settings.pgsql, log: settings.log)
-  set :hashes, Hashes.new(settings.pgsql, log: settings.log)
-  set :tokens, Tokens.new(settings.pgsql, log: settings.log)
-  set :referrals, Referrals.new(settings.pgsql, log: settings.log)
-  set :jobs, Jobs.new(settings.pgsql, log: settings.log)
-  set :mcodes, Mcodes.new(settings.pgsql, log: settings.log)
-  set :payouts, Payouts.new(settings.pgsql, log: settings.log)
-  set :callbacks, Callbacks.new(settings.pgsql, log: settings.log)
-  set :daemons, Daemons.new(settings.pgsql, log: settings.log)
+  set :gl, WTS::Gl.new(settings.pgsql, log: settings.log)
+  set :payables, WTS::Payables.new(settings.pgsql, settings.remotes, log: settings.log)
+  set :toggles, WTS::Toggles.new(settings.pgsql, log: settings.log)
+  set :addresses, WTS::Addresses.new(settings.pgsql, log: settings.log)
+  set :hashes, WTS::Hashes.new(settings.pgsql, log: settings.log)
+  set :tokens, WTS::Tokens.new(settings.pgsql, log: settings.log)
+  set :referrals, WTS::Referrals.new(settings.pgsql, log: settings.log)
+  set :jobs, WTS::Jobs.new(settings.pgsql, log: settings.log)
+  set :mcodes, WTS::Mcodes.new(settings.pgsql, log: settings.log)
+  set :payouts, WTS::Payouts.new(settings.pgsql, log: settings.log)
+  set :callbacks, WTS::Callbacks.new(settings.pgsql, log: settings.log)
+  set :daemons, WTS::Daemons.new(settings.pgsql, log: settings.log)
   set :codec, GLogin::Codec.new(config['api_secret'])
   set :zache, Zache.new(dirty: true)
-  set :ticks, Ticks.new(settings.pgsql, log: settings.log)
+  set :ticks, WTS::Ticks.new(settings.pgsql, log: settings.log)
   set :pool, Concurrent::FixedThreadPool.new(16, max_queue: 64, fallback_policy: :abort)
-  set :paypal, PayPalGate.new(
+  set :paypal, WTS::PayPal.new(
     settings.config['paypal']['id'],
     settings.config['paypal']['secret']
   )
   if settings.config['blockchain']['xpub'].empty?
-    set :btc, Btc::Fake.new
+    set :btc, WTS::Btc::Fake.new
   else
-    set :btc, Btc.new(
+    set :btc, WTS::Btc.new(
       settings.config['blockchain']['xpub'],
       settings.config['blockchain']['key'],
       log: settings.log
     )
   end
-  set :smss, Smss.new(
+  set :smss, WTS::Smss.new(
     settings.pgsql,
     Aws::SNS::Client.new(
       region: settings.config['sns']['region'],
@@ -349,8 +350,8 @@ before '/*' do
   cookies[:utm_medium] = params[:utm_medium] if params[:utm_medium]
   cookies[:utm_campaign] = params[:utm_campaign] if params[:utm_campaign]
   request.env['rack.request.query_hash'].each do |k, v|
-    raise UserError, "The param #{k.inspect} can't be empty" if v.nil?
-    raise UserError, "Invalid encoding of #{k.inspect} param" unless v.valid_encoding?
+    raise WTS::UserError, "The param #{k.inspect} can't be empty" if v.nil?
+    raise WTS::UserError, "Invalid encoding of #{k.inspect} param" unless v.valid_encoding?
   end
 end
 
@@ -366,7 +367,7 @@ get '/github-callback' do
   )
   cookies[:glogin] = c.to_s
   unless known?(c.login) || vip?(c.login)
-    raise UserError, "@#{c.login} doesn't work in Zerocracy, can't login via GitHub, use mobile phone instead"
+    raise WTS::UserError, "@#{c.login} doesn't work in Zerocracy, can't login via GitHub, use mobile phone instead"
   end
   register_referral(c.login)
   flash('/', "You have been logged in as @#{c.login}")
@@ -472,7 +473,7 @@ get '/create' do
 end
 
 get '/confirm' do
-  raise UserError, 'You have done this already, your keygap has been generated' if user.confirmed?
+  raise WTS::UserError, 'You have done this already, your keygap has been generated' if user.confirmed?
   haml :confirm, layout: :layout, locals: merged(
     page_title: title('keygap')
   )
@@ -484,13 +485,13 @@ get '/confirmed' do
 end
 
 get '/do-confirm' do
-  raise UserError, 'You have done this already, your keygap has been generated' if user.confirmed?
+  raise WTS::UserError, 'You have done this already, your keygap has been generated' if user.confirmed?
   user.confirm(params[:keygap])
   flash('/', 'The account has been confirmed')
 end
 
 get '/keygap' do
-  raise UserError, 'We don\'t have it in the database anymore' if user.item.wiped?
+  raise WTS::UserError, 'We don\'t have it in the database anymore' if user.item.wiped?
   content_type 'text/plain'
   user.item.keygap
 end
@@ -504,23 +505,23 @@ end
 
 post '/do-pay' do
   prohibit('pay')
-  raise UserError, 'Parameter "bnf" is not provided' if params[:bnf].nil?
-  raise UserError, 'Parameter "amount" is not provided' if params[:amount].nil?
-  raise UserError, 'Parameter "details" is not provided' if params[:details].nil?
+  raise WTS::UserError, 'Parameter "bnf" is not provided' if params[:bnf].nil?
+  raise WTS::UserError, 'Parameter "amount" is not provided' if params[:amount].nil?
+  raise WTS::UserError, 'Parameter "details" is not provided' if params[:details].nil?
   if /^[a-f0-9]{16}$/.match?(params[:bnf])
     bnf = Zold::Id.new(params[:bnf])
-    raise UserError, 'You can\'t pay yourself' if bnf == user.item.id
+    raise WTS::UserError, 'You can\'t pay yourself' if bnf == user.item.id
   elsif /^[a-zA-Z0-9]+@[a-f0-9]{16}$/.match?(params[:bnf])
     bnf = params[:bnf]
-    raise UserError, 'You can\'t pay yourself' if bnf.split('@')[1] == user.item.id.to_s
+    raise WTS::UserError, 'You can\'t pay yourself' if bnf.split('@')[1] == user.item.id.to_s
   elsif /^\\+[0-9]+$/.match?(params[:bnf])
     friend = user(params[:bnf][0..32].to_i.to_s)
-    raise UserError, 'The user with this mobile phone is not registered yet' unless friend.item.exists?
+    raise WTS::UserError, 'The user with this mobile phone is not registered yet' unless friend.item.exists?
     bnf = friend.item.id
   else
     login = params[:bnf].strip.downcase.gsub(/^@/, '')
-    raise UserError, "Invalid GitHub user name: #{params[:bnf].inspect}" unless login =~ /^[a-z0-9-]{3,32}$/
-    raise UserError, 'You can\'t pay yourself' if login == user.login
+    raise WTS::UserError, "Invalid GitHub user name: #{params[:bnf].inspect}" unless login =~ /^[a-z0-9-]{3,32}$/
+    raise WTS::UserError, 'You can\'t pay yourself' if login == user.login
     friend = user(login)
     unless friend.item.exists?
       friend.create(settings.remotes)
@@ -536,10 +537,10 @@ post '/do-pay' do
       "the balance of the user is #{user.wallet(&:balance)}",
       "at the wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})"
     )
-    raise UserError, 'Your account is not allowed to send any payments at the moment, sorry'
+    raise WTS::UserError, 'Your account is not allowed to send any payments at the moment, sorry'
   end
   details = params[:details]
-  raise UserError, "Invalid details \"#{details}\"" unless details =~ %r{^[a-zA-Z0-9\ @!?*_\-.:,'/]+$}
+  raise WTS::UserError, "Invalid details \"#{details}\"" unless details =~ %r{^[a-zA-Z0-9\ @!?*_\-.:,'/]+$}
   headers['X-Zold-Job'] = job do |jid, log|
     log.info("Sending #{amount} to #{bnf}...")
     ops(log: log).pull
@@ -683,10 +684,10 @@ get '/wait-for' do
   prohibit('api')
   wallet = params[:wallet] || confirmed_user.item.id.to_s
   prefix = params[:prefix]
-  raise UserError, 'The parameter "prefix" is mandatory' if prefix.nil?
+  raise WTS::UserError, 'The parameter "prefix" is mandatory' if prefix.nil?
   regexp = params[:regexp] ? Regexp.new(params[:regexp]) : /^.*$/
   uri = URI(params[:uri])
-  raise UserError, 'The parameter "uri" is mandatory' if uri.nil?
+  raise WTS::UserError, 'The parameter "uri" is mandatory' if uri.nil?
   id = settings.callbacks.add(
     user.login, Zold::Id.new(wallet), prefix, regexp, uri,
     params[:token] || 'none'
@@ -748,19 +749,19 @@ end
 # See https://www.blockchain.com/api/api_receive
 get '/btc-hook' do
   settings.log.info("Blockchain.com hook arrived: #{params}")
-  raise UserError, 'Confirmations is not provided' if params[:confirmations].nil?
+  raise WTS::UserError, 'Confirmations is not provided' if params[:confirmations].nil?
   confirmations = params[:confirmations].to_i
-  raise UserError, 'Address is not provided' if params[:address].nil?
+  raise WTS::UserError, 'Address is not provided' if params[:address].nil?
   address = params[:address]
-  raise UserError, 'Tx hash is not provided' if params[:transaction_hash].nil?
+  raise WTS::UserError, 'Tx hash is not provided' if params[:transaction_hash].nil?
   hash = params[:transaction_hash]
   return '*ok*' if settings.hashes.seen?(hash)
-  raise UserError, 'Tx value is not provided' if params[:value].nil?
+  raise WTS::UserError, 'Tx value is not provided' if params[:value].nil?
   satoshi = params[:value].to_i
   bitcoin = (satoshi.to_f / 100_000_000).round(8)
   zld = Zold::Amount.new(zld: bitcoin / rate)
   bnf = user(settings.addresses.find_user(address))
-  raise UserError, "The user '#{bnf.login}' is not confirmed" unless bnf.confirmed?
+  raise WTS::UserError, "The user '#{bnf.login}' is not confirmed" unless bnf.confirmed?
   if confirmations.zero?
     settings.addresses.arrived(address, bnf.login)
     settings.telepost.spam(
@@ -774,7 +775,7 @@ get '/btc-hook' do
     )
   end
   unless settings.btc.exists?(hash, satoshi, address, confirmations)
-    raise UserError, "Tx #{hash}/#{satoshi}/#{address} not found yet or is not yet confirmed enough"
+    raise WTS::UserError, "Tx #{hash}/#{satoshi}/#{address} not found yet or is not yet confirmed enough"
   end
   boss = user(settings.config['exchange']['login'])
   job(boss) do |jid, log|
@@ -822,7 +823,7 @@ arrival to #{address}, for #{bnf.login}; we ignore it.")
 end
 
 get '/queue' do
-  raise UserError, 'You are not allowed to see this' unless vip?
+  raise WTS::UserError, 'You are not allowed to see this' unless vip?
   content_type 'text/plain', charset: 'utf-8'
   settings.addresses.all.map do |a|
     "#{a[:login]} #{Zold::Age.new(a[:assigned])} #{a[:hash]} A=#{a[:arrived]}"
@@ -830,7 +831,7 @@ get '/queue' do
 end
 
 get '/sql' do
-  raise UserError, 'You are not allowed to see this' unless vip?
+  raise WTS::UserError, 'You are not allowed to see this' unless vip?
   query = params[:query] || 'SELECT * FROM txn LIMIT 5'
   haml :sql, layout: :layout, locals: merged(
     page_title: title('SQL'),
@@ -867,7 +868,7 @@ end
 
 get '/zld-to-paypal' do
   prohibit('paypal')
-  raise UserError, 'You have to work in Zerocracy in order to cash out to PayPal' unless known?
+  raise WTS::UserError, 'You have to work in Zerocracy in order to cash out to PayPal' unless known?
   haml :zld_to_paypal, layout: :layout, locals: merged(
     page_title: title('paypal')
   )
@@ -875,12 +876,12 @@ end
 
 post '/do-zld-to-paypal' do
   prohibit('paypal')
-  raise UserError, 'Amount is not provided' if params[:amount].nil?
-  raise UserError, 'Email address is not provided' if params[:email].nil?
-  raise UserError, 'Keygap is not provided' if params[:keygap].nil?
+  raise WTS::UserError, 'Amount is not provided' if params[:amount].nil?
+  raise WTS::UserError, 'Email address is not provided' if params[:email].nil?
+  raise WTS::UserError, 'Keygap is not provided' if params[:keygap].nil?
   amount = Zold::Amount.new(zld: params[:amount].to_f)
   email = params[:email].strip
-  raise UserError, "You don't have enough to send #{amount}" if confirmed_user.wallet(&:balance) < amount
+  raise WTS::UserError, "You don't have enough to send #{amount}" if confirmed_user.wallet(&:balance) < amount
   if settings.toggles.get('ban:do-sell').split(',').include?(user.login)
     settings.telepost.spam(
       "The user #{title_md} from #{anon_ip} is trying to send #{amount} to PayPal,",
@@ -888,7 +889,7 @@ post '/do-zld-to-paypal' do
       "the balance of the user is #{user.wallet(&:balance)}",
       "at the wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})"
     )
-    raise UserError, 'Your account is not allowed to sell any ZLD at the moment, email us'
+    raise WTS::UserError, 'Your account is not allowed to sell any ZLD at the moment, email us'
   end
   limits = settings.toggles.get('limits', '64/128/256')
   unless settings.payouts.allowed?(user.login, amount, limits) || vip?
@@ -899,7 +900,7 @@ post '/do-zld-to-paypal' do
       "the balance of the user is #{user.wallet(&:balance)}",
       "at the wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})"
     )
-    raise UserError, "With #{amount} you are going over your limits, #{consumed} were sold already, \
+    raise WTS::UserError, "With #{amount} you are going over your limits, #{consumed} were sold already, \
 while we allow one user to sell up to #{limits} (daily/weekly/monthly)"
   end
   limits = settings.toggles.get('system-limits', '512/2048/8196')
@@ -911,7 +912,7 @@ while we allow one user to sell up to #{limits} (daily/weekly/monthly)"
       "the balance of the user is #{user.wallet(&:balance)}",
       "at the wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})"
     )
-    raise UserError, "With #{amount} you are going over our limits, #{consumed} were sold by ALL \
+    raise WTS::UserError, "With #{amount} you are going over our limits, #{consumed} were sold by ALL \
 users of WTS, while our limits are #{limits} (daily/weekly/monthly), sorry about this :("
   end
   price = settings.btc.price
@@ -975,14 +976,14 @@ end
 
 post '/do-zld-to-btc' do
   prohibit('sell')
-  raise UserError, 'Amount is not provided' if params[:amount].nil?
-  raise UserError, 'Bitcoin address is not provided' if params[:btc].nil?
-  raise UserError, 'Keygap is not provided' if params[:keygap].nil?
+  raise WTS::UserError, 'Amount is not provided' if params[:amount].nil?
+  raise WTS::UserError, 'Bitcoin address is not provided' if params[:btc].nil?
+  raise WTS::UserError, 'Keygap is not provided' if params[:keygap].nil?
   amount = Zold::Amount.new(zld: params[:amount].to_f)
   address = params[:btc].strip
-  raise UserError, "Bitcoin address is not valid: #{address.inspect}" unless address =~ /^[a-zA-Z0-9]+$/
-  raise UserError, 'Bitcoin address must start with 1, 3 or bc1' unless address =~ /^(1|3|bc1)/
-  raise UserError, "You don't have enough to send #{amount}" if confirmed_user.wallet(&:balance) < amount
+  raise WTS::UserError, "Bitcoin address is not valid: #{address.inspect}" unless address =~ /^[a-zA-Z0-9]+$/
+  raise WTS::UserError, 'Bitcoin address must start with 1, 3 or bc1' unless address =~ /^(1|3|bc1)/
+  raise WTS::UserError, "You don't have enough to send #{amount}" if confirmed_user.wallet(&:balance) < amount
   if settings.toggles.get('ban:do-sell').split(',').include?(user.login)
     settings.telepost.spam(
       "The user #{title_md} from #{anon_ip} is trying to sell #{amount},",
@@ -990,7 +991,7 @@ post '/do-zld-to-btc' do
       "the balance of the user is #{user.wallet(&:balance)}",
       "at the wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})"
     )
-    raise UserError, 'Your account is not allowed to sell any ZLD at the moment, email us'
+    raise WTS::UserError, 'Your account is not allowed to sell any ZLD at the moment, email us'
   end
   limits = settings.toggles.get('limits', '64/128/256')
   unless settings.payouts.allowed?(user.login, amount, limits) || vip?
@@ -1001,7 +1002,7 @@ post '/do-zld-to-btc' do
       "the balance of the user is #{user.wallet(&:balance)}",
       "at the wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})"
     )
-    raise UserError, "With #{amount} you are going over your limits, #{consumed} were sold already, \
+    raise WTS::UserError, "With #{amount} you are going over your limits, #{consumed} were sold already, \
 while we allow one user to sell up to #{limits} (daily/weekly/monthly)"
   end
   limits = settings.toggles.get('system-limits', '512/2048/8196')
@@ -1013,7 +1014,7 @@ while we allow one user to sell up to #{limits} (daily/weekly/monthly)"
       "the balance of the user is #{user.wallet(&:balance)}",
       "at the wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})"
     )
-    raise UserError, "With #{amount} you are going over our limits, #{consumed} were sold by ALL \
+    raise WTS::UserError, "With #{amount} you are going over our limits, #{consumed} were sold by ALL \
 users of WTS, while our limits are #{limits} (daily/weekly/monthly), sorry about this :("
   end
   price = settings.btc.price
@@ -1083,8 +1084,8 @@ end
 get '/job' do
   prohibit('api')
   id = params['id']
-  raise UserError, "Job in 'id' query parameter is mandatory" if id.nil? || id.empty?
-  raise UserError, "Job ID #{id} is not found" unless settings.jobs.exists?(id)
+  raise WTS::UserError, "Job in 'id' query parameter is mandatory" if id.nil? || id.empty?
+  raise WTS::UserError, "Job ID #{id} is not found" unless settings.jobs.exists?(id)
   content_type 'text/plain', charset: 'utf-8'
   settings.jobs.read(id)
 end
@@ -1092,8 +1093,8 @@ end
 get '/job.json' do
   prohibit('api')
   id = params['id']
-  raise UserError, "Job in 'id' query parameter is mandatory" if id.nil? || id.empty?
-  raise UserError, "Job ID #{id} is not found" unless settings.jobs.exists?(id)
+  raise WTS::UserError, "Job in 'id' query parameter is mandatory" if id.nil? || id.empty?
+  raise WTS::UserError, "Job ID #{id} is not found" unless settings.jobs.exists?(id)
   content_type 'application/json'
   JSON.pretty_generate(
     {
@@ -1107,8 +1108,8 @@ end
 get '/output' do
   prohibit('api')
   id = params['id']
-  raise UserError, "Job in 'id' query parameter is mandatory" if id.nil? || id.empty?
-  raise UserError, "Job ID #{id} is not found" unless settings.jobs.exists?(id)
+  raise WTS::UserError, "Job in 'id' query parameter is mandatory" if id.nil? || id.empty?
+  raise WTS::UserError, "Job ID #{id} is not found" unless settings.jobs.exists?(id)
   content_type 'text/plain', charset: 'utf-8'
   headers['X-Zold-JobStatus'] = settings.jobs.status(id)
   settings.jobs.output(id)
@@ -1200,25 +1201,25 @@ get '/rate.json' do
 end
 
 get '/graph.svg' do
-  raise UserError, "Param 'keys' is mandatory" unless params[:keys]
-  raise UserError, "Param 'div' is mandatory" unless params[:div]
-  raise UserError, "Param 'digits' is mandatory" unless params[:digits]
+  raise WTS::UserError, "Param 'keys' is mandatory" unless params[:keys]
+  raise WTS::UserError, "Param 'div' is mandatory" unless params[:div]
+  raise WTS::UserError, "Param 'digits' is mandatory" unless params[:digits]
   content_type 'image/svg+xml'
   settings.zache.clean
   settings.zache.get(request.url, lifetime: 10 * 60) do
-    Graph.new(settings.ticks).svg(params[:keys].split(' '), params[:div].to_i, params[:digits].to_i)
+    WTS::Graph.new(settings.ticks).svg(params[:keys].split(' '), params[:div].to_i, params[:digits].to_i)
   end
 end
 
 get '/mobile/send' do
   prohibit('api')
   phone = params[:phone]
-  raise UserError, 'Mobile phone number is required' if phone.nil?
-  raise UserError, 'Phone number can\'t be empty, format it according to E.164' if phone.empty?
-  raise UserError, "Invalid phone #{phone.inspect}, must be digits only as in E.164" unless /^[0-9]+$/.match?(phone)
-  raise UserError, 'The phone shouldn\'t start with zeros' if /^0+/.match?(phone)
-  raise UserError, "The phone number #{phone.inspect} is too short" if phone.length < 6
-  raise UserError, "The phone number #{phone.inspect} is too long" if phone.length > 14
+  raise WTS::UserError, 'Mobile phone number is required' if phone.nil?
+  raise WTS::UserError, 'Phone number can\'t be empty, format it according to E.164' if phone.empty?
+  raise WTS::UserError, "Invalid phone #{phone.inspect}, digits only allowed (E.164)" unless /^[0-9]+$/.match?(phone)
+  raise WTS::UserError, 'The phone shouldn\'t start with zeros' if /^0+/.match?(phone)
+  raise WTS::UserError, "The phone number #{phone.inspect} is too short" if phone.length < 6
+  raise WTS::UserError, "The phone number #{phone.inspect} is too long" if phone.length > 14
   phone = phone.to_i
   mcode = rand(1000..9999)
   if settings.mcodes.exists?(phone)
@@ -1237,15 +1238,15 @@ end
 get '/mobile/token' do
   prohibit('api')
   phone = params[:phone]
-  raise UserError, 'Mobile phone number is required' if phone.nil?
-  raise UserError, 'Phone number can\'t be empty, format it according to E.164' if phone.empty?
-  raise UserError, "Invalid phone #{phone.inspect}, must be digits only as in E.164" unless /^[0-9]+$/.match?(phone)
+  raise WTS::UserError, 'Mobile phone number is required' if phone.nil?
+  raise WTS::UserError, 'Phone number can\'t be empty, format it according to E.164' if phone.empty?
+  raise WTS::UserError, "Invalid phone #{phone.inspect}, digits only allowed (E.164)" unless /^[0-9]+$/.match?(phone)
   phone = phone.to_i
   mcode = params[:code]
-  raise UserError, 'Mobile confirmation code is required' if mcode.nil?
-  raise UserError, 'Mobile confirmation code can\'t be empty' if mcode.empty?
-  raise UserError, "Invalid code #{mcode.inspect}, must be four digits" unless /^[0-9]{4}$/.match?(mcode)
-  raise UserError, 'Mobile code mismatch' unless settings.mcodes.get(phone) == mcode.to_i
+  raise WTS::UserError, 'Mobile confirmation code is required' if mcode.nil?
+  raise WTS::UserError, 'Mobile confirmation code can\'t be empty' if mcode.empty?
+  raise WTS::UserError, "Invalid code #{mcode.inspect}, must be four digits" unless /^[0-9]{4}$/.match?(mcode)
+  raise WTS::UserError, 'Mobile code mismatch' unless settings.mcodes.get(phone) == mcode.to_i
   settings.mcodes.remove(phone)
   u = user(phone.to_s)
   u.create(settings.remotes) unless u.item.exists?
@@ -1264,7 +1265,7 @@ get '/mobile/token' do
 end
 
 get '/toggles' do
-  raise UserError, 'You are not allowed to see this' unless vip?
+  raise WTS::UserError, 'You are not allowed to see this' unless vip?
   haml :toggles, layout: :layout, locals: merged(
     page_title: 'Toggles',
     toggles: settings.toggles
@@ -1272,7 +1273,7 @@ get '/toggles' do
 end
 
 post '/set-toggle' do
-  raise UserError, 'You are not allowed to see this' unless vip?
+  raise WTS::UserError, 'You are not allowed to see this' unless vip?
   key = params[:key].strip
   value = params[:value].strip
   settings.toggles.set(key, value)
@@ -1299,7 +1300,7 @@ get '/quick' do
   prohibit('quick')
   flash('/home', 'Please logout first') if @locals[:guser]
   page = params[:haml] || 'default'
-  raise UserError, 'HAML page name is not valid' unless /^[a-zA-Z0-9]{,64}$/.match?(page)
+  raise WTS::UserError, 'HAML page name is not valid' unless /^[a-zA-Z0-9]{,64}$/.match?(page)
   http = Zold::Http.new(uri: "https://raw.githubusercontent.com/zold-io/quick/master/#{page}.haml").get
   html = Haml::Engine.new(
     http.status == 200 ? http.body : IO.read(File.join(__dir__, 'views/quick_default.haml'))
@@ -1351,7 +1352,7 @@ end
 
 error do
   e = env['sinatra.error']
-  if e.is_a?(UserError)
+  if e.is_a?(WTS::UserError)
     settings.log.error("#{request.url}: #{e.message}")
     body(Backtrace.new(e).to_s)
     headers['X-Zold-Error'] = e.message[0..256]
@@ -1429,23 +1430,23 @@ def merged(hash)
 end
 
 def user_log(u = user.login)
-  TeeLog.new(
+  WTS::TeeLog.new(
     settings.log,
-    FileLog.new(File.join(settings.root, ".zold-wts/logs/#{u}"))
+    WTS::FileLog.new(File.join(settings.root, ".zold-wts/logs/#{u}"))
   )
 end
 
 def user(login = @locals[:guser])
-  raise UserError, 'You have to login first' unless login
-  User.new(
-    login, Item.new(login, settings.pgsql, log: user_log(login)),
+  raise WTS::UserError, 'You have to login first' unless login
+  WTS::User.new(
+    login, WTS::Item.new(login, settings.pgsql, log: user_log(login)),
     settings.wallets, log: user_log(login)
   )
 end
 
 def confirmed_user(login = @locals[:guser])
   u = user(login)
-  raise UserError, "You, #{login}, have to confirm your keygap first" unless u.confirmed?
+  raise WTS::UserError, "You, #{login}, have to confirm your keygap first" unless u.confirmed?
   u
 end
 
@@ -1460,11 +1461,11 @@ end
 
 def keygap
   gap = params[:keygap]
-  raise UserError, 'Keygap is required' if gap.nil?
+  raise WTS::UserError, 'Keygap is required' if gap.nil?
   begin
     confirmed_user.item.key(gap).to_s
   rescue StandardError => e
-    raise UserError, "This doesn\'t seem to be a valid keygap: '#{'*' * gap.length}' (#{e.class.name})"
+    raise WTS::UserError, "This doesn\'t seem to be a valid keygap: '#{'*' * gap.length}' (#{e.class.name})"
   end
   gap
 end
@@ -1478,7 +1479,7 @@ def network
 end
 
 def ops(u = user, log: user_log(u.login))
-  Ops.new(
+  WTS::Ops.new(
     u.item,
     u,
     settings.wallets,
@@ -1491,11 +1492,11 @@ end
 
 def job(u = user)
   jid = settings.jobs.start(u.login)
-  log = TeeLog.new(user_log(u.login), DbLog.new(settings.pgsql, jid))
-  job = SafeJob.new(
-    TrackedJob.new(
-      VersionedJob.new(
-        UpdateJob.new(
+  log = WTS::TeeLog.new(user_log(u.login), WTS::DbLog.new(settings.pgsql, jid))
+  job = WTS::SafeJob.new(
+    WTS::TrackedJob.new(
+      WTS::VersionedJob.new(
+        WTS::UpdateJob.new(
           proc { yield(jid, log) },
           settings.remotes,
           log: log,
@@ -1507,7 +1508,7 @@ def job(u = user)
     ),
     log: log
   )
-  job = AsyncJob.new(job, settings.pool, latch(u.login)) unless ENV['RACK_ENV'] == 'test'
+  job = WTS::AsyncJob.new(job, settings.pool, latch(u.login)) unless ENV['RACK_ENV'] == 'test'
   job.call(jid)
   jid
 end
@@ -1585,7 +1586,7 @@ end
 
 def prohibit(feature)
   return unless settings.toggles.get("stop:#{feature}", 'no') == 'yes'
-  raise UserError, "This feature \"#{feature}\" is temporarily disabled, sorry"
+  raise WTS::UserError, "This feature \"#{feature}\" is temporarily disabled, sorry"
 end
 
 def safe_md(txt)
@@ -1612,9 +1613,9 @@ end
 
 def bank(log: settings.log)
   if settings.config['coinbase']['key'].empty?
-    Bank::Fake.new
+    WTS::Bank::Fake.new
   else
-    Bank.new(
+    WTS::Bank.new(
       settings.config['coinbase']['key'],
       settings.config['coinbase']['secret'],
       settings.config['coinbase']['account'],

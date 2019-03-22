@@ -25,7 +25,7 @@ require_relative 'test__helper'
 require_relative '../objects/pgsql'
 require_relative '../objects/gl'
 
-class GlTest < Minitest::Test
+class WTS::GlTest < Minitest::Test
   def test_scan_and_fetch
     WebMock.allow_net_connect!
     Dir.mktmpdir 'test' do |dir|
@@ -57,7 +57,7 @@ class GlTest < Minitest::Test
         )
       )
       remotes.add('localhost', 4096)
-      gl = Gl.new(Pgsql::TEST.start, log: test_log)
+      gl = WTS::Gl.new(WTS::Pgsql::TEST.start, log: test_log)
       gl.scan(remotes) do |t|
         assert_equal(id, t[:id], t)
       end
@@ -73,7 +73,7 @@ class GlTest < Minitest::Test
   end
 
   def test_calc_volume
-    gl = Gl.new(Pgsql::TEST.start, log: test_log)
+    gl = WTS::Gl.new(WTS::Pgsql::TEST.start, log: test_log)
     assert(!gl.volume(4).nil?)
   end
 end

@@ -28,10 +28,10 @@ require_relative 'test__helper'
 require_relative '../objects/pgsql'
 require_relative '../objects/item'
 
-class ItemTest < Minitest::Test
+class WTS::ItemTest < Minitest::Test
   def test_create_and_read
     WebMock.allow_net_connect!
-    item = Item.new("jeff#{rand(999)}", Pgsql::TEST.start, log: test_log)
+    item = WTS::Item.new("jeff#{rand(999)}", WTS::Pgsql::TEST.start, log: test_log)
     assert(!item.exists?)
     pvt = OpenSSL::PKey::RSA.new(2048)
     id = Zold::Id.new
@@ -42,7 +42,7 @@ class ItemTest < Minitest::Test
 
   def test_wipes_keygap
     WebMock.allow_net_connect!
-    item = Item.new("jeff#{rand(999)}", Pgsql::TEST.start, log: test_log)
+    item = WTS::Item.new("jeff#{rand(999)}", WTS::Pgsql::TEST.start, log: test_log)
     pvt = OpenSSL::PKey::RSA.new(2048)
     id = Zold::Id.new
     pem = pvt.to_pem

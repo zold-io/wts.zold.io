@@ -24,8 +24,8 @@ require_relative 'pgsql'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class Payouts
-  def initialize(pgsql, log: Log::NULL)
+class WTS::Payouts
+  def initialize(pgsql, log: Zold::Log::NULL)
     @pgsql = pgsql
     @log = log
   end

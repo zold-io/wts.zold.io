@@ -28,12 +28,13 @@ require 'zold/commands/push'
 require 'zold/commands/pay'
 require 'zold/commands/taxes'
 require 'zold/commands/create'
+require_relative 'wts'
 require_relative 'user_error'
 
 #
 # Operations with a user.
 #
-class Ops
+class WTS::Ops
   def initialize(item, user, wallets, remotes, copies, log: Zold::Log::NULL, network: 'test')
     @user = user
     @item = item
@@ -55,7 +56,7 @@ class Ops
     start = Time.now
     if @remotes.all.empty?
       return if ENV['RACK_ENV'] == 'test'
-      raise UserError, "There are no visible remote nodes, can\'t PULL #{id}"
+      raise WTS::UserError, "There are no visible remote nodes, can\'t PULL #{id}"
     end
     begin
       @log.info("Pulling #{id} from the network...")
@@ -63,7 +64,7 @@ class Ops
         ['pull', id.to_s, "--network=#{@network}", '--retry=4', '--shallow']
       )
     rescue Zold::Fetch::NotFound => e
-      raise UserError, "We didn't manage to find your wallet #{@user.item.id} \
+      raise WTS::UserError, "We didn't manage to find your wallet #{@user.item.id} \
 in any of visible Zold nodes (#{@user.login}). \
 You should try to PULL again. If it doesn't work, most likely your wallet #{id} is lost \
 and can't be recovered. If you have its copy locally, you can push it to the \
@@ -71,7 +72,7 @@ network from the console app, using PUSH command. Otherwise, go for \
 the RESTART option in the top menu and create a new wallet. We are sorry to \
 see this happening! #{e.message}"
     rescue Zold::Fetch::EdgesOnly, Zold::Fetch::NoQuorum => e
-      raise UserError, e.message
+      raise WTS::UserError, e.message
     end
     @log.info("Wallet #{id} pulled successfully in #{Zold::Age.new(start)}")
   end
@@ -81,10 +82,10 @@ see this happening! #{e.message}"
     id = @item.id
     if @remotes.all.empty?
       return if ENV['RACK_ENV'] == 'test'
-      raise UserError, "There are no visible remote nodes, can\'t PUSH #{id}"
+      raise WTS::UserError, "There are no visible remote nodes, can\'t PUSH #{id}"
     end
     unless @wallets.acq(id, &:exists?)
-      raise UserError, "The wallet #{id} of #{@user.login} is absent, can't PUSH; \
+      raise WTS::UserError, "The wallet #{id} of #{@user.login} is absent, can't PUSH; \
 most probably you just have to RESTART your wallet"
     end
     begin
@@ -93,7 +94,7 @@ most probably you just have to RESTART your wallet"
         ['push', id.to_s, "--network=#{@network}", '--retry=4']
       )
     rescue Zold::Push::EdgesOnly, Zold::Push::NoQuorum => e
-      raise UserError, e.message
+      raise WTS::UserError, e.message
     end
     @log.info("Wallet #{id} pushed successfully in #{Zold::Age.new(start)}")
   end
@@ -119,8 +120,8 @@ most probably you just have to RESTART your wallet"
   end
 
   def pay(keygap, bnf, amount, details)
-    raise UserError, 'Payment amount can\'t be zero' if amount.zero?
-    raise UserError, 'Payment amount can\'t be negative' if amount.negative?
+    raise WTS::UserError, 'Payment amount can\'t be zero' if amount.zero?
+    raise WTS::UserError, 'Payment amount can\'t be negative' if amount.negative?
     raise "The user #{@user.login} is not registered yet" unless @item.exists?
     raise "The account #{@user.login} is not confirmed yet" unless @user.confirmed?
     start = Time.now

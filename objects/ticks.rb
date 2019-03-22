@@ -24,7 +24,7 @@ require_relative 'pgsql'
 #
 # Ticks in AWS DynamoDB.
 #
-class Ticks
+class WTS::Ticks
   def initialize(pgsql, log: Zold::Log::NULL)
     @pgsql = pgsql
     @log = log

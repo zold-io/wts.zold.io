@@ -23,7 +23,7 @@ require 'backtrace'
 #
 # Job that reports its result to SQL.
 #
-class TrackedJob
+class WTS::TrackedJob
   def initialize(job, jobs)
     @job = job
     @jobs = jobs

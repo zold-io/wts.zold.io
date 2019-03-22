@@ -21,12 +21,13 @@
 require 'tempfile'
 require 'openssl'
 require 'zold/log'
+require_relative 'wts'
 require_relative 'user_error'
 
 #
 # The user.
 #
-class User
+class WTS::User
   attr_reader :item, :login
   def initialize(login, item, wallets, log: Zold::Log::NULL)
     @login = login.downcase
@@ -84,7 +85,7 @@ class User
   def wallet
     id = @item.id
     @wallets.acq(id) do |wallet|
-      raise UserError, "You have to pull the wallet #{id} first" unless wallet.exists?
+      raise WTS::UserError, "You have to pull the wallet #{id} first" unless wallet.exists?
       yield wallet
     end
   end

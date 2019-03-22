@@ -25,8 +25,8 @@ require_relative 'user_error'
 #
 # BTC hashes.
 #
-class Hashes
-  def initialize(pgsql, log: Log::NULL)
+class WTS::Hashes
+  def initialize(pgsql, log: Zold::Log::NULL)
     @pgsql = pgsql
     @log = log
   end

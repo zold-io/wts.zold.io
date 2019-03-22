@@ -30,8 +30,8 @@ require_relative 'user_error'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class Payables
-  def initialize(pgsql, remotes, log: Log::NULL)
+class WTS::Payables
+  def initialize(pgsql, remotes, log: Zold::Log::NULL)
     @pgsql = pgsql
     @remotes = remotes
     @log = log

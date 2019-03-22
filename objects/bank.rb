@@ -21,12 +21,13 @@
 require 'backtrace'
 require 'zold/log'
 require 'coinbase/wallet'
+require_relative 'wts'
 require_relative 'user_error'
 
 #
 # BTC sending out gateway (via Coinbase).
 #
-class Bank
+class WTS::Bank
   # Fake gateway
   class Fake
     def send(_address, _usd, _description)

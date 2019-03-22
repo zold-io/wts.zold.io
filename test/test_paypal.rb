@@ -23,11 +23,11 @@ require 'webmock/minitest'
 require_relative 'test__helper'
 require_relative '../objects/paypal'
 
-class PayPalTest < Minitest::Test
+class WTS::PayPalTest < Minitest::Test
   def test_sends_paypal
     skip
     WebMock.allow_net_connect!
-    pp = PayPalGate.new('AXU...', '...XXE', log: test_log)
+    pp = WTS::PayPal.new('AXU...', '...XXE', log: test_log)
     pp.send('miranda.cma@gmail.com', 1.28, 'Just a test')
   end
 end

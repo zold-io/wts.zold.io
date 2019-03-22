@@ -26,15 +26,15 @@ require_relative 'user_error'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class Addresses
-  def initialize(pgsql, log: Log::NULL)
+class WTS::Addresses
+  def initialize(pgsql, log: Zold::Log::NULL)
     @pgsql = pgsql
     @log = log
   end
 
   def find_user(hash)
     found = @pgsql.exec('SELECT login FROM address WHERE hash = $1', [hash])
-    raise UserError, "There is no user who would expect #{hash}" if found.empty?
+    raise WTS::UserError, "There is no user who would expect #{hash}" if found.empty?
     found[0]['login']
   end
 
@@ -74,18 +74,18 @@ class Addresses
   # Removes the used BTC address entirely (when funds received).
   def destroy(hash, login)
     owner = find_user(hash)
-    raise UserError, "The hash #{hash} doesn't belong to #{login}, but instead to #{owner}" unless owner == login
+    raise WTS::UserError, "The hash #{hash} doesn't belong to #{login}, but instead to #{owner}" unless owner == login
     r = @pgsql.exec('SELECT * FROM address WHERE hash = $1', [hash])[0]
-    raise UserError, "The hash #{hash} hasn't arrived, why destroying?" unless r['arrived']
+    raise WTS::UserError, "The hash #{hash} hasn't arrived, why destroying?" unless r['arrived']
     @pgsql.exec('DELETE FROM address WHERE hash = $1', [hash])
   end
 
   # Mark this BTC as "in processing" and don't give it to anyone else
   def arrived(hash, login)
     owner = find_user(hash)
-    raise UserError, "The hash #{hash} doesn't belong to #{login}, but instead to #{owner}" unless owner == login
+    raise WTS::UserError, "The hash #{hash} doesn't belong to #{login}, but instead to #{owner}" unless owner == login
     r = @pgsql.exec('SELECT * FROM address WHERE hash = $1', [hash])[0]
-    raise UserError, "The hash #{hash} is already in arrival" if r['arrived']
+    raise WTS::UserError, "The hash #{hash} is already in arrival" if r['arrived']
     @pgsql.exec('UPDATE address SET arrived = NOW() WHERE hash = $1', [hash])
   end
 

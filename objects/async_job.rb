@@ -27,7 +27,7 @@ require_relative 'user_error'
 #
 # Job async.
 #
-class AsyncJob
+class WTS::AsyncJob
   def initialize(job, pool, lock, log: Zold::Log::NULL)
     @job = job
     @pool = pool

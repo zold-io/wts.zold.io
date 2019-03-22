@@ -24,7 +24,7 @@ require 'zold/commands/remote'
 #
 # Job that update remotes before and after.
 #
-class UpdateJob
+class WTS::UpdateJob
   def initialize(job, remotes, log: Zold::Log::NULL, network: 'test')
     @job = job
     @remotes = remotes

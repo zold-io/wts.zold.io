@@ -28,8 +28,8 @@ require_relative 'user_error'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class Callbacks
-  def initialize(pgsql, log: Log::NULL)
+class WTS::Callbacks
+  def initialize(pgsql, log: Zold::Log::NULL)
     @pgsql = pgsql
     @log = log
   end
@@ -37,7 +37,7 @@ class Callbacks
   # Adds a new callback
   def add(login, wallet, prefix, regexp, uri, token = 'none')
     total = @pgsql.exec('SELECT COUNT(*) FROM callback WHERE login = $1', [login])[0]['count'].to_i
-    raise UserError, "You have too many of them already: #{total}" if total >= 8
+    raise WTS::UserError, "You have too many of them already: #{total}" if total >= 8
     found = @pgsql.exec(
       'SELECT id FROM callback WHERE login = $1 AND wallet = $2 AND prefix = $3 AND regexp = $4 AND uri = $5',
       [login, wallet, prefix, regexp, uri]

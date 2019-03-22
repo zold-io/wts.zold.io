@@ -23,7 +23,7 @@ require 'webmock/minitest'
 require_relative 'test__helper'
 require_relative '../objects/btc'
 
-class BtcTest < Minitest::Test
+class WTS::BtcTest < Minitest::Test
   def test_creates_address
     WebMock.disable_net_connect!
     stub_request(
@@ -33,7 +33,7 @@ class BtcTest < Minitest::Test
         'callback=https://wts.zold.io/btc-hook&key=9049a412&xpub=xpub666'
       ].join
     ).to_return(status: 200, body: '{"address": "3456789"}')
-    btc = Btc.new('xpub666', '9049a412', log: test_log)
+    btc = WTS::Btc.new('xpub666', '9049a412', log: test_log)
     address = btc.create
     assert_equal('3456789', address)
   end
@@ -44,13 +44,13 @@ class BtcTest < Minitest::Test
       :get,
       'https://api.blockchain.info/v2/receive/checkgap?key=9049a412&xpub=xpub666'
     ).to_return(status: 200, body: '{"gap": 5}')
-    btc = Btc.new('xpub666', '9049a412', log: test_log)
+    btc = WTS::Btc.new('xpub666', '9049a412', log: test_log)
     assert_equal(5, btc.gap)
   end
 
   def test_validates_txn
     WebMock.allow_net_connect!
-    btc = Btc.new('', '', log: test_log)
+    btc = WTS::Btc.new('', '', log: test_log)
     assert(
       btc.exists?(
         'c3c0a51ff985618dd8373eadf3540fd1bea44d676452dbab47fe0cc07209547d',
@@ -63,7 +63,7 @@ class BtcTest < Minitest::Test
 
   def test_validates_invalid_txn
     WebMock.allow_net_connect!
-    btc = Btc.new('', '', log: test_log)
+    btc = WTS::Btc.new('', '', log: test_log)
     assert(
       !btc.exists?(
         'c3c0a51ff985618dd8373eadf3540fd1bea44d676452dbab47fe0cc07209547d',

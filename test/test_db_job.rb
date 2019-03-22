@@ -25,12 +25,12 @@ require_relative '../objects/pgsql'
 require_relative '../objects/jobs'
 require_relative '../objects/db_log'
 
-class DbLogTest < Minitest::Test
+class WTS::DbLogTest < Minitest::Test
   def test_updates_log
     WebMock.allow_net_connect!
-    jobs = Jobs.new(Pgsql::TEST.start, log: test_log)
+    jobs = WTS::Jobs.new(WTS::Pgsql::TEST.start, log: test_log)
     id = jobs.start('hello')
-    log = DbLog.new(Pgsql::TEST.start, id)
+    log = WTS::DbLog.new(WTS::Pgsql::TEST.start, id)
     log.info('hello, world!')
     log.error('bye')
     assert_equal("INFO: hello, world!\nERROR: bye\n", jobs.output(id))

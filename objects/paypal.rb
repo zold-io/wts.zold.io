@@ -26,7 +26,7 @@ require_relative 'user_error'
 #
 # PayPal sending out gateway.
 #
-class PayPalGate
+class WTS::PayPal
   def initialize(id, secret, log: Zold::Log::NULL)
     @id = id
     @secret = secret

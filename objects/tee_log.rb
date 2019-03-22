@@ -21,7 +21,7 @@
 #
 # Tee log.
 #
-class TeeLog
+class WTS::TeeLog
   def initialize(first, second)
     @first = first
     @second = second

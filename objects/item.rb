@@ -21,13 +21,14 @@
 require 'zold/key'
 require 'zold/id'
 require 'zold/log'
+require_relative 'wts'
 require_relative 'keygap'
 require_relative 'user_error'
 
 #
 # Item in database.
 #
-class Item
+class WTS::Item
   attr_reader :login
 
   def initialize(login, pgsql, log: Zold::Log::NULL)
@@ -45,7 +46,7 @@ class Item
   # +key+:: Private RSA key
   # +length+:: Length of keygap to use (don't change it without a necessity)
   def create(id, key, length: 16)
-    pem, keygap = Keygap.new.extract(key.to_s, length)
+    pem, keygap = WTS::Keygap.new.extract(key.to_s, length)
     @pgsql.exec(
       [
         'INSERT INTO item (login, id, pem) VALUES ($1, $2, $3)',
@@ -72,7 +73,7 @@ keygap is '#{keygap[0, 2]}#{'.' * (keygap.length - 2)}'")
 
   # Return private key as Zold::Key
   def key(keygap)
-    key = Keygap.new.merge(raw_key, keygap)
+    key = WTS::Keygap.new.merge(raw_key, keygap)
     @log.debug("The private key of #{@login} reassembled: #{key.to_s.length} chars")
     key
   end

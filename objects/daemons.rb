@@ -21,13 +21,14 @@
 require 'raven'
 require 'backtrace'
 require 'zold/log'
+require_relative 'wts'
 require_relative 'pgsql'
 require_relative 'user_error'
 
 #
 # Daemons.
 #
-class Daemons
+class WTS::Daemons
   def initialize(pgsql, log)
     @pgsql = pgsql
     @log = log
@@ -40,7 +41,7 @@ class Daemons
         sleep([seconds - age(id), 0].max)
         begin
           yield
-        rescue UserError => e
+        rescue WTS::UserError => e
           @log.error(Backtrace.new(e))
         rescue StandardError => e
           Raven.capture_exception(e)

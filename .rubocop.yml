@@ -5,6 +5,8 @@ AllCops:
   DisplayCopNames: true
   TargetRubyVersion: 2.6.0
 
+Style/ClassAndModuleChildren:
+  Enabled: false
 Naming/UncommunicativeMethodParamName:
   MinNameLength: 1
 Style/CommandLiteral:

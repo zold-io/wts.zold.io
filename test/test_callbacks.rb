@@ -26,10 +26,10 @@ require_relative 'test__helper'
 require_relative '../objects/pgsql'
 require_relative '../objects/callbacks'
 
-class CallbacksTest < Minitest::Test
+class WTS::CallbacksTest < Minitest::Test
   def test_register_and_ping
     WebMock.allow_net_connect!
-    callbacks = Callbacks.new(Pgsql::TEST.start, log: test_log)
+    callbacks = WTS::Callbacks.new(WTS::Pgsql::TEST.start, log: test_log)
     id = Zold::Id.new
     login = 'yegor256'
     callbacks.add(login, id.to_s, 'NOPREFIX', /pizza/, 'http://localhost:888/')

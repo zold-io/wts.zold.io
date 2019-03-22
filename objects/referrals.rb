@@ -25,8 +25,8 @@ require_relative 'user_error'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class Referrals
-  def initialize(pgsql, log: Log::NULL)
+class WTS::Referrals
+  def initialize(pgsql, log: Zold::Log::NULL)
     @pgsql = pgsql
     @log = log
   end
@@ -68,7 +68,7 @@ class Referrals
   # Get referral.
   def ref(login)
     row = @pgsql.exec('SELECT ref FROM referral WHERE login = $1 LIMIT 1', [login])
-    raise UserError, "No referral for #{login}" if row.empty?
+    raise WTS::UserError, "No referral for #{login}" if row.empty?
     row[0]['ref']
   end
 end
