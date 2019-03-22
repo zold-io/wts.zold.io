@@ -1316,13 +1316,14 @@ end
 
 get '/css/*.css' do
   content_type 'text/css', charset: 'utf-8'
-  file = params[:splat].first
-  sass file.to_sym, views: "#{settings.root}/assets/sass"
+  sass params[:splat].first.to_sym, views: "#{settings.root}/assets/sass"
 end
 
 get '/js/*.js' do
+  file = File.join('assets/js', params[:splat].first) + '.js'
+  error(404, "File not found: #{f}") unless File.exist?(f)
   content_type 'application/javascript'
-  IO.read(File.join('assets/js', params[:splat].first) + '.js')
+  IO.read(file)
 end
 
 not_found do
