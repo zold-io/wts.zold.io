@@ -61,7 +61,9 @@ class WTS::PayPal
     unless response['responseEnvelope']['ack'] == 'Success'
       raise "Failed to send $#{usd} to #{email.inspect} with details of #{details.inspect}: #{response.json}"
     end
-    response['payKey']
+    key = response['payKey']
+    @log.info("Sent #{usd} to #{email} via PayPal: #{key}")
+    key
   end
 
   private

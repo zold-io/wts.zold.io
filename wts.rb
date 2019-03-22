@@ -942,7 +942,7 @@ users of WTS, while our limits are #{limits} (daily/weekly/monthly), sorry about
       keygap,
       rewards.item.id,
       amount * f,
-      "Fee for exchange of $#{usd} PayPal, rate is #{rate}, fee is #{f}"
+      "Fee for exchange of #{usd} PayPal, rate is #{rate}, fee is #{f}"
     )
     ops(log: log).push
     settings.paypal.send(
