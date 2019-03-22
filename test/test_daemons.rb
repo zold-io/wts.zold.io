@@ -32,7 +32,7 @@ class WTS::DaemonsTest < Minitest::Test
     daemons.start('test', 0) do
       started = true
     end
-    sleep 0.1
+    sleep 0.4
     assert(started)
   end
 end

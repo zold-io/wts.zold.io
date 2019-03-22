@@ -20,6 +20,7 @@
 source 'https://rubygems.org'
 ruby '2.6.0'
 
+gem 'active_paypal_adaptive_payment', '0.3.16'
 gem 'aws-sdk-s3', '1.30.0'
 gem 'aws-sdk-sns', '1.9.0'
 gem 'backports', '3.11.4'

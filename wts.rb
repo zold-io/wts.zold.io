@@ -190,8 +190,14 @@ configure do
   set :ticks, WTS::Ticks.new(settings.pgsql, log: settings.log)
   set :pool, Concurrent::FixedThreadPool.new(16, max_queue: 64, fallback_policy: :abort)
   set :paypal, WTS::PayPal.new(
-    settings.config['paypal']['id'],
-    settings.config['paypal']['secret']
+    {
+      email: settings.config['paypal']['email'],
+      login: settings.config['paypal']['login'],
+      password: settings.config['paypal']['password'],
+      signature: settings.config['paypal']['signature'],
+      appid: settings.config['paypal']['appid']
+    },
+    log: settings.log
   )
   if settings.config['blockchain']['xpub'].empty?
     set :btc, WTS::Btc::Fake.new
@@ -832,7 +838,7 @@ end
 
 get '/sql' do
   raise WTS::UserError, 'You are not allowed to see this' unless vip?
-  query = params[:query] || 'SELECT * FROM txn LIMIT 5'
+  query = params[:query] || 'SELECT * FROM txn LIMIT 16'
   haml :sql, layout: :layout, locals: merged(
     page_title: title('SQL'),
     query: query,

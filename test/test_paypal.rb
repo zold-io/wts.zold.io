@@ -21,13 +21,26 @@
 require 'minitest/autorun'
 require 'webmock/minitest'
 require_relative 'test__helper'
+require_relative '../objects/wts'
 require_relative '../objects/paypal'
 
 class WTS::PayPalTest < Minitest::Test
   def test_sends_paypal
     skip
     WebMock.allow_net_connect!
-    pp = WTS::PayPal.new('AXU...', '...XXE', log: test_log)
-    pp.send('miranda.cma@gmail.com', 1.28, 'Just a test')
+    pp = WTS::PayPal.new(
+      {
+        id: 'Aayp...',
+        secret: 'EDP...',
+        email: 'pp@zerocracy.com',
+        login: '...',
+        password: '...',
+        signature: '...',
+        appid: 'APP-...'
+      },
+      log: test_log
+    )
+    key = pp.send('yegor256@gmail.com', 1.28, 'Just a test')
+    assert(key.start_with?('AP-'), key)
   end
 end
