@@ -927,7 +927,7 @@ users of WTS, while our limits are #{limits} (daily/weekly/monthly), sorry about
   boss = user(settings.config['exchange']['login'])
   rewards = user(settings.config['rewards']['login'])
   job do |jid, log|
-    log.info("Sending #{bitcoin} bitcoins to #{email}...")
+    log.info("Sending $#{usd} via PayPal to #{email}...")
     f = fee
     ops(log: log).pull
     ops(rewards, log: log).pull
