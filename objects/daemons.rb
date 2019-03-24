@@ -35,9 +35,9 @@ class WTS::Daemons
     @threads = {}
   end
 
-  def start(id, seconds = 60)
+  def start(id, seconds = 60, pause: 5)
     @threads[id] = Thread.new do
-      sleep(0.1) # to let the main script load all Ruby methods
+      sleep(pause) # to let the main script load all Ruby methods
       loop do
         sleep([[seconds - age(id), 0].max, 60 * 60].min)
         begin

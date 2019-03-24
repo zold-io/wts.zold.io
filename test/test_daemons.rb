@@ -29,10 +29,10 @@ class WTS::DaemonsTest < Minitest::Test
     WebMock.allow_net_connect!
     daemons = WTS::Daemons.new(WTS::Pgsql::TEST.start, log: test_log)
     started = false
-    daemons.start('test', 0) do
+    daemons.start('test', 0, pause: 0) do
       started = true
     end
-    sleep 0.4
+    sleep 0.1
     assert(started)
   end
 end
