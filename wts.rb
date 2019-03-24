@@ -304,7 +304,7 @@ and dated of #{t[:date].utc.iso8601}")
       "Nodes: #{settings.remotes.all.count};",
       "Bitcoin price: $#{settings.btc.price.round};",
       "Rate: #{rate} ($#{(settings.btc.price * rate).round(4)})",
-      "Fund: #{settings.bank.balance.round(4)} BTC ($#{(settings.btc.price * settings.bank.balance).round})"
+      "Fund: #{bank.balance.round(4)} BTC ($#{(settings.btc.price * bank.balance).round})"
     )
   end
   settings.telepost.spam(
