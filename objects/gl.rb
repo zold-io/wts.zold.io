@@ -84,11 +84,9 @@ class WTS::Gl
   end
 
   def count(hours = 24)
-    Zold::Amount.new(
-      zents: @pgsql.exec(
-        "SELECT COUNT(*) FROM txn WHERE date > NOW() - INTERVAL \'#{hours} HOURS\'"
-      )[0]['count'].to_i
-    )
+    @pgsql.exec(
+      "SELECT COUNT(*) FROM txn WHERE date > NOW() - INTERVAL \'#{hours} HOURS\'"
+    )[0]['count'].to_i
   end
 
   private

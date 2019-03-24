@@ -297,17 +297,18 @@ and dated of #{t[:date].utc.iso8601}")
   end
   settings.daemons.start('snapshot', 24 * 60 * 60) do
     settings.telepost.spam(
-      "Today is #{Time.now.utc.strftime('%d-%b-%Y')}, we are doing great!\n\n",
-      "Wallets: [#{settings.payables.total}](https://wts.zold.io/payables)\n",
-      "Total emission: [#{settings.payables.balance}](https://wts.zold.io/payables)\n",
-      "24-hours volume: [#{settings.gl.volume}](https://wts.zold.io/gl)\n",
-      "24-hours txns count: [#{settings.gl.count}](https://wts.zold.io/gl)\n",
-      "Nodes: [#{settings.remotes.all.count}](https://wts.zold.io/remotes)\n",
-      "Bitcoin price: $#{settings.btc.price.round}\n",
-      "Rate: [#{rate}](https://wts.zold.io/rate)",
+      "Today is #{Time.now.utc.strftime('%d-%b-%Y')} and we are doing great:\n\n",
+      " Wallets: [#{settings.payables.total}](https://wts.zold.io/payables)\n",
+      " Total emission: [#{settings.payables.balance}](https://wts.zold.io/payables)\n",
+      " 24-hours volume: [#{settings.gl.volume}](https://wts.zold.io/gl)\n",
+      " 24-hours txns count: [#{settings.gl.count}](https://wts.zold.io/gl)\n",
+      " Nodes: [#{settings.remotes.all.count}](https://wts.zold.io/remotes)\n",
+      " Bitcoin price: $#{settings.btc.price.round}\n",
+      " Rate: [#{rate}](https://wts.zold.io/rate)",
       "($#{(settings.btc.price * rate).round(4)})\n",
-      "BTC fund: [#{bank.balance.round(4)}](https://wts.zold.io/rate)",
-      "($#{(settings.btc.price * bank.balance).round})\n"
+      " BTC fund: [#{bank.balance.round(4)}](https://wts.zold.io/rate)",
+      "($#{(settings.btc.price * bank.balance).round})\n",
+      "\n\nThanks for staying with us!"
     )
   end
   settings.telepost.spam(
