@@ -40,6 +40,7 @@ class WTS::Daemons
       sleep(pause) # to let the main script load all Ruby methods
       loop do
         sleep([[seconds - age(id), 0].max, 60 * 60].min)
+        next if age(id) < seconds
         begin
           yield
         rescue WTS::UserError => e
