@@ -308,7 +308,7 @@ and dated of #{t[:date].utc.iso8601}")
       "($#{(settings.btc.price * rate).round(4)})\n",
       " BTC fund: [#{bank.balance.round(4)}](https://wts.zold.io/rate)",
       "($#{(settings.btc.price * bank.balance).round})\n",
-      "\n\nThanks for staying with us!"
+      "\nThanks for staying with us!"
     )
   end
   settings.telepost.spam(
