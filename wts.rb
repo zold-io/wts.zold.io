@@ -303,11 +303,11 @@ and dated of #{t[:date].utc.iso8601}")
       " 24-hours volume: [#{settings.gl.volume}](https://wts.zold.io/gl)\n",
       " 24-hours txns count: [#{settings.gl.count}](https://wts.zold.io/gl)\n",
       " Nodes: [#{settings.remotes.all.count}](https://wts.zold.io/remotes)\n",
-      " Bitcoin price: $#{settings.btc.price.round}\n",
+      " Bitcoin price: $#{price.round}\n",
       " Rate: [#{rate}](https://wts.zold.io/rate)",
-      "($#{(settings.btc.price * rate).round(4)})\n",
+      "($#{(price * rate).round(4)})\n",
       " BTC fund: [#{bank.balance.round(4)}](https://wts.zold.io/rate)",
-      "($#{(settings.btc.price * bank.balance).round})\n",
+      "($#{(price * bank.balance).round})\n",
       "\nThanks for staying with us!"
     )
   end
@@ -821,7 +821,7 @@ arrival to #{address}, for #{bnf.login}; we ignore it.")
         "to the wallet [#{bnf.item.id}](http://www.zold.io/ledger.html?wallet=#{bnf.item.id})",
         "with the balance of #{bnf.wallet(&:balance)};",
         "the gap of Blockchain.com is #{settings.btc.gap};",
-        "BTC price at the moment of exchange was [$#{settings.btc.price}](https://blockchain.info/ticker);",
+        "BTC price at the moment of exchange was [$#{price}](https://blockchain.info/ticker);",
         "the payer is #{title_md(boss)} with the wallet",
         "[#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id}),",
         "the remaining balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t);",
@@ -882,7 +882,7 @@ get '/zld-to-paypal' do
   haml :zld_to_paypal, layout: :layout, locals: merged(
     page_title: title('paypal'),
     rate: rate,
-    price: settings.btc.price,
+    price: price,
     fee: fee,
     user: confirmed_user
   )
@@ -929,7 +929,6 @@ while we allow one user to sell up to #{limits} (daily/weekly/monthly)"
     raise WTS::UserError, "With #{amount} you are going over our limits, #{consumed} were sold by ALL \
 users of WTS, while our limits are #{limits} (daily/weekly/monthly), sorry about this :("
   end
-  price = settings.btc.price
   bitcoin = (amount.to_zld(8).to_f * rate).round(8)
   usd = (bitcoin * price).round(2)
   boss = user(settings.config['exchange']['login'])
@@ -988,7 +987,7 @@ get '/zld-to-btc' do
     user: confirmed_user,
     rate: rate,
     fee: fee,
-    price: settings.btc.price
+    price: price
   )
 end
 
@@ -1035,7 +1034,6 @@ while we allow one user to sell up to #{limits} (daily/weekly/monthly)"
     raise WTS::UserError, "With #{amount} you are going over our limits, #{consumed} were sold by ALL \
 users of WTS, while our limits are #{limits} (daily/weekly/monthly), sorry about this :("
   end
-  price = settings.btc.price
   bitcoin = (amount.to_zld(8).to_f * rate).round(8)
   usd = bitcoin * price
   boss = user(settings.config['exchange']['login'])
@@ -1167,7 +1165,7 @@ get '/rate' do
       }
       hash[:rate] = hash[:bank] / (hash[:root] - hash[:boss]).to_f
       hash[:deficit] = (hash[:root] - hash[:boss]).to_f * rate - hash[:bank]
-      hash[:price] = settings.btc.price
+      hash[:price] = price
       hash[:usd_rate] = hash[:price] * rate
       settings.zache.put(:rate, hash, lifetime: 10 * 60)
       settings.zache.remove_by { |k| k.to_s.start_with?('http', '/') }
@@ -1627,6 +1625,10 @@ def register_referral(login)
     login, cookies[:ref],
     source: cookies[:utm_source], medium: cookies[:utm_medium], campaign: cookies[:utm_campaign]
   )
+end
+
+def price
+  settings.zache.get(:price, lifetime: 5 * 60) { settings.btc.price }
 end
 
 def bank(log: settings.log)
