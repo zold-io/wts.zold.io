@@ -1,16 +1,20 @@
+%script{src: '/js/zld_to_btc.js'}
+
 %h2
   Sell Zolds and Receive Bitcoins
 
-- if confirmed_user.wallet_exists?
+- if user.wallet_exists?
   %p
     Your current balance is
     = succeed '.' do
-      %code= confirmed_user.wallet(&:balance)
+      %code= user.wallet(&:balance)
 
 %p
   The rate is
   %strong= rate
-  BTC per 1 ZLD.
+  BTC per 1 ZLD, or about
+  = succeed '.' do
+    %strong= "$#{(rate * price).round(2)}"
   %a{href: '/rate'} Why?
 
 %p
@@ -32,7 +36,9 @@
         %a{href: 'https://blog.zold.io/2018/07/18/keygap.html'} keygap
     %input{type: 'password', name: 'keygap', autocomplete: 'off', tabindex: 1, autofocus: true}
     %label The amount of ZLD to sell:
-    %input{type: 'text', name: 'amount', size: 12, autocomplete: 'off', tabindex: 2}
+    %input{type: 'text', id: 'zld', name: 'amount', size: 12, autocomplete: 'off', tabindex: 2, oninput: "wts_rerate(#{rate.round(8)}, #{price.round(2)}, #{fee.round(4)});"}
+    = '&nbsp;'
+    %span{id: 'out'}
     %label
       Bitcoin
       %a{href: 'https://en.bitcoin.it/wiki/Address'} address

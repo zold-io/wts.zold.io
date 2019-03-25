@@ -880,7 +880,11 @@ get '/zld-to-paypal' do
   prohibit('paypal')
   raise WTS::UserError, 'You have to work in Zerocracy in order to cash out to PayPal' unless known?
   haml :zld_to_paypal, layout: :layout, locals: merged(
-    page_title: title('paypal')
+    page_title: title('paypal'),
+    rate: rate,
+    price: settings.btc.price,
+    fee: fee,
+    user: confirmed_user
   )
 end
 
@@ -980,7 +984,11 @@ end
 get '/zld-to-btc' do
   prohibit('btc')
   haml :zld_to_btc, layout: :layout, locals: merged(
-    page_title: title('sell')
+    page_title: title('sell'),
+    user: confirmed_user,
+    rate: rate,
+    fee: fee,
+    price: settings.btc.price
   )
 end
 
