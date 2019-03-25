@@ -37,8 +37,7 @@
     %input{type: 'password', name: 'keygap', autocomplete: 'off', tabindex: 1, autofocus: true}
     %label The amount of ZLD to sell:
     %input{type: 'text', id: 'zld', name: 'amount', size: 12, autocomplete: 'off', tabindex: 2, oninput: "wts_rerate(#{rate.round(8)}, #{price.round(2)}, #{fee.round(4)});"}
-    = '&nbsp;'
-    %span{id: 'out'}
+    %span.gray.small{id: 'out'}
     %label
       Bitcoin
       %a{href: 'https://en.bitcoin.it/wiki/Address'} address

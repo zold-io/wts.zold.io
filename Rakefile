@@ -29,7 +29,7 @@ require 'English'
 
 ENV['RACK_ENV'] = 'test'
 
-task default: %i[clean test rubocop xcop copyright]
+task default: %i[clean test rubocop xcop eslint copyright]
 
 require 'rake/testtask'
 desc 'Run all unit tests'
@@ -46,6 +46,12 @@ desc 'Run RuboCop on all directories'
 RuboCop::RakeTask.new(:rubocop) do |task|
   task.fail_on_error = true
   task.requires << 'rubocop-rspec'
+end
+
+require 'eslintrb/eslinttask'
+Eslintrb::EslintTask.new :eslint do |t|
+  t.pattern = 'assets/js/**/*.js'
+  t.options = :defaults
 end
 
 require 'xcop/rake_task'
