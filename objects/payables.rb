@@ -87,7 +87,7 @@ class WTS::Payables
           break
         end
         res = r.http("/wallet/#{id}/balance").get
-        r.assert_code(200, res)
+        next unless res.status == 200
         @pgsql.exec(
           'UPDATE payable SET balance = $2, updated = NOW() WHERE id = $1',
           [id, res.body.to_i]
