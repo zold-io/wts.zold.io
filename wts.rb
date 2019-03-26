@@ -44,7 +44,6 @@ require 'zold'
 require 'zold/hands'
 require 'zold/sync_wallets'
 require 'zold/cached_wallets'
-require_relative 'version'
 require_relative 'objects/wts'
 require_relative 'objects/toggles'
 require_relative 'objects/callbacks'
@@ -77,6 +76,7 @@ require_relative 'objects/versioned_job'
 require_relative 'objects/file_log'
 require_relative 'objects/tee_log'
 require_relative 'objects/db_log'
+require_relative 'version'
 
 if ENV['RACK_ENV'] != 'test'
   require 'rack/ssl'
@@ -139,7 +139,7 @@ configure do
   if ENV['RACK_ENV'] != 'test'
     Raven.configure do |c|
       c.dsn = config['sentry']
-      c.release = VERSION
+      c.release = WTS::VERSION
     end
   end
   set :config, config
@@ -313,7 +313,7 @@ and dated of #{t[:date].utc.iso8601}")
   end
   settings.telepost.spam(
     '[WTS](https://wts.zold.io) server software',
-    "[#{VERSION}](https://github.com/zold-io/wts.zold.io/releases/tag/#{VERSION})",
+    "[#{WTS::VERSION}](https://github.com/zold-io/wts.zold.io/releases/tag/#{WTS::VERSION})",
     'has been deployed and starts to work;',
     "Zold version is [#{Zold::VERSION}](https://rubygems.org/gems/zold/versions/#{Zold::VERSION}),",
     "the protocol is `#{Zold::PROTOCOL}`"
@@ -322,7 +322,7 @@ end
 
 before '/*' do
   @locals = {
-    ver: VERSION,
+    ver: WTS::VERSION,
     login_link: settings.glogin.login_uri,
     wallets: settings.wallets,
     remotes: settings.remotes,
@@ -1335,7 +1335,7 @@ end
 
 get '/version' do
   content_type 'text/plain'
-  VERSION
+  WTS::VERSION
 end
 
 get '/context' do
@@ -1430,7 +1430,7 @@ def flash(uri, msg, error: false)
 end
 
 def context
-  "#{request.ip} #{request.user_agent} #{VERSION}"
+  "#{request.ip} #{request.user_agent} #{WTS::VERSION}"
 end
 
 def merged(hash)

@@ -18,6 +18,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require_relative 'wts'
-
-VERSION = '0.0.0'.freeze
+module WTS
+  VERSION = '0.0.0'.freeze
+end

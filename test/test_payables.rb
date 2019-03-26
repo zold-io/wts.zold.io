@@ -33,19 +33,25 @@ class WTS::PayablesTest < Minitest::Test
       remotes = Zold::Remotes.new(file: File.join(dir, 'remotes.csv'))
       remotes.clean
       remotes.masters
-      m = remotes.all[0]
+      masters = remotes.all.take(2)
       remotes.all.each_with_index { |r, idx| remotes.remove(r[:host], r[:port]) if idx.positive? }
-      wallets = %w[0000111122223333 ffffeeeeddddcccc 0123456701234567]
-      stub_request(:get, "http://#{m[:host]}:#{m[:port]}/wallets").to_return(
-        status: 200, body: wallets.join("\n")
-      )
-      remotes.add('localhost', 444)
-      remotes.add(m[:host], m[:port])
-      remotes.add('localhost', 123)
-      wallets.each do |id|
-        stub_request(:get, "http://#{m[:host]}:#{m[:port]}/wallet/#{id}/balance").to_return(
-          status: 200, body: '1234567'
+      wallets = %w[0000111122223333 ffffeeeeddddcccc 0123456701234567 9090909090909090 a1a1a1a1a1a1a1a1]
+      masters.each do |m|
+        stub_request(:get, "http://#{m[:host]}:#{m[:port]}/wallets").to_return(
+          status: 200, body: wallets.join("\n")
         )
+      end
+      remotes.add('localhost', 444)
+      masters.each do |m|
+        remotes.add(m[:host], m[:port])
+      end
+      remotes.add('localhost', 123)
+      masters.each do |m|
+        wallets.each do |id|
+          stub_request(:get, "http://#{m[:host]}:#{m[:port]}/wallet/#{id}/balance").to_return(
+            status: 200, body: '1234567'
+          )
+        end
       end
       payables = WTS::Payables.new(WTS::Pgsql::TEST.start, remotes, log: test_log)
       payables.discover

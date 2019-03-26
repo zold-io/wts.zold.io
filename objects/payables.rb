@@ -41,8 +41,11 @@ class WTS::Payables
   def discover
     start = Time.now
     @pgsql.exec('DELETE FROM payable WHERE updated < NOW() - INTERVAL \'30 DAYS\'')
+    seen = []
+    total = 0
     @remotes.iterate(@log) do |r|
       next unless r.master?
+      seen << r.to_s
       res = r.http('/wallets').get
       r.assert_code(200, res)
       ids = res.body.strip.split("\n").compact.select { |i| /^[a-f0-9]{16}$/.match?(i) }
@@ -52,8 +55,10 @@ class WTS::Payables
           [id, r.to_mnemo]
         )
       end
+      total += ids.count
       @log.info("Payables: #{ids.count} wallets found at #{r} in #{Zold::Age.new(start)}")
     end
+    @log.info("Payables: #{seen.count} master nodes checked, #{total} wallets found: #{seen.join(', ')}")
   end
 
   # Fetch some balances
@@ -70,8 +75,10 @@ class WTS::Payables
       selected += 1
     end
     total = 0
+    seen = []
     @remotes.iterate(@log) do |r|
       next unless r.master?
+      seen << r.to_s
       loop do
         id = nil
         begin
@@ -90,10 +97,11 @@ class WTS::Payables
     end
     if total < max
       @log.error("For some reason not enough wallet balances were updated, \
-just #{total} instead of #{max}, while #{selected} were selected")
+just #{total} instead of #{max}, while #{selected} were selected and there were \
+#{seen.count} master nodes seen: #{seen.join(', ')}")
     else
-      @log.info("Payables: #{total} wallet balances updated from #{@remotes.all.count} remotes \
-in #{Zold::Age.new(start)}")
+      @log.info("Payables: #{total} wallet balances updated from #{seen.count} remote master \
+in #{Zold::Age.new(start)}: #{seen.join(', ')}")
     end
   end
 
