@@ -44,20 +44,19 @@ class WTS::Payables
     seen = []
     total = 0
     @remotes.iterate(@log) do |r|
-      if r.master?
-        seen << r.to_s
-        res = r.http('/wallets').get
-        r.assert_code(200, res)
-        ids = res.body.strip.split("\n").compact.select { |i| /^[a-f0-9]{16}$/.match?(i) }
-        ids.each do |id|
-          @pgsql.exec(
-            'INSERT INTO payable (id, node) VALUES ($1, $2) ON CONFLICT (id) DO NOTHING',
-            [id, r.to_mnemo]
-          )
-        end
-        total += ids.count
-        @log.info("Payables: #{ids.count} wallets found at #{r} in #{Zold::Age.new(start)}")
+      next unless r.master?
+      seen << r.to_s
+      res = r.http('/wallets').get(timeout: 60)
+      r.assert_code(200, res)
+      ids = res.body.strip.split("\n").compact.select { |i| /^[a-f0-9]{16}$/.match?(i) }
+      ids.each do |id|
+        @pgsql.exec(
+          'INSERT INTO payable (id, node) VALUES ($1, $2) ON CONFLICT (id) DO NOTHING',
+          [id, r.to_mnemo]
+        )
       end
+      total += ids.count
+      @log.info("Payables: #{ids.count} wallets found at #{r} in #{Zold::Age.new(start)}")
     end
     @log.info("Payables: #{seen.count} master nodes checked, #{total} wallets found: #{seen.join(', ')}")
   end

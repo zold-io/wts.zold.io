@@ -1446,10 +1446,7 @@ def merged(hash)
 end
 
 def user_log(u = user.login)
-  WTS::TeeLog.new(
-    settings.log,
-    WTS::FileLog.new(File.join(settings.root, ".zold-wts/logs/#{u}"))
-  )
+  WTS::FileLog.new(File.join(settings.root, ".zold-wts/logs/#{u}"))
 end
 
 def user(login = @locals[:guser])
