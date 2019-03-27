@@ -759,7 +759,7 @@ end
 
 # See https://www.blockchain.com/api/api_receive
 get '/btc-hook' do
-  settings.log.info("Blockchain.com hook arrived: #{params}")
+  settings.log.debug("Blockchain.com hook arrived: #{params}")
   raise WTS::UserError, 'Confirmations is not provided' if params[:confirmations].nil?
   confirmations = params[:confirmations].to_i
   raise WTS::UserError, 'Address is not provided' if params[:address].nil?
