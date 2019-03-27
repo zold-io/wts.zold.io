@@ -130,7 +130,7 @@ which return the result immediately:
   "status": "OK",
   "output_length": 15362,
   "error_message": "something went wrong...",
-  "tin": "000111122223333:76"
+  "tid": "000111122223333:76"
 }
 ```
 
