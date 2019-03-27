@@ -51,7 +51,7 @@ class WTS::Callbacks
       ].join(' '),
       [login, wallet, prefix, regexp, uri, token]
     )[0]['id'].to_i
-    @log.info("New callback ##{cid} registered by #{login} for wallet #{wallet}, \
+    @log.debug("New callback ##{cid} registered by #{login} for wallet #{wallet}, \
 prefix \"#{prefix}\", regexp #{regexp}, and URI: #{uri}")
     cid
   end
