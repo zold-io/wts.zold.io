@@ -1329,6 +1329,12 @@ get '/quick' do
   )
 end
 
+get '/terms' do
+  haml :terms, layout: :layout, locals: merged(
+    page_title: 'Terms of Use'
+  )
+end
+
 get '/robots.txt' do
   content_type 'text/plain'
   "User-agent: *\nDisallow: /"
@@ -1434,7 +1440,7 @@ def context
   "#{request.ip} #{request.user_agent} #{WTS::VERSION}"
 end
 
-def merged(hash)
+def merged(hash = {})
   out = @locals.merge(hash)
   out[:local_assigns] = out
   if cookies[:flash_msg]

@@ -52,6 +52,7 @@ class WTS::AppTest < Minitest::Test
       '/',
       '/css/main.css',
       '/gl',
+      '/terms',
       '/payables',
       '/context',
       '/remotes',
