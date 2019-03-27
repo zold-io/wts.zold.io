@@ -63,7 +63,7 @@ class WTS::Payables
   # Fetch some balances
   def update(max: 100)
     if @remotes.all.empty?
-      @log.error('The list of remote nodes is empty, can\'t update payables')
+      @log.info('The list of remote nodes is empty, can\'t update payables')
       return
     end
     start = Time.now
