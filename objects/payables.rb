@@ -37,11 +37,6 @@ class WTS::Payables
     @log = log
   end
 
-  # Remove old wallets
-  def remove_old
-    @pgsql.exec('DELETE FROM payable WHERE updated < NOW() - INTERVAL \'24 HOURS\'')
-  end
-
   # Discover
   def discover
     start = Time.now
@@ -109,7 +104,12 @@ in #{Zold::Age.new(start)}: #{seen.join(', ')}")
     end
   end
 
-  # Discover
+  # Remove old wallets
+  def remove_old
+    @pgsql.exec('DELETE FROM payable WHERE updated < NOW() - INTERVAL \'24 HOURS\'')
+  end
+
+  # Remove those, which are banned.
   def remove_banned
     Zold::Id::BANNED.each do |id|
       @pgsql.exec('DELETE FROM payable WHERE id = $1', [id])
@@ -134,6 +134,6 @@ in #{Zold::Age.new(start)}: #{seen.join(', ')}")
 
   # Total visible and recently updated wallets
   def total
-    @pgsql.exec('SELECT COUNT(balance) FROM payable WHERE updated > NOW() - INTERVAL \'30 DAYS\'')[0]['count'].to_i
+    @pgsql.exec('SELECT COUNT(*) FROM payable')[0]['count'].to_i
   end
 end

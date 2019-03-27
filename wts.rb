@@ -284,6 +284,7 @@ and dated of #{t[:date].utc.iso8601}")
     end
   end
   settings.daemons.start('payables', 10 * 60) do
+    settings.payables.remove_old
     settings.payables.discover
     settings.payables.update
     settings.payables.remove_banned
