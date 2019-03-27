@@ -33,6 +33,7 @@ class WTS::TrackedJob
     @job.call(jid)
     @jobs.update(jid, 'OK')
   rescue StandardError => e
+    @jobs.result(jid, 'error_message', e.message)
     @jobs.update(jid, Backtrace.new(e).to_s)
     raise e
   end
