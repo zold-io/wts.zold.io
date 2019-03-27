@@ -58,13 +58,17 @@
               %li
                 %a{href: 'https://twitter.com/0crat'} Twitter
             - else
-              %li
-                - if defined? guser
+              - if defined? guser
+                %li
                   %a{href: '/home'}
                     = title
-                - else
+              - else
+                %li
                   %a{href: '/mobile_send'}
                     Login
+                %li
+                  %a{href: '/mobile_send'}
+                    Sign Up
               %li
                 %a{href: '/rate'} Rate
               %li{title: 'All wallets available in the local directory'}
