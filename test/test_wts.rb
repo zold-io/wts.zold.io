@@ -39,7 +39,7 @@ class WTS::AppTest < Minitest::Test
   include Rack::Test::Methods
 
   def app
-    Sinatra::Application.set(:log, Zold::Log::VERBOSE)
+    Sinatra::Application.set(:log, test_log)
     Sinatra::Application.set(:pool, Concurrent::FixedThreadPool.new(1, max_queue: 0, fallback_policy: :caller_runs))
     Sinatra::Application
   end
