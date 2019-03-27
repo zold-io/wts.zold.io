@@ -114,6 +114,7 @@ task liquibase: :pgsql do
       'mvn -f liquibase verify',
       "-Durl=#{Shellwords.escape(yml['pgsql']['url'])}",
       '--errors',
+      "-Dliquibase.logging=#{ARGV.include?('--quiet') ? 'severe' : 'info'}",
       ARGV.include?('--quiet') ? '--quiet' : '',
       '2>&1'
     ].join(' ')
