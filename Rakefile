@@ -23,6 +23,7 @@ STDOUT.sync = true
 require 'rubygems'
 require 'rake'
 require 'yaml'
+require 'shellwords'
 require 'rdoc'
 require 'rake/clean'
 require 'English'
@@ -108,7 +109,15 @@ end
 desc 'Update the database via Liquibase'
 task liquibase: :pgsql do
   yml = YAML.safe_load(File.open(File.exist?('config.yml') ? 'config.yml' : 'target/config.yml'))
-  system("mvn -f liquibase verify \"-Durl=#{yml['pgsql']['url']}\" --errors 2>&1")
+  system(
+    [
+      'mvn -f liquibase verify',
+      "-Durl=#{Shellwords.escape(yml['pgsql']['url'])}",
+      '--errors',
+      ARGV.include?('--quiet') ? '--quiet' : '',
+      '2>&1'
+    ].join(' ')
+  )
   raise unless $CHILD_STATUS.exitstatus.zero?
 end
 
