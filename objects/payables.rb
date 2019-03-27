@@ -132,7 +132,7 @@ in #{Zold::Age.new(start)}: #{seen.join(', ')}")
     Zold::Amount.new(zents: @pgsql.exec('SELECT SUM(balance) FROM payable WHERE balance > 0')[0]['sum'].to_i)
   end
 
-  # Total visible and recently updated wallets
+  # Total visible wallets.
   def total
     @pgsql.exec('SELECT COUNT(*) FROM payable')[0]['count'].to_i
   end
