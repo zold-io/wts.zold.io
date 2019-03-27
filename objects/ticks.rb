@@ -20,6 +20,7 @@
 
 require 'zold/log'
 require_relative 'pgsql'
+require_relative 'user_error'
 
 #
 # Ticks in AWS DynamoDB.
@@ -54,6 +55,8 @@ class WTS::Ticks
 
   # Fetch the latest.
   def latest(key)
-    @pgsql.exec('SELECT * FROM tick WHERE key = $1 ORDER BY created DESC LIMIT 1', [key])[0]['value'].to_f
+    row = @pgsql.exec('SELECT * FROM tick WHERE key = $1 ORDER BY created DESC LIMIT 1', [key])[0]
+    raise WTS::UserError, "No ticks found for #{key}" if row.nil?
+    row['value'].to_f
   end
 end

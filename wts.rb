@@ -946,7 +946,7 @@ users of WTS, while our limits are #{limits} (daily/weekly/monthly), sorry about
     ops(log: log).pull
     ops(rewards, log: log).pull
     ops(boss, log: log).pull
-    ops(log: log).pay(
+    txn = ops(log: log).pay(
       keygap,
       boss.item.id,
       amount * (1.0 - f),
@@ -962,7 +962,7 @@ users of WTS, while our limits are #{limits} (daily/weekly/monthly), sorry about
     settings.paypal.send(
       email,
       (usd * (1.0 - f)).round(2),
-      "Exchange of #{amount.to_zld(8)} by #{title} to #{user.item.id}, rate is #{rate}, fee is #{f}"
+      "Zerocracy development, TIN #{user.item.id}:#{txn.id}"
     )
     settings.payouts.add(
       user.login, user.item.id, amount,
