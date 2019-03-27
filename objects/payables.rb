@@ -55,9 +55,9 @@ class WTS::Payables
         )
       end
       total += ids.count
-      @log.info("Payables: #{ids.count} wallets found at #{r} in #{Zold::Age.new(start)}")
+      @log.debug("Payables: #{ids.count} wallets found at #{r} in #{Zold::Age.new(start)}")
     end
-    @log.info("Payables: #{seen.count} master nodes checked, #{total} wallets found: #{seen.join(', ')}")
+    @log.debug("Payables: #{seen.count} master nodes checked, #{total} wallets found: #{seen.join(', ')}")
   end
 
   # Fetch some balances
@@ -99,7 +99,7 @@ class WTS::Payables
 just #{total} instead of #{max}, while #{selected} were selected and there were \
 #{seen.count} master nodes seen: #{seen.join(', ')}")
     else
-      @log.info("Payables: #{total} wallet balances updated from #{seen.count} remote master \
+      @log.debug("Payables: #{total} wallet balances updated from #{seen.count} remote master \
 in #{Zold::Age.new(start)}: #{seen.join(', ')}")
     end
   end
