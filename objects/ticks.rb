@@ -51,4 +51,9 @@ class WTS::Ticks
       { key: r['key'], value: r['value'].to_f, created: Time.parse(r['created']) }
     end
   end
+
+  # Fetch the latest.
+  def latest(key)
+    @pgsql.exec('SELECT * FROM tick WHERE key = $1 ORDER BY created DESC LIMIT 1', [key])[0]['value'].to_f
+  end
 end

@@ -297,19 +297,25 @@ and dated of #{t[:date].utc.iso8601}")
     end
   end
   settings.daemons.start('snapshot', 24 * 60 * 60) do
+    coverage = settings.ticks.latest('Coverage')
+    distributed = Zold::Amount.new(
+      zents: settings.ticks.latest('Emission') - settings.ticks.latest('Office')
+    )
     settings.telepost.spam(
-      "Today is #{Time.now.utc.strftime('%d-%b-%Y')} and we are doing great:\n\n",
-      " Wallets: [#{settings.payables.total}](https://wts.zold.io/payables)\n",
-      " Total emission: [#{settings.payables.balance}](https://wts.zold.io/payables)\n",
-      " 24-hours volume: [#{settings.gl.volume}](https://wts.zold.io/gl)\n",
-      " 24-hours txns count: [#{settings.gl.count}](https://wts.zold.io/gl)\n",
-      " Nodes: [#{settings.remotes.all.count}](https://wts.zold.io/remotes)\n",
-      " Bitcoin price: $#{price.round}\n",
-      " Rate: [#{rate}](https://wts.zold.io/rate)",
-      "($#{(price * rate).round(4)})\n",
-      " BTC fund: [#{bank.balance.round(4)}](https://wts.zold.io/rate)",
-      "($#{(price * bank.balance).round})\n",
-      "\nThanks for staying with us!"
+      [
+        "Today is #{Time.now.utc.strftime('%d-%b-%Y')} and we are doing great:\n",
+        "  Wallets: [#{settings.payables.total}](https://wts.zold.io/payables)",
+        "  Total emission: [#{settings.payables.balance}](https://wts.zold.io/payables)",
+        "  Distributed: [#{distributed}](https://wts.zold.io/rate)",
+        "  24-hours volume: [#{settings.gl.volume}](https://wts.zold.io/gl)",
+        "  24-hours txns count: [#{settings.gl.count}](https://wts.zold.io/gl)",
+        "  Nodes: [#{settings.remotes.all.count}](https://wts.zold.io/remotes)",
+        "  Bitcoin price: $#{price.round}",
+        "  Rate: [#{rate.round(6)}](https://wts.zold.io/rate) ($#{(price * rate).round(4)})",
+        "  Coverage: [#{coverage.round(6)}](https://wts.zold.io/rate) / #{(100 * coverage / rate).round}%",
+        "  BTC fund: [#{bank.balance.round(4)}](https://wts.zold.io/rate) ($#{(price * bank.balance).round})",
+        "\nThanks for staying with us!"
+      ].join("\n")
     )
   end
   settings.telepost.spam(
