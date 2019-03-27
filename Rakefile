@@ -35,6 +35,7 @@ require 'rake/testtask'
 desc 'Run all unit tests'
 Rake::TestTask.new(test: :liquibase) do |test|
   Rake::Cleaner.cleanup_files(['coverage'])
+  ENV['TEST_QUIET_LOG'] = 'true' if ARGV.include?('--quiet')
   test.libs << 'lib' << 'test'
   test.pattern = 'test/**/test_*.rb'
   test.verbose = true
