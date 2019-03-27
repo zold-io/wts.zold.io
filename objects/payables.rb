@@ -37,10 +37,14 @@ class WTS::Payables
     @log = log
   end
 
+  # Remove old wallets
+  def remove_old
+    @pgsql.exec('DELETE FROM payable WHERE updated < NOW() - INTERVAL \'24 HOURS\'')
+  end
+
   # Discover
   def discover
     start = Time.now
-    @pgsql.exec('DELETE FROM payable WHERE updated < NOW() - INTERVAL \'30 DAYS\'')
     seen = []
     total = 0
     @remotes.iterate(@log) do |r|
