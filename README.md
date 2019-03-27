@@ -128,7 +128,9 @@ which return the result immediately:
 {
   "id": "sjks-8sjs-sjUJs-sjkIIL",
   "status": "OK",
-  "output_length": 15362
+  "output_length": 15362,
+  "error_message": "something went wrong...",
+  "tin": "000111122223333:76"
 }
 ```
 

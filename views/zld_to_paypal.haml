@@ -3,24 +3,13 @@
 %h2
   Sell Zolds and Receive PayPal
 
-- if user.wallet_exists?
-  %p
-    Your current balance is
-    = succeed '.' do
-      %code= user.wallet(&:balance)
-
 %p
   The rate is
   %strong= rate
-  BTC per 1 ZLD, or about
+  BTC/ZLD, or about
   = succeed '.' do
     %strong= "$#{(rate * price).round(2)}"
   %a{href: '/rate'} Why?
-
-%p
-  If any issues or the payment is lost, contact us in our
-  = succeed '.' do
-    %a{href: 'https://t.me/zold_io'} Telegram group
 
 %p
   To sell your ZLD and receive PayPal just fill this form
@@ -34,12 +23,24 @@
       Your
       = succeed ':' do
         %a{href: 'https://blog.zold.io/2018/07/18/keygap.html'} keygap
-    %input{type: 'password', name: 'keygap', autocomplete: 'off', tabindex: 1, autofocus: true}
-    %label The amount of ZLD to sell:
-    %input{type: 'text', id: 'zld', name: 'amount', size: 12, autocomplete: 'off', tabindex: 2, oninput: "wts_rerate(#{rate.round(8)}, #{price.round(2)}, #{fee.round(4)});"}
+    %input{type: 'password', name: 'keygap', autocomplete: 'off', tabindex: 1, autofocus: true, maxlength: 32}
+    %label
+      The amount of ZLD to sell
+      = succeed ':' do
+        - if user.wallet_exists?
+          (your current balance is
+          = succeed ')' do
+            %code= user.wallet(&:balance)
+    %input{type: 'text', id: 'zld', name: 'amount', size: 12, maxlength: 8, autocomplete: 'off', tabindex: 2, oninput: "wts_rerate(#{rate.round(8)}, #{price.round(2)}, #{fee.round(4)});"}
     %span.small.gray{id: 'out'}
     %label
+      The
       %a{href: 'https://www.paypal.com'} PayPal
-      email:
-    %input{type: 'text', name: 'email', maxlength: 50, size: 45, autocomplete: 'off', tabindex: 3}
+      email to receive the payment:
+    %input{type: 'email', name: 'email', maxlength: 50, size: 45, autocomplete: 'off', tabindex: 3}
     %input{type: 'submit', onclick: "return confirm('Are you sure? This operation is not reversable!')", tabindex: 4}
+
+%p
+  If any issues or the payment is lost, contact us in our
+  = succeed '.' do
+    %a{href: 'https://t.me/zold_io'} Telegram group
