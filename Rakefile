@@ -70,7 +70,8 @@ task :pgsql do
   dir = File.expand_path(File.join(Dir.pwd, 'target/pgsql'))
   FileUtils.rm_rf(dir)
   File.write('target/pwfile', 'test')
-  system("initdb --auth=trust -D #{dir} --username=test --pwfile=target/pwfile 2>&1")
+  out = "2>&1 #{ARGV.include?('--quiet') ? '>/dev/null' : ''}"
+  system("initdb --auth=trust -D #{dir} --username=test --pwfile=target/pwfile #{out}")
   raise unless $CHILD_STATUS.exitstatus.zero?
   port = `python -c 'import socket; s=socket.socket(); s.bind(("", 0)); print(s.getsockname()[1]); s.close()'`.to_i
   pid = Process.spawn('postgres', '-k', dir, '-D', dir, "--port=#{port}")
@@ -81,7 +82,7 @@ task :pgsql do
   sleep 1
   attempt = 0
   begin
-    system("createdb -h localhost -p #{port} --username=test test 2>&1")
+    system("createdb -h localhost -p #{port} --username=test test #{out}")
     raise unless $CHILD_STATUS.exitstatus.zero?
   rescue StandardError => e
     puts e.message
