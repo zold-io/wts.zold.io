@@ -64,7 +64,10 @@ class WTS::Graph
       number_format: "%.#{digits}f",
       fields: (0..STEPS - 1).map { |i| (min + i * step).strftime('%m/%d') }
     }
-    params[:y_title] = title unless title.empty?
+    unless title.empty?
+      params[:y_title] = title
+      params[:show_y_title] = true
+    end
     g = SVG::Graph::Line.new(params)
     sets.each do |k, v|
       data = Array.new(STEPS, nil)
