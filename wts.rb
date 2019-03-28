@@ -297,7 +297,7 @@ and dated of #{t[:date].utc.iso8601}")
     end
   end
   settings.daemons.start('snapshot', 24 * 60 * 60) do
-    coverage = settings.ticks.latest('Coverage')
+    coverage = settings.ticks.latest('Coverage', default: 0)
     distributed = Zold::Amount.new(
       zents: settings.ticks.latest('Emission') - settings.ticks.latest('Office')
     )
@@ -562,6 +562,7 @@ post '/do-pay' do
   headers['X-Zold-Job'] = job do |jid, log|
     log.info("Sending #{amount} to #{bnf}...")
     ops(log: log).pull
+    raise WTS::UserError, "You don't have enough funds to send #{amount}" if user.wallet(&:balance) < amount
     txn = ops(log: log).pay(keygap, bnf, amount, details)
     settings.jobs.result(jid, 'txn', txn.id.to_s)
     settings.jobs.result(jid, 'tid', "#{user.item.id}:#{txn.id}")
