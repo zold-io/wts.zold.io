@@ -23,6 +23,7 @@ require 'zold/http'
 require 'zold/amount'
 require 'zold/id'
 require 'zold/age'
+require 'zold/json_page'
 require_relative 'pgsql'
 require_relative 'user_error'
 
@@ -85,11 +86,12 @@ class WTS::Payables
         rescue ThreadError
           break
         end
-        res = r.http("/wallet/#{id}/balance").get
+        res = r.http("/wallet/#{id}").get
         next unless res.status == 200
+        json = Zold::JsonPage.new(res.body).to_hash
         @pgsql.exec(
-          'UPDATE payable SET balance = $2, updated = NOW() WHERE id = $1',
-          [id, res.body.to_i]
+          'UPDATE payable SET balance = $2, txns = $3, updated = NOW() WHERE id = $1',
+          [id, json['balance'], json['txns']]
         )
         total += 1
       end
@@ -121,6 +123,7 @@ in #{Zold::Age.new(start)}: #{seen.join(', ')}")
       {
         id: Zold::Id.new(r['id']),
         balance: Zold::Amount.new(zents: r['balance'].to_i),
+        txns: r['txns'].to_i,
         updated: Time.parse(r['updated']),
         node: r['node']
       }
@@ -135,5 +138,10 @@ in #{Zold::Age.new(start)}: #{seen.join(', ')}")
   # Total visible wallets.
   def total
     @pgsql.exec('SELECT COUNT(*) FROM payable')[0]['count'].to_i
+  end
+
+  # Total visible transactions.
+  def txns
+    @pgsql.exec('SELECT SUM(txns) FROM payable')[0]['sum'].to_i
   end
 end

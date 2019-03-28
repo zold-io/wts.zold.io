@@ -48,8 +48,8 @@ class WTS::PayablesTest < Minitest::Test
       remotes.add('localhost', 123)
       masters.each do |m|
         wallets.each do |id|
-          stub_request(:get, "http://#{m[:host]}:#{m[:port]}/wallet/#{id}/balance").to_return(
-            status: 200, body: '1234567'
+          stub_request(:get, "http://#{m[:host]}:#{m[:port]}/wallet/#{id}").to_return(
+            status: 200, body: '{ "balance": 1234567, "txns": 5 }'
           )
         end
       end
@@ -59,8 +59,9 @@ class WTS::PayablesTest < Minitest::Test
       payables.update(max: wallets.count)
       payables.remove_banned
       assert_equal(Zold::Amount.new(zents: 1_234_567), payables.fetch[0][:balance])
-      assert(payables.total >= 1)
+      assert(payables.total >= wallets.count)
       assert(payables.balance > Zold::Amount::ZERO)
+      assert(payables.txns >= wallets.count)
     end
   end
 end

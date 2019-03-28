@@ -305,6 +305,7 @@ and dated of #{t[:date].utc.iso8601}")
       [
         "Today is #{Time.now.utc.strftime('%d-%b-%Y')} and we are doing great:\n",
         "  Wallets: [#{settings.payables.total}](https://wts.zold.io/payables)",
+        "  Transactions: [#{settings.payables.txns}](https://wts.zold.io/payables)",
         "  Total emission: [#{settings.payables.balance}](https://wts.zold.io/payables)",
         "  Distributed: [#{distributed}](https://wts.zold.io/rate)",
         "  24-hours volume: [#{settings.gl.volume}](https://wts.zold.io/gl)",
