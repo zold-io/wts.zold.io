@@ -38,7 +38,7 @@ class WTS::Graph
     @log = log
   end
 
-  def svg(keys, div, digits)
+  def svg(keys, div, digits, title: '')
     sets = {}
     min = Time.now
     max = Time.now + STEPS * 24 * 60 * 60
@@ -53,7 +53,7 @@ class WTS::Graph
     raise WTS::UserError, 'There are no ticks, sorry' if sets.empty?
     step = (max - min) / STEPS
     raise WTS::UserError, 'Step is too small, can\'t render, sorry' if step.zero?
-    g = SVG::Graph::Line.new(
+    params = {
       width: 400, height: 200,
       show_x_guidelines: true, show_y_guidelines: true,
       show_x_labels: true, show_y_labels: false,
@@ -63,7 +63,9 @@ class WTS::Graph
       stagger_x_labels: true,
       number_format: "%.#{digits}f",
       fields: (0..STEPS - 1).map { |i| (min + i * step).strftime('%m/%d') }
-    )
+    }
+    params[:y_title] = title unless title.empty?
+    g = SVG::Graph::Line.new(params)
     sets.each do |k, v|
       data = Array.new(STEPS, nil)
       v.group_by { |p| ((p[:x] - min) / step).to_i }.each do |s, points|

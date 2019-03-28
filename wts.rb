@@ -291,6 +291,7 @@ and dated of #{t[:date].utc.iso8601}")
   end
   settings.daemons.start('ticks', 10 * 60) do
     settings.ticks.add('Volume24' => settings.gl.volume.to_f) unless settings.ticks.exists?('Volume24')
+    settings.ticks.add('Txns24' => settings.gl.count.to_f) unless settings.ticks.exists?('Txns24')
     boss = user(settings.config['rewards']['login'])
     job(boss) do
       settings.ticks.add('Nodes' => settings.remotes.all.count) unless settings.ticks.exists?('Nodes')
@@ -1232,7 +1233,12 @@ get '/graph.svg' do
   content_type 'image/svg+xml'
   settings.zache.clean
   settings.zache.get(request.url, lifetime: 10 * 60) do
-    WTS::Graph.new(settings.ticks).svg(params[:keys].split(' '), params[:div].to_i, params[:digits].to_i)
+    WTS::Graph.new(settings.ticks).svg(
+      params[:keys].split(' '),
+      params[:div].to_i,
+      params[:digits].to_i,
+      title: params[:title] || ''
+    )
   end
 end
 
