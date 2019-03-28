@@ -90,8 +90,8 @@ class WTS::Payables
         next unless res.status == 200
         json = Zold::JsonPage.new(res.body).to_hash
         @pgsql.exec(
-          'UPDATE payable SET balance = $2, txns = $3, updated = NOW() WHERE id = $1',
-          [id, json['balance'], json['txns']]
+          'UPDATE payable SET balance = $2, txns = $3, node = $4, updated = NOW() WHERE id = $1',
+          [id, json['balance'], json['txns'], r.to_mnemo]
         )
         total += 1
       end
