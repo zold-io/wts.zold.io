@@ -62,7 +62,7 @@ class WTS::Payables
   end
 
   # Fetch some balances
-  def update(max: 100)
+  def update(max: 400)
     if @remotes.all.empty?
       @log.debug('The list of remote nodes is empty, can\'t update payables')
       return
@@ -118,7 +118,7 @@ in #{Zold::Age.new(start)}: #{seen.join(', ')}")
     end
   end
 
-  def fetch(max: 400)
+  def fetch(max: 50)
     @pgsql.exec('SELECT * FROM payable ORDER BY ABS(balance) DESC LIMIT $1', [max]).map do |r|
       {
         id: Zold::Id.new(r['id']),
