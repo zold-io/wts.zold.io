@@ -965,7 +965,7 @@ users of WTS, while our limits are #{limits} (daily/weekly/monthly), sorry about
     settings.paypal.send(
       email,
       (usd * (1.0 - f)).round(2),
-      "Zerocracy development, TIN #{user.item.id}:#{txn.id}"
+      "Zerocracy development, TID #{user.item.id}:#{txn.id}"
     )
     settings.payouts.add(
       user.login, user.item.id, amount,
