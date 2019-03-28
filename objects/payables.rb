@@ -118,7 +118,7 @@ in #{Zold::Age.new(start)}: #{seen.join(', ')}")
     end
   end
 
-  def fetch(max: 100)
+  def fetch(max: 400)
     @pgsql.exec('SELECT * FROM payable ORDER BY ABS(balance) DESC LIMIT $1', [max]).map do |r|
       {
         id: Zold::Id.new(r['id']),
