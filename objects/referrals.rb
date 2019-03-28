@@ -52,7 +52,7 @@ class WTS::Referrals
         'VALUES ($1, $2, $3, $4, $5)',
         'ON CONFLICT (login, ref) DO NOTHING'
       ].join(' '),
-      [login, ref, source, medium, campaign]
+      [login, ref, source || '', medium || '', campaign || '']
     )
     @log.info("New referral registered at #{login} by #{ref}")
   end
