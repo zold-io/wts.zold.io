@@ -298,7 +298,7 @@ and dated of #{t[:date].utc.iso8601}")
     end
   end
   settings.daemons.start('snapshot', 24 * 60 * 60) do
-    coverage = settings.ticks.latest('Coverage')
+    coverage = settings.ticks.latest('Coverage') / 100_000_000
     distributed = Zold::Amount.new(
       zents: (settings.ticks.latest('Emission') - settings.ticks.latest('Office')).to_i
     )
