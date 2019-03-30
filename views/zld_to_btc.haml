@@ -21,8 +21,10 @@
   %fieldset
     %label
       Your
-      = succeed ':' do
-        %a{href: 'https://blog.zold.io/2018/07/18/keygap.html'} keygap
+      %a{href: 'https://blog.zold.io/2018/07/18/keygap.html'} keygap
+      (is it
+      = succeed '):' do
+        %a{href: 'https://blog.zold.io/2019/03/30/keygap-is-lost.html'} lost?
     %input{type: 'password', name: 'keygap', autocomplete: 'off', tabindex: 1, autofocus: true, maxlength: 32}
     %label
       The amount of ZLD to sell
