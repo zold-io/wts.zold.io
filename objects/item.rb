@@ -23,6 +23,7 @@ require 'zold/id'
 require 'zold/log'
 require_relative 'wts'
 require_relative 'keygap'
+require_relative 'tags'
 require_relative 'user_error'
 
 #
@@ -35,6 +36,11 @@ class WTS::Item
     @login = login.downcase
     @pgsql = pgsql
     @log = log
+  end
+
+  # Tags.
+  def tags
+    WTS::Tags.new(@login, @pgsql, log: @log)
   end
 
   def exists?

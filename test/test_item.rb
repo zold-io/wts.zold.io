@@ -40,6 +40,16 @@ class WTS::ItemTest < Minitest::Test
     assert_equal(id, item.id)
   end
 
+  def test_attach_tags
+    WebMock.allow_net_connect!
+    item = WTS::Item.new("jeff#{rand(999)}", WTS::Pgsql::TEST.start, log: test_log)
+    item.create(Zold::Id.new, Zold::Key.new(text: OpenSSL::PKey::RSA.new(2048).to_pem))
+    tag = 'hey-you'
+    assert(!item.tags.exists?(tag))
+    item.tags.attach(tag)
+    assert(item.tags.exists?(tag))
+  end
+
   def test_wipes_keygap
     WebMock.allow_net_connect!
     item = WTS::Item.new("jeff#{rand(999)}", WTS::Pgsql::TEST.start, log: test_log)

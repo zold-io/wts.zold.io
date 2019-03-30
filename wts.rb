@@ -452,7 +452,9 @@ get '/create' do
       "from #{anon_ip};",
       job_link(jid)
     )
-    if known?
+    if user.item.tags.exists?('sign-up-bonus')
+      settings.log.debug("Won't send sign-up bonus to #{user.login}, it's already there")
+    elsif known?
       boss = user(settings.config['rewards']['login'])
       amount = Zold::Amount.new(zld: 0.256)
       job(boss) do |jid2, log2|
@@ -473,6 +475,7 @@ get '/create' do
             amount, "WTS signup bonus to #{user.login}"
           )
           ops(boss, log: log2).push
+          user.item.tags.attach('sign-up-bonus')
           settings.telepost.spam(
             "The sign-up bonus of #{amount} has been sent",
             "to #{title_md} from #{anon_ip},",
