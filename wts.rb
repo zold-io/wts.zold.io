@@ -313,8 +313,9 @@ and dated of #{t[:date].utc.iso8601}")
         "  24-hours txns count: [#{settings.gl.count}](https://wts.zold.io/gl)",
         "  Nodes: [#{settings.remotes.all.count}](https://wts.zold.io/remotes)",
         "  Bitcoin price: $#{price.round}",
-        "  Rate: [#{rate.round(6)}](https://wts.zold.io/rate) ($#{(price * rate).round(4)})",
-        "  Coverage: [#{coverage.round(6)}](https://wts.zold.io/rate) / #{(100 * coverage / rate).round}%",
+        "  Rate: [#{format('%.08f', rate)}](https://wts.zold.io/rate) ($#{(price * rate).round(2)})",
+        "  Coverage: [#{format('%.08f', coverage)}](https://wts.zold.io/rate) \
+/ [#{(100 * coverage / rate).round}%](http://papers.zold.io/fin-model.pdf)",
         "  BTC fund: [#{bank.balance.round(4)}](https://wts.zold.io/rate) ($#{(price * bank.balance).round})",
         "\nThanks for staying with us!"
       ].join("\n")
