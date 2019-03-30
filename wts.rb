@@ -1314,6 +1314,8 @@ end
 get '/payables' do
   haml :payables, layout: :layout, locals: merged(
     page_title: 'Payables',
+    rate: rate,
+    price: price,
     payables: settings.payables
   )
 end
