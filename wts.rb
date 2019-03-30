@@ -480,7 +480,7 @@ get '/create' do
           )
         end
       end
-    else
+    elsif !user.mobile?
       settings.telepost.spam(
         "A sign-up bonus won't be sent to #{title_md} from #{anon_ip}",
         "with the wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})",
@@ -1425,8 +1425,7 @@ def fee
 end
 
 def title(suffix = '')
-  login = user.login
-  (/^[0-9]+$/.match?(login) ? "+#{login}" : "@#{login}") + (suffix.empty? ? '' : '/' + suffix)
+  (user.mobile? ? "+#{user.login}" : "@#{user.login}") + (suffix.empty? ? '' : '/' + suffix)
 end
 
 def title_md(u = user)
