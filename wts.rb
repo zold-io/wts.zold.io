@@ -42,6 +42,10 @@ require 'get_process_mem'
 require 'total'
 require 'zold'
 require 'zold/hands'
+require 'zold/log'
+require 'zold/remotes'
+require 'zold/amount'
+require 'zold/json_page'
 require 'zold/sync_wallets'
 require 'zold/cached_wallets'
 require_relative 'objects/wts'
@@ -890,6 +894,7 @@ end
 get '/zld-to-paypal' do
   prohibit('paypal')
   raise WTS::UserError, 'You have to work in Zerocracy in order to cash out to PayPal' unless known?
+  raise WTS::UserError, 'You have to be identified in Zerocracy' unless kyc?
   haml :zld_to_paypal, layout: :layout, locals: merged(
     page_title: title('paypal'),
     rate: rate,
@@ -901,6 +906,8 @@ end
 
 post '/do-zld-to-paypal' do
   prohibit('paypal')
+  raise WTS::UserError, 'You have to work in Zerocracy in order to cash out to PayPal' unless known?
+  raise WTS::UserError, 'You have to be identified in Zerocracy' unless kyc?
   raise WTS::UserError, 'Amount is not provided' if params[:amount].nil?
   raise WTS::UserError, 'Email address is not provided' if params[:email].nil?
   raise WTS::UserError, 'Keygap is not provided' if params[:keygap].nil?
@@ -1493,6 +1500,17 @@ def known?(login = @locals[:guser])
   return true if login == settings.config['rewards']['login']
   return true if login == settings.config['exchange']['login']
   Zold::Http.new(uri: 'https://www.0crat.com/known/' + login).get.code == 200
+end
+
+# This user is identified in Zerocracy.
+def kyc?(login = @locals[:guser])
+  return false unless login
+  return true if ENV['RACK_ENV'] == 'test'
+  return true if login == settings.config['rewards']['login']
+  return true if login == settings.config['exchange']['login']
+  res = Zold::Http.new(uri: 'https://www.0crat.com/known/' + login).get
+  return false unless res.code == 200
+  Zold::JsonPage.new(res.body).to_hash['identified']
 end
 
 def keygap
