@@ -1,0 +1,48 @@
+%script{src: '/js/zld_to_paypal.js'}
+
+%h2
+  Sell Zolds and Receive PayPal
+
+%p
+  The rate is
+  %strong= rate
+  BTC/ZLD, or about
+  = succeed '.' do
+    %strong= "$#{(rate * price).round(2)}"
+  %a{href: '/rate'} Why?
+
+%p
+  To sell your ZLD and receive PayPal just fill this form
+  and we will send you the payment promptly, deducting
+  = "#{(fee * 100)}%"
+  fee:
+
+%form{method: 'POST', action: '/do-zld-to-paypal'}
+  %fieldset
+    %label
+      Your
+      %a{href: 'https://blog.zold.io/2018/07/18/keygap.html'} keygap
+      (is it
+      = succeed '):' do
+        %a{href: 'https://blog.zold.io/2019/03/30/keygap-is-lost.html'} lost?
+    %input{type: 'password', name: 'keygap', autocomplete: 'off', tabindex: 1, autofocus: true, maxlength: 32}
+    %label
+      The amount of ZLD to sell
+      = succeed ':' do
+        - if user.wallet_exists?
+          (your current balance is
+          = succeed ')' do
+            %code= user.wallet(&:balance)
+    %input{type: 'text', id: 'zld', name: 'amount', size: 12, maxlength: 8, autocomplete: 'off', tabindex: 2, oninput: "wts_rerate(#{rate.round(8)}, #{price.round(2)}, #{fee.round(4)});"}
+    %span.small.gray{id: 'out'}
+    %label
+      The
+      %a{href: 'https://www.paypal.com'} PayPal
+      email to receive the payment:
+    %input{type: 'email', name: 'email', maxlength: 50, size: 45, autocomplete: 'off', tabindex: 3}
+    %input{type: 'submit', onclick: "return confirm('Are you sure? This operation is not reversable!')", tabindex: 4}
+
+%p
+  If any issues or the payment is lost, contact us in our
+  = succeed '.' do
+    %a{href: 'https://t.me/zold_io'} Telegram group

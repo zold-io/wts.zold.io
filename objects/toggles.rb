@@ -26,21 +26,25 @@ require_relative 'user_error'
 #
 # Feature toggles.
 #
-class Toggles
-  def initialize(pgsql, log: Log::NULL)
+class WTS::Toggles
+  def initialize(pgsql, log: Zold::Log::NULL)
     @pgsql = pgsql
     @log = log
   end
 
   def set(key, value)
-    @pgsql.exec(
-      [
-        'INSERT INTO toggle (key, value)',
-        'VALUES ($1, $2)',
-        'ON CONFLICT (key) DO UPDATE SET value = $2, updated = NOW()'
-      ].join(' '),
-      [key, value]
-    )
+    if value.empty?
+      @pgsql.exec('DELETE FROM toggle WHERE key = $1', [key])
+    else
+      @pgsql.exec(
+        [
+          'INSERT INTO toggle (key, value)',
+          'VALUES ($1, $2)',
+          'ON CONFLICT (key) DO UPDATE SET value = $2, updated = NOW()'
+        ].join(' '),
+        [key, value]
+      )
+    end
   end
 
   def get(key, default = '')
@@ -50,7 +54,7 @@ class Toggles
   end
 
   def list
-    @pgsql.exec('SELECT * FROM toggle').map do |r|
+    @pgsql.exec('SELECT * FROM toggle ORDER BY key').map do |r|
       {
         key: r['key'],
         value: r['value'],

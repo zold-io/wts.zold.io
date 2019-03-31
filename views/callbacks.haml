@@ -41,8 +41,11 @@
       %col{style: 'width: 2em'}
       %col{style: 'width: 5em'}
       %col{style: 'width: 5em'}
+      %col{style: 'width: 8em'}
+      %col{style: 'width: 3em'}
+      %col{style: 'width: 5em'}
+      %col{style: 'width: 5em'}
       %col{style: ''}
-      %col{style: 'width: 10em'}
     %thead
       %tr
         %th
@@ -54,28 +57,42 @@
         %th
           RegExp
         %th
+          URI
+        %th
           Created
         %th
           Matched
     %tbody
       - list.each do |c|
         %tr
-          %td
-            = c['id']
-          %td
-            %code
-              %a{href: "http://www.zold.io/ledger.html?wallet=#{c['wallet']}"}= c['wallet']
+          %td= c[:id]
           %td
             %code
-              = c['prefix']
+              %a{href: "http://www.zold.io/ledger.html?wallet=#{c[:wallet]}"}= c[:wallet]
           %td
-            %code
-              = c['regexp']
-          %td{title: Time.parse(c['created']).utc.iso8601}
-            = Zold::Age.new(Time.parse(c['created']))
+            %code= c[:prefix]
           %td
-            - if c['matched']
-              %span{title: Time.parse(c['matched']).utc.iso8601}
-                = Zold::Age.new(Time.parse(c['matched']))
+            %code= c[:regexp]
+          %td
+            %a{href: c[:uri]}= '&#128279;'
+          %td{title: c[:created].utc.iso8601}
+            = Zold::Age.new(c[:created])
+          %td
+            - if c[:matched]
+              %span{title: c[:matched].utc.iso8601}
+                = Zold::Age.new(c[:matched])
             - else
               = '&mdash;'
+        - unless c[:failure].nil?
+          %tr
+            %td
+            %td.gray.small{colspan: '6'}
+              = CGI.escapeHTML(c[:failure]).gsub(/([^ ]{16})/, '\1&shy;')
+  %p
+    If callback is not matched within 24 hours, it will automatically be deleted.
+
+%p
+  To monitor our Callback API activity you may want
+  to subscribe to this
+  = succeed '.' do
+    %a{href: 'https://t.me/zold_wts'} Telegram channel

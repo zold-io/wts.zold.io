@@ -22,12 +22,28 @@ require 'backtrace'
 require 'bitcoin'
 require 'zold/http'
 require 'zold/json_page'
+require_relative 'wts'
 require_relative 'user_error'
 
 #
 # BTC gateway.
 #
-class Btc
+class WTS::Btc
+  # Fake
+  class Fake
+    def price
+      4000
+    end
+
+    def monitor(_)
+      # nothing
+    end
+
+    def create
+      { hash: '1yrhsahfdjdfkjslk', pvt: '', pub: '' }
+    end
+  end
+
   def initialize(log: Zold::Log::NULL)
     @log = log
   end

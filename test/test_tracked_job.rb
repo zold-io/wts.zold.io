@@ -24,18 +24,17 @@ require_relative 'test__helper'
 require_relative '../objects/jobs'
 require_relative '../objects/tracked_job'
 
-class TrackedJobTest < Minitest::Test
+class WTS::TrackedJobTest < Minitest::Test
   def test_simple_call
     done = false
     WebMock.allow_net_connect!
-    jobs = Jobs.new(Pgsql::TEST.start, log: test_log)
-    id = jobs.start
-    job = TrackedJob.new(
+    jobs = WTS::Jobs.new(WTS::Pgsql::TEST.start, log: test_log)
+    id = jobs.start('me')
+    job = WTS::TrackedJob.new(
       proc { done = true },
-      id,
       jobs
     )
-    job.call
+    job.call(id)
     assert_equal('OK', jobs.read(id))
   end
 end

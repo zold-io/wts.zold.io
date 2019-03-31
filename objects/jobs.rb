@@ -20,14 +20,15 @@
 
 require 'zold/log'
 require 'securerandom'
+require_relative 'wts'
 require_relative 'pgsql'
 require_relative 'user_error'
 
 #
 # Background jobs.
 #
-class Jobs
-  def initialize(pgsql, log: Log::NULL)
+class WTS::Jobs
+  def initialize(pgsql, log: Zold::Log::NULL)
     @pgsql = pgsql
     @log = log
   end
@@ -38,25 +39,54 @@ class Jobs
   end
 
   # Start a new job and return its ID
-  def start
+  def start(login)
     @pgsql.exec(
       'UPDATE job SET log = $1 WHERE started < NOW() - INTERVAL \'1 HOURS\'',
       ['We are sorry, but most probably the job is lost; try again...']
     )
     uuid = SecureRandom.uuid
-    @pgsql.exec('INSERT INTO job (id, log) VALUES ($1, $2)', [uuid, 'Running'])
+    @pgsql.exec('INSERT INTO job (id, log, login) VALUES ($1, $2, $3)', [uuid, 'Running', login])
     uuid
   end
 
-  # Read the Job log (OK, or backtrace or 'Running')
+  # Returns job status, like "OK", "Running", or "Error"
+  def status(id)
+    status = read(id)
+    status = 'Error' if status != 'OK' && status != 'Running'
+    status
+  end
+
+  # Read the Job result (OK, or backtrace or 'Running')
   def read(id)
     rows = @pgsql.exec('SELECT log FROM job WHERE id = $1', [id])
-    raise UserError, "Job #{id} not found" if rows.empty?
+    raise WTS::UserError, "Job #{id} not found" if rows.empty?
     rows[0]['log']
   end
 
   # Update the log
   def update(id, log)
     @pgsql.exec('UPDATE job SET log = $2 WHERE id = $1', [id, log])
+  end
+
+  # Add result of the job.
+  def result(id, key, value)
+    @pgsql.exec(
+      'INSERT INTO result (job, key, value) VALUES ($1, $2, $3) ON CONFLICT (job, key) DO UPDATE SET value = $3',
+      [id, key, value]
+    )
+  end
+
+  # Get all job results.
+  def results(id)
+    @pgsql.exec('SELECT key, value FROM result WHERE job = $1', [id]).map do |r|
+      [r['key'], r['value']]
+    end.to_h
+  end
+
+  # Read the Job full output
+  def output(id)
+    rows = @pgsql.exec('SELECT output FROM job WHERE id = $1', [id])
+    raise WTS::UserError, "Job #{id} not found" if rows.empty?
+    rows[0]['output']
   end
 end

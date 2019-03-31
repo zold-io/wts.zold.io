@@ -24,13 +24,13 @@ require 'zold/key'
 require_relative 'test__helper'
 require_relative '../objects/keygap'
 
-class KeygapTest < Minitest::Test
+class WTS::KeygapTest < Minitest::Test
   def test_extracts_and_merges_back
     (10..30).each do |length|
       pvt = OpenSSL::PKey::RSA.new(2048)
-      pem, keygap = Keygap.new.extract(Zold::Key.new(text: pvt.to_pem), length)
+      pem, keygap = WTS::Keygap.new.extract(Zold::Key.new(text: pvt.to_pem), length)
       assert_equal(length, keygap.length)
-      key = Keygap.new.merge(pem, keygap)
+      key = WTS::Keygap.new.merge(pem, keygap)
       assert(!key.nil?)
     end
   end

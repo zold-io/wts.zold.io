@@ -28,6 +28,8 @@
       %br
       File size:
       = "#{Zold::Size.new(w.size)}"
+      = '/'
+      %a{href: '/download'} Download
       %br
       Modified:
       = "#{w.mtime.utc.iso8601} (#{Zold::Age.new(w.mtime.utc.iso8601)} ago)"
@@ -111,7 +113,7 @@
                   %code{title: 'prefix: ' + t.prefix}
                     = t.bnf
               %td
-                = t.details.gsub(/([^ ]{16})/, '\1&shy;')
+                = CGI.escapeHTML(t.details).gsub(/([^ ]{16})/, '\1&shy;')
           - if @last && txns.count == max
             %tr
               %td.center{colspan: 5}

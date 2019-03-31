@@ -18,7 +18,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require 'time'
 require 'zold/http'
+require 'zold/id'
 require_relative 'pgsql'
 require_relative 'user_error'
 
@@ -26,8 +28,8 @@ require_relative 'user_error'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class Callbacks
-  def initialize(pgsql, log: Log::NULL)
+class WTS::Callbacks
+  def initialize(pgsql, log: Zold::Log::NULL)
     @pgsql = pgsql
     @log = log
   end
@@ -35,7 +37,12 @@ class Callbacks
   # Adds a new callback
   def add(login, wallet, prefix, regexp, uri, token = 'none')
     total = @pgsql.exec('SELECT COUNT(*) FROM callback WHERE login = $1', [login])[0]['count'].to_i
-    raise UserError, "You have too many of them already: #{total}" if total >= 8
+    raise WTS::UserError, "You have too many of them already: #{total}" if total >= 8
+    found = @pgsql.exec(
+      'SELECT id FROM callback WHERE login = $1 AND wallet = $2 AND prefix = $3 AND regexp = $4 AND uri = $5',
+      [login, wallet, prefix, regexp, uri]
+    )[0]
+    raise UserErorr, "You already have a callback ##{found['id']} registered with similar params" unless found.nil?
     cid = @pgsql.exec(
       [
         'INSERT INTO callback (login, wallet, prefix, regexp, uri, token)',
@@ -44,7 +51,7 @@ class Callbacks
       ].join(' '),
       [login, wallet, prefix, regexp, uri, token]
     )[0]['id'].to_i
-    @log.info("New callback ##{cid} registered by #{login} for wallet #{wallet}, \
+    @log.debug("New callback ##{cid} registered by #{login} for wallet #{wallet}, \
 prefix \"#{prefix}\", regexp #{regexp}, and URI: #{uri}")
     cid
   end
@@ -61,33 +68,31 @@ prefix \"#{prefix}\", regexp #{regexp}, and URI: #{uri}")
       next if id.empty?
       mid = id[0]['id'].to_i
       found << mid
-      @log.info("Callback ##{r['id']} of #{r['login']} just matched in #{wallet}/#{prefix} \
-with \"#{details}\", match ##{mid}")
+      yield(map(r), mid) if block_given?
     end
     found
   end
 
-  def fetch(login)
+  def fetch(login, limit: 50)
     @pgsql.exec(
       [
-        'SELECT callback.*, match.created AS matched FROM callback',
+        'SELECT callback.*, match.created AS matched, match.failure AS failure FROM callback',
         'LEFT JOIN match ON match.callback = callback.id',
-        'WHERE login = $1'
+        'WHERE login = $1',
+        'ORDER BY matched DESC, callback.created DESC',
+        'LIMIT $2'
       ].join(' '),
-      [login]
-    )
+      [login, limit]
+    ).map { |r| map(r) }
   end
 
   # Ping them all.
   def ping
-    @pgsql.exec('DELETE FROM callback WHERE created < NOW() - INTERVAL \'24 HOURS\'')
-    @pgsql.exec(
-      [
-        'DELETE FROM callback WHERE id IN',
-        '(SELECT callback FROM match WHERE created < NOW() - INTERVAL \'4 HOURS\')'
-      ].join(' ')
-    )
-    @pgsql.exec('SELECT callback.* FROM callback JOIN match ON callback.id = match.callback').each do |r|
+    q = [
+      'SELECT callback.*, match.id AS mid',
+      'FROM callback JOIN match ON callback.id = match.callback'
+    ].join(' ')
+    @pgsql.exec(q).each do |r|
       login = r['login']
       cid = r['id'].to_i
       txns = yield(login, Zold::Id.new(r['wallet']), r['prefix'], Regexp.new(r['regexp']))
@@ -104,19 +109,77 @@ with \"#{details}\", match ##{mid}")
           details: t.details,
           token: r['token']
         }
-        res = Zold::Http.new(uri: r['uri'] + '?' + args.map { |k, v| "#{k}=#{CGI.escape(v.to_s)}" }.join('&')).get
-        msg = "The callback ##{cid} of #{login} "
-        if res.code == 200 && res.body == 'OK'
-          @pgsql.exec('DELETE FROM callback WHERE id = $1', [cid])
-          @log.info("Callback ##{cid} of #{login} deleted")
-          msg += "success at #{r['uri']}, wallet=#{r['wallet']}, amount=#{t.amount}"
-        else
-          msg += "failure at #{r['uri']}: #{res.code} #{res.status_line}"
-        end
-        msg += "; there are still \
-#{@pgsql.exec('SELECT COUNT(*) FROM callback WHERE login=$1', [login])[0]['count']} callbacks active"
-        @log.info(msg)
+        uri = r['uri'] + '?' + args.map { |k, v| "#{k}=#{CGI.escape(v.to_s)}" }.join('&')
+        res = Zold::Http.new(uri: uri).get
+        @pgsql.exec(
+          'UPDATE match SET failure = $1 WHERE id = $2',
+          [failure(res, uri), r['mid'].to_i]
+        )
       end
     end
+  end
+
+  # Delete all succeeded callbacks.
+  def delete_succeeded
+    q = [
+      'SELECT callback.* FROM callback',
+      'JOIN match ON match.callback = callback.id',
+      'WHERE match.failure = \'\''
+    ].join(' ')
+    @pgsql.exec(q).each do |r|
+      c = map(r)
+      @pgsql.exec('DELETE FROM callback WHERE id = $1', [c[:id]])
+      yield c if block_given?
+    end
+  end
+
+  # Delete all expired callbacks.
+  def delete_expired
+    @pgsql.exec('SELECT * FROM callback WHERE created < NOW() - INTERVAL \'24 HOURS\'').each do |r|
+      c = map(r)
+      @pgsql.exec('DELETE FROM callback WHERE id = $1', [c[:id]])
+      yield c if block_given?
+    end
+  end
+
+  def delete_failed
+    q = [
+      'SELECT callback.* FROM callback',
+      'JOIN match ON match.callback = callback.id',
+      'WHERE match.created < NOW() - INTERVAL \'4 HOURS\''
+    ].join(' ')
+    @pgsql.exec(q).each do |r|
+      c = map(r)
+      @pgsql.exec('DELETE FROM callback WHERE id = $1', [c[:id]])
+      yield c if block_given?
+    end
+  end
+
+  private
+
+  def failure(res, uri)
+    if res.code != 200
+      "#{Time.now.utc.iso8601}: HTTP response code at #{uri} was #{res.code} \
+instead of 200: #{res.status_line.inspect}"
+    elsif res.body != 'OK'
+      "#{Time.now.utc.iso8601}: HTTP response body at #{uri} was not equal to 'OK' \
+even though response code was 200: #{res.body.inspect}"
+    else
+      ''
+    end
+  end
+
+  def map(r)
+    {
+      id: r['id'].to_i,
+      login: r['login'],
+      uri: URI(r['uri']),
+      wallet: Zold::Id.new(r['wallet']),
+      prefix: r['prefix'],
+      regexp: Regexp.new(r['regexp']),
+      matched: r['matched'] ? Time.parse(r['matched']) : nil,
+      failure: r['failure'],
+      created: Time.parse(r['created'])
+    }
   end
 end

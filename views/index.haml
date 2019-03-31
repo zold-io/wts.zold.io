@@ -1,11 +1,4 @@
 %p
-  Login via
-  %a{href: login_link} GitHub
-  or
-  = succeed '.' do
-    %a{href: '/mobile_send'} mobile phone
-
-%p
   %a{href: 'https://www.zold.io'} Zold
   is a fast cryptocurrency for micro payments.
   Read the
@@ -13,7 +6,6 @@
   to understand how it works.
   This web console is a simplified replacement of a command line wallets manager.
   There is only one wallet per user.
-  To start using the system you must be authenticated via GitHub (create an account there if you don't have it yet).
 
 %p
   Once you sign-up, you will receive a bonus of
@@ -22,6 +14,12 @@
   However, this will happen only if you are a member of Zerocracy
   = succeed '.' do
     %a{href: 'https://www.0crat.com/team'} team
+  BTW, you can use your GitHub account to
+  = succeed ',' do
+    %a{href: login_link} login
+  but only if you work in
+  = succeed '.' do
+    %a{href: 'https://www.0crat.com/team'} Zerocracy
 
 %p
   The exchange rate is
@@ -29,6 +27,6 @@
   BTC per 1 ZLD.
 
 %p
-  Don't forget to give us a
+  Don't forget to give us
   %a{href: 'https://github.com/zold-io/zold/stargazers'} GitHub
   star!

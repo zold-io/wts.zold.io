@@ -21,21 +21,22 @@
 require 'minitest/autorun'
 require 'webmock/minitest'
 require 'zold/amount'
+require 'telepost'
 require_relative 'test__helper'
 require_relative '../objects/pgsql'
 require_relative '../objects/callbacks'
 
-class CallbacksTest < Minitest::Test
+class WTS::CallbacksTest < Minitest::Test
   def test_register_and_ping
     WebMock.allow_net_connect!
-    callbacks = Callbacks.new(Pgsql::TEST.start, log: test_log)
+    callbacks = WTS::Callbacks.new(WTS::Pgsql::TEST.start, log: test_log)
     id = Zold::Id.new
     login = 'yegor256'
     callbacks.add(login, id.to_s, 'NOPREFIX', /pizza/, 'http://localhost:888/')
     assert_equal(1, callbacks.fetch(login).count)
-    assert(callbacks.fetch(login)[0]['matched'].nil?)
+    assert(callbacks.fetch(login)[0][:matched].nil?)
     assert(!callbacks.match(id.to_s, 'NOPREFIX', 'for pizza').empty?)
-    assert(!callbacks.fetch(login)[0]['matched'].nil?)
+    assert(!callbacks.fetch(login)[0][:matched].nil?)
     assert(callbacks.match(id.to_s, 'NOPREFIX', 'for pizza').empty?)
     get = stub_request(:get, /localhost:888/).to_return(status: 200, body: 'OK')
     callbacks.ping do
@@ -48,6 +49,9 @@ class CallbacksTest < Minitest::Test
         )
       ]
     end
+    callbacks.delete_succeeded
+    callbacks.delete_failed
+    callbacks.delete_expired
     assert_requested(get, times: 1)
   end
 end

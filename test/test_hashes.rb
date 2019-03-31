@@ -24,10 +24,10 @@ require_relative 'test__helper'
 require_relative '../objects/pgsql'
 require_relative '../objects/hashes'
 
-class HashesTest < Minitest::Test
+class WTS::HashesTest < Minitest::Test
   def test_saves_hash_and_loads
     WebMock.allow_net_connect!
-    btc = Hashes.new(Pgsql::TEST.start, log: test_log)
+    btc = WTS::Hashes.new(WTS::Pgsql::TEST.start, log: test_log)
     hash = 'c3c0a51ff985618dd8373eadf3540fd1bea44d676452dbab47fe0cc07209547e'
     assert(!btc.seen?(hash))
     btc.add(hash, 'jeff123', 'c3c0a51ff985618d')

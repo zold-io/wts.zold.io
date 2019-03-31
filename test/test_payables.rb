@@ -26,26 +26,42 @@ require_relative 'test__helper'
 require_relative '../objects/pgsql'
 require_relative '../objects/payables'
 
-class PayablesTest < Minitest::Test
+class WTS::PayablesTest < Minitest::Test
   def test_add_and_fetch
     WebMock.disable_net_connect!
     Dir.mktmpdir 'test' do |dir|
       remotes = Zold::Remotes.new(file: File.join(dir, 'remotes.csv'))
       remotes.clean
-      stub_request(:get, 'http://b2.zold.io:4096/wallets').to_return(
-        status: 200, body: '0000111122223333'
-      )
-      remotes.add('b2.zold.io', 4096)
-      stub_request(:get, 'http://b2.zold.io:4096/wallet/0000111122223333/balance').to_return(
-        status: 200, body: '1234567'
-      )
-      payables = Payables.new(Pgsql::TEST.start, remotes, log: test_log)
+      remotes.masters
+      masters = remotes.all.take(2)
+      remotes.all.each_with_index { |r, idx| remotes.remove(r[:host], r[:port]) if idx.positive? }
+      wallets = %w[0000111122223333 ffffeeeeddddcccc 0123456701234567 9090909090909090 a1a1a1a1a1a1a1a1]
+      masters.each do |m|
+        stub_request(:get, "http://#{m[:host]}:#{m[:port]}/wallets").to_return(
+          status: 200, body: wallets.join("\n")
+        )
+      end
+      remotes.add('localhost', 444)
+      masters.each do |m|
+        remotes.add(m[:host], m[:port])
+      end
+      remotes.add('localhost', 123)
+      masters.each do |m|
+        wallets.each do |id|
+          stub_request(:get, "http://#{m[:host]}:#{m[:port]}/wallet/#{id}").to_return(
+            status: 200, body: '{ "balance": 1234567, "txns": 5 }'
+          )
+        end
+      end
+      payables = WTS::Payables.new(WTS::Pgsql::TEST.start, remotes, log: test_log)
       payables.discover
-      assert_equal(1, payables.fetch.count)
-      payables.update
+      assert_equal(wallets.count, payables.fetch.count)
+      payables.update(max: wallets.count)
+      payables.remove_banned
       assert_equal(Zold::Amount.new(zents: 1_234_567), payables.fetch[0][:balance])
-      assert(payables.total >= 1)
+      assert(payables.total >= wallets.count)
       assert(payables.balance > Zold::Amount::ZERO)
+      assert(payables.txns >= wallets.count)
     end
   end
 end

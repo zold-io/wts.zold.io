@@ -27,7 +27,7 @@ require_relative 'user_error'
 #
 # Job async.
 #
-class AsyncJob
+class WTS::AsyncJob
   def initialize(job, pool, lock, log: Zold::Log::NULL)
     @job = job
     @pool = pool
@@ -35,10 +35,10 @@ class AsyncJob
     @log = log
   end
 
-  def call
+  def call(jid)
     @pool.post do
       Futex.new(@lock, lock: @lock, log: @log, timeout: 10 * 60).open do
-        @job.call
+        @job.call(jid)
       end
     rescue StandardError => e
       @log.error(Backtrace.new(e))

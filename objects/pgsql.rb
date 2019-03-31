@@ -19,12 +19,13 @@
 # SOFTWARE.
 
 require 'pg'
+require_relative 'wts'
 
 # The PostgreSQL connector.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class Pgsql
+class WTS::Pgsql
   def initialize(host: 'localhost', port: 0, dbname: 'test', user: 'test', password: 'test')
     @host = host
     @port = port
@@ -43,7 +44,7 @@ class Pgsql
   end
 
   # Test connection
-  TEST = Pgsql.new
+  TEST = WTS::Pgsql.new
 
   def exec(query, args = [], result = 0)
     connect do |c|

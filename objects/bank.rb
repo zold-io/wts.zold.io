@@ -21,16 +21,21 @@
 require 'backtrace'
 require 'zold/log'
 require 'coinbase/wallet'
+require_relative 'wts'
 require_relative 'user_error'
 
 #
 # BTC sending out gateway (via Coinbase).
 #
-class Bank
+class WTS::Bank
   # Fake gateway
   class Fake
     def send(_address, _usd, _description)
       # nothing
+    end
+
+    def balance
+      1
     end
   end
 
@@ -50,7 +55,9 @@ class Bank
   # Send BTC
   def send(address, usd, details)
     acc = Coinbase::Wallet::Client.new(api_key: @key, api_secret: @secret).account(@account)
-    acc.send(to: address, amount: usd, currency: 'USD', description: details)
+    response = acc.send(to: address, amount: usd, currency: 'USD', description: details)
+    @log.info("Coinbase payment has been sent, their transaction ID is #{response['id']}")
+    response['id']
   rescue StandardError => e
     @log.error(Backtrace.new(e))
     raise "Failed to send \"#{usd}\" to \"#{address}\" with details of \"#{details}\": #{e.message}"

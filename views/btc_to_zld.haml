@@ -1,11 +1,5 @@
 %h2
-  Buy/Sell Zolds
-
-- if confirmed_user.wallet_exists?
-  %p
-    Your current balance is
-    = succeed '.' do
-      %code= confirmed_user.wallet(&:balance)
+  Send Us Bitcoins and Receive Zolds
 
 %p
   The rate is
@@ -23,7 +17,7 @@
     The payment
     %strong.green has arrived
     to the address
-    %code= address
+    %code= "#{address[0..16]}..."
     assigned to your account, just
     %strong= ((Time.now - settings.addresses.mtime(confirmed_user.login)) / 60).round
     minutes ago. Once we receive a few more Blockchain confirmations,
@@ -32,11 +26,12 @@
     If not, ask for help in our
     = succeed '.' do
       %a{href: 'https://t.me/zold_io'} Telegram group
+    %strong.red Don't
+    send any more bitcoins to the same address!
+    Wait until we process the current payment and give you a new address.
   - else
     %img{style: 'float:right;margin-left:1em;margin-bottom:1em;', src: "https://chart.googleapis.com/chart?chs=128x128&cht=qr&chl=bitcoin:#{address}"}
-    To
-    %strong buy
-    ZLD just send your BTC to this wallet:
+    To buy ZLD just send your BTC to this wallet:
     = succeed '.' do
       %code= address
     Once your payment is completed in the Bitcoin network, you will get ZLD
@@ -47,37 +42,6 @@
     When the payment is received, you will find a new address for the next payment, at this page.
     %strong.red Don't
     sent more than one payment to the same address!
-
-%p
-  To
-  %strong sell
-  your ZLD and receive BTC just fill this form
-  and we will send you the payment promptly, deducting
-  = "#{(fee * 100)}%"
-  fee:
-
-%form{method: 'POST', action: '/do-sell'}
-  %fieldset
-    %label
-      Your
-      = succeed ':' do
-        %a{href: 'https://blog.zold.io/2018/07/18/keygap.html'} keygap
-    %input{type: 'text', name: 'keygap', placeholder: 'Your secret...', autocomplete: 'off', tabindex: 1, autofocus: true}
-    %label The amount of ZLD to sell:
-    %input{type: 'text', name: 'amount', size: 12, autocomplete: 'off', tabindex: 2}
-    %label
-      Bitcoin
-      %a{href: 'https://en.bitcoin.it/wiki/Address'} address
-      to send to, in
-      = succeed ',' do
-        %a{href: 'https://en.bitcoin.it/wiki/Transaction#Pay-to-PubkeyHash'} P2PKH
-      = succeed ',' do
-        %a{href: 'https://en.bitcoin.it/wiki/Pay_to_script_hash'} P2SH
-      or
-      %a{href: 'https://en.bitcoin.it/wiki/Bech32'} Bech32
-      format:
-    %input{type: 'text', name: 'btc', maxlength: 50, size: 45, autocomplete: 'off', tabindex: 3}
-    %input{type: 'submit', onclick: "return confirm('Are you sure? This operation is not reversable!')", tabindex: 4}
 
 %p
   This

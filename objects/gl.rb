@@ -29,8 +29,8 @@ require_relative 'pgsql'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class Gl
-  def initialize(pgsql, log: Log::NULL)
+class WTS::Gl
+  def initialize(pgsql, log: Zold::Log::NULL)
     @pgsql = pgsql
     @log = log
   end
@@ -63,9 +63,14 @@ class Gl
     end
   end
 
-  def fetch(since: Time.now, limit: 50)
+  def fetch(since: Time.now, limit: 50, query: '')
     raise 'Since has to be of time Time' unless since.is_a?(Time)
-    @pgsql.exec('SELECT * FROM txn WHERE date <= $1 ORDER BY date DESC LIMIT $2', [since.utc.iso8601, limit]).map do |r|
+    q = [
+      'SELECT * FROM txn WHERE date <= $1',
+      'AND ($3 = \'\' OR source = $3 OR target = $3 OR details LIKE $3)',
+      'ORDER BY date DESC LIMIT $2'
+    ].join(' ')
+    @pgsql.exec(q, [since.utc.iso8601, limit, query]).map do |r|
       map(r)
     end
   end
@@ -76,6 +81,12 @@ class Gl
         "SELECT SUM(amount) FROM txn WHERE date > NOW() - INTERVAL \'#{hours} HOURS\'"
       )[0]['sum'].to_i
     )
+  end
+
+  def count(hours = 24)
+    @pgsql.exec(
+      "SELECT COUNT(*) FROM txn WHERE date > NOW() - INTERVAL \'#{hours} HOURS\'"
+    )[0]['count'].to_i
   end
 
   private

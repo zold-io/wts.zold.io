@@ -21,10 +21,9 @@
 #
 # Tee log.
 #
-class TeeLog
+class WTS::TeeLog
   def initialize(first, second)
     @first = first
-    raise 'Second log has to be of type FileLog' unless second.is_a?(FileLog)
     @second = second
   end
 

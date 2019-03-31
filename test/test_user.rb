@@ -20,24 +20,23 @@
 
 require 'minitest/autorun'
 require 'tmpdir'
-require 'zold/amount'
-require 'zold/wallets'
-require 'zold/remotes'
-require 'zold/id'
 require 'webmock/minitest'
-require_relative 'test__helper'
-require_relative '../objects/dynamo'
-require_relative '../objects/user'
+require 'zold/amount'
+require 'zold/id'
+require 'zold/remotes'
+require 'zold/wallets'
 require_relative '../objects/item'
+require_relative '../objects/user'
+require_relative 'test__helper'
 
-class UserTest < Minitest::Test
+class WTS::UserTest < Minitest::Test
   def test_creates
     WebMock.allow_net_connect!
     Dir.mktmpdir 'test' do |dir|
       wallets = Zold::Wallets.new(File.join(dir, 'wallets'))
       login = 'jeffrey'
-      user = User.new(
-        login, Item.new(login, Dynamo.new.aws, log: test_log),
+      user = WTS::User.new(
+        login, WTS::Item.new(login, WTS::Pgsql::TEST.start, log: test_log),
         wallets, log: test_log
       )
       user.create

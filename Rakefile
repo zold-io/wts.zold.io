@@ -22,19 +22,21 @@ STDOUT.sync = true
 
 require 'rubygems'
 require 'rake'
+require 'yaml'
+require 'shellwords'
 require 'rdoc'
 require 'rake/clean'
 require 'English'
-require_relative 'objects/dynamo'
 
 ENV['RACK_ENV'] = 'test'
 
-task default: %i[clean test rubocop xcop copyright]
+task default: %i[clean test rubocop xcop eslint copyright]
 
 require 'rake/testtask'
 desc 'Run all unit tests'
-Rake::TestTask.new(test: %i[dynamo liquibase]) do |test|
+Rake::TestTask.new(test: :liquibase) do |test|
   Rake::Cleaner.cleanup_files(['coverage'])
+  ENV['TEST_QUIET_LOG'] = 'true' if ARGV.include?('--quiet')
   test.libs << 'lib' << 'test'
   test.pattern = 'test/**/test_*.rb'
   test.verbose = true
@@ -48,6 +50,12 @@ RuboCop::RakeTask.new(:rubocop) do |task|
   task.requires << 'rubocop-rspec'
 end
 
+require 'eslintrb/eslinttask'
+Eslintrb::EslintTask.new :eslint do |t|
+  t.pattern = 'assets/js/**/*.js'
+  t.options = :defaults
+end
+
 require 'xcop/rake_task'
 desc 'Validate all XML/XSL/XSD/HTML files for formatting'
 Xcop::RakeTask.new :xcop do |task|
@@ -56,33 +64,14 @@ Xcop::RakeTask.new :xcop do |task|
   task.excludes = ['target/**/*', 'coverage/**/*']
 end
 
-desc 'Start DynamoDB Local server'
-task :dynamo do
-  FileUtils.rm_rf('dynamodb-local/target')
-  pid = Process.spawn('mvn', 'install', '--quiet', chdir: 'dynamodb-local')
-  at_exit do
-    `kill -TERM #{pid}`
-    puts "DynamoDB Local killed in PID #{pid}"
-  end
-  begin
-    puts 'DynamoDB Local table: ' + Dynamo.new.aws.describe_table(
-      table_name: 'zold-wallets'
-    )[:table][:table_status]
-  rescue Exception => e
-    puts e.message
-    sleep(5)
-    retry
-  end
-  puts "DynamoDB Local is running in PID #{pid}"
-end
-
 desc 'Start PostgreSQL Local server'
 task :pgsql do
   FileUtils.mkdir_p('target')
   dir = File.expand_path(File.join(Dir.pwd, 'target/pgsql'))
   FileUtils.rm_rf(dir)
   File.write('target/pwfile', 'test')
-  system("initdb --auth=trust -D #{dir} --username=test --pwfile=target/pwfile 2>&1")
+  out = "2>&1 #{ARGV.include?('--quiet') ? '>/dev/null' : ''}"
+  system("initdb --auth=trust -D #{dir} --username=test --pwfile=target/pwfile #{out}")
   raise unless $CHILD_STATUS.exitstatus.zero?
   port = `python -c 'import socket; s=socket.socket(); s.bind(("", 0)); print(s.getsockname()[1]); s.close()'`.to_i
   pid = Process.spawn('postgres', '-k', dir, '-D', dir, "--port=#{port}")
@@ -93,7 +82,7 @@ task :pgsql do
   sleep 1
   attempt = 0
   begin
-    system("createdb -h localhost -p #{port} --username=test test 2>&1")
+    system("createdb -h localhost -p #{port} --username=test test #{out}")
     raise unless $CHILD_STATUS.exitstatus.zero?
   rescue StandardError => e
     puts e.message
@@ -119,9 +108,18 @@ task :pgsql do
 end
 
 desc 'Update the database via Liquibase'
-task liquibase: %i[pgsql] do
+task liquibase: :pgsql do
   yml = YAML.safe_load(File.open(File.exist?('config.yml') ? 'config.yml' : 'target/config.yml'))
-  system("mvn -f liquibase verify \"-Durl=#{yml['pgsql']['url']}\" --errors 2>&1")
+  system(
+    [
+      'mvn -f liquibase verify',
+      "-Durl=#{Shellwords.escape(yml['pgsql']['url'])}",
+      '--errors',
+      "-Dliquibase.logging=#{ARGV.include?('--quiet') ? 'severe' : 'info'}",
+      ARGV.include?('--quiet') ? '--quiet' : '',
+      '2>&1'
+    ].join(' ')
+  )
   raise unless $CHILD_STATUS.exitstatus.zero?
 end
 
@@ -133,7 +131,7 @@ task :sleep do
   end
 end
 
-task run: %i[dynamo pgsql liquibase] do
+task run: :liquibase do
   puts 'Starting the app...'
   system('rerun -b "RACK_ENV=test ruby wts.rb"')
 end

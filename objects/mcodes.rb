@@ -25,10 +25,14 @@ require_relative 'user_error'
 #
 # Mobile codes.
 #
-class Mcodes
-  def initialize(pgsql, log: Log::NULL)
+class WTS::Mcodes
+  def initialize(pgsql, log: Zold::Log::NULL)
     @pgsql = pgsql
     @log = log
+  end
+
+  def exists?(phone)
+    !@pgsql.exec('SELECT code FROM mcode WHERE phone = $1', [phone]).empty?
   end
 
   def set(phone, code)
@@ -39,7 +43,7 @@ class Mcodes
 
   def get(phone)
     r = @pgsql.exec('SELECT code FROM mcode WHERE phone = $1', [phone])[0]
-    raise UserError, "There is not code associated with #{phone}" if r.nil?
+    raise WTS::UserError, "There is not the code associated with #{phone}" if r.nil?
     r['code'].to_i
   end
 

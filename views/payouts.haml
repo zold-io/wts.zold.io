@@ -1,13 +1,29 @@
 %h2
   Payouts
 
+%p
+  Total system consumption (day/week/month):
+  = succeed ';' do
+    %code= system_consumed
+  system limits:
+  = succeed '.' do
+    %code= system_limits
+
+%p
+  Your consumption:
+  = succeed ';' do
+    %code= consumed
+  your limits:
+  = succeed '.' do
+    %code= limits
+
 - list = payouts.fetch(confirmed_user.login)
 
 - if list.empty?
   %p
     There are no payouts as of yet.
     If you have any ZLD in your wallet, you can
-    %a{here: '/btc'} sell them
+    %a{here: '/buy-sell'} sell them
     any time.
 - else
   %p
@@ -26,7 +42,7 @@
         %th
           Wallet
         %th
-          Amount
+          ZLD
         %th
           Created
         %th
@@ -44,7 +60,7 @@
           %td{title: p[:created].utc.iso8601}
             = Zold::Age.new(p[:created])
           %td
-            = p[:details]
+            = CGI.escapeHTML(p[:details]).gsub(/([^ ]{16})/, '\1&shy;')
 
 - if confirmed_user.login == 'yegor256'
   %p
@@ -64,7 +80,7 @@
         %th
           Wallet
         %th
-          Amount
+          ZLD
         %th
           Created
         %th
@@ -82,4 +98,4 @@
           %td{title: p[:created].utc.iso8601}
             = Zold::Age.new(p[:created])
           %td
-            = p[:details]
+            = CGI.escapeHTML(p[:details]).gsub(/([^ ]{16})/, '\1&shy;')

@@ -28,7 +28,13 @@
       to migrate yet, but you can, of course.
 
 %form{method: 'GET', action: '/do-migrate'}
-  %input{type: 'text', name: 'keygap', placeholder: 'Your keygap...', autocomplete: 'off', tabindex: 1, autofocus: true}
+  %label
+    Your
+    %a{href: 'https://blog.zold.io/2018/07/18/keygap.html'} keygap
+    (it is
+    = succeed '):' do
+      %a{href: 'https://blog.zold.io/2019/03/30/keygap-is-lost.html'} lost?
+  %input{type: 'password', name: 'keygap', autocomplete: 'off', tabindex: 1, autofocus: true}
   %input{type: 'submit', value: 'Migrate'}
 
 %p

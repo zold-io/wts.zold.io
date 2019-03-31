@@ -12,36 +12,35 @@
 #
 # THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFINGEMENT. IN NO EVENT SHALL THE
 # AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'raven'
-require 'backtrace'
-require 'zold/log'
+require 'minitest/autorun'
+require 'webmock/minitest'
+require_relative 'test__helper'
+require_relative '../objects/wts'
+require_relative '../objects/paypal'
 
-#
-# Daemon thread.
-#
-class Daemon
-  def initialize(log)
-    @log = log
-  end
-
-  def run(min = 1)
-    Thread.new do
-      sleep(10) # to let the code of wts.rb load into Ruby interpreter
-      loop do
-        begin
-          yield
-        rescue StandardError => e
-          Raven.capture_exception(e)
-          @log.error(Backtrace.new(e))
-        end
-        sleep(min * 60)
-      end
-    end
+class WTS::PayPalTest < Minitest::Test
+  def test_sends_paypal
+    skip
+    WebMock.allow_net_connect!
+    pp = WTS::PayPal.new(
+      {
+        id: 'Aayp...',
+        secret: 'EDP...',
+        email: 'pp@zerocracy.com',
+        login: '...',
+        password: '...',
+        signature: '...',
+        appid: 'APP-...'
+      },
+      log: test_log
+    )
+    key = pp.send('yegor256@gmail.com', 1.28, 'Just a test')
+    assert(key.start_with?('AP-'), key)
   end
 end

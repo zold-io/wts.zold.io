@@ -26,15 +26,15 @@ require_relative 'user_error'
 #
 # Job that log exceptions.
 #
-class SafeJob
+class WTS::SafeJob
   def initialize(job, log: Zold::Log::NULL)
     @log = log
     @job = job
   end
 
-  def call
-    @job.call
-  rescue UserError => e
+  def call(jid)
+    @job.call(jid)
+  rescue WTS::UserError => e
     @log.error(Backtrace.new(e).to_s)
   rescue StandardError => e
     @log.error(Backtrace.new(e).to_s)

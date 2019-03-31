@@ -1,0 +1,63 @@
+%h2
+  Referrals
+
+%p
+  You can refer a friend to us and get
+  = "#{(fee * 100).round(2)}%"
+  from every BTC-to-ZLD operation they perform during the first 32 days after signing up.
+  Just add
+  %code= "?ref=#{confirmed_user.login}"
+  to the URL you give them.
+  For example, give them this URL when you recommend Zold:
+  - link = "https://wts.zold.io/quick?ref=#{confirmed_user.login}"
+  = succeed '.' do
+    %a{href: link}<
+      %code= link
+  You can make that link even more powerful, if you add
+  = succeed ',' do
+    %code utm_source
+  %code utm_medium
+  or
+  %code utm_campaign
+  to it.
+
+- list = referrals.fetch(confirmed_user.login)
+
+- if list.empty?
+  %p
+    There are no sign-ups as of yet.
+- else
+  %p
+    The full list of your sign-ups:
+  %table.compact
+    %colgroup
+      %col{style: 'width: 6em'}
+      %col{style: 'width: 4em'}
+      %col{style: 'width: 4em'}
+      %col{style: 'width: 4em'}
+      %col{style: ''}
+    %thead
+      %tr
+        %th
+          User
+        %th
+          Source
+        %th
+          Medium
+        %th
+          Campaign
+        %th
+          When
+    %tbody
+      - list.each do |r|
+        %tr
+          %td
+            = r[:login]
+          %td
+            = CGI.escapeHTML(r[:utm_source]).gsub(/([^ ]{16})/, '\1&shy;')
+          %td
+            = CGI.escapeHTML(r[:utm_medium]).gsub(/([^ ]{16})/, '\1&shy;')
+          %td
+            = CGI.escapeHTML(r[:utm_campaign]).gsub(/([^ ]{16})/, '\1&shy;')
+          %td{title: r[:created].utc.iso8601}
+            = Zold::Age.new(r[:created])

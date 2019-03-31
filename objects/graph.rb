@@ -20,6 +20,7 @@
 
 require 'zold/log'
 require 'SVG/Graph/Line'
+require_relative 'wts'
 require_relative 'user_error'
 
 #
@@ -27,7 +28,7 @@ require_relative 'user_error'
 #
 # See: https://github.com/lumean/svg-graph2/blob/master/lib/SVG/Graph/Graph.rb
 #
-class Graph
+class WTS::Graph
   # How many total X-steps on the graph
   STEPS = 12
   private_constant :STEPS
@@ -37,7 +38,7 @@ class Graph
     @log = log
   end
 
-  def svg(keys, div, digits)
+  def svg(keys, div, digits, title: '')
     sets = {}
     min = Time.now
     max = Time.now + STEPS * 24 * 60 * 60
@@ -49,10 +50,10 @@ class Graph
         max = t[:created] if max < t[:created]
       end
     end
-    raise UserError, 'There are no ticks, sorry' if sets.empty?
+    raise WTS::UserError, 'There are no ticks, sorry' if sets.empty?
     step = (max - min) / STEPS
-    raise UserError, 'Step is too small, can\'t render, sorry' if step.zero?
-    g = SVG::Graph::Line.new(
+    raise WTS::UserError, 'Step is too small, can\'t render, sorry' if step.zero?
+    params = {
       width: 400, height: 200,
       show_x_guidelines: true, show_y_guidelines: true,
       show_x_labels: true, show_y_labels: false,
@@ -62,7 +63,12 @@ class Graph
       stagger_x_labels: true,
       number_format: "%.#{digits}f",
       fields: (0..STEPS - 1).map { |i| (min + i * step).strftime('%m/%d') }
-    )
+    }
+    unless title.empty?
+      params[:y_title] = title
+      params[:show_y_title] = true
+    end
+    g = SVG::Graph::Line.new(params)
     sets.each do |k, v|
       data = Array.new(STEPS, nil)
       v.group_by { |p| ((p[:x] - min) / step).to_i }.each do |s, points|

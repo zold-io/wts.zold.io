@@ -12,44 +12,25 @@
 #
 # THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFINGEMENT. IN NO EVENT SHALL THE
 # AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'yaml'
-require 'aws-sdk-dynamodb'
+require 'minitest/autorun'
+require 'webmock/minitest'
+require_relative 'test__helper'
+require_relative '../objects/pgsql'
+require_relative '../objects/referrals'
 
-#
-# Dynamo client
-#
-class Dynamo
-  def initialize(config = {})
-    @config = config
-  end
-
-  def aws
-    Aws::DynamoDB::Client.new(
-      if ENV['RACK_ENV'] == 'test'
-        cfg = File.join(Dir.pwd, 'dynamodb-local/target/dynamo.yml')
-        raise 'Test config is absent' unless File.exist?(cfg)
-        yaml = YAML.safe_load(File.open(cfg))
-        {
-          region: 'us-east-1',
-          endpoint: "http://localhost:#{yaml['port']}",
-          access_key_id: yaml['key'],
-          secret_access_key: yaml['secret'],
-          http_open_timeout: 5,
-          http_read_timeout: 5
-        }
-      else
-        {
-          region: @config['dynamo']['region'],
-          access_key_id: @config['dynamo']['key'],
-          secret_access_key: @config['dynamo']['secret']
-        }
-      end
-    )
+class WTS::ReferralsTest < Minitest::Test
+  def test_register_and_fetch
+    WebMock.disable_net_connect!
+    referrals = WTS::Referrals.new(WTS::Pgsql::TEST.start, log: test_log)
+    login = 'yegor256'
+    referrals.register(login, 'friend', source: nil)
+    assert(referrals.exists?(login))
+    assert_equal('friend', referrals.ref(login))
   end
 end

@@ -20,20 +20,22 @@
 
 require 'zold/version'
 require 'time'
+require_relative '../version'
 
 #
 # Job that shows Zold version.
 #
-class VersionedJob
+class WTS::VersionedJob
   def initialize(job, log: Zold::Log::NULL)
     @log = log
     @job = job
   end
 
-  def call
+  def call(jid)
     @log.info("\n\nZold gem version: #{Zold::VERSION}/#{Zold::PROTOCOL}")
-    @log.info("WTS version: #{VERSION}")
+    @log.info("WTS version: #{WTS::VERSION}")
     @log.info("Current time is: #{Time.now.utc.iso8601}")
-    @job.call
+    @log.info("Job ID: #{jid}")
+    @job.call(jid)
   end
 end

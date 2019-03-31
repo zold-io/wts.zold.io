@@ -23,19 +23,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 -->
 <databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-2.0.xsd" logicalFilePath="001-initial-schema.xml">
-  <changeSet id="014" author="yegor256">
+  <changeSet id="022" author="yegor256">
     <sql>
-      CREATE TABLE asset (
-        hash VARCHAR(64) PRIMARY KEY,
-        satoshi BIGINT NOT NULL,
-        pvt TEXT NOT NULL,
-        updated TIMESTAMPTZ DEFAULT now() NOT NULL
-      );
-      CREATE INDEX idx_asset1 ON asset (satoshi);
+      ALTER TABLE payable ADD COLUMN txns INTEGER DEFAULT 0 NOT NULL;
     </sql>
     <sql>
-      DELETE FROM address;
-      ALTER TABLE address ADD COLUMN pvt TEXT NOT NULL;
+      CREATE INDEX idx_payable3 ON payable (txns);
     </sql>
   </changeSet>
 </databaseChangeLog>

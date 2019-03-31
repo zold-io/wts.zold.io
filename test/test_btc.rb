@@ -21,10 +21,11 @@
 require 'minitest/autorun'
 require 'webmock/minitest'
 require_relative 'test__helper'
+require_relative '../objects/wts'
 require_relative '../objects/btc'
 require_relative '../objects/addresses'
 
-class BtcTest < Minitest::Test
+class WTS::BtcTest < Minitest::Test
   # Fake BTC
   class FakeBtc
     def initialize(addr)
@@ -38,21 +39,21 @@ class BtcTest < Minitest::Test
 
   def test_creates_address
     WebMock.disable_net_connect!
-    btc = Btc.new(log: test_log)
+    btc = WTS::Btc.new(log: test_log)
     address = btc.create
     assert(!address[:hash].nil?)
     assert(!address[:pvt].nil?)
   end
 
   def test_validates_txn
-    btc = Btc.new(log: test_log)
+    btc = WTS::Btc.new(log: test_log)
     assert(btc.trustable?(27_900, 6))
   end
 
   def test_monitors_txns
     WebMock.allow_net_connect!
-    btc = Btc.new(log: test_log)
-    addresses = Addresses.new(Pgsql::TEST.start, log: test_log)
+    btc = WTS::Btc.new(log: test_log)
+    addresses = WTS::Addresses.new(WTS::Pgsql::TEST.start, log: test_log)
     addr = '1BPs843gTEkfNk9LL6Lr2QyRNmWtQvJejv'
     addresses.acquire('johnny-l09', FakeBtc.new(addr))
     btc.monitor(addresses) do |hash, txn, satoshi, confirmations|

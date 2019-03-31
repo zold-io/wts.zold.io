@@ -19,27 +19,27 @@
 # SOFTWARE.
 
 require 'zold/log'
-require 'zold/commands/remove'
+require_relative 'wts'
+require_relative 'user_error'
 
 #
-# Job that removes the wallet first.
+# Tags of a user.
 #
-class CleanJob
-  def initialize(job, wallets, item, log: Zold::Log::NULL)
-    @job = job
-    @wallets = wallets
-    @item = item
+class WTS::Tags
+  def initialize(login, pgsql, log: Zold::Log::NULL)
+    @login = login
+    @pgsql = pgsql
     @log = log
   end
 
-  def call
-    if @item.exists?
-      Zold::Remove.new(wallets: @wallets, log: @log).run(
-        ['remove', @item.id.to_s, '--force']
-      )
-    else
-      @log.info("The user #{@item.login} doesn't have a wallet yet")
-    end
-    @job.call
+  # This tag exists?
+  def exists?(tag)
+    !@pgsql.exec('SELECT * FROM tag WHERE login = $1 and name = $2', [@login, tag]).empty?
+  end
+
+  # Add tag.
+  def attach(tag)
+    raise UserError, "Invalid tag #{tag.inspect}" unless /^[a-z0-9-]+$/.match?(tag)
+    @pgsql.exec('INSERT INTO tag (login, name) VALUES ($1, $2)', [@login, tag])
   end
 end

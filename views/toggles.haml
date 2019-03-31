@@ -3,7 +3,7 @@
 
 %form{method: 'POST', action: '/set-toggle'}
   %input{type: 'text', name: 'key', placeholder: 'Key', size: 20, autocomplete: 'off', required: true, tabindex: 1, autofocus: true}
-  %input{type: 'text', name: 'value', placeholder: 'Value', size: 40, autocomplete: 'off', tabindex: 2}
+  %input{type: 'text', name: 'value', placeholder: 'Value (empty means "delete")', size: 40, autocomplete: 'off', tabindex: 2}
   %input{type: 'submit', onclick: "return confirm('Are you sure?')", tabindex: 3, value: 'Set'}
 
 %p

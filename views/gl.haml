@@ -2,7 +2,13 @@
   General Ledger
 
 %p
-  %img{style: 'display:inline-block', src: '/graph.svg?keys=Volume24&digits=0'}
+  %img{style: 'display:inline-block', src: '/graph.svg?keys=Volume24&digits=0&div=1&title=ZLD+per+day'}
+  %img{style: 'display:inline-block', src: '/graph.svg?keys=Txns24&digits=0&div=1&title=Transactions+per+day'}
+
+%p
+  24-hour volume:
+  %strong= gl.volume.to_zld
+  ZLD.
 
 %p
   24-hour volume:
@@ -14,8 +20,10 @@
 %p
   The transactions you see in this list were collected from all
   %a{href: '/remotes'} visible
-  nodes. They are not fully confirmed. You can't rely on this
-  information. We collect this data in order to stay informed
+  nodes. They are not fully confirmed. You
+  %strong.red
+  can't rely
+  on this information. We collect this data in order to stay informed
   about the movements in the network.
 
 %table.compact
@@ -70,7 +78,7 @@
             %code
               %a{href: "http://www.zold.io/ledger.html?wallet=#{t[:target]}"}= t[:target]
           %td
-            = t[:details]
+            = CGI.escapeHTML(t[:details]).gsub(/([^ ]{16})/, '\1&shy;')
       - if @last && txns.count == max
         %tr
           %td.center{colspan: 6}

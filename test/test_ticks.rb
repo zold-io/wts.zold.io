@@ -21,13 +21,12 @@
 require 'minitest/autorun'
 require 'webmock/minitest'
 require_relative 'test__helper'
-require_relative '../objects/dynamo'
 require_relative '../objects/ticks'
 
-class TicksTest < Minitest::Test
+class WTS::TicksTest < Minitest::Test
   def test_create_and_read
     WebMock.allow_net_connect!
-    ticks = Ticks.new(Pgsql::TEST.start, log: test_log)
+    ticks = WTS::Ticks.new(WTS::Pgsql::TEST.start, log: test_log)
     ticks.add('foo' => 124)
     assert(ticks.fetch('foo').count >= 1)
     assert(ticks.exists?('foo'))

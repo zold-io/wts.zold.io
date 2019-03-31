@@ -23,7 +23,7 @@ require 'zold/key'
 #
 # Keygap code.
 #
-class Keygap
+class WTS::Keygap
   # Extracts a random keygap and returns an array of [pem, keygap]
   def extract(key, length = 16)
     pem = key.to_s

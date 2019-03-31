@@ -6,7 +6,7 @@
     %label
       Enter your mobile phone in
       %a{href: 'https://en.wikipedia.org/wiki/E.164'} E.164
-      format:
+      format (digits only, no leading zeros):
     %input{type: 'text', name: 'phone', placeholder: '12125551122', pattern: '[0-9]+', autocomplete: 'off', required: true, tabindex: 1, autofocus: true}
     %input{type: 'submit', tabindex: 3, value: 'Request'}
 
@@ -15,3 +15,18 @@
   %a{href: 'https://en.wikipedia.org/wiki/SMS'} SMS
   will arrive to your mobile phone
   within the next three minutes.
+
+%p
+  You can also use your GitHub account to
+  = succeed ',' do
+    %a{href: login_link} login
+  but only if you work in
+  = succeed '.' do
+    %a{href: 'https://www.0crat.com/team'} Zerocracy
+
+%p
+  = succeed ':' do
+    %strong.red ATTENTION
+  By logging in you automatically accept the
+  = succeed '.' do
+    %a{href: '/terms'} Terms of Use

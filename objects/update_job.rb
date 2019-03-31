@@ -24,7 +24,7 @@ require 'zold/commands/remote'
 #
 # Job that update remotes before and after.
 #
-class UpdateJob
+class WTS::UpdateJob
   def initialize(job, remotes, log: Zold::Log::NULL, network: 'test')
     @job = job
     @remotes = remotes
@@ -32,7 +32,7 @@ class UpdateJob
     @network = network
   end
 
-  def call
+  def call(jid)
     cmd = Zold::Remote.new(remotes: @remotes, log: @log)
     args = ['remote', "--network=#{@network}"]
     if @network == Zold::Wallet::MAINET
@@ -44,6 +44,6 @@ class UpdateJob
     else
       cmd.run(args + ['clean'])
     end
-    @job.call
+    @job.call(jid)
   end
 end

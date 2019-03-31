@@ -18,16 +18,33 @@ Join our [Telegram group](https://t.me/zold_io) to discuss it all live.
 
 The license is [MIT](https://github.com/zold-io/wts.zold.io/blob/master/LICENSE.txt).
 
+Zold Web WalleTS (hence the _WTS_ name) is a simple web front to the Zold
+network. In order to use all the features of Zold cryptocurrency, you will need
+a command like client, which you can get [here](https://github.com/zold-io/zold).
+However, most of us are too lazy to learn the command line interface, that's
+why we created this web interface. Via WTS you can create a wallet, push
+it to the network, pull it from there, and make payments to other users.
+Aside from that, you can also use its RESTful API, Mobile API, Callback API,
+and many other tools to monitor the network and to manage your wallet.
+
+If you are a crypto-exchange, an online shop, or a developer of a mobile wallet,
+you may find this blog post interesting: [How to Integrate](https://blog.zold.io/2019/03/11/how-to-integrate.html).
+It explains how you can utilize WTS in order to manage zolds that belong
+to your users/customers.
+
 There is Ruby SDK for the WTS platform: [zold-io/zold-ruby-sdk](https://github.com/zold-io/zold-ruby-sdk).
 
-## API
+## HTTP API
 
-First, you should get your API token from [this page](https://wts.zold.io/api).
+First, you should get your API token from the [API](https://wts.zold.io/api) tab of your account.
+To create an account you just need to login with your mobile phone. There
+is no special sign-up form or procedure. Once you login, your account _and_
+your Zold wallet are created automatically.
 
 Then, say, you want to send some zolds to `@yegor256`, your token is
 `user-111222333444`, and your
 [keygap](https://blog.zold.io/2018/07/18/keygap.html) is `84Hjsow9`.
-You do the following HTTP request:
+You do the following POST HTTP request:
 
 ```
 POST /do-pay?noredirect=1 HTTP/1.1
@@ -52,22 +69,31 @@ curl https://wts.zold.io/do-pay?noredirect=1 \
 ```
 
 You will get `200` response if the payment processing has been started.
+Pay attention, this response doesn't mean that the payment has been
+successfully sent. The request processing is asynchronous!
 The `X-Zold-Job` header of the response will
 contain the ID of the job, which is executed on the server.
-Later, you can check the status of the job via the `/job` entry point, using its ID.
+Later, you can check the status of the job via the `/job.json` entry point, using its ID.
 
-If you get non-200 response, check the `X-Zold-Error` response HTTP header,
+If you get a non-200 response, check the `X-Zold-Error` response HTTP header,
 it will explain the problem with a more or less human-readable error message.
-The response body will contain Ruby stacktrace
+The response body will contain a full Ruby stacktrace, which you may report
+to us if it doesn't explain the problem completely. Don't hesitate to
+[submit a ticket](https://github.com/zold-io/wts.zold.io/issues) when something goes wrong.
 
-There are more entry points:
+You can also send zolds to the wallet ID or the mobile phone. Just use
+them instead of the GitHub user name in the `bnf` parameter.
 
-  * `GET /id`: returns your wallet ID.
+There are more entry points. Here is a list of synchronouse ones,
+which return the result immediately:
 
-  * `GET /balance`: returns the current balance of the wallet in Zents (1 ZLD is 2^32 Zents).
-    If the wallet is absent on the server, there will be non-200 response code and maybe you need to call /pull.
+  * `GET /id`: returns your wallet ID in plain text.
 
-  * `GET /pull`: asks the server to pull your wallet from the network.
+  * `GET /balance`: returns the current balance of the wallet in "zents" (1 ZLD equals to 2^32 zents).
+    If the wallet is absent on the server, there will be non-200 response code
+    and maybe you need to call `/pull`. It's impossible to check the balance
+    of the wallet, if the server doesn't have a copy of the wallet. The WTS
+    server has to pull your wallet from the network first.
 
   * `GET /find`: finds and returns all transactions in the wallet that match the criteria.
     You can specify the criteria in the query string. For example,
@@ -76,39 +102,82 @@ There are more entry points:
     (they both are regular expressions):
     `/find?bnf=012345670.%2B&details=Hello!`.
     You can match by all transaction fields (see the [White Paper](https://papers.zold.io/wp.pdf)).
+    The result is a plain text list of transactions (not JSON).
+
+  * `GET /txns.json`: returns a full list of transactions in the wallet, in JSON.
+    You can specify the sorting order via `sort=asc` or `sort=desc`.
 
   * `GET /job`: checks the status of the jobs, expecting `id` as a query argument.
     Returns `200` and plain text `OK` if the job is completed.
     Returns `200` and plain text `Running` if the job is still in progress.
-    Returns `404` if there is no such job.
     Returns `200` and a full stack trace as plain text if the job is finished with an exception.
-    We keep the information about the job in memory for 4 hours (it gets destroyed if the server reboots).
+    Returns `404` if there is no such job.
+    You may also want to use `/job.json` to get more information, in JSON.
 
-  * `GET /id_rsa`: returns private RSA key of the user, expecting the keygap
-    as an argument.
+  * `GET /output`: returns the entire log of a particular job, expecting `id` as a query argument;
+    the HTTP header `X-Zold-JobStatus` will contain either `OK`, `Running`, or `Error`,
+    depending on the status of the job.
 
-  * `GET /keygap`: returns the keygap of the user,
-    if it's still not confirmed (as plain text).
+  * `GET /job.json`: returns a simple JSON document with full information about
+    a particular job, expecting `id` as a query argument
+    (the JSON may also contain some additional data, for example, when you send
+    a payment via `/do-pay` it will contain `txn` with the ID of the transaction
+    just sent):
 
-  * `GET /do-confirm`: removes the keygap from the database and returns `302`.
+```json
+{
+  "id": "sjks-8sjs-sjUJs-sjkIIL",
+  "status": "OK",
+  "output_length": 15362,
+  "error_message": "something went wrong...",
+  "tid": "000111122223333:76"
+}
+```
+
+  * `GET /id_rsa`: returns private RSA key of the user, expecting the
+    [keygap](https://blog.zold.io/2018/07/18/keygap.html) as an argument.
+
+  * `GET /keygap`: returns the [keygap](https://blog.zold.io/2018/07/18/keygap.html)
+    of the user, if it's still not confirmed (as plain text).
+    You have to show it to the client and make
+    sure the client confirms that the keygap is safely stored, if you are
+    managing the account of the user on their behalf.
+
+  * `GET /do-confirm`: removes the [keygap](https://blog.zold.io/2018/07/18/keygap.html)
+    from the database and returns `200` if everything is OK. If the user
+    has already confirmed the keygap, this request will return a non-`200` response.
+
+  * `GET /confirmed`: returns `yes` or `no`, depending on the status of the user---whether
+    he has already confirmed his [keygap](https://blog.zold.io/2018/07/18/keygap.html)
+    or not.
 
   * `GET /rate.json`: returns JSON document with all the data you can
     find [here](https://wts.zold.io/rate). If the data is not ready yet,
     you will still get a JSON document, but it will have `valid`
     attribute set to `false`. The only valid attribute there will be
-    `effective_rate`.
+    `effective_rate`. Here is a live [example](https://wts.zold.io/rate.json).
+
+These entry points, just like the `/do-pay` explained above, are asynchronous.
+In each of them you should expect `200` response with the `X-Zold-Job`
+header inside. Using that job ID you can check the status of the job
+as explained above in `/job.json`.
+
+  * `GET /pull`: asks the server to pull your wallet from the network.
+
+  * `GET /create`: creates a new wallet, assigns a new wallet ID to the user,
+    leaving the keygap and private RSA key the same.
 
 Make sure you always use the `noredirect=1` query parameter. Without it
-you may get unpredictable response codes, like 302/303, and HTML in response
-body.
+you may get unpredictable response codes, like 302/303, and an HTML document
+in the response body.
 
 ## Callback API
 
 If you want to integrate Zold into your website or mobile app, where your
-customers are sending payments to you, you may try our callback API. First, you
+customers are sending payments to you, you may try our Callback API. First, you
 send a `GET` request to `/wait-for` and specify:
 
-  * `wallet`: the ID of the wallet you expect payments to
+  * `wallet`: the ID of the wallet you expect payments to (your wallet, if not provided)
   * `prefix`: the prefix you expect them to arrive to (get it at `/invoice.json` first)
   * `regexp`: the regular expression to match payment details, e.g. `pizza$` (the text has to end with `pizza`)
   * `uri`: the URI where the callback should arrive once we see the payment
@@ -138,7 +207,14 @@ keep doing that for 4 hours. Then it will give up.
 If your callback is never matched, it will be removed from the system
 in 24 hours.
 
-You may register up to 8 callbacks in one account.
+You may register up to a certain amount of callbacks in one account
+(check for the actual limit in the [Callbacks](https://wts.zold.io/callbacks)
+tab in your account). The full list
+of your registered callbacks and already matched ones you can find in the
+[Callback](https://wts.zold.io/callbacks) tab of your account.
+
+A more detailed explanation you may find in this blog post:
+[How to Integrate](https://blog.zold.io/2019/03/11/how-to-integrate.html).
 
 ## Mobile API
 
@@ -155,15 +231,9 @@ access points (the phone should be in
     The `code` is the code from the SMS.
     If something is wrong, a non-200 code will be returned
 
-  * `GET /keygap` (with the auth token in `X-Zold-WTS` HTTP header, of course): returns 200 with the
-    keygap of the user. You have to show it to the client and make
-    sure the client confirms that the keygap is safely stored.
-
-  * `GET /do-confirm?keygap=...&noredirect=1` (also with the `X-Zold-WTS` HTTP header): deletes the keygap
-    from our database and allows the user to work with the wallet.
-    Returns 200 if everything is OK.
-
-Then, when you have the API token, you can manage the account of the user,
+Then, you have to use `/do-confirm` and `/keygap` (see above) to confirm
+the account of the user. Then, when you have the API token,
+you can manage the account of the user,
 using the `X-Zold-Wts` HTTP header (see above).
 
 ## How to Contribute
@@ -179,7 +249,7 @@ Then:
 
 ```bash
 $ bundle update
-$ rake
+$ bundle exec rake --quiet
 ```
 
 The build has to be clean. If it's not, [submit an issue](https://github.com/zold-io/out/issues).
@@ -190,11 +260,13 @@ and [submit a pull request](https://www.yegor256.com/2014/04/15/github-guideline
 In order to run a single test:
 
 ```bash
-$ rake run
+$ bundle exec rake run
 ```
 
 Then, in another terminal:
 
 ```bash
-$ ruby test/test_item.rb -n test_create_and_read
+$ bundle exec ruby test/test_item.rb -n test_create_and_read
 ```
+
+Should work.

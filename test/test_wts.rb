@@ -19,11 +19,12 @@
 # SOFTWARE.
 
 require 'minitest/autorun'
-require 'webmock/minitest'
 require 'rack/test'
+require 'webmock/minitest'
 require 'zold/log'
-require_relative 'test__helper'
+require_relative '../objects/pgsql'
 require_relative '../wts'
+require_relative 'test__helper'
 
 module Rack
   module Test
@@ -35,11 +36,11 @@ module Rack
   end
 end
 
-class AppTest < Minitest::Test
+class WTS::AppTest < Minitest::Test
   include Rack::Test::Methods
 
   def app
-    Sinatra::Application.set(:log, Zold::Log::VERBOSE)
+    Sinatra::Application.set(:log, test_log)
     Sinatra::Application.set(:pool, Concurrent::FixedThreadPool.new(1, max_queue: 0, fallback_policy: :caller_runs))
     Sinatra::Application
   end
@@ -63,21 +64,25 @@ class AppTest < Minitest::Test
       '/',
       '/css/main.css',
       '/gl',
+      '/terms',
       '/payables',
       '/assets',
       '/context',
-      '/remotes'
+      '/remotes',
+      '/quick'
     ].each do |p|
       get(p)
-      assert(last_response.ok?, p)
+      assert(last_response.ok?, last_response.body)
     end
   end
 
   def test_not_found
     WebMock.allow_net_connect!
-    get('/unknown_path')
-    assert_equal(404, last_response.status)
-    assert_equal('text/html;charset=utf-8', last_response.content_type)
+    ['/unknown_path', '/js/x/y/z/not-found.js', '/css/a/b/c/not-found.css'].each do |p|
+      get(p)
+      assert_equal(404, last_response.status, last_response.body)
+      assert_equal('text/html;charset=utf-8', last_response.content_type)
+    end
   end
 
   def test_without_redirect
@@ -90,8 +95,8 @@ class AppTest < Minitest::Test
     WebMock.allow_net_connect!
     name = 'bill'
     login(name)
-    user = User.new(
-      name, Item.new(name, Dynamo.new.aws, log: test_log),
+    user = WTS::User.new(
+      name, WTS::Item.new(name, WTS::Pgsql::TEST.start, log: test_log),
       Sinatra::Application.settings.wallets, log: test_log
     )
     user.create
@@ -104,12 +109,19 @@ class AppTest < Minitest::Test
       '/balance',
       '/restart',
       '/log',
+      '/txns.json',
+      '/referrals',
       '/invoice',
       '/invoice.json',
       '/api',
+      "/download?keygap=#{keygap}",
+      "/id_rsa?keygap=#{keygap}",
       '/callbacks',
       '/payouts',
-      '/btc'
+      '/buy-sell',
+      '/btc-to-zld',
+      '/zld-to-btc',
+      '/zld-to-paypal'
     ].each do |p|
       get(p)
       assert_equal(200, last_response.status, "#{p} fails: #{last_response.body}")
@@ -136,13 +148,13 @@ class AppTest < Minitest::Test
     WebMock.allow_net_connect!
     name = 'jeff079'
     login(name)
-    boss = User.new(
-      '0crat', Item.new('0crat', Dynamo.new.aws, log: test_log),
+    boss = WTS::User.new(
+      '0crat', WTS::Item.new('0crat', WTS::Pgsql::TEST.start, log: test_log),
       Sinatra::Application.settings.wallets, log: test_log
     )
     boss.create
-    user = User.new(
-      name, Item.new(name, Dynamo.new.aws, log: test_log),
+    user = WTS::User.new(
+      name, WTS::Item.new(name, WTS::Pgsql::TEST.start, log: test_log),
       Sinatra::Application.settings.wallets, log: test_log
     )
     user.create
@@ -158,10 +170,10 @@ class AppTest < Minitest::Test
         )
       )
     end
-    assets = Assets.new(Pgsql::TEST.start, log: test_log)
+    assets = WTS::Assets.new(WTS::Pgsql::TEST.start, log: test_log)
     assets.add("32wtFfKbjWHpu9WFzX9adGsFFAosqPk#{rand(999)}", 10_000_000, 'pvt')
     post(
-      '/do-sell',
+      '/do-zld-to-btc',
       form(
         'amount': '1',
         'btc': '1N1R2HP9JD4LvAtp7rTkpRqF19GH7PH2ZF',
@@ -184,6 +196,13 @@ class AppTest < Minitest::Test
       )
     )
     assert_equal(302, last_response.status, last_response.body)
+    job = last_response.headers['X-Zold-Job']
+    get("/job?id=#{job}")
+    assert_equal(200, last_response.status, last_response.body)
+    get("/output?id=#{job}")
+    assert_equal(200, last_response.status, last_response.body)
+    get("/job.json?id=#{job}")
+    assert_equal(200, last_response.status, last_response.body)
   end
 
   def test_migrate
@@ -191,6 +210,13 @@ class AppTest < Minitest::Test
     keygap = login('yegor565')
     get("/do-migrate?keygap=#{keygap}")
     assert_equal(302, last_response.status, last_response.body)
+  end
+
+  def test_register_callback
+    WebMock.allow_net_connect!
+    login('yegor565')
+    get('/wait-for?prefix=abcdefgh&regexp=.*&uri=http://localhost/')
+    assert_equal(200, last_response.status, last_response.body)
   end
 
   private

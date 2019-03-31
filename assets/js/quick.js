@@ -20,14 +20,18 @@
  * SOFTWARE.
  */
 
+/*global $, window */
+
 function wts_info(text) {
+  'use strict';
   $('#error').removeClass('red').text('INFO: ' + text);
   $('#button').removeAttr('disabled');
 }
 
 function wts_error(xhr) {
+  'use strict';
   var msg;
-  if (typeof xhr == 'string') {
+  if (typeof xhr === 'string') {
     msg = xhr;
   } else {
     msg = xhr.getResponseHeader('X-Zold-Error');
@@ -44,6 +48,7 @@ function wts_error(xhr) {
 }
 
 function wts_recalc() {
+  'use strict';
   wts_info('Loading rates...')
   $.ajax({
     dataType: 'json',
@@ -89,6 +94,7 @@ function wts_recalc() {
 }
 
 function wts_step5(token) {
+  'use strict';
   $('#step4').hide();
   $('#amount').text($('#btc').text());
   wts_info('Requesting BTC address for user ' + token + '...');
@@ -109,12 +115,13 @@ function wts_step5(token) {
 }
 
 function wts_step4(token) {
+  'use strict';
   $.ajax({
     dataType: 'text',
     url: '/confirmed?noredirect=1',
     headers: { 'X-Zold-Wts': token },
     success: function(text) {
-      if (text == 'yes') {
+      if (text === 'yes') {
         wts_info('The keygap of ' + token + ' is already confirmed (existing account)');
         wts_step5(token);
       } else {
@@ -149,6 +156,7 @@ function wts_step4(token) {
 }
 
 function wts_step3() {
+  'use strict';
   var phone = $('#phone').text();
   var code = $('#code').val();
   wts_info('Confirming ' + phone + ' with ' + code + '...');
@@ -167,6 +175,7 @@ function wts_step3() {
 }
 
 function wts_step2() {
+  'use strict';
   var phone = $('#phone').val();
   wts_info('Sending SMS to phone ' + phone + '...');
   $.ajax({
@@ -184,6 +193,7 @@ function wts_step2() {
 }
 
 function wts_step1() {
+  'use strict';
   $('#step2').show();
   $('#btc').replaceWith('<span id="btc">' + $('#btc').val() + '</span>');
   $('#months').replaceWith('<span id="months">' + $('#months').val() + '</span>');
@@ -192,6 +202,7 @@ function wts_step1() {
 }
 
 $(function() {
+  'use strict';
   wts_recalc();
   $('#button').on('click', wts_step1);
 });

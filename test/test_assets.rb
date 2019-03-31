@@ -21,13 +21,14 @@
 require 'minitest/autorun'
 require 'webmock/minitest'
 require_relative 'test__helper'
+require_relative '../objects/wts'
 require_relative '../objects/pgsql'
 require_relative '../objects/assets'
 
-class AssetsTest < Minitest::Test
+class WTS::AssetsTest < Minitest::Test
   def test_prepares_and_spends_batch
     WebMock.allow_net_connect!
-    assets = Assets.new(Pgsql::TEST.start, log: test_log)
+    assets = WTS::Assets.new(WTS::Pgsql::TEST.start, log: test_log)
     assets.add("32wtFfKbjWHpu9WFzX9adGsFFAosqPk#{rand(999)}", 1000, 'pvt')
     assets.add("32wtFfKbjWHpu9WFzX9adGsFFAosqPk#{rand(999)}", 100, 'pvt')
     assets.add("32wtFfKbjWHpu9WFzX9adGsFFAosqPk#{rand(999)}", 10, 'pvt')

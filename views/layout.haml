@@ -8,7 +8,7 @@
     %meta{name: 'keywords', content: 'Zold, Cryptocurrency, Payments, Online Payments'}
     %meta{name: 'description', content: 'Zold Web Wallets'}
     %link{rel: 'shortcut icon', href: 'https://www.zold.io/images/logo-blue.png'}
-    %link{href: 'https://cdn.rawgit.com/yegor256/tacit/gh-pages/tacit-css.min.css', rel: 'stylesheet'}
+    %link{href: 'https://cdn.jsdelivr.net/gh/yegor256/tacit@gh-pages/tacit-css-1.4.2.min.css', rel: 'stylesheet'}
     %link{type: 'text/css', href: url('css/main.css'), rel: 'stylesheet'}
     %meta{name: 'twitter:creator', content: '@0crat'}
     %meta{name: 'twitter:site', content: '@0crat'}
@@ -20,12 +20,8 @@
     %meta{name: 'twitter:image', content: 'https://blog.zold.io/images/ledger.jpg'}
     %meta{name: 'twitter:card', content: 'summary'}
     %meta{name: 'twitter:image:alt', content: 'Zold'}
+    %script{src: 'https://code.jquery.com/jquery-3.3.1.min.js'}
   %body
-    :javascript
-      (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
-      m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
-      (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
-      ym(52544728, "init", {id:52544728, clickmap:true, trackLinks:true, accurateTrackBounce:true, webvisor:true});
     :javascript
       Cd=document;Cr="&"+Math.random();Cp="&s=1";
       Cd.cookie="b=b";if(Cd.cookie)Cp+="&c=1";
@@ -62,13 +58,17 @@
               %li
                 %a{href: 'https://twitter.com/0crat'} Twitter
             - else
-              %li
-                - if defined? guser
+              - if defined? guser
+                %li
                   %a{href: '/home'}
                     = title
-                - else
-                  %a{href: '/'}
+              - else
+                %li
+                  %a{href: '/mobile_send'}
                     Login
+                %li
+                  %a{href: '/mobile_send'}
+                    Sign Up
               %li
                 %a{href: '/rate'} Rate
               %li{title: 'All wallets available in the local directory'}
@@ -105,7 +105,7 @@
                 %a{href: '/migrate'} Migrate
               %li
                 - if user.wallet_exists?
-                  %a{href: '/btc'} Buy/Sell
+                  %a{href: '/buy-sell'} Buy/Sell
                 - else
                   %span.gray Buy/Sell
               %li
@@ -123,6 +123,9 @@
                   %a{href: '/log'} updating
                   your wallet right now.
                   Please, refresh the page in a minute.
+                  If it doesn't help, check the
+                  %a{href: '/log'} Log
+                  tab.
         - if defined? flash_msg
           %p{style: 'background-color:' + flash_color + ';color:white;padding:.1em .5em;border-radius:4px;width:100%;'}
             = flash_msg
@@ -146,11 +149,15 @@
                   %a{href: '/callbacks'} Callbacks
                 %li
                   %a{href: '/payouts'} Payouts
-                - if guser == 'yegor256'
+                %li
+                  %a{href: '/referrals'} Referrals
+                - if vip?
                   %li
                     %a{href: '/queue'} Queue
                   %li
                     %a{href: '/toggles'} Toggles
+                  %li
+                    %a{href: '/sql'} SQL
           %nav
             %ul
               %li
@@ -158,10 +165,9 @@
                 %a{href: 'https://t.me/zold_wts'} Telegram
         %nav
           %ul
-            %li
+            %li{style: 'max-width: 600px'}
               If something goes wrong, you have a question, or you
               simply want to suggest a new feature,
-              %br
               please,
               %a{href: 'https://github.com/zold-io/wts.zold.io'} submit it
               to our GitHub repository;
@@ -178,7 +184,10 @@
             %li{title: 'Currently consumed memory vs. total system memory, in Mb'}
               = "#{(mem / (1024 * 1024)).round}/#{(total_mem / (1024 * 1024)).round}"
             %li{title: 'Your visible IP address'}
-              = request.ip
+              = "#{request.ip}/#{country}"
+        %nav
+          %ul
+            %a{href: '/terms'} Terms of Use
         %nav
           %ul
             %a{href: 'https://github.com/zold-io/wts.zold.io/stargazers'}

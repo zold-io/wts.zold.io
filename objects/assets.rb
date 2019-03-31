@@ -19,6 +19,7 @@
 # SOFTWARE.
 
 require 'zold/log'
+require_relative 'wts'
 require_relative 'pgsql'
 require_relative 'user_error'
 
@@ -26,8 +27,8 @@ require_relative 'user_error'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
-class Assets
-  def initialize(pgsql, log: Log::NULL)
+class WTS::Assets
+  def initialize(pgsql, log: Zold::Log::NULL)
     @pgsql = pgsql
     @log = log
   end
@@ -36,7 +37,7 @@ class Assets
     @pgsql.exec('SELECT * FROM asset').map do |r|
       {
         hash: r['hash'],
-        amount: r['satoshi'].to_i,
+        satoshi: r['satoshi'].to_i,
         updated: Time.parse(r['updated'])
       }
     end

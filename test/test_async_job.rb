@@ -25,15 +25,15 @@ require_relative 'test__helper'
 require_relative '../objects/async_job'
 require_relative '../objects/safe_job'
 
-class AsyncJobTest < Minitest::Test
+class WTS::AsyncJobTest < Minitest::Test
   def test_simple_call
     pool = Concurrent::FixedThreadPool.new(16)
     latch = Concurrent::CountDownLatch.new(1)
     Dir.mktmpdir 'test' do |dir|
       job = proc { latch.count_down }
       lock = File.join(dir, 'lock')
-      async = AsyncJob.new(SafeJob.new(job), pool, lock, log: test_log)
-      async.call
+      async = WTS::AsyncJob.new(WTS::SafeJob.new(job), pool, lock, log: test_log)
+      async.call(1)
       latch.wait
       pool.shutdown
       pool.wait_for_termination

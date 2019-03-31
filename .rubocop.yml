@@ -5,6 +5,8 @@ AllCops:
   DisplayCopNames: true
   TargetRubyVersion: 2.6.0
 
+Style/ClassAndModuleChildren:
+  Enabled: false
 Naming/UncommunicativeMethodParamName:
   MinNameLength: 1
 Style/CommandLiteral:
@@ -24,7 +26,7 @@ Metrics/MethodLength:
 Metrics/ClassLength:
   Max: 300
 Metrics/AbcSize:
-  Max: 110
+  Max: 130
 Metrics/BlockLength:
   Max: 250
 Layout/MultilineMethodCallIndentation:

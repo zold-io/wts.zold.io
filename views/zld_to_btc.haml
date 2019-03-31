@@ -1,0 +1,60 @@
+%script{src: '/js/zld_to_btc.js'}
+
+%h2
+  Sell Zolds and Receive Bitcoins
+
+%p
+  The rate is
+  %strong= rate
+  BTC/ZLD, or about
+  = succeed '.' do
+    %strong= "$#{(rate * price).round(2)}"
+  %a{href: '/rate'} Why?
+
+%p
+  To sell your ZLD and receive BTC just fill this form
+  and we will send you the payment promptly, deducting
+  = "#{(fee * 100)}%"
+  fee:
+
+%form{method: 'POST', action: '/do-zld-to-btc'}
+  %fieldset
+    %label
+      Your
+      %a{href: 'https://blog.zold.io/2018/07/18/keygap.html'} keygap
+      (is it
+      = succeed '):' do
+        %a{href: 'https://blog.zold.io/2019/03/30/keygap-is-lost.html'} lost?
+    %input{type: 'password', name: 'keygap', autocomplete: 'off', tabindex: 1, autofocus: true, maxlength: 32}
+    %label
+      The amount of ZLD to sell
+      = succeed ':' do
+        - if user.wallet_exists?
+          (your current balance is
+          = succeed ')' do
+            %code= user.wallet(&:balance)
+    %input{type: 'text', id: 'zld', name: 'amount', size: 12, maxlength: 8, autocomplete: 'off', tabindex: 2, oninput: "wts_rerate(#{rate.round(8)}, #{price.round(2)}, #{fee.round(4)});"}
+    %span.gray.small{id: 'out'}
+    %label
+      Bitcoin
+      %a{href: 'https://en.bitcoin.it/wiki/Address'} address
+      to send to, in
+      = succeed ',' do
+        %a{href: 'https://en.bitcoin.it/wiki/Transaction#Pay-to-PubkeyHash'} P2PKH
+      = succeed ',' do
+        %a{href: 'https://en.bitcoin.it/wiki/Pay_to_script_hash'} P2SH
+      or
+      %a{href: 'https://en.bitcoin.it/wiki/Bech32'} Bech32
+      format:
+    %input{type: 'text', name: 'btc', maxlength: 50, size: 45, autocomplete: 'off', tabindex: 3}
+    %input{type: 'submit', onclick: "return confirm('Are you sure? This operation is not reversable!')", tabindex: 4}
+
+%p
+  This
+  %a{href: 'https://blog.zold.io/2018/12/09/btc-to-zld.html'} blog post
+  explains how this exchange mechanism works.
+
+%p
+  If any issues or the payment is lost, contact us in our
+  = succeed '.' do
+    %a{href: 'https://t.me/zold_io'} Telegram group

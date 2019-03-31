@@ -24,10 +24,10 @@ require_relative 'test__helper'
 require_relative '../objects/pgsql'
 require_relative '../objects/toggles'
 
-class TogglesTest < Minitest::Test
+class WTS::TogglesTest < Minitest::Test
   def test_sets_and_gets
     WebMock.allow_net_connect!
-    toggles = Toggles.new(Pgsql::TEST.start, log: test_log)
+    toggles = WTS::Toggles.new(WTS::Pgsql::TEST.start, log: test_log)
     key = 'hey'
     assert_equal('', toggles.get(key))
     toggles.set(key, 'hello, world!')
@@ -35,6 +35,6 @@ class TogglesTest < Minitest::Test
     toggles.set(key, 'bye')
     assert_equal('bye', toggles.get(key))
     toggles.set(key, '')
-    assert_equal('', toggles.get(key))
+    assert_equal('the default', toggles.get(key, 'the default'))
   end
 end
