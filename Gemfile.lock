@@ -21,7 +21,7 @@ GEM
       public_suffix (>= 2.0.2, < 4.0)
     ast (2.4.0)
     aws-eventstream (1.0.2)
-    aws-partitions (1.147.0)
+    aws-partitions (1.148.0)
     aws-sdk-core (3.48.3)
       aws-eventstream (~> 1.0, >= 1.0.2)
       aws-partitions (~> 1.0)
@@ -47,7 +47,10 @@ GEM
     backtrace (0.3.0)
     bitcoin (0.2.0)
       bitcoin-ruby
-    bitcoin-ruby (0.0.18)
+    bitcoin-ruby (0.0.19)
+      eventmachine
+      ffi
+      scrypt
     builder (3.2.3)
     codecov (0.1.13)
       json
@@ -79,6 +82,9 @@ GEM
     faraday_middleware (0.13.1)
       faraday (>= 0.7.4, < 1.0)
     ffi (1.10.0)
+    ffi-compiler (1.0.1)
+      ffi (>= 1.0.0)
+      rake
     futex (0.8.6)
     geocoder (1.5.0)
     get_process_mem (0.2.3)
@@ -119,7 +125,7 @@ GEM
       mini_portile2 (~> 2.4.0)
     openssl (2.1.2)
       ipaddr
-    parallel (1.16.2)
+    parallel (1.17.0)
     parser (2.6.2.0)
       ast (~> 2.4.0)
     paypal-sdk-rest (1.7.3)
@@ -162,6 +168,8 @@ GEM
     sass-listen (4.0.0)
       rb-fsevent (~> 0.9, >= 0.9.4)
       rb-inotify (~> 0.9, >= 0.9.7)
+    scrypt (3.0.6)
+      ffi-compiler (>= 1.0, < 2.0)
     semantic (1.6.1)
     sentry-raven (2.7.4)
       faraday (>= 0.7.6, < 1.0)
