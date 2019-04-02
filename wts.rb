@@ -410,6 +410,16 @@ get '/' do
   )
 end
 
+get '/funded' do
+  # Here we have to go to Coinbase and purchase BTC. This is necessary
+  # in order to convert incoming USD immediately into Bitcoins, before
+  # the rate changes and we lose some money.
+  raise UserError, 'Amount parameter is mandatory' unless params[:amount]
+  amount = params[:amount].to_f
+  raise UserError, 'The amount can\'t be zero' if amount.zero?
+  'OK, thanks'
+end
+
 get '/mobile_send' do
   redirect '/home' if @locals[:guser]
   haml :mobile_send, layout: :layout, locals: merged(
