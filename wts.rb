@@ -1181,6 +1181,11 @@ get '/remotes' do
   )
 end
 
+get '/usd_rate' do
+  content_type 'text/plain'
+  format('%.04f', price * rate)
+end
+
 get '/rate' do
   unless settings.zache.exists?(:rate) && !settings.zache.expired?(:rate)
     boss = user(settings.config['exchange']['login'])

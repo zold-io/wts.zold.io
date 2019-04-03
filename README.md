@@ -157,6 +157,8 @@ which return the result immediately:
     attribute set to `false`. The only valid attribute there will be
     `effective_rate`. Here is a live [example](https://wts.zold.io/rate.json).
 
+  * `GET /usd_rate`: returns current rate of ZLD in USD.
+
 These entry points, just like the `/do-pay` explained above, are asynchronous.
 In each of them you should expect `200` response with the `X-Zold-Job`
 header inside. Using that job ID you can check the status of the job
