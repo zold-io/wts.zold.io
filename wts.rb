@@ -702,9 +702,9 @@ end
 
 get '/invoice.json' do
   inv = user.invoice
-  prefix = inv.split('@')[0]
+  prefix, id = inv.split('@')
   content_type 'application/json'
-  JSON.pretty_generate(prefix: prefix, invoice: inv)
+  JSON.pretty_generate(prefix: prefix, invoice: inv, id: id)
 end
 
 get '/callbacks' do
