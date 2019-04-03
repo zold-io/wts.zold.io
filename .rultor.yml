@@ -18,7 +18,7 @@ release:
     pdd -f /dev/null
     bundle install --no-color
     ruby -v
-    rake
+    bundle exec rake
     git remote add heroku git@heroku.com:zold-wts.git
     rm -rf ~/.ssh
     mkdir ~/.ssh

@@ -591,7 +591,7 @@ post '/do-pay' do
       "from [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})",
       "with the balance of #{user.wallet(&:balance)}",
       "to [#{bnf}](http://www.zold.io/ledger.html?wallet=#{bnf})",
-      "for #{amount} from #{anon_ip}:",
+      "for **#{amount}** from #{anon_ip}:",
       "\"#{safe_md(details)}\";",
       job_link(jid)
     )
@@ -841,7 +841,7 @@ arrival to #{address}, for #{bnf.login}; we ignore it.")
       settings.addresses.destroy(address, bnf.login)
       settings.hashes.add(hash, bnf.login, bnf.item.id)
       settings.telepost.spam(
-        "In: #{bitcoin} BTC [exchanged](https://blog.zold.io/2018/12/09/btc-to-zld.html) to #{zld}",
+        "In: #{bitcoin} BTC [exchanged](https://blog.zold.io/2018/12/09/btc-to-zld.html) to **#{zld}**",
         "by #{title_md(bnf)}",
         "in [#{hash}](https://www.blockchain.com/btc/tx/#{hash})",
         "(#{params[:confirmations]} confirmations)",
@@ -993,7 +993,7 @@ users of WTS, while our limits are #{limits} (daily/weekly/monthly), sorry about
       "$#{usd} sent to #{email}, the price was $#{price.round}/BTC, the fee was #{(f * 100).round(2)}%"
     )
     settings.telepost.spam(
-      "Out: #{amount} [exchanged](https://blog.zold.io/2018/12/09/btc-to-zld.html) to $#{usd} PayPal",
+      "Out: **#{amount}** [exchanged](https://blog.zold.io/2018/12/09/btc-to-zld.html) to $#{usd} PayPal",
       "by #{title_md} from #{anon_ip}",
       "from the wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})",
       "with the remaining balance of #{user.wallet(&:balance)};",
@@ -1628,7 +1628,7 @@ def pay_hosting_bonuses(boss, jid, log)
   end
   settings.telepost.spam(
     'Hosting [bonus](https://blog.zold.io/2018/08/14/hosting-bonuses.html)',
-    "of #{bonus} has been distributed among #{winners.count} wallets",
+    "of **#{bonus}** has been distributed among #{winners.count} wallets",
     '[visible](https://wts.zold.io/remotes) to us at the moment,',
     "among #{settings.remotes.all.count} [others](http://www.zold.io/health.html):",
     winners.map do |s|
