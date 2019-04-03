@@ -162,7 +162,12 @@ In each of them you should expect `200` response with the `X-Zold-Job`
 header inside. Using that job ID you can check the status of the job
 as explained above in `/job.json`.
 
-  * `GET /pull`: asks the server to pull your wallet from the network.
+  * `GET /pull`: asks the server to pull your wallet from the network. This is
+    a pretty fast and safe operation, you can do it every time before
+    reading the wallet content, like finding transactions or checking the
+    balance. If the wallet already exists on our server, there will
+    be no pull from the network. If you really want to pull, no matter what,
+    add `force=true`.
 
   * `GET /create`: creates a new wallet, assigns a new wallet ID to the user,
     leaving the keygap and private RSA key the same.
