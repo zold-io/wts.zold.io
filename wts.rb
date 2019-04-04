@@ -566,6 +566,8 @@ post '/do-pay' do
       ops(friend).push
     end
     bnf = friend.item.id
+  else
+    raise WTS::UserError, "190: Can't understand the beneficiary #{params[:bnf].inspect}"
   end
   amount = Zold::Amount.new(zld: params[:amount].to_f)
   if settings.toggles.get('ban:do-pay').split(',').include?(confirmed_user.login)
