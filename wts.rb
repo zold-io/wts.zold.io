@@ -93,10 +93,14 @@ configure do
   config = if ENV['RACK_ENV'] == 'test'
     {
       'rewards' => {
-        'login' => '0crat',
+        'login' => 'zonuses',
         'keygap' => '?'
       },
       'exchange' => {
+        'login' => 'zoldwts',
+        'keygap' => '?'
+      },
+      'zerocrat' => {
         'login' => '0crat',
         'keygap' => '?'
       },
@@ -592,7 +596,7 @@ post '/do-pay' do
     settings.telepost.spam(
       "Payment sent by #{title_md}",
       "from [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})",
-      "with the balance of #{user.wallet(&:balance)}",
+      "with the remaining balance of #{user.wallet(&:balance)}",
       "to [#{bnf}](http://www.zold.io/ledger.html?wallet=#{bnf})",
       "for **#{amount}** from #{anon_ip}:",
       "\"#{safe_md(details)}\";",
@@ -967,7 +971,7 @@ users of WTS, while our limits are #{limits} (daily/weekly/monthly), sorry about
   end
   bitcoin = (amount.to_zld(8).to_f * rate).round(8)
   usd = (bitcoin * price).round(2)
-  boss = user(settings.config['exchange']['login'])
+  boss = user(settings.config['zerocrat']['login'])
   rewards = user(settings.config['rewards']['login'])
   job do |jid, log|
     log.info("Sending $#{usd} via PayPal to #{email}...")
