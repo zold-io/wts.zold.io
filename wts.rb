@@ -555,10 +555,11 @@ post '/do-pay' do
     friend = user(params[:bnf][0..32].to_i.to_s)
     raise WTS::UserError, '114: The user with this mobile phone is not registered yet' unless friend.item.exists?
     bnf = friend.item.id
-  else
+  elsif /^@[a-zA-Z0-9\-]+$/.match?(params[:bnf])
     login = params[:bnf].strip.downcase.gsub(/^@/, '')
     raise WTS::UserError, "115: Invalid GitHub user name: #{params[:bnf].inspect}" unless login =~ /^[a-z0-9-]{3,32}$/
     raise WTS::UserError, '116: You can\'t pay yourself' if login == user.login
+    raise WTS::UserError, "189: GitHub user #{login.inspect} doesn't exist" unless github_exists?(login)
     friend = user(login)
     unless friend.item.exists?
       friend.create(settings.remotes)
@@ -1703,4 +1704,8 @@ def bank(log: settings.log)
       log: log
     )
   end
+end
+
+def github_exists?(login)
+  Zold::Http.new(uri: "https://api.github.com/users/#{login}").get.status == 200
 end
