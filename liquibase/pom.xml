@@ -45,6 +45,8 @@ SOFTWARE.
         <configuration>
           <changeLogFile>${basedir}/master.xml</changeLogFile>
           <driver>org.postgresql.Driver</driver>
+          <logging>info</logging>
+          <verbose>false</verbose>
           <url>${url}</url>
           <promptOnNonLocalDatabase>false</promptOnNonLocalDatabase>
         </configuration>

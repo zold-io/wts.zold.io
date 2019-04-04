@@ -29,15 +29,18 @@ require_relative 'user_error'
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 class WTS::Callbacks
+  # How many per one user
+  MAX = 1024
+
   def initialize(pgsql, log: Zold::Log::NULL)
     @pgsql = pgsql
     @log = log
   end
 
   # Adds a new callback
-  def add(login, wallet, prefix, regexp, uri, token = 'none')
+  def add(login, wallet, prefix, regexp, uri, token = 'none', repeat: false, forever: false)
     total = @pgsql.exec('SELECT COUNT(*) FROM callback WHERE login = $1', [login])[0]['count'].to_i
-    raise WTS::UserError, "You have too many of them already: #{total}" if total >= 8
+    raise WTS::UserError, "You have too many of them already: #{total}" if total >= MAX
     found = @pgsql.exec(
       'SELECT id FROM callback WHERE login = $1 AND wallet = $2 AND prefix = $3 AND regexp = $4 AND uri = $5',
       [login, wallet, prefix, regexp, uri]
@@ -45,11 +48,11 @@ class WTS::Callbacks
     raise UserErorr, "You already have a callback ##{found['id']} registered with similar params" unless found.nil?
     cid = @pgsql.exec(
       [
-        'INSERT INTO callback (login, wallet, prefix, regexp, uri, token)',
-        'VALUES ($1, $2, $3, $4, $5, $6)',
+        'INSERT INTO callback (login, wallet, prefix, regexp, uri, token, repeat, forever)',
+        'VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
         'RETURNING id'
       ].join(' '),
-      [login, wallet, prefix, regexp, uri, token]
+      [login, wallet, prefix, regexp, uri, token, repeat, forever]
     )[0]['id'].to_i
     @log.debug("New callback ##{cid} registered by #{login} for wallet #{wallet}, \
 prefix \"#{prefix}\", regexp #{regexp}, and URI: #{uri}")
@@ -57,13 +60,13 @@ prefix \"#{prefix}\", regexp #{regexp}, and URI: #{uri}")
   end
 
   # Returns the list of IDs of matches found
-  def match(wallet, prefix, details)
+  def match(tid, wallet, prefix, details)
     found = []
     @pgsql.exec('SELECT * FROM callback WHERE wallet = $1 AND prefix = $2', [wallet, prefix]).each do |r|
       next unless Regexp.new(r['regexp']).match?(details)
       id = @pgsql.exec(
-        'INSERT INTO match (callback) VALUES ($1) ON CONFLICT (callback) DO NOTHING RETURNING id',
-        [r['id'].to_i]
+        'INSERT INTO match (callback, tid) VALUES ($1, $2) ON CONFLICT(tid) DO NOTHING RETURNING id',
+        [r['id'].to_i, tid]
       )
       next if id.empty?
       mid = id[0]['id'].to_i
@@ -119,12 +122,25 @@ prefix \"#{prefix}\", regexp #{regexp}, and URI: #{uri}")
     end
   end
 
+  # Repeat all succeeded callbacks.
+  def repeat_succeeded
+    q = [
+      'SELECT match.id FROM callback',
+      'JOIN match ON match.callback = callback.id',
+      'WHERE match.failure = \'\' AND repeat = true'
+    ].join(' ')
+    @pgsql.exec(q).each do |r|
+      @pgsql.exec('DELETE FROM match WHERE id = $1', [r['id'].to_i])
+      yield c if block_given?
+    end
+  end
+
   # Delete all succeeded callbacks.
   def delete_succeeded
     q = [
       'SELECT callback.* FROM callback',
       'JOIN match ON match.callback = callback.id',
-      'WHERE match.failure = \'\''
+      'WHERE match.failure = \'\' AND repeat = false'
     ].join(' ')
     @pgsql.exec(q).each do |r|
       c = map(r)
@@ -135,7 +151,7 @@ prefix \"#{prefix}\", regexp #{regexp}, and URI: #{uri}")
 
   # Delete all expired callbacks.
   def delete_expired
-    @pgsql.exec('SELECT * FROM callback WHERE created < NOW() - INTERVAL \'24 HOURS\'').each do |r|
+    @pgsql.exec('SELECT * FROM callback WHERE created < NOW() - INTERVAL \'24 HOURS\' AND forever = false').each do |r|
       c = map(r)
       @pgsql.exec('DELETE FROM callback WHERE id = $1', [c[:id]])
       yield c if block_given?
@@ -179,7 +195,9 @@ even though response code was 200: #{res.body.inspect}"
       regexp: Regexp.new(r['regexp']),
       matched: r['matched'] ? Time.parse(r['matched']) : nil,
       failure: r['failure'],
-      created: Time.parse(r['created'])
+      created: Time.parse(r['created']),
+      forever: r['forever'] == 'true',
+      repeat: r['repeat'] == 'true'
     }
   end
 end

@@ -189,6 +189,8 @@ send a `GET` request to `/wait-for` and specify:
   * `regexp`: the regular expression to match payment details, e.g. `pizza$` (the text has to end with `pizza`)
   * `uri`: the URI where the callback should arrive once we see the payment
   * `token`: the secret we will return back to you (up to 128 chars)
+  * `repeat`: set to `true` if you want it to re-create itself right after it's matched
+  * `forever`: set to `true` if you want it to never expire
 
 If your callback is registered, you will receive `200` response of time `text/plain`
 with the ID of the callback in the body.
@@ -212,7 +214,7 @@ our server will send you another `GET` request in 5 minutes and will
 keep doing that for 4 hours. Then it will give up.
 
 If your callback is never matched, it will be removed from the system
-in 24 hours.
+in 24 hours (unless you set `forever` to `true`).
 
 You may register up to a certain amount of callbacks in one account
 (check for the actual limit in the [Callbacks](https://wts.zold.io/callbacks)

@@ -93,6 +93,7 @@ class WTS::Gl
 
   def map(r)
     {
+      tid: "#{Zold::Id.new(r['source'])}:#{r['id'].to_i}",
       id: r['id'].to_i,
       date: Time.parse(r['date']),
       source: Zold::Id.new(r['source']),

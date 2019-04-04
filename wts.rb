@@ -250,11 +250,12 @@ configure do
       settings.log.info("A new transaction added to the General Ledger \
 for #{t[:amount].to_zld(6)} from #{t[:source]} to #{t[:target]} with details \"#{t[:details]}\" \
 and dated of #{t[:date].utc.iso8601}")
-      settings.callbacks.match(t[:target], t[:prefix], t[:details]) do |c, mid|
+      settings.callbacks.match(t[:tid], t[:target], t[:prefix], t[:details]) do |c, mid|
         settings.telepost.spam(
           "The callback no.#{c[:id]} owned by #{title_md(user(c[:login]))} just matched",
           "in [#{c[:wallet]}](http://www.zold.io/ledger.html?wallet=#{c[:wallet]})",
-          "with prefix `#{c[:prefix]}` and details #{t[:details].inspect}, match ID is #{mid}"
+          "with prefix `#{c[:prefix]}` and details #{t[:details].inspect}, match ID is #{mid},",
+          "TID is #{t[:tid]}"
         )
       end
     end
@@ -267,6 +268,13 @@ and dated of #{t[:date].utc.iso8601}")
           t.prefix == pfx && regexp.match?(t.details)
         end
       end
+    end
+    settings.callbacks.repeat_succeeded do |c|
+      settings.telepost.spam(
+        "The callback no.#{c[:id]} owned by #{title_md(user(c[:login]))} was repeated, since it was delivered;",
+        "the wallet was [#{c[:wallet]}](http://www.zold.io/ledger.html?wallet=#{c[:wallet]})",
+        "the prefix was `#{c[:prefix]}` and the regexp was `#{c[:regexp].inspect}`"
+      )
     end
     settings.callbacks.delete_succeeded do |c|
       settings.telepost.spam(
@@ -764,7 +772,9 @@ get '/wait-for' do
   raise WTS::UserError, '121: The parameter "uri" is mandatory' if uri.nil?
   id = settings.callbacks.add(
     user.login, Zold::Id.new(wallet), prefix, regexp, uri,
-    params[:token] || 'none'
+    params[:token] || 'none',
+    repeat: params[:repeat] ? true : false,
+    forever: params[:forever] ? true : false
   )
   settings.telepost.spam(
     "New callback no.#{id} created by #{title_md} from #{anon_ip}",
