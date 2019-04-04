@@ -415,12 +415,39 @@ get '/' do
 end
 
 get '/funded' do
-  # Here we have to go to Coinbase and purchase BTC. This is necessary
-  # in order to convert incoming USD immediately into Bitcoins, before
-  # the rate changes and we lose some money.
   raise UserError, '104: Amount parameter is mandatory' unless params[:amount]
-  amount = params[:amount].to_f
-  raise UserError, '105: The amount can\'t be zero' if amount.zero?
+  usd = params[:amount].to_f
+  raise UserError, '105: The amount can\'t be zero' if usd.zero?
+  zerocrat = user(settings.config['zerocrat']['login'])
+  raise UserError, '191: Only Zerocrat is allowed to do this' unless user.login == zerocrat.login
+  boss = user(settings.config['exchange']['login'])
+  btc = usd / price
+  zld = Zold::Amount.new(zld: btc / rate)
+  job(boss) do |jid, log|
+    log.info("Buying bitcoins for $#{usd} at Coinbase...")
+    ops(boss, log: log).pull
+    ops(zerocrat, log: log).pull
+    settings.bank.buy(usd)
+    txn = ops(boss, log: log).pay(
+      settings.config['exchange']['keygap'],
+      zerocrat.item.id,
+      zld,
+      "Purchased #{btc} BTC for #{usd} USD at Coinbase"
+    )
+    settings.telepost.spam(
+      "Buy: **#{btc.round(4)}** BTC purchased for $#{usd.round(2)} at Coinbase,",
+      "#{zld} were deposited to the wallet",
+      "[#{zerocrat.item.id}](http://www.zold.io/ledger.html?wallet=#{zerocrat.item.id})",
+      "owned by [#{zerocrat.login}](https://github.com/#{zerocrat.login})",
+      "with the remaining balance of #{zerocrat.wallet(&:balance)};",
+      "BTC price at the time of exchange was [$#{price.round}](https://blockchain.info/ticker);",
+      "zolds were sent by [#{zerocrat.login}](https://github.com/#{zerocrat.login})",
+      "from the wallet [#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id})",
+      "with the remaining balance of #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t);",
+      "transaction ID is #{txn.id};",
+      job_link(jid)
+    )
+  end
   'OK, thanks'
 end
 
