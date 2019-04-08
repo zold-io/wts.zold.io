@@ -779,7 +779,8 @@ get '/wait-for' do
   settings.telepost.spam(
     "New callback no.#{id} created by #{title_md} from #{anon_ip}",
     "for the wallet [#{wallet}](http://www.zold.io/ledger.html?wallet=#{wallet}),",
-    "prefix `#{prefix}`, and regular expression `#{safe_md(regexp.to_s)}`"
+    "prefix `#{prefix}`, and regular expression `#{safe_md(regexp.to_s)}`,"
+    "repeat=#{params[:repeat]}, forever=#{params[:forever]}"
   )
   content_type 'text/plain'
   id.to_s
