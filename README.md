@@ -174,6 +174,9 @@ as explained above in `/job.json`.
   * `GET /create`: creates a new wallet, assigns a new wallet ID to the user,
     leaving the keygap and private RSA key the same.
 
+  * `GET /txn.json`: retrieves a single transaction details in JSON,
+    expecting `tid` as a single query parameter (wallet ID + `:` + transaction ID).
+
 Make sure you always use the `noredirect=1` query parameter. Without it
 you may get unpredictable response codes, like 302/303, and an HTML document
 in the response body.

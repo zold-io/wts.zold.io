@@ -260,7 +260,7 @@ and dated #{t[:date].utc.iso8601}")
       end
     end
   end
-  settings.daemons.start('callbacks', 5 * 60) do
+  settings.daemons.start('callbacks') do
     settings.callbacks.ping do |login, id, pfx, regexp|
       ops(user(login)).pull(id)
       settings.wallets.acq(id) do |wallet|
@@ -704,6 +704,14 @@ get '/txns.json' do
       end
     )
   end
+end
+
+get '/txn.json' do
+  tid = params[:tid]
+  raise WTS::UserError, "193: Parameter 'tid' is mandatory" if tid.nil?
+  source, id = tid.split(':')
+  content_type 'application/json'
+  JSON.pretty_generate(settings.gl.txn(source, id))
 end
 
 get '/id_rsa' do
