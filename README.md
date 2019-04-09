@@ -199,6 +199,7 @@ Once the payment arrives, your URI will receive a `GET` request from us
 with the following query arguments:
 
   * `callback`: the ID of the callback
+  * `tid`: the unique ID of the transaction in the entire network
   * `login`: the user name of the owner of this callback
   * `regexp`: the regular expression just matched
   * `wallet`: the ID of the wallet that is receiving the payment

@@ -101,6 +101,7 @@ prefix \"#{prefix}\", regexp #{regexp}, and URI: #{uri}")
       txns = yield(login, Zold::Id.new(r['wallet']), r['prefix'], Regexp.new(r['regexp']))
       txns.each do |t|
         args = {
+          tid: "#{t.bnf}:#{t.id}",
           callback: cid,
           login: login,
           regexp: r['regexp'],
