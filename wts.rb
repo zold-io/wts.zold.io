@@ -583,21 +583,25 @@ end
 post '/do-pay' do
   prohibit('pay')
   raise WTS::UserError, '109: Parameter "bnf" is not provided' if params[:bnf].nil?
+  bnf = params[:bnf].strip
   raise WTS::UserError, '110: Parameter "amount" is not provided' if params[:amount].nil?
+  amount = Zold::Amount.new(zld: params[:amount].to_f)
   raise WTS::UserError, '111: Parameter "details" is not provided' if params[:details].nil?
-  if /^[a-f0-9]{16}$/.match?(params[:bnf])
-    bnf = Zold::Id.new(params[:bnf])
+  details = params[:details]
+  raise WTS::UserError, "118: Invalid details \"#{details}\"" unless details =~ %r{^[a-zA-Z0-9\ @!?*_\-.:,'/]+$}
+  if /^[a-f0-9]{16}$/.match?(bnf)
+    bnf = Zold::Id.new(bnf)
     raise WTS::UserError, '112: You can\'t pay yourself' if bnf == user.item.id
-  elsif /^[a-zA-Z0-9]+@[a-f0-9]{16}$/.match?(params[:bnf])
+  elsif /^[a-zA-Z0-9]+@[a-f0-9]{16}$/.match?(bnf)
     bnf = params[:bnf]
     raise WTS::UserError, '113: You can\'t pay yourself' if bnf.split('@')[1] == user.item.id.to_s
-  elsif /^\\+[0-9]+$/.match?(params[:bnf])
-    friend = user(params[:bnf][0..32].to_i.to_s)
+  elsif /^\\+[0-9]+$/.match?(bnf)
+    friend = user(bnf[0..32].to_i.to_s)
     raise WTS::UserError, '114: The user with this mobile phone is not registered yet' unless friend.item.exists?
     bnf = friend.item.id
-  elsif /^@[a-zA-Z0-9\-]+$/.match?(params[:bnf])
-    login = params[:bnf].strip.downcase.gsub(/^@/, '')
-    raise WTS::UserError, "115: Invalid GitHub user name: #{params[:bnf].inspect}" unless login =~ /^[a-z0-9-]{3,32}$/
+  elsif /^@[a-zA-Z0-9\-]+$/.match?(bnf)
+    login = bnf.downcase.gsub(/^@/, '')
+    raise WTS::UserError, "115: Invalid GitHub user name: #{bnf.inspect}" unless login =~ /^[a-z0-9-]{3,32}$/
     raise WTS::UserError, '116: You can\'t pay yourself' if login == user.login
     raise WTS::UserError, "189: GitHub user #{login.inspect} doesn't exist" unless github_exists?(login)
     friend = user(login)
@@ -607,9 +611,8 @@ post '/do-pay' do
     end
     bnf = friend.item.id
   else
-    raise WTS::UserError, "190: Can't understand the beneficiary #{params[:bnf].inspect}"
+    raise WTS::UserError, "190: Can't understand the beneficiary #{bnf.inspect}"
   end
-  amount = Zold::Amount.new(zld: params[:amount].to_f)
   if settings.toggles.get('ban:do-pay').split(',').include?(confirmed_user.login)
     settings.telepost.spam(
       "The user #{title_md} from #{anon_ip} is trying to send #{amount} out,",
@@ -619,8 +622,6 @@ post '/do-pay' do
     )
     raise WTS::UserError, '117: Your account is not allowed to send any payments at the moment, sorry'
   end
-  details = params[:details]
-  raise WTS::UserError, "118: Invalid details \"#{details}\"" unless details =~ %r{^[a-zA-Z0-9\ @!?*_\-.:,'/]+$}
   headers['X-Zold-Job'] = job do |jid, log|
     log.info("Sending #{amount} to #{bnf}...")
     ops(log: log).pull
