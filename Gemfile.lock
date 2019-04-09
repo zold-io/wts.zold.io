@@ -7,7 +7,7 @@ GEM
       mocha (>= 0.10.0)
       money (>= 3.6.0)
       multi_json (>= 1.0.0)
-    activemerchant (1.91.0)
+    activemerchant (1.92.0)
       activesupport (>= 4.2)
       builder (>= 2.1.2, < 4.0.0)
       i18n (>= 0.6.9)
@@ -117,7 +117,7 @@ GEM
     openssl (2.1.2)
       ipaddr
     parallel (1.17.0)
-    parser (2.6.2.0)
+    parser (2.6.2.1)
       ast (~> 2.4.0)
     paypal-sdk-rest (1.7.3)
       multi_json (~> 1.0)

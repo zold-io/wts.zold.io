@@ -396,6 +396,7 @@ after do
 end
 
 get '/github-callback' do
+  error(400) if params[:code].nil?
   c = GLogin::Cookie::Open.new(
     settings.glogin.user(params[:code]),
     settings.config['github']['encryption_secret'],
@@ -423,11 +424,11 @@ get '/' do
 end
 
 get '/funded' do
-  raise UserError, '104: Amount parameter is mandatory' unless params[:amount]
+  raise WTS::UserError, '104: Amount parameter is mandatory' unless params[:amount]
   usd = params[:amount].to_f
-  raise UserError, '105: The amount can\'t be zero' if usd.zero?
+  raise WTS::UserError, '105: The amount can\'t be zero' if usd.zero?
   zerocrat = user(settings.config['zerocrat']['login'])
-  raise UserError, '191: Only Zerocrat is allowed to do this' unless user.login == zerocrat.login
+  raise WTS::UserError, '191: Only Zerocrat is allowed to do this' unless user.login == zerocrat.login
   boss = user(settings.config['exchange']['login'])
   btc = usd / price
   zld = Zold::Amount.new(zld: btc / rate)
@@ -779,7 +780,7 @@ get '/wait-for' do
   settings.telepost.spam(
     "New callback no.#{id} created by #{title_md} from #{anon_ip}",
     "for the wallet [#{wallet}](http://www.zold.io/ledger.html?wallet=#{wallet}),",
-    "prefix `#{prefix}`, and regular expression `#{safe_md(regexp.to_s)}`,"
+    "prefix `#{prefix}`, and regular expression `#{safe_md(regexp.to_s)}`,",
     "repeat=#{params[:repeat]}, forever=#{params[:forever]}"
   )
   content_type 'text/plain'

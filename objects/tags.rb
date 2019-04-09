@@ -39,7 +39,7 @@ class WTS::Tags
 
   # Add tag.
   def attach(tag)
-    raise UserError, "181: Invalid tag #{tag.inspect}" unless /^[a-z0-9-]+$/.match?(tag)
+    raise WTS::UserError, "181: Invalid tag #{tag.inspect}" unless /^[a-z0-9-]+$/.match?(tag)
     @pgsql.exec('INSERT INTO tag (login, name) VALUES ($1, $2)', [@login, tag])
   end
 end

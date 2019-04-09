@@ -45,7 +45,7 @@ class WTS::Callbacks
       'SELECT id FROM callback WHERE login = $1 AND wallet = $2 AND prefix = $3 AND regexp = $4 AND uri = $5',
       [login, wallet, prefix, regexp, uri]
     )[0]
-    raise UserErorr, "You already have a callback ##{found['id']} registered with similar params" unless found.nil?
+    raise WTS::UserErorr, "You already have a callback ##{found['id']} registered with similar params" unless found.nil?
     cid = @pgsql.exec(
       [
         'INSERT INTO callback (login, wallet, prefix, regexp, uri, token, repeat, forever)',
