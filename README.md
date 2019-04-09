@@ -176,6 +176,8 @@ as explained above in `/job.json`.
 
   * `GET /txn.json`: retrieves a single transaction details in JSON,
     expecting `tid` as a single query parameter (wallet ID + `:` + transaction ID).
+    However, this information is not secure enough. This is just the data
+    from the "general ledger," don't rely on it.
 
 Make sure you always use the `noredirect=1` query parameter. Without it
 you may get unpredictable response codes, like 302/303, and an HTML document

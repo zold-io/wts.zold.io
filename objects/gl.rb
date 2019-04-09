@@ -105,6 +105,7 @@ class WTS::Gl
       source: Zold::Id.new(r['source']),
       target: Zold::Id.new(r['target']),
       amount: Zold::Amount.new(zents: r['amount'].to_i),
+      zents: r['amount'].to_i,
       prefix: r['prefix'],
       details: r['details']
     }
