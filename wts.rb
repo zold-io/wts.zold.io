@@ -634,7 +634,7 @@ post '/do-pay' do
       "Payment sent by #{title_md}",
       "from [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})",
       "with the remaining balance of #{user.wallet(&:balance)}",
-      "to [#{bnf}](http://www.zold.io/ledger.html?wallet=#{bnf})",
+      "to `#{txn.prefix}` at [#{bnf}](http://www.zold.io/ledger.html?wallet=#{bnf})",
       "for **#{amount}** from #{anon_ip}:",
       "\"#{safe_md(details)}\";",
       job_link(jid)
