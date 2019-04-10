@@ -228,11 +228,13 @@ configure do
   if settings.config['telegram']['token'].empty?
     set :telepost, Telepost::Fake.new
   else
+    chat = '@zold_wts'
     set :telepost, Telepost.new(
       settings.config['telegram']['token'],
-      chats: ['@zold_wts']
+      chats: [chat]
     )
     settings.daemons.start('telepost') do
+      settings.log.info("Starting Telegram chatbot at #{chat}...")
       settings.telepost.run
     end
   end
@@ -890,7 +892,7 @@ arrival to #{address}, for #{bnf.login}; we ignore it.")
         fee = settings.toggles.get('referral-fee', '0.04').to_f
         ops(boss, log: log).pay(
           settings.config['exchange']['keygap'],
-          user(settings.referrals.get(bnf.login)).item.id,
+          user(settings.referrals.ref(bnf.login)).item.id,
           zld * fee, "#{(fee * 100).round(2)}% referral fee for BTC exchange"
         )
       end
