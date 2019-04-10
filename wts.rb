@@ -984,6 +984,8 @@ post '/do-zld-to-paypal' do
   raise WTS::UserError, '135: Email address is not provided' if params[:email].nil?
   raise WTS::UserError, '136: Keygap is not provided' if params[:keygap].nil?
   amount = Zold::Amount.new(zld: params[:amount].to_f)
+  min = Zold::Amount.new(zld: settings.toggles.get('min-out-paypal', '0').to_f)
+  raise WTS::UserError, "194: The amount #{amount} is too small, smaller than #{min}" if amount < min
   email = params[:email].strip
   raise WTS::UserError, "137: You don't have enough to send #{amount}" if confirmed_user.wallet(&:balance) < amount
   if settings.toggles.get('ban:do-sell').split(',').include?(user.login)
@@ -1087,6 +1089,8 @@ post '/do-zld-to-btc' do
   raise WTS::UserError, '142: Bitcoin address is not provided' if params[:btc].nil?
   raise WTS::UserError, '143: Keygap is not provided' if params[:keygap].nil?
   amount = Zold::Amount.new(zld: params[:amount].to_f)
+  min = Zold::Amount.new(zld: settings.toggles.get('min-out-btc', '0').to_f)
+  raise WTS::UserError, "195: The amount #{amount} is too small, smaller than #{min}" if amount < min
   address = params[:btc].strip
   raise WTS::UserError, "144: Bitcoin address is not valid: #{address.inspect}" unless address =~ /^[a-zA-Z0-9]+$/
   raise WTS::UserError, '145: Bitcoin address must start with 1, 3 or bc1' unless address =~ /^(1|3|bc1)/
