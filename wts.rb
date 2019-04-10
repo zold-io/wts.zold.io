@@ -893,7 +893,7 @@ arrival to #{address}, for #{bnf.login}; we ignore it.")
         ops(boss, log: log).pay(
           settings.config['exchange']['keygap'],
           user(settings.referrals.ref(bnf.login)).item.id,
-          zld * fee, "#{(fee * 100).round(2)}% referral fee for BTC exchange"
+          zld * fee, "#{(fee * 100).round(2)} referral fee for BTC exchange"
         )
       end
       ops(boss, log: log).push
