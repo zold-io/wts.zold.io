@@ -30,7 +30,8 @@ SOFTWARE.
         login VARCHAR(128) REFERENCES item(login),
         value BIGINT DEFAULT 0 NOT NULL,
         pvt TEXT,
-        updated TIMESTAMPTZ DEFAULT now() NOT NULL
+        updated TIMESTAMPTZ DEFAULT now() NOT NULL,
+        UNIQUE(login)
       );
       CREATE INDEX idx_asset1 ON asset (value);
       CREATE INDEX idx_asset2 ON asset (login);

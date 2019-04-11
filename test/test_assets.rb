@@ -20,24 +20,65 @@
 
 require 'minitest/autorun'
 require 'webmock/minitest'
+require 'zold'
 require_relative 'test__helper'
 require_relative '../objects/wts'
 require_relative '../objects/pgsql'
 require_relative '../objects/assets'
+require_relative '../objects/item'
 
 class WTS::AssetsTest < Minitest::Test
-  def test_prepares_and_spends_batch
-    skip
+  def test_acquire_address
+    WebMock.allow_net_connect!
+    login = "jeff#{rand(999)}"
+    item = WTS::Item.new(login, WTS::Pgsql::TEST.start, log: test_log)
+    item.create(Zold::Id.new, Zold::Key.new(text: OpenSSL::PKey::RSA.new(2048).to_pem))
+    assets = WTS::Assets.new(WTS::Pgsql::TEST.start, log: test_log)
+    address = assets.acquire(login)
+    assert(!address.nil?)
+    assert_equal(address, assets.acquire(login))
+    assert_equal(login, assets.owner(address))
+  end
+
+  def test_orphan_address
     WebMock.allow_net_connect!
     assets = WTS::Assets.new(WTS::Pgsql::TEST.start, log: test_log)
-    assets.set("32wtFfKbjWHpu9WFzX9adGsFFAosqPk#{rand(999)}", 1000)
-    assets.set("32wtFfKbjWHpu9WFzX9adGsFFAosqPk#{rand(999)}", 100)
-    assets.set("32wtFfKbjWHpu9WFzX9adGsFFAosqPk#{rand(999)}", 10)
-    batch = assets.prepare(500)
-    assert(batch.count >= 3)
-    assets.spent(batch)
-    assets.add("32wtFfKbjWHpu9WFzX9adGsFFAosqPk#{rand(999)}", 201, 'pvt')
-    batch = assets.prepare(200)
-    assert(batch.count >= 1)
+    address = assets.acquire
+    assert(!address.nil?)
+    assert_equal(address, assets.acquire)
+  end
+
+  def test_sets_value
+    WebMock.allow_net_connect!
+    assets = WTS::Assets.new(WTS::Pgsql::TEST.start, log: test_log)
+    address = assets.acquire
+    assets.set(address, 50_000_000)
+    assets.set(address, 100_000_000)
+    assert_equal(100_000_000, assets.all.select { |a| a[:address] == address }[0][:value])
+    assert(assets.balance >= 1, assets.balance)
+  end
+
+  def test_monitors_blockchain
+    WebMock.allow_net_connect!
+    assets = WTS::Assets.new(WTS::Pgsql::TEST.start, log: test_log)
+    login = "jeff#{rand(999)}"
+    item = WTS::Item.new(login, WTS::Pgsql::TEST.start, log: test_log)
+    item.create(Zold::Id.new, Zold::Key.new(text: OpenSSL::PKey::RSA.new(2048).to_pem))
+    assets.acquire(login)
+    assets.monitor('', max: 2) do |address, hash, satoshi|
+      assert(!address.nil?)
+      assert(!hash.nil?)
+      assert(!satoshi.nil?)
+    end
+  end
+
+  def test_saves_hash_and_loads
+    WebMock.allow_net_connect!
+    assets = WTS::Assets.new(WTS::Pgsql::TEST.start, log: test_log)
+    address = "1JvCsJtLmCxEk7ddZFnVkGXpr9uhxZP#{rand(999)}"
+    hash = "5de641d3867eb8fec3eb1a5ef2b44df39b54e0b3bb664ab520f2ae26a5b18#{rand(999)}"
+    assert(!assets.seen?(hash))
+    assets.see(address, hash)
+    assert(assets.seen?(hash))
   end
 end

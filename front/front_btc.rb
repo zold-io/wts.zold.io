@@ -19,23 +19,22 @@
 # SOFTWARE.
 
 require 'sibit'
+require 'syncem'
 require_relative '../objects/assets'
-require_relative '../objects/btc'
 require_relative '../objects/coinbase'
-require_relative '../objects/utxos'
 require_relative '../objects/referrals'
 require_relative '../objects/user_error'
 
-set :referrals, WTS::Referrals.new(settings.pgsql, log: settings.log)
-set :utxos, WTS::Utxos.new(settings.pgsql, log: settings.log)
-set :assets, WTS::Assets.new(settings.pgsql, log: settings.log)
-set :btc, WTS::Btc.new(log: settings.log)
+set :referrals, SyncEm.new(WTS::Referrals.new(settings.pgsql, log: settings.log))
+set :assets, SyncEm.new(WTS::Assets.new(settings.pgsql, log: settings.log))
 if settings.config['coinbase']
-  set :coinbase, WTS::Coinbase.new(
-    settings.config['coinbase']['key'],
-    settings.config['coinbase']['secret'],
-    settings.config['coinbase']['account'],
-    log: settings.log
+  set :coinbase, SyncEm.new(
+    WTS::Coinbase.new(
+      settings.config['coinbase']['key'],
+      settings.config['coinbase']['secret'],
+      settings.config['coinbase']['account'],
+      log: settings.log
+    )
   )
 else
   set :coinbase, WTS::Coinbase::Fake.new
@@ -43,7 +42,7 @@ end
 
 settings.daemons.start('btc-monitor') do
   seen = settings.toggles.get('latestblock', '')
-  seen = settings.btc.monitor(settings.assets, settings.utxos, seen) do |address, hash, satoshi|
+  seen = settings.assets.monitor(seen) do |address, hash, satoshi|
     bitcoin = (satoshi.to_f / 100_000_000).round(8)
     zld = Zold::Amount.new(zld: bitcoin / rate)
     bnf = user(settings.assets.owner(address))
@@ -64,7 +63,7 @@ settings.daemons.start('btc-monitor') do
       )
     end
     ops(boss, log: log).push
-    settings.utxos.add(address, hash)
+    settings.assets.see(address, hash)
     settings.telepost.spam(
       "In: #{bitcoin} BTC [exchanged](https://blog.zold.io/2018/12/09/btc-to-zld.html) to **#{zld}**",
       "by #{title_md(bnf)}",
@@ -207,7 +206,7 @@ users of WTS, while our limits are #{limits} (daily/weekly/monthly), sorry about
       "Fee for exchange of #{bitcoin} BTC at #{address}, rate is #{rate}, fee is #{f}"
     )
     ops(log: log).push
-    settings.assets.send(settings.btc, address, (bitcoin * 100_000_000 * (1 - fee)).round)
+    settings.assets.pay(address, (bitcoin * 100_000_000 * (1 - fee)).round)
     settings.payouts.add(
       user.login, user.item.id, amount,
       "#{bitcoin} BTC sent to #{address}, the price was $#{price.round}/BTC, the fee was #{(f * 100).round(2)}%"
@@ -259,5 +258,5 @@ get '/referrals' do
 end
 
 def price
-  settings.zache.get(:price, lifetime: 5 * 60) { settings.btc.price }
+  settings.zache.get(:price, lifetime: 5 * 60) { settings.assets.price }
 end
