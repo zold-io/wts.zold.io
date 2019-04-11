@@ -89,15 +89,23 @@ class WTS::Gl
     )[0]['count'].to_i
   end
 
+  def txn(source, id)
+    row = @pgsql.exec('SELECT * FROM txn WHERE source = $1 AND id = $2', [source, id])[0]
+    raise WTS::UserError, "192: Transaction #{source}:#{id} not found in GL" if row.nil?
+    map(row)
+  end
+
   private
 
   def map(r)
     {
+      tid: "#{Zold::Id.new(r['source'])}:#{r['id'].to_i}",
       id: r['id'].to_i,
       date: Time.parse(r['date']),
       source: Zold::Id.new(r['source']),
       target: Zold::Id.new(r['target']),
       amount: Zold::Amount.new(zents: r['amount'].to_i),
+      zents: r['amount'].to_i,
       prefix: r['prefix'],
       details: r['details']
     }

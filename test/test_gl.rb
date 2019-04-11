@@ -60,6 +60,7 @@ class WTS::GlTest < Minitest::Test
       gl = WTS::Gl.new(WTS::Pgsql::TEST.start, log: test_log)
       gl.scan(remotes) do |t|
         assert_equal(id, t[:id], t)
+        assert_equal("#{t[:source]}:#{t[:id]}", t[:tid], t)
       end
       assert(gl.fetch(query: '0000111122223333').count.positive?)
       row = gl.fetch[0]

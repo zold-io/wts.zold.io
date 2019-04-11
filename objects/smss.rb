@@ -40,11 +40,11 @@ class WTS::Smss
       [phone]
     )[0]['count'].to_i
     if recent > 16 && ENV['RACK_ENV'] != 'test'
-      raise WTS::UserError, 'We\'ve sent too many of them already, wait for a few hours and try again'
+      raise WTS::UserError, '183: We\'ve sent too many of them already, wait for a few hours and try again'
     end
     total = @pgsql.exec('SELECT COUNT(*) FROM sms WHERE created > NOW() - INTERVAL \'4 HOURS\'')[0]['count'].to_i
     if total > 256 && ENV['RACK_ENV'] != 'test'
-      raise WTS::UserError, 'We\'ve sent too many of them already, we have to relax for a while'
+      raise WTS::UserError, '180: We\'ve sent too many of them already, we have to relax for a while'
     end
     rid = 999
     rid = @sns.publish(phone_number: "+#{phone}", message: msg)[:message_id] if ENV['RACK_ENV'] != 'test'

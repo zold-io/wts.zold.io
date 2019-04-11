@@ -62,6 +62,8 @@
           Created
         %th
           Matched
+        %th
+          Flags
     %tbody
       - list.each do |c|
         %tr
@@ -83,13 +85,21 @@
                 = Zold::Age.new(c[:matched])
             - else
               = '&mdash;'
+          %td
+            - if c[:forever]
+              F
+            - if c[:repeat]
+              R
         - unless c[:failure].nil?
           %tr
             %td
             %td.gray.small{colspan: '6'}
               = CGI.escapeHTML(c[:failure]).gsub(/([^ ]{16})/, '\1&shy;')
   %p
-    If callback is not matched within 24 hours, it will automatically be deleted.
+    If a callback is not matched within 24 hours, it will automatically be deleted
+    (unless it has the
+    %code F
+    flag).
 
 %p
   To monitor our Callback API activity you may want

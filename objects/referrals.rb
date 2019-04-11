@@ -68,7 +68,7 @@ class WTS::Referrals
   # Get referral.
   def ref(login)
     row = @pgsql.exec('SELECT ref FROM referral WHERE login = $1 LIMIT 1', [login])
-    raise WTS::UserError, "No referral for #{login}" if row.empty?
+    raise WTS::UserError, "184: No referral for #{login}" if row.empty?
     row[0]['ref']
   end
 end

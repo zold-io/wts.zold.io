@@ -52,6 +52,12 @@ class WTS::Bank
     acc.balance['amount'].to_f
   end
 
+  # Convert USD to BTC.
+  def buy(usd)
+    acc = Coinbase::Wallet::Client.new(api_key: @key, api_secret: @secret).account(@account)
+    acc.buy(amount: usd.to_s, currency: 'USD')
+  end
+
   # Send BTC
   def send(address, usd, details)
     acc = Coinbase::Wallet::Client.new(api_key: @key, api_secret: @secret).account(@account)

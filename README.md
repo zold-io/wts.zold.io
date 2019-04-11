@@ -157,15 +157,27 @@ which return the result immediately:
     attribute set to `false`. The only valid attribute there will be
     `effective_rate`. Here is a live [example](https://wts.zold.io/rate.json).
 
+  * `GET /usd_rate`: returns current rate of ZLD in USD.
+
 These entry points, just like the `/do-pay` explained above, are asynchronous.
 In each of them you should expect `200` response with the `X-Zold-Job`
 header inside. Using that job ID you can check the status of the job
 as explained above in `/job.json`.
 
-  * `GET /pull`: asks the server to pull your wallet from the network.
+  * `GET /pull`: asks the server to pull your wallet from the network. This is
+    a pretty fast and safe operation, you can do it every time before
+    reading the wallet content, like finding transactions or checking the
+    balance. If the wallet already exists on our server, there will
+    be no pull from the network. If you really want to pull, no matter what,
+    add `force=true`.
 
   * `GET /create`: creates a new wallet, assigns a new wallet ID to the user,
     leaving the keygap and private RSA key the same.
+
+  * `GET /txn.json`: retrieves a single transaction details in JSON,
+    expecting `tid` as a single query parameter (wallet ID + `:` + transaction ID).
+    However, this information is not secure enough. This is just the data
+    from the "general ledger," don't rely on it.
 
 Make sure you always use the `noredirect=1` query parameter. Without it
 you may get unpredictable response codes, like 302/303, and an HTML document
@@ -182,6 +194,8 @@ send a `GET` request to `/wait-for` and specify:
   * `regexp`: the regular expression to match payment details, e.g. `pizza$` (the text has to end with `pizza`)
   * `uri`: the URI where the callback should arrive once we see the payment
   * `token`: the secret we will return back to you (up to 128 chars)
+  * `repeat`: set to `true` if you want it to re-create itself right after it's matched
+  * `forever`: set to `true` if you want it to never expire
 
 If your callback is registered, you will receive `200` response of time `text/plain`
 with the ID of the callback in the body.
@@ -190,6 +204,7 @@ Once the payment arrives, your URI will receive a `GET` request from us
 with the following query arguments:
 
   * `callback`: the ID of the callback
+  * `tid`: the unique ID of the transaction in the entire network
   * `login`: the user name of the owner of this callback
   * `regexp`: the regular expression just matched
   * `wallet`: the ID of the wallet that is receiving the payment
@@ -205,7 +220,7 @@ our server will send you another `GET` request in 5 minutes and will
 keep doing that for 4 hours. Then it will give up.
 
 If your callback is never matched, it will be removed from the system
-in 24 hours.
+in 24 hours (unless you set `forever` to `true`).
 
 You may register up to a certain amount of callbacks in one account
 (check for the actual limit in the [Callbacks](https://wts.zold.io/callbacks)
