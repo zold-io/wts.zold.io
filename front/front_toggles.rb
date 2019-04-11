@@ -19,6 +19,7 @@
 # SOFTWARE.
 
 require_relative '../objects/toggles'
+require_relative '../objects/user_error'
 
 set :toggles, WTS::Toggles.new(settings.pgsql, log: settings.log)
 
