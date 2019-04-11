@@ -27,6 +27,13 @@ require_relative 'user_error'
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 class WTS::Smss
+  # Fake
+  class Fake
+    def send(_phone, _msg)
+      # Nothing
+    end
+  end
+
   def initialize(pgsql, sns, log: Zold::Log::NULL)
     @pgsql = pgsql
     @sns = sns

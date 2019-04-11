@@ -18,6 +18,17 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+set :paypal, WTS::PayPal.new(
+  {
+    email: settings.config['paypal']['email'],
+    login: settings.config['paypal']['login'],
+    password: settings.config['paypal']['password'],
+    signature: settings.config['paypal']['signature'],
+    appid: settings.config['paypal']['appid']
+  },
+  log: settings.log
+)
+
 get '/zld-to-paypal' do
   prohibit('paypal')
   raise WTS::UserError, '130: You have to work in Zerocracy in order to cash out to PayPal' unless known?

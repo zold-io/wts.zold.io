@@ -18,6 +18,26 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require_relative '../objects/assets'
+require_relative '../objects/btc'
+require_relative '../objects/coinbase'
+require_relative '../objects/utxos'
+require_relative '../objects/user_error'
+
+set :utxos, WTS::Utxos.new(settings.pgsql, log: settings.log)
+set :assets, WTS::Assets.new(settings.pgsql, log: settings.log)
+set :btc, WTS::Btc.new(log: settings.log)
+if settings.config['coinbase']
+  set :coinbase, WTS::Coinbase.new(
+    settings.config['coinbase']['key'],
+    settings.config['coinbase']['secret'],
+    settings.config['coinbase']['account'],
+    log: settings.log
+  )
+else
+  set :coinbase, WTS::Coinbase::Fake.new
+end
+
 settings.daemons.start('btc-monitor') do
   settings.btc.monitor(settings.assets) do |login, address, hash, satoshi, confirmations|
     bitcoin = (satoshi.to_f / 100_000_000).round(8)

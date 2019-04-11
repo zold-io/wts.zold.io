@@ -20,7 +20,6 @@
 
 STDOUT.sync = true
 
-require 'aws-sdk-sns'
 require 'backtrace'
 require 'base64'
 require 'concurrent'
@@ -35,14 +34,11 @@ require 'sass'
 require 'securerandom'
 require 'sinatra'
 require 'sinatra/cookies'
+require 'telebot'
 require 'telepost'
 require 'tempfile'
-require 'telepost'
-require 'telebot'
-require 'uri'
-require 'rack/ssl'
-require 'get_process_mem'
 require 'total'
+require 'uri'
 require 'yaml'
 require 'zold'
 require 'zold/amount'
@@ -52,36 +48,16 @@ require 'zold/json_page'
 require 'zold/log'
 require 'zold/remotes'
 require 'zold/sync_wallets'
-require_relative 'objects/assets'
-require_relative 'objects/async_job'
-require_relative 'objects/btc'
-require_relative 'objects/coinbase'
-require_relative 'objects/callbacks'
 require_relative 'objects/daemons'
-require_relative 'objects/db_log'
-require_relative 'objects/file_log'
 require_relative 'objects/gl'
 require_relative 'objects/graph'
 require_relative 'objects/item'
-require_relative 'objects/jobs'
-require_relative 'objects/mcodes'
 require_relative 'objects/ops'
-require_relative 'objects/payables'
 require_relative 'objects/payouts'
-require_relative 'objects/paypal'
 require_relative 'objects/pgsql'
 require_relative 'objects/referrals'
-require_relative 'objects/safe_job'
-require_relative 'objects/smss'
-require_relative 'objects/tee_log'
-require_relative 'objects/ticks'
-require_relative 'objects/toggles'
 require_relative 'objects/tokens'
-require_relative 'objects/tracked_job'
-require_relative 'objects/update_job'
 require_relative 'objects/user'
-require_relative 'objects/user_error'
-require_relative 'objects/versioned_job'
 require_relative 'objects/wts'
 require_relative 'version'
 
@@ -124,11 +100,6 @@ configure do
         'user' => 'test',
         'dbname' => 'test',
         'password' => 'test'
-      },
-      'sns' => {
-        'region' => '?',
-        'key' => '?',
-        'secret' => '?'
       },
       'telegram' => {
         'token' => '',
@@ -175,52 +146,13 @@ configure do
     user: settings.config['pgsql']['user'],
     password: settings.config['pgsql']['password']
   ).start(1)
-  set :gl, WTS::Gl.new(settings.pgsql, log: settings.log)
-  set :payables, WTS::Payables.new(settings.pgsql, settings.remotes, log: settings.log)
-  set :toggles, WTS::Toggles.new(settings.pgsql, log: settings.log)
-  set :utxos, WTS::Utxos.new(settings.pgsql, log: settings.log)
   set :tokens, WTS::Tokens.new(settings.pgsql, log: settings.log)
   set :referrals, WTS::Referrals.new(settings.pgsql, log: settings.log)
-  set :jobs, WTS::Jobs.new(settings.pgsql, log: settings.log)
-  set :mcodes, WTS::Mcodes.new(settings.pgsql, log: settings.log)
   set :payouts, WTS::Payouts.new(settings.pgsql, log: settings.log)
-  set :callbacks, WTS::Callbacks.new(settings.pgsql, log: settings.log)
   set :daemons, WTS::Daemons.new(settings.pgsql, log: settings.log)
   set :codec, GLogin::Codec.new(config['api_secret'])
   set :zache, Zache.new(dirty: true)
-  set :ticks, WTS::Ticks.new(settings.pgsql, log: settings.log)
   set :pool, Concurrent::FixedThreadPool.new(16, max_queue: 64, fallback_policy: :abort)
-  set :paypal, WTS::PayPal.new(
-    {
-      email: settings.config['paypal']['email'],
-      login: settings.config['paypal']['login'],
-      password: settings.config['paypal']['password'],
-      signature: settings.config['paypal']['signature'],
-      appid: settings.config['paypal']['appid']
-    },
-    log: settings.log
-  )
-  set :assets, WTS::Assets.new(settings.pgsql, log: settings.log)
-  set :btc, WTS::Btc.new(log: settings.log)
-  if settings.config['coinbase']
-    set :coinbase, WTS::Coinbase.new(
-      settings.config['coinbase']['key'],
-      settings.config['coinbase']['secret'],
-      settings.config['coinbase']['account'],
-      log: settings.log
-    )
-  else
-    set :coinbase, WTS::Coinbase::Fake.new
-  end
-  set :smss, WTS::Smss.new(
-    settings.pgsql,
-    Aws::SNS::Client.new(
-      region: settings.config['sns']['region'],
-      access_key_id: settings.config['sns']['key'],
-      secret_access_key: settings.config['sns']['secret']
-    ),
-    log: settings.log
-  )
   if settings.config['telegram']['token'].empty?
     set :telepost, Telepost::Fake.new
   else
@@ -233,109 +165,6 @@ configure do
       settings.log.info("Starting Telegram chatbot at #{chat}...")
       settings.telepost.run
     end
-  end
-  settings.daemons.start('hosting-bonuses', 10 * 60) do
-    login = settings.config['rewards']['login']
-    boss = user(login)
-    if boss.item.exists?
-      job(boss) do |jid, log|
-        pay_hosting_bonuses(boss, jid, log)
-      end
-    end
-  end
-  settings.daemons.start('scan-general-ledger') do
-    settings.gl.scan(settings.remotes) do |t|
-      settings.log.info("A new transaction #{t[:tid]} added to the General Ledger \
-for #{t[:amount].to_zld(6)} from #{t[:source]} to #{t[:target]} with details #{t[:details].inspect} \
-and dated #{t[:date].utc.iso8601}")
-      settings.callbacks.match(t[:tid], t[:target], t[:prefix], t[:details]) do |c, mid|
-        settings.telepost.spam(
-          "The callback no.#{c[:id]} owned by #{title_md(user(c[:login]))} just matched",
-          "in [#{c[:wallet]}](http://www.zold.io/ledger.html?wallet=#{c[:wallet]})",
-          "with prefix `#{c[:prefix]}` and details #{t[:details].inspect}, match ID is #{mid},",
-          "TID is #{t[:tid]}"
-        )
-      end
-    end
-  end
-  settings.daemons.start('callbacks') do
-    settings.callbacks.ping do |login, id, pfx, regexp|
-      ops(user(login)).pull(id)
-      settings.wallets.acq(id) do |wallet|
-        wallet.txns.select do |t|
-          t.prefix == pfx && regexp.match?(t.details)
-        end
-      end
-    end
-    settings.callbacks.repeat_succeeded do |c|
-      settings.telepost.spam(
-        "The callback no.#{c[:id]} owned by #{title_md(user(c[:login]))} was repeated, since it was delivered;",
-        "the wallet was [#{c[:wallet]}](http://www.zold.io/ledger.html?wallet=#{c[:wallet]})",
-        "the prefix was `#{c[:prefix]}` and the regexp was `#{c[:regexp].inspect}`"
-      )
-    end
-    settings.callbacks.delete_succeeded do |c|
-      settings.telepost.spam(
-        "The callback no.#{c[:id]} owned by #{title_md(user(c[:login]))} was deleted, since it was delivered;",
-        "the wallet was [#{c[:wallet]}](http://www.zold.io/ledger.html?wallet=#{c[:wallet]})",
-        "the prefix was `#{c[:prefix]}` and the regexp was `#{c[:regexp].inspect}`"
-      )
-    end
-    settings.callbacks.delete_expired do |c|
-      settings.telepost.spam(
-        "The callback no.#{c[:id]} owned by #{title_md(user(c[:login]))} was deleted, since it was never matched;",
-        "the wallet was [#{c[:wallet]}](http://www.zold.io/ledger.html?wallet=#{c[:wallet]})",
-        "the prefix was `#{c[:prefix]}` and the regexp was `#{c[:regexp].inspect}`"
-      )
-    end
-    settings.callbacks.delete_failed do |c|
-      settings.telepost.spam(
-        "The callback no.#{c[:id]} owned by #{title_md(user(c[:login]))} was deleted,",
-        'since it was failed for over four hours;',
-        "the wallet was [#{c[:wallet]}](http://www.zold.io/ledger.html?wallet=#{c[:wallet]})",
-        "the prefix was `#{c[:prefix]}` and the regexp was `#{c[:regexp].inspect}`"
-      )
-    end
-  end
-  settings.daemons.start('payables', 10 * 60) do
-    settings.payables.remove_old
-    settings.payables.discover
-    settings.payables.update
-    settings.payables.remove_banned
-  end
-  settings.daemons.start('ticks', 10 * 60) do
-    settings.ticks.add('Volume24' => settings.gl.volume.to_f) unless settings.ticks.exists?('Volume24')
-    settings.ticks.add('Txns24' => settings.gl.count.to_f) unless settings.ticks.exists?('Txns24')
-    boss = user(settings.config['rewards']['login'])
-    job(boss) do
-      settings.ticks.add('Nodes' => settings.remotes.all.count) unless settings.ticks.exists?('Nodes')
-    end
-  end
-  settings.daemons.start('snapshot', 24 * 60 * 60) do
-    next unless settings.ticks.exists?('Coverage')
-    coverage = settings.ticks.latest('Coverage') / 100_000_000
-    distributed = Zold::Amount.new(
-      zents: (settings.ticks.latest('Emission') - settings.ticks.latest('Office')).to_i
-    )
-    settings.telepost.spam(
-      [
-        "Today is #{Time.now.utc.strftime('%d-%b-%Y')} and we are doing great:\n",
-        "  Wallets: [#{settings.payables.total}](https://wts.zold.io/payables)",
-        "  Transactions: [#{settings.payables.txns}](https://wts.zold.io/payables)",
-        "  Total emission: [#{settings.payables.balance}](https://wts.zold.io/payables)",
-        "  Distributed: [#{distributed}](https://wts.zold.io/rate)",
-        "  24-hours volume: [#{settings.gl.volume}](https://wts.zold.io/gl)",
-        "  24-hours txns count: [#{settings.gl.count}](https://wts.zold.io/gl)",
-        "  Nodes: [#{settings.remotes.all.count}](https://wts.zold.io/remotes)",
-        "  Bitcoin price: $#{price.round}",
-        "  Rate: [#{format('%.08f', rate)}](https://wts.zold.io/rate) ($#{(price * rate).round(2)})",
-        "  Coverage: [#{format('%.08f', coverage)}](https://wts.zold.io/rate) \
-/ [#{(100 * coverage / rate).round}%](http://papers.zold.io/fin-model.pdf)",
-        "  BTC fund: [#{settings.assets.balance.round(4)}](https://wts.zold.io/rate) \
-($#{(price * settings.assets.balance).round})",
-        "\nThanks for staying with us!"
-      ].join("\n")
-    )
   end
   settings.telepost.spam(
     '[WTS](https://wts.zold.io) server software',
@@ -484,88 +313,6 @@ get '/keygap' do
   raise WTS::UserError, '108: We don\'t have it in the database anymore' if user.item.wiped?
   content_type 'text/plain'
   user.item.keygap
-end
-
-get '/pay' do
-  prohibit('pay')
-  haml :pay, layout: :layout, locals: merged(
-    page_title: title('pay')
-  )
-end
-
-post '/do-pay' do
-  prohibit('pay')
-  raise WTS::UserError, '109: Parameter "bnf" is not provided' if params[:bnf].nil?
-  bnf = params[:bnf].strip
-  raise WTS::UserError, '110: Parameter "amount" is not provided' if params[:amount].nil?
-  amount = Zold::Amount.new(zld: params[:amount].to_f)
-  if user.wallet_exists?
-    balance = user.wallet(&:balance)
-    raise WTS::UserError, "197: Not enough funds to send #{amount} only #{balance} left" if balance < amount
-  end
-  raise WTS::UserError, '111: Parameter "details" is not provided' if params[:details].nil?
-  details = params[:details]
-  raise WTS::UserError, "118: Invalid details \"#{details}\"" unless details =~ %r{^[a-zA-Z0-9\ @!?*_\-.:,'/]+$}
-  if /^[a-f0-9]{16}$/.match?(bnf)
-    bnf = Zold::Id.new(bnf)
-    raise WTS::UserError, '112: You can\'t pay yourself' if bnf == user.item.id
-  elsif /^[a-zA-Z0-9]+@[a-f0-9]{16}$/.match?(bnf)
-    bnf = params[:bnf]
-    raise WTS::UserError, '113: You can\'t pay yourself' if bnf.split('@')[1] == user.item.id.to_s
-  elsif /^\\+[0-9]+$/.match?(bnf)
-    friend = user(bnf[0..32].to_i.to_s)
-    raise WTS::UserError, '114: The user with this mobile phone is not registered yet' unless friend.item.exists?
-    bnf = friend.item.id
-  elsif /^@[a-zA-Z0-9\-]+$/.match?(bnf)
-    login = bnf.downcase.gsub(/^@/, '')
-    raise WTS::UserError, "115: Invalid GitHub user name: #{bnf.inspect}" unless login =~ /^[a-z0-9-]{3,32}$/
-    raise WTS::UserError, '116: You can\'t pay yourself' if login == user.login
-    raise WTS::UserError, "189: GitHub user #{login.inspect} doesn't exist" unless github_exists?(login)
-    friend = user(login)
-    unless friend.item.exists?
-      friend.create(settings.remotes)
-      ops(friend).push
-    end
-    bnf = friend.item.id
-  else
-    raise WTS::UserError, "190: Can't understand the beneficiary #{bnf.inspect}"
-  end
-  if settings.toggles.get('ban:do-pay').split(',').include?(confirmed_user.login)
-    settings.telepost.spam(
-      "The user #{title_md} from #{anon_ip} is trying to send #{amount} out,",
-      'while their account is banned via "ban:do-pay";',
-      "the balance of the user is #{user.wallet(&:balance)}",
-      "at the wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})"
-    )
-    raise WTS::UserError, '117: Your account is not allowed to send any payments at the moment, sorry'
-  end
-  headers['X-Zold-Job'] = job do |jid, log|
-    log.info("Sending #{amount} to #{bnf}...")
-    ops(log: log).pull
-    raise WTS::UserError, "119: You don't have enough funds to send #{amount}" if user.wallet(&:balance) < amount
-    txn = ops(log: log).pay(keygap, bnf, amount, details)
-    settings.jobs.result(jid, 'txn', txn.id.to_s)
-    settings.jobs.result(jid, 'tid', "#{user.item.id}:#{txn.id}")
-    ops(log: log).push
-    settings.telepost.spam(
-      "Payment sent by #{title_md}",
-      "from [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})",
-      "with the remaining balance of #{user.wallet(&:balance)}",
-      "to `#{txn.prefix}` at [#{txn.bnf}](http://www.zold.io/ledger.html?wallet=#{txn.bnf})",
-      "for **#{txn.amount}** from #{anon_ip}:",
-      "\"#{safe_md(details)}\";",
-      job_link(jid)
-    )
-    callback(
-      tid: "#{user.item.id}:#{txn.id}",
-      login: user.login,
-      prefix: txn.prefix,
-      source: txn.bnf.to_s,
-      amount: txn.amount.to_i,
-      details: txn.details
-    )
-  end
-  flash('/', "Payment has been sent to #{bnf} for #{amount}")
 end
 
 get '/pull' do
@@ -766,24 +513,6 @@ get '/remotes' do
   )
 end
 
-get '/payables' do
-  haml :payables, layout: :layout, locals: merged(
-    page_title: 'Payables',
-    rate: rate,
-    price: price,
-    payables: settings.payables
-  )
-end
-
-get '/gl' do
-  haml :gl, layout: :layout, locals: merged(
-    page_title: 'General Ledger',
-    gl: settings.gl,
-    query: (params[:query] || '').strip,
-    since: params[:since] ? Zold::Txn.parse_time(params[:since]) : nil
-  )
-end
-
 get '/quick' do
   prohibit('quick')
   flash('/home', 'Please logout first') if @locals[:guser]
@@ -923,100 +652,6 @@ def ops(u = user, log: user_log(u.login))
   )
 end
 
-def job(u = user)
-  jid = settings.jobs.start(u.login)
-  log = WTS::TeeLog.new(user_log(u.login), WTS::DbLog.new(settings.pgsql, jid))
-  job = WTS::SafeJob.new(
-    WTS::TrackedJob.new(
-      WTS::VersionedJob.new(
-        WTS::UpdateJob.new(
-          proc { yield(jid, log) },
-          settings.remotes,
-          log: log,
-          network: network
-        ),
-        log: log
-      ),
-      settings.jobs
-    ),
-    log: log
-  )
-  job = WTS::AsyncJob.new(job, settings.pool, latch(u.login)) unless ENV['RACK_ENV'] == 'test'
-  job.call(jid)
-  jid
-end
-
-def pay_hosting_bonuses(boss, jid, log)
-  prohibit('bonuses')
-  bonus = Zold::Amount.new(zld: 1.0)
-  ops(boss, log: log).pull
-  latest = boss.wallet(&:txns).reverse.find { |t| t.amount.negative? }
-  return if !latest.nil? && latest.date > Time.now - 60 * 60
-  if boss.wallet(&:balance) < bonus
-    if !latest.nil? && latest.date > Time.now - 60 * 60
-      settings.telepost.spam(
-        'The hosting bonuses paying wallet',
-        "[#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id})",
-        "is almost empty, the balance is just #{boss.wallet(&:balance)};",
-        "we can\'t pay #{bonus} of bonuses now;",
-        'we should wait until the next BTC/ZLD',
-        '[exchange](https://blog.zold.io/2018/12/09/btc-to-zld.html) happens;',
-        job_link(jid)
-      )
-    end
-    return
-  end
-  require 'zold/commands/remote'
-  cmd = Zold::Remote.new(remotes: settings.remotes, log: log)
-  cmd.run(%w[remote update --depth=5])
-  cmd.run(%w[remote show])
-  winners = cmd.run(%w[remote elect --min-score=2 --max-winners=8 --ignore-masters])
-  winners.each do |score|
-    ops(boss, log: log).pull
-    ops(boss, log: log).pay(
-      settings.config['rewards']['keygap'],
-      score.invoice,
-      bonus / winners.count,
-      "Hosting bonus for #{score.host} #{score.port} #{score.value}"
-    )
-    ops(boss, log: log).push
-  end
-  if winners.empty?
-    settings.telepost.spam(
-      'Attention, no hosting [bonuses](https://blog.zold.io/2018/08/14/hosting-bonuses.html)',
-      'were paid because no nodes were found,',
-      "which would deserve that, among [#{settings.remotes.all.count} visible](https://wts.zold.io/remotes);",
-      'something is wrong with the network,',
-      'check this [health](http://www.zold.io/health.html) page;',
-      job_link(jid)
-    )
-    return
-  end
-  settings.telepost.spam(
-    'Hosting [bonus](https://blog.zold.io/2018/08/14/hosting-bonuses.html)',
-    "of **#{bonus}** has been distributed among #{winners.count} wallets",
-    '[visible](https://wts.zold.io/remotes) to us at the moment,',
-    "among #{settings.remotes.all.count} [others](http://www.zold.io/health.html):",
-    winners.map do |s|
-      "[#{s.host}:#{s.port}](http://www.zold.io/ledger.html?wallet=#{s.invoice.split('@')[1]})/#{s.value}"
-    end.join(', ') + ';',
-    "the payer is #{title_md(boss)} with the wallet",
-    "[#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id}),",
-    "the remaining balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t);",
-    job_link(jid)
-  )
-  return if boss.wallet(&:txns).count < 1000
-  before = boss.item.id
-  ops(boss, log: log).migrate(settings.config['rewards']['keygap'])
-  settings.telepost.spam(
-    'The wallet with hosting [bonuses](https://blog.zold.io/2018/08/14/hosting-bonuses.html)',
-    "has been migrated from [#{before}](http://www.zold.io/ledger.html?wallet=#{before})",
-    "to a new place [#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id}),",
-    "the balance is #{boss.wallet(&:balance)};",
-    job_link(jid)
-  )
-end
-
 def prohibit(feature)
   return unless settings.toggles.get("stop:#{feature}", 'no') == 'yes'
   raise WTS::UserError, "177: This feature \"#{feature}\" is temporarily disabled, sorry"
@@ -1059,12 +694,14 @@ def callback(args)
   raise "198: Callback failure with HTTP code #{res.status} at #{uri}" unless res.status == 200
 end
 
-require_relative 'front/errors'
-require_relative 'front/misc'
-require_relative 'front/toggles'
-require_relative 'front/paypal'
-require_relative 'front/jobs'
-require_relative 'front/callback_api'
-require_relative 'front/rate'
+require_relative 'front/bonuses'
 require_relative 'front/btc'
+require_relative 'front/callback_api'
+require_relative 'front/errors'
+require_relative 'front/jobs'
 require_relative 'front/login'
+require_relative 'front/misc'
+require_relative 'front/pay'
+require_relative 'front/paypal'
+require_relative 'front/rate'
+require_relative 'front/toggles'

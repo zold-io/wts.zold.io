@@ -18,6 +18,46 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require 'json'
+require_relative '../objects/ticks'
+
+set :ticks, WTS::Ticks.new(settings.pgsql, log: settings.log)
+
+settings.daemons.start('ticks', 10 * 60) do
+  settings.ticks.add('Volume24' => settings.gl.volume.to_f) unless settings.ticks.exists?('Volume24')
+  settings.ticks.add('Txns24' => settings.gl.count.to_f) unless settings.ticks.exists?('Txns24')
+  boss = user(settings.config['rewards']['login'])
+  job(boss) do
+    settings.ticks.add('Nodes' => settings.remotes.all.count) unless settings.ticks.exists?('Nodes')
+  end
+end
+settings.daemons.start('snapshot', 24 * 60 * 60) do
+  next unless settings.ticks.exists?('Coverage')
+  coverage = settings.ticks.latest('Coverage') / 100_000_000
+  distributed = Zold::Amount.new(
+    zents: (settings.ticks.latest('Emission') - settings.ticks.latest('Office')).to_i
+  )
+  settings.telepost.spam(
+    [
+      "Today is #{Time.now.utc.strftime('%d-%b-%Y')} and we are doing great:\n",
+      "  Wallets: [#{settings.payables.total}](https://wts.zold.io/payables)",
+      "  Transactions: [#{settings.payables.txns}](https://wts.zold.io/payables)",
+      "  Total emission: [#{settings.payables.balance}](https://wts.zold.io/payables)",
+      "  Distributed: [#{distributed}](https://wts.zold.io/rate)",
+      "  24-hours volume: [#{settings.gl.volume}](https://wts.zold.io/gl)",
+      "  24-hours txns count: [#{settings.gl.count}](https://wts.zold.io/gl)",
+      "  Nodes: [#{settings.remotes.all.count}](https://wts.zold.io/remotes)",
+      "  Bitcoin price: $#{price.round}",
+      "  Rate: [#{format('%.08f', rate)}](https://wts.zold.io/rate) ($#{(price * rate).round(2)})",
+      "  Coverage: [#{format('%.08f', coverage)}](https://wts.zold.io/rate) \
+/ [#{(100 * coverage / rate).round}%](http://papers.zold.io/fin-model.pdf)",
+      "  BTC fund: [#{settings.assets.balance.round(4)}](https://wts.zold.io/rate) \
+($#{(price * settings.assets.balance).round})",
+      "\nThanks for staying with us!"
+    ].join("\n")
+  )
+end
+
 get '/usd_rate' do
   content_type 'text/plain'
   format('%.04f', price * rate)

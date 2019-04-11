@@ -18,6 +18,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require_relative '../objects/toggles'
+
+set :toggles, WTS::Toggles.new(settings.pgsql, log: settings.log)
+
 get '/toggles' do
   raise WTS::UserError, '170: You are not allowed to see this' unless vip?
   haml :toggles, layout: :layout, locals: merged(

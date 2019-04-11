@@ -18,6 +18,78 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require 'zold'
+require_relative '../objects/gl'
+require_relative '../objects/payables'
+require_relative '../objects/callbacks'
+
+set :gl, WTS::Gl.new(settings.pgsql, log: settings.log)
+set :payables, WTS::Payables.new(settings.pgsql, settings.remotes, log: settings.log)
+set :callbacks, WTS::Callbacks.new(settings.pgsql, log: settings.log)
+
+settings.daemons.start('scan-general-ledger') do
+  settings.gl.scan(settings.remotes) do |t|
+    settings.log.info("A new transaction #{t[:tid]} added to the General Ledger \
+for #{t[:amount].to_zld(6)} from #{t[:source]} to #{t[:target]} with details #{t[:details].inspect} \
+and dated #{t[:date].utc.iso8601}")
+    settings.callbacks.match(t[:tid], t[:target], t[:prefix], t[:details]) do |c, mid|
+      settings.telepost.spam(
+        "The callback no.#{c[:id]} owned by #{title_md(user(c[:login]))} just matched",
+        "in [#{c[:wallet]}](http://www.zold.io/ledger.html?wallet=#{c[:wallet]})",
+        "with prefix `#{c[:prefix]}` and details #{t[:details].inspect}, match ID is #{mid},",
+        "TID is #{t[:tid]}"
+      )
+    end
+  end
+end
+
+settings.daemons.start('payables', 10 * 60) do
+  settings.payables.remove_old
+  settings.payables.discover
+  settings.payables.update
+  settings.payables.remove_banned
+end
+
+settings.daemons.start('callbacks') do
+  settings.callbacks.ping do |login, id, pfx, regexp|
+    ops(user(login)).pull(id)
+    settings.wallets.acq(id) do |wallet|
+      wallet.txns.select do |t|
+        t.prefix == pfx && regexp.match?(t.details)
+      end
+    end
+  end
+  settings.callbacks.repeat_succeeded do |c|
+    settings.telepost.spam(
+      "The callback no.#{c[:id]} owned by #{title_md(user(c[:login]))} was repeated, since it was delivered;",
+      "the wallet was [#{c[:wallet]}](http://www.zold.io/ledger.html?wallet=#{c[:wallet]})",
+      "the prefix was `#{c[:prefix]}` and the regexp was `#{c[:regexp].inspect}`"
+    )
+  end
+  settings.callbacks.delete_succeeded do |c|
+    settings.telepost.spam(
+      "The callback no.#{c[:id]} owned by #{title_md(user(c[:login]))} was deleted, since it was delivered;",
+      "the wallet was [#{c[:wallet]}](http://www.zold.io/ledger.html?wallet=#{c[:wallet]})",
+      "the prefix was `#{c[:prefix]}` and the regexp was `#{c[:regexp].inspect}`"
+    )
+  end
+  settings.callbacks.delete_expired do |c|
+    settings.telepost.spam(
+      "The callback no.#{c[:id]} owned by #{title_md(user(c[:login]))} was deleted, since it was never matched;",
+      "the wallet was [#{c[:wallet]}](http://www.zold.io/ledger.html?wallet=#{c[:wallet]})",
+      "the prefix was `#{c[:prefix]}` and the regexp was `#{c[:regexp].inspect}`"
+    )
+  end
+  settings.callbacks.delete_failed do |c|
+    settings.telepost.spam(
+      "The callback no.#{c[:id]} owned by #{title_md(user(c[:login]))} was deleted,",
+      'since it was failed for over four hours;',
+      "the wallet was [#{c[:wallet]}](http://www.zold.io/ledger.html?wallet=#{c[:wallet]})",
+      "the prefix was `#{c[:prefix]}` and the regexp was `#{c[:regexp].inspect}`"
+    )
+  end
+end
+
 get '/callbacks' do
   prohibit('api')
   haml :callbacks, layout: :layout, locals: merged(
@@ -53,4 +125,22 @@ get '/wait-for' do
   )
   content_type 'text/plain'
   id.to_s
+end
+
+get '/payables' do
+  haml :payables, layout: :layout, locals: merged(
+    page_title: 'Payables',
+    rate: rate,
+    price: price,
+    payables: settings.payables
+  )
+end
+
+get '/gl' do
+  haml :gl, layout: :layout, locals: merged(
+    page_title: 'General Ledger',
+    gl: settings.gl,
+    query: (params[:query] || '').strip,
+    since: params[:since] ? Zold::Txn.parse_time(params[:since]) : nil
+  )
 end

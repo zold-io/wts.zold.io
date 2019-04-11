@@ -18,6 +18,27 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require 'aws-sdk-sns'
+require 'glogin'
+require_relative '../objects/mcodes'
+require_relative '../objects/smss'
+require_relative '../objects/user_error'
+
+set :mcodes, WTS::Mcodes.new(settings.pgsql, log: settings.log)
+if settings.config['sns']
+  set :smss, WTS::Smss.new(
+    settings.pgsql,
+    Aws::SNS::Client.new(
+      region: settings.config['sns']['region'],
+      access_key_id: settings.config['sns']['key'],
+      secret_access_key: settings.config['sns']['secret']
+    ),
+    log: settings.log
+  )
+else
+  set :smss, WTS::Smss::Fake.new
+end
+
 get '/github-callback' do
   error(400) if params[:code].nil?
   c = GLogin::Cookie::Open.new(

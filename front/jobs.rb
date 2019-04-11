@@ -18,6 +18,41 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require_relative '../objects/db_log'
+require_relative '../objects/file_log'
+require_relative '../objects/jobs'
+require_relative '../objects/safe_job'
+require_relative '../objects/tee_log'
+require_relative '../objects/tracked_job'
+require_relative '../objects/update_job'
+require_relative '../objects/user_error'
+require_relative '../objects/versioned_job'
+
+set :jobs, WTS::Jobs.new(settings.pgsql, log: settings.log)
+
+def job(u = user)
+  jid = settings.jobs.start(u.login)
+  log = WTS::TeeLog.new(user_log(u.login), WTS::DbLog.new(settings.pgsql, jid))
+  job = WTS::SafeJob.new(
+    WTS::TrackedJob.new(
+      WTS::VersionedJob.new(
+        WTS::UpdateJob.new(
+          proc { yield(jid, log) },
+          settings.remotes,
+          log: log,
+          network: network
+        ),
+        log: log
+      ),
+      settings.jobs
+    ),
+    log: log
+  )
+  job = WTS::AsyncJob.new(job, settings.pool, latch(u.login)) unless ENV['RACK_ENV'] == 'test'
+  job.call(jid)
+  jid
+end
+
 get '/job' do
   prohibit('api')
   id = params['id']
