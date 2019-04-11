@@ -23,36 +23,22 @@ require 'webmock/minitest'
 require_relative 'test__helper'
 require_relative '../objects/wts'
 require_relative '../objects/btc'
+require_relative '../objects/assets'
+require_relative '../objects/utxos'
+require_relative '../objects/item'
 
 class WTS::BtcTest < Minitest::Test
-  # Fake BTC
-  class FakeBtc
-    def initialize(addr)
-      @addr = addr
-    end
-
-    def create
-      { hash: @addr, pvt: 'empty' }
-    end
-  end
-
-  def test_validates_txn
-    btc = WTS::Btc.new(log: test_log)
-    assert(btc.trustable?(27_900, 6))
-  end
-
-  def test_monitors_txns
-    skip
+  def test_monitors_blockchain
     WebMock.allow_net_connect!
     btc = WTS::Btc.new(log: test_log)
     assets = WTS::Assets.new(WTS::Pgsql::TEST.start, log: test_log)
-    addr = '1BPs843gTEkfNk9LL6Lr2QyRNmWtQvJejv'
-    assets.acquire('johnny-l09')
-    btc.monitor(assets) do |hash, txn, satoshi, confirmations|
-      assert_equal(addr, hash)
-      assert_equal('154a7dfd574abbc5d22ebca1b8ca9358dcf545e84eaffb46c4978b981af9c13e', txn)
-      assert_equal(25_800, satoshi)
-      assert(confirmations > 100)
+    utxos = WTS::Utxos.new(WTS::Pgsql::TEST.start, log: test_log)
+    login = "jeff#{rand(999)}"
+    item = WTS::Item.new(login, WTS::Pgsql::TEST.start, log: test_log)
+    item.create(Zold::Id.new, Zold::Key.new(text: OpenSSL::PKey::RSA.new(2048).to_pem))
+    assets.acquire(login)
+    btc.monitor(assets, utxos, '', max: 2) do |address, hash, satoshi|
+      assert(!address.nil?)
     end
   end
 end

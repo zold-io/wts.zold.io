@@ -29,43 +29,40 @@ require_relative 'user_error'
 # BTC gateway.
 #
 class WTS::Btc
-  # Fake
-  class Fake
-    def price
-      4000
-    end
-
-    def monitor(_)
-      # nothing
-    end
-
-    def create
-      { hash: '1fffffffffffffffffff', pvt: '', pub: '' }
-    end
-  end
-
   def initialize(log: Zold::Log::NULL)
     @log = log
+    @sibit = Sibit.new(log: @log)
   end
 
-  # Current price of one BTC, in US dollars
   def price
-    Sibit.new(log: @log).price
+    @sibit.price
   end
 
-  def monitor(addresses)
-    height = Zold::Http.new(uri: 'https://blockchain.info/q/getblockcount/').get.body.to_i
-    raise 'Something is wrong with Blockchain API' if height.zero?
-    addresses.all.each do |a|
-      res = Zold::Http.new(uri: "https://blockchain.info/rawaddr/#{a[:hash]}").get
-      next if res.code != 200
-      Zold::JsonPage.new(res.body).to_hash['txs'].each do |t|
-        confirmations = height - (t['block_height'] || height)
-        satoshi = t['inputs'][0]['prev_out']['value']
-        txhash = t['hash']
-        yield a[:hash], txhash, satoshi, confirmations
-        @log.info("Tx found at #{txhash} for #{satoshi}sat with #{confirmations}cnf sent to #{a[:hash]}")
+  # Get the latest block from the blockchain, scan all transactions visible
+  # there and find those, which we are waiting for. Then, yield them one
+  # by one if they haven't been seen yet in UTXOs.
+  def monitor(assets, utxos, seen, max: 1)
+    ours = Set.new(assets.all.map { |a| a[:address] })
+    block = @sibit.latest
+    count = 0
+    while block != seen && count < max
+      json = @sibit.get_json("/rawblock/#{block}")
+      json['tx'].each do |t|
+        t['out'].each do |o|
+          next if o['spent']
+          address = o['addr']
+          next if address.nil?
+          next unless ours.include?(address)
+          hash = "#{t['hash']}:#{o['n']}"
+          next if utxos.seen?(hash)
+          assets.set(address, @sibit.balance(address))
+          satoshi = o['value']
+          yield(address, hash, satoshi)
+          @log.info("Tx found at #{hash} for #{satoshi}s sent to #{address}")
+        end
       end
+      block = json['prev_block']
+      count += 1
     end
   end
 
@@ -74,15 +71,5 @@ class WTS::Btc
     batch = assets.prepare(satoshi)
     # send it to the network...
     assets.spent(batch)
-  end
-
-  # Returns TRUE if transaction with this amount and confirmations is trustable
-  def trustable?(amount, confirmations)
-    return false if confirmations.zero?
-    return false if confirmations < 2 && amount > 100_000 # 0.001 BTC
-    return false if confirmations < 3 && amount > 1_000_000 # 0.01 BTC
-    return false if confirmations < 4 && amount > 10_000_000 # 0.1 BTC
-    return false if confirmations < 5 && amount > 100_000_000 # 1 BTC
-    true
   end
 end

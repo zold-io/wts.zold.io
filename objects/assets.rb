@@ -37,11 +37,19 @@ class WTS::Assets
     @pgsql.exec('SELECT * FROM asset').map do |r|
       {
         address: r['address'],
+        login: r['login'],
         value: r['value'].to_i,
         updated: Time.parse(r['updated']),
         hot: !r['pvt'].nil?
       }
     end
+  end
+
+  # Get owner of the address.
+  def owner(address)
+    row = @pgsql.exec('SELECT login FROM asset WHERE address = $1', [address])[0]
+    raise WTS::UserError, "197: The owner of #{address} not found" if row.nil?
+    row['login']
   end
 
   # Get total BTC balance, in BTC.
@@ -69,8 +77,8 @@ class WTS::Assets
     @pgsql.exec('UPDATE asset SET value = $1 WHERE address = $2', [value, address])
   end
 
-  # Prepare an array of addresses and their private keys to send out a payment.
-  def prepare(satoshi)
+  # Send a payment to the address.
+  def send(btc, address, satoshi)
     batch = []
     left = satoshi
     rows = @pgsql.exec('SELECT * FROM asset ORDER BY satoshi')

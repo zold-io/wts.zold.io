@@ -18,6 +18,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require 'zold'
+require_relative '../objects/paypal'
+require_relative '../objects/user_error'
+
 set :paypal, WTS::PayPal.new(
   {
     email: settings.config['paypal']['email'],

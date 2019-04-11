@@ -17,6 +17,8 @@
         Balance
       %th
         Updated
+      %th
+        Hot
   %tbody
     - assets.all.each do |a|
       %tr
@@ -26,3 +28,8 @@
           = (a[:value] / 100_000_000).round(4)
         %td{title: a[:updated].utc.iso8601}
           = Zold::Age.new(a[:updated])
+        %td
+          - if a[:hot]
+            Yes
+          - else
+            No

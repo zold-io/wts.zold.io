@@ -18,12 +18,15 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require 'sibit'
 require_relative '../objects/assets'
 require_relative '../objects/btc'
 require_relative '../objects/coinbase'
 require_relative '../objects/utxos'
+require_relative '../objects/referrals'
 require_relative '../objects/user_error'
 
+set :referrals, WTS::Referrals.new(settings.pgsql, log: settings.log)
 set :utxos, WTS::Utxos.new(settings.pgsql, log: settings.log)
 set :assets, WTS::Assets.new(settings.pgsql, log: settings.log)
 set :btc, WTS::Btc.new(log: settings.log)
@@ -39,53 +42,44 @@ else
 end
 
 settings.daemons.start('btc-monitor') do
-  settings.btc.monitor(settings.assets) do |login, address, hash, satoshi, confirmations|
+  seen = settings.toggles.get('latestblock', '')
+  seen = settings.btc.monitor(settings.assets, settings.utxos, seen) do |address, hash, satoshi|
     bitcoin = (satoshi.to_f / 100_000_000).round(8)
     zld = Zold::Amount.new(zld: bitcoin / rate)
-    bnf = user(login)
-    raise UserError, "The user '#{bnf.login}' is not confirmed" unless bnf.confirmed?
-    if confirmations.zero?
-      settings.telepost.spam(
-        "Bitcoin transaction arrived for #{bitcoin} BTC",
-        "to [#{address}](https://www.blockchain.com/btc/address/#{address})",
-        "in [#{hash}](https://www.blockchain.com/btc/tx/#{hash})",
-        "and was identified as belonging to #{title_md(bnf)},",
-        "#{zld} will be deposited to the wallet",
-        "[#{bnf.item.id}](http://www.zold.io/ledger.html?wallet=#{bnf.item.id})",
-        "once we see enough confirmations, now it's #{confirmations} (may take up to an hour!)"
+    bnf = user(settings.assets.owner(address))
+    boss = user(settings.config['exchange']['login'])
+    log.info("Accepting #{bitcoin} bitcoins from #{address}...")
+    ops(boss, log: log).pull
+    ops(boss, log: log).pay(
+      settings.config['exchange']['keygap'],
+      bnf.item.id, zld,
+      "BTC exchange of #{bitcoin} at #{hash}, rate is #{rate}"
+    )
+    if settings.referrals.exists?(bnf.login)
+      fee = settings.toggles.get('referral-fee', '0.04').to_f
+      ops(boss, log: log).pay(
+        settings.config['exchange']['keygap'],
+        user(settings.referrals.ref(bnf.login)).item.id,
+        zld * fee, "#{(fee * 100).round(2)} referral fee for BTC exchange"
       )
     end
-    next unless settings.btc.trustable?(satoshi, confirmations)
-    boss = user(settings.config['exchange']['login'])
-    job(boss) do
-      if settings.utxos.seen?(hash)
-        settings.log.info("A duplicate notification from Blockchain about #{bitcoin} bitcoins \
-arrival to #{address}, for #{bnf.login}; we ignore it.")
-      else
-        log(bnf).info("Accepting #{bitcoin} bitcoins from #{address}...")
-        ops(boss, log: log(bnf)).pay(
-          settings.config['exchange']['keygap'],
-          bnf.item.id,
-          zld,
-          "BTC exchange of #{bitcoin} at #{hash[0..8]}, rate is #{rate}"
-        )
-        settings.utxos.add(address, hash)
-        settings.telepost.spam(
-          "In: #{bitcoin} BTC [exchanged](https://blog.zold.io/2018/12/09/btc-to-zld.html) to #{zld}",
-          "by #{title_md(bnf)}",
-          "in [#{hash[0..8]}](https://www.blockchain.com/btc/tx/#{hash})",
-          "(#{params[:confirmations]} confirmations)",
-          "via [#{address[0..8]}](https://www.blockchain.com/btc/address/#{address}),",
-          "to the wallet [#{bnf.item.id}](http://www.zold.io/ledger.html?wallet=#{bnf.item.id})",
-          "with the balance of #{bnf.wallet(&:balance)};",
-          "BTC price at the moment of exchange was [$#{settings.btc.price}](https://blockchain.info/ticker);",
-          "the payer is #{title_md(boss)} with the wallet",
-          "[#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id}),",
-          "the remaining balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t)"
-        )
-      end
-    end
+    ops(boss, log: log).push
+    settings.utxos.add(address, hash)
+    settings.telepost.spam(
+      "In: #{bitcoin} BTC [exchanged](https://blog.zold.io/2018/12/09/btc-to-zld.html) to **#{zld}**",
+      "by #{title_md(bnf)}",
+      "in [#{hash}](https://www.blockchain.com/btc/tx/#{hash.gsub(/:[0-9]+$/, '')})",
+      "via [#{address}](https://www.blockchain.com/btc/address/#{address}),",
+      "to the wallet [#{bnf.item.id}](http://www.zold.io/ledger.html?wallet=#{bnf.item.id})",
+      "with the balance of #{bnf.wallet(&:balance)};",
+      "BTC price at the moment of exchange was [$#{price}](https://blockchain.info/ticker);",
+      "the payer is #{title_md(boss)} with the wallet",
+      "[#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id}),",
+      "the remaining balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t);",
+      job_link(jid)
+    )
   end
+  settings.toggles.set('latestblock', seen)
 end
 
 get '/funded' do
@@ -213,7 +207,7 @@ users of WTS, while our limits are #{limits} (daily/weekly/monthly), sorry about
       "Fee for exchange of #{bitcoin} BTC at #{address}, rate is #{rate}, fee is #{f}"
     )
     ops(log: log).push
-    settings.btc.send(settings.assets, address, (bitcoin * 100_000_000 * (1 - fee)).round)
+    settings.assets.send(settings.btc, address, (bitcoin * 100_000_000 * (1 - fee)).round)
     settings.payouts.add(
       user.login, user.item.id, amount,
       "#{bitcoin} BTC sent to #{address}, the price was $#{price.round}/BTC, the fee was #{(f * 100).round(2)}%"
@@ -225,7 +219,7 @@ users of WTS, while our limits are #{limits} (daily/weekly/monthly), sorry about
       "with the remaining balance of #{user.wallet(&:balance)}",
       "to bitcoin address [#{address}](https://www.blockchain.com/btc/address/#{address});",
       "BTC price at the time of exchange was [$#{price.round}](https://blockchain.info/ticker);",
-      "our bitcoin assets still have #{settings.assets.balance.round(4)} BTC",
+      "our bitcoin assets still have [#{settings.assets.balance.round(4)} BTC](https://wts.zold.io/assets)",
       "(worth about $#{(settings.assets.balance * price).round});",
       "zolds were deposited to [#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id})",
       "of [#{boss.login}](https://github.com/#{boss.login}),",
@@ -246,13 +240,21 @@ users of WTS, while our limits are #{limits} (daily/weekly/monthly), sorry about
       )
     end
   end
-  flash('/zld-to-btc', "We took #{amount} from your wallet and sent you #{bitcoin} BTC, more details in the log")
+  flash('/zld-to-btc', "We took #{amount} from your wallet and sent you #{bitcoin} BTC")
 end
 
 get '/assets' do
   haml :assets, layout: :layout, locals: merged(
     page_title: 'Assets',
     assets: settings.assets
+  )
+end
+
+get '/referrals' do
+  haml :referrals, layout: :layout, locals: merged(
+    page_title: title('referrals'),
+    referrals: settings.referrals,
+    fee: settings.toggles.get('referral-fee', '0.04').to_f
   )
 end
 

@@ -47,7 +47,7 @@ gem 'rubocop', '0.62.0', require: false
 gem 'rubocop-rspec', '1.31.0', require: false
 gem 'sass', '3.7.3'
 gem 'sentry-raven', '2.7.4'
-gem 'sibit', '0.4.0'
+gem 'sibit', '0.5.0'
 gem 'sinatra', '2.0.4'
 gem 'sinatra-contrib', '2.0.4'
 gem 'svg-graph', '2.1.3'

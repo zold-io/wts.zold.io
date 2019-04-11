@@ -55,7 +55,6 @@ require_relative 'objects/item'
 require_relative 'objects/ops'
 require_relative 'objects/payouts'
 require_relative 'objects/pgsql'
-require_relative 'objects/referrals'
 require_relative 'objects/tokens'
 require_relative 'objects/user'
 require_relative 'objects/wts'
@@ -147,7 +146,6 @@ configure do
     password: settings.config['pgsql']['password']
   ).start(1)
   set :tokens, WTS::Tokens.new(settings.pgsql, log: settings.log)
-  set :referrals, WTS::Referrals.new(settings.pgsql, log: settings.log)
   set :payouts, WTS::Payouts.new(settings.pgsql, log: settings.log)
   set :daemons, WTS::Daemons.new(settings.pgsql, log: settings.log)
   set :codec, GLogin::Codec.new(config['api_secret'])
@@ -467,14 +465,6 @@ get '/sql' do
     page_title: title('SQL'),
     query: query,
     result: settings.pgsql.exec(query)
-  )
-end
-
-get '/referrals' do
-  haml :referrals, layout: :layout, locals: merged(
-    page_title: title('referrals'),
-    referrals: settings.referrals,
-    fee: settings.toggles.get('referral-fee', '0.04').to_f
   )
 end
 
