@@ -235,3 +235,7 @@ get '/assets' do
     assets: settings.assets
   )
 end
+
+def price
+  settings.zache.get(:price, lifetime: 5 * 60) { settings.btc.price }
+end

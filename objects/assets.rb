@@ -54,7 +54,7 @@ class WTS::Assets
   def acquire(login)
     row = @pgsql.exec('SELECT address FROM asset WHERE login = $1', [login])[0]
     if row.nil?
-      sibit = Sibit.new
+      sibit = Sibit.new(log: @log)
       pvt = sibit.generate
       address = sibit.create(pvt)
       @pgsql.exec('INSERT INTO asset (address, login, pvt) VALUES ($1, $2, $3)', [address, login, pvt])

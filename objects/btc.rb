@@ -50,16 +50,7 @@ class WTS::Btc
 
   # Current price of one BTC, in US dollars
   def price
-    JSON.parse(Zold::Http.new(uri: 'https://blockchain.info/ticker').get.body)['USD']['15m']
-  end
-
-  # Create new BTC address to accept payments, and returns {hash, pvt}
-  def create
-    sibit = Sibit.new
-    pvt = sibit.generate
-    address = sibit.create(pvt)
-    @log.info("New Bitcoin address created: #{address}")
-    { hash: address, pvt: pvt }
+    Sibit.new(log: @log).price
   end
 
   def monitor(addresses)

@@ -395,46 +395,10 @@ after do
   headers['Access-Control-Allow-Origin'] = '*'
 end
 
-get '/github-callback' do
-  error(400) if params[:code].nil?
-  c = GLogin::Cookie::Open.new(
-    settings.glogin.user(params[:code]),
-    settings.config['github']['encryption_secret'],
-    context
-  )
-  cookies[:glogin] = c.to_s
-  unless known?(c.login) || vip?(c.login) || c.login == '0c63ba1bbcb753dd'
-    raise WTS::UserError, "103: @#{c.login} doesn't work in Zerocracy, can't login via GitHub, use mobile phone"
-  end
-  register_referral(c.login)
-  flash('/', "You have been logged in as @#{c.login}")
-end
-
-get '/logout' do
-  cookies.delete(:glogin)
-  cookies.delete(:wts)
-  flash('/', 'You have been logged out')
-end
-
 get '/' do
   redirect '/home' if @locals[:guser]
   haml :index, layout: :layout, locals: merged(
     page_title: 'wts'
-  )
-end
-
-get '/mobile_send' do
-  redirect '/home' if @locals[:guser]
-  haml :mobile_send, layout: :layout, locals: merged(
-    page_title: '/mobile'
-  )
-end
-
-get '/mobile_token' do
-  redirect '/home' if @locals[:guser]
-  haml :mobile_token, layout: :layout, locals: merged(
-    page_title: '/token',
-    phone: params[:phone]
   )
 end
 
@@ -514,24 +478,6 @@ get '/create' do
     )
   end
   flash('/', 'Your wallet is created and will be pushed soon')
-end
-
-get '/confirm' do
-  raise WTS::UserError, '106: You have done this already, your keygap has been generated' if user.confirmed?
-  haml :confirm, layout: :layout, locals: merged(
-    page_title: title('keygap')
-  )
-end
-
-get '/confirmed' do
-  content_type 'text/plain'
-  user.confirmed? ? 'yes' : 'no'
-end
-
-get '/do-confirm' do
-  raise WTS::UserError, '107: You have done this already, your keygap has been generated' if user.confirmed?
-  user.confirm(params[:keygap])
-  flash('/', 'The account has been confirmed')
 end
 
 get '/keygap' do
@@ -742,43 +688,6 @@ get '/invoice.json' do
   JSON.pretty_generate(prefix: prefix, invoice: inv, id: id)
 end
 
-get '/callbacks' do
-  prohibit('api')
-  haml :callbacks, layout: :layout, locals: merged(
-    page_title: title('callbacks'),
-    callbacks: settings.callbacks
-  )
-end
-
-get '/null' do
-  content_type 'text/plain'
-  'OK'
-end
-
-get '/wait-for' do
-  prohibit('api')
-  wallet = params[:wallet] || confirmed_user.item.id.to_s
-  prefix = params[:prefix]
-  raise WTS::UserError, '120: The parameter "prefix" is mandatory' if prefix.nil?
-  regexp = params[:regexp] ? Regexp.new(params[:regexp]) : /^.*$/
-  uri = URI(params[:uri])
-  raise WTS::UserError, '121: The parameter "uri" is mandatory' if uri.nil?
-  id = settings.callbacks.add(
-    user.login, Zold::Id.new(wallet), prefix, regexp, uri,
-    params[:token] || 'none',
-    repeat: params[:repeat] ? true : false,
-    forever: params[:forever] ? true : false
-  )
-  settings.telepost.spam(
-    "New callback no.#{id} created by #{title_md} from #{anon_ip}",
-    "for the wallet [#{wallet}](http://www.zold.io/ledger.html?wallet=#{wallet}),",
-    "prefix `#{prefix}`, and regular expression `#{safe_md(regexp.to_s)}`,",
-    "repeat=#{params[:repeat]}, forever=#{params[:forever]}"
-  )
-  content_type 'text/plain'
-  id.to_s
-end
-
 get '/migrate' do
   prohibit('migrate')
   haml :migrate, layout: :layout, locals: merged(
@@ -839,149 +748,6 @@ get '/buy-sell' do
   )
 end
 
-get '/zld-to-paypal' do
-  prohibit('paypal')
-  raise WTS::UserError, '130: You have to work in Zerocracy in order to cash out to PayPal' unless known?
-  raise WTS::UserError, '131: You have to be identified in Zerocracy' unless kyc?
-  haml :zld_to_paypal, layout: :layout, locals: merged(
-    page_title: title('paypal'),
-    rate: rate,
-    price: price,
-    fee: fee,
-    user: confirmed_user
-  )
-end
-
-post '/do-zld-to-paypal' do
-  prohibit('paypal')
-  raise WTS::UserError, '132: You have to work in Zerocracy in order to cash out to PayPal' unless known?
-  raise WTS::UserError, '133: You have to be identified in Zerocracy' unless kyc?
-  raise WTS::UserError, '134: Amount is not provided' if params[:amount].nil?
-  raise WTS::UserError, '135: Email address is not provided' if params[:email].nil?
-  raise WTS::UserError, '136: Keygap is not provided' if params[:keygap].nil?
-  amount = Zold::Amount.new(zld: params[:amount].to_f)
-  min = Zold::Amount.new(zld: settings.toggles.get('min-out-paypal', '0').to_f)
-  raise WTS::UserError, "194: The amount #{amount} is too small, smaller than #{min}" if amount < min
-  email = params[:email].strip
-  raise WTS::UserError, "137: You don't have enough to send #{amount}" if confirmed_user.wallet(&:balance) < amount
-  if settings.toggles.get('ban:do-sell').split(',').include?(user.login)
-    settings.telepost.spam(
-      "The user #{title_md} from #{anon_ip} is trying to send #{amount} to PayPal,",
-      'while their account is banned via "ban:do-sell";',
-      "the balance of the user is #{user.wallet(&:balance)}",
-      "at the wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})"
-    )
-    raise WTS::UserError, '138: Your account is not allowed to sell any ZLD at the moment, email us'
-  end
-  limits = settings.toggles.get('limits', '64/128/256')
-  unless settings.payouts.allowed?(user.login, amount, limits) || vip?
-    consumed = settings.payouts.consumed(user.login)
-    settings.telepost.spam(
-      "The user #{title_md} from #{anon_ip} with #{amount} payment to PayPal just attempted to go",
-      "over their account limits: \"#{consumed}\", while allowed thresholds are \"#{limits}\";",
-      "the balance of the user is #{user.wallet(&:balance)}",
-      "at the wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})"
-    )
-    raise WTS::UserError, "139: With #{amount} you are going over your limits, #{consumed} were sold already, \
-while we allow one user to sell up to #{limits} (daily/weekly/monthly)"
-  end
-  limits = settings.toggles.get('system-limits', '512/2048/8196')
-  unless settings.payouts.safe?(amount, limits) || vip?
-    consumed = settings.payouts.system_consumed
-    settings.telepost.spam(
-      "The user #{title_md} from #{anon_ip} with #{amount} payment to PayPal just attempted to go",
-      "over our limits: \"#{consumed}\", while allowed thresholds are \"#{limits}\";",
-      "the balance of the user is #{user.wallet(&:balance)}",
-      "at the wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})"
-    )
-    raise WTS::UserError, "140: With #{amount} you are going over our limits, #{consumed} were sold by ALL \
-users of WTS, while our limits are #{limits} (daily/weekly/monthly), sorry about this :("
-  end
-  bitcoin = (amount.to_zld(8).to_f * rate).round(8)
-  usd = (bitcoin * price).round(2)
-  boss = user(settings.config['zerocrat']['login'])
-  rewards = user(settings.config['rewards']['login'])
-  job do |jid, log|
-    log.info("Sending $#{usd} via PayPal to #{email}...")
-    f = fee
-    ops(log: log).pull
-    ops(rewards, log: log).pull
-    ops(boss, log: log).pull
-    txn = ops(log: log).pay(
-      keygap,
-      boss.item.id,
-      amount * (1.0 - f),
-      "ZLD exchange to #{usd} PayPal, rate is #{rate}, fee is #{f}"
-    )
-    ops(log: log).pay(
-      keygap,
-      rewards.item.id,
-      amount * f,
-      "Fee for exchange of #{usd} PayPal, rate is #{rate}, fee is #{f}"
-    )
-    ops(log: log).push
-    settings.paypal.send(
-      email,
-      (usd * (1.0 - f)).round(2),
-      "Zerocracy development, TID #{user.item.id}:#{txn.id}"
-    )
-    settings.payouts.add(
-      user.login, user.item.id, amount,
-      "$#{usd} sent to #{email}, the price was $#{price.round}/BTC, the fee was #{(f * 100).round(2)}%"
-    )
-    settings.telepost.spam(
-      "Out: **#{amount}** [exchanged](https://blog.zold.io/2018/12/09/btc-to-zld.html) to $#{usd} PayPal",
-      "by #{title_md} from #{anon_ip}",
-      "from the wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})",
-      "with the remaining balance of #{user.wallet(&:balance)};",
-      "BTC price at the time of exchange was [$#{price.round}](https://blockchain.info/ticker);",
-      "zolds were deposited to [#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id})",
-      "of [#{boss.login}](https://github.com/#{boss.login}),",
-      "the balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t);",
-      "the exchange fee of #{amount * f}",
-      "was deposited to [#{rewards.item.id}](http://www.zold.io/ledger.html?wallet=#{rewards.item.id})",
-      "of [#{rewards.login}](https://github.com/#{rewards.login}),",
-      "the balance is #{rewards.wallet(&:balance)} (#{rewards.wallet(&:txns).count}t);",
-      job_link(jid)
-    )
-  end
-  flash('/zld-to-paypal', "We took #{amount} from your wallet and sent you $#{usd} PayPal, more details in the log")
-end
-
-get '/job' do
-  prohibit('api')
-  id = params['id']
-  raise WTS::UserError, "150: Job in 'id' query parameter is mandatory" if id.nil? || id.empty?
-  raise WTS::UserError, "151: Job ID #{id} is not found" unless settings.jobs.exists?(id)
-  content_type 'text/plain', charset: 'utf-8'
-  settings.jobs.read(id)
-end
-
-get '/job.json' do
-  prohibit('api')
-  id = params['id']
-  raise WTS::UserError, "152: Job in 'id' query parameter is mandatory" if id.nil? || id.empty?
-  raise WTS::UserError, "153: Job ID #{id} is not found" unless settings.jobs.exists?(id)
-  content_type 'application/json'
-  JSON.pretty_generate(
-    {
-      id: id,
-      status: settings.jobs.status(id),
-      output_length: settings.jobs.output(id).length
-    }.merge(settings.jobs.results(id))
-  )
-end
-
-get '/output' do
-  prohibit('api')
-  id = params['id']
-  raise WTS::UserError, "154: Job in 'id' query parameter is mandatory" if id.nil? || id.empty?
-  raise WTS::UserError, "155: Job ID #{id} is not found" unless settings.jobs.exists?(id)
-  content_type 'text/plain', charset: 'utf-8'
-  headers['X-Zold-JobStatus'] = settings.jobs.status(id)
-  settings.jobs.output(id)
-end
-
 get '/log' do
   content_type 'text/plain', charset: 'utf-8'
   user_log.content + "\n\n\n" + [
@@ -997,167 +763,6 @@ get '/remotes' do
   haml :remotes, layout: :layout, locals: merged(
     page_title: '/remotes'
   )
-end
-
-get '/usd_rate' do
-  content_type 'text/plain'
-  format('%.04f', price * rate)
-end
-
-get '/rate' do
-  unless settings.zache.exists?(:rate) && !settings.zache.expired?(:rate)
-    boss = user(settings.config['exchange']['login'])
-    job(boss) do |_jid, log|
-      ops(boss, log: log).pull
-      require 'zold/commands/pull'
-      Zold::Pull.new(
-        wallets: settings.wallets, remotes: settings.remotes, copies: settings.copies, log: settings.log
-      ).run(['pull', Zold::Id::ROOT.to_s, "--network=#{network}"])
-      hash = {
-        bank: settings.assets.balance,
-        boss: settings.wallets.acq(boss.item.id, &:balance),
-        root: settings.wallets.acq(Zold::Id::ROOT, &:balance) * -1,
-        boss_wallet: boss.item.id
-      }
-      hash[:rate] = hash[:bank] / (hash[:root] - hash[:boss]).to_f
-      hash[:deficit] = (hash[:root] - hash[:boss]).to_f * rate - hash[:bank]
-      hash[:price] = price
-      hash[:usd_rate] = hash[:price] * rate
-      settings.zache.put(:rate, hash, lifetime: 10 * 60)
-      settings.zache.remove_by { |k| k.to_s.start_with?('http', '/') }
-      unless settings.ticks.exists?('Fund')
-        settings.ticks.add(
-          'Fund' => (hash[:bank] * 100_000_000).to_i, # in satoshi
-          'Emission' => hash[:root].to_i, # in zents
-          'Office' => hash[:boss].to_i, # in zents
-          'Rate' => (rate * 100_000_000).to_i, # satoshi per ZLD
-          'Coverage' => (hash[:rate] * 100_000_000).to_i, # satoshi per ZLD
-          'Deficit' => (hash[:deficit] * 100_000_000).to_i, # in satoshi
-          'Price' => (hash[:price] * 100).to_i, # US cents per BTC
-          'Value' => (hash[:usd_rate] * 100).to_i, # US cents per ZLD
-          'Pledge' => (hash[:price] * hash[:rate] * 100).to_i # US cents per ZLD, covered
-        )
-      end
-    end
-  end
-  flash('/', 'Still working on it, come back in a few seconds') unless settings.zache.exists?(:rate)
-  haml :rate, layout: :layout, locals: merged(
-    page_title: '/rate',
-    formula: settings.zache.get(:rate),
-    mtime: settings.zache.mtime(:rate)
-  )
-end
-
-get '/rate.json' do
-  content_type 'application/json'
-  if settings.zache.exists?(:rate)
-    hash = settings.zache.get(:rate)
-    JSON.pretty_generate(
-      valid: true,
-      bank: hash[:bank],
-      boss: hash[:boss].to_i,
-      root: hash[:root].to_i,
-      rate: hash[:rate].round(8),
-      effective_rate: rate,
-      deficit: hash[:deficit].round(2),
-      price: hash[:price].round,
-      usd_rate: hash[:usd_rate].round(4)
-    )
-  else
-    JSON.pretty_generate(
-      valid: false,
-      effective_rate: rate,
-      usd_rate: 1.0 # just for testing
-    )
-  end
-end
-
-get '/graph.svg' do
-  raise WTS::UserError, "156: Param 'keys' is mandatory" unless params[:keys]
-  raise WTS::UserError, "157: Param 'div' is mandatory" unless params[:div]
-  raise WTS::UserError, "158: Param 'digits' is mandatory" unless params[:digits]
-  content_type 'image/svg+xml'
-  settings.zache.clean
-  settings.zache.get(request.url, lifetime: 10 * 60) do
-    WTS::Graph.new(settings.ticks).svg(
-      params[:keys].split(' '),
-      params[:div].to_i,
-      params[:digits].to_i,
-      title: params[:title] || ''
-    )
-  end
-end
-
-get '/mobile/send' do
-  prohibit('api')
-  phone = params[:phone]
-  raise WTS::UserError, '159: Mobile phone number is required' if phone.nil?
-  raise WTS::UserError, '160: Phone number can\'t be empty, format it according to E.164' if phone.empty?
-  unless /^[0-9]+$/.match?(phone)
-    raise WTS::UserError, "161: Invalid phone #{phone.inspect}, digits only allowed (E.164)"
-  end
-  raise WTS::UserError, '161: The phone shouldn\'t start with zeros' if /^0+/.match?(phone)
-  raise WTS::UserError, "162: The phone number #{phone.inspect} is too short" if phone.length < 6
-  raise WTS::UserError, "163: The phone number #{phone.inspect} is too long" if phone.length > 14
-  phone = phone.to_i
-  mcode = rand(1000..9999)
-  if settings.mcodes.exists?(phone)
-    mcode = settings.mcodes.get(phone)
-  else
-    settings.mcodes.set(phone, mcode)
-  end
-  cid = settings.smss.send(phone, "Your authorization code for wts.zold.io is: #{mcode}")
-  if params[:noredirect]
-    content_type 'text/plain'
-    return cid.to_s
-  end
-  flash("/mobile_token?phone=#{phone}", "The SMS ##{cid} was sent with the auth code")
-end
-
-get '/mobile/token' do
-  prohibit('api')
-  phone = params[:phone]
-  raise WTS::UserError, '164: Mobile phone number is required' if phone.nil?
-  raise WTS::UserError, '165: Phone number can\'t be empty, format it according to E.164' if phone.empty?
-  unless /^[0-9]+$/.match?(phone)
-    raise WTS::UserError, "166: Invalid phone #{phone.inspect}, digits only allowed (E.164)"
-  end
-  phone = phone.to_i
-  mcode = params[:code].strip
-  raise WTS::UserError, '167: Mobile confirmation code can\'t be empty' if mcode.empty?
-  raise WTS::UserError, "168: Invalid code #{mcode.inspect}, must be four digits" unless /^[0-9]{4}$/.match?(mcode)
-  raise WTS::UserError, '169: Mobile code mismatch' unless settings.mcodes.get(phone) == mcode.to_i
-  settings.mcodes.remove(phone)
-  u = user(phone.to_s)
-  u.create(settings.remotes) unless u.item.exists?
-  job(u) do |_jid, log|
-    log.info("Just created a new wallet #{u.item.id}, going to push it...")
-    ops(u, log: log).push
-  end
-  token = "#{u.login}-#{settings.tokens.get(u.login)}"
-  if params[:noredirect]
-    content_type 'text/plain'
-    return token
-  end
-  cookies[:wts] = token
-  register_referral(u.login)
-  flash('/home', 'You have been logged in successfully')
-end
-
-get '/toggles' do
-  raise WTS::UserError, '170: You are not allowed to see this' unless vip?
-  haml :toggles, layout: :layout, locals: merged(
-    page_title: 'Toggles',
-    toggles: settings.toggles
-  )
-end
-
-post '/set-toggle' do
-  raise WTS::UserError, '171: You are not allowed to see this' unless vip?
-  key = params[:key].strip
-  value = params[:value].strip
-  settings.toggles.set(key, value)
-  flash('/toggles', "The feature toggle #{key.inspect} re/set")
 end
 
 get '/payables' do
@@ -1192,74 +797,6 @@ get '/quick' do
     header_off: true,
     html: html
   )
-end
-
-get '/terms' do
-  haml :terms, layout: :layout, locals: merged(
-    page_title: 'Terms of Use'
-  )
-end
-
-get '/robots.txt' do
-  content_type 'text/plain'
-  "User-agent: *\nDisallow: /"
-end
-
-get '/version' do
-  content_type 'text/plain'
-  WTS::VERSION
-end
-
-get '/context' do
-  content_type 'text/plain'
-  context
-end
-
-get '/css/*.css' do
-  name = params[:splat].first
-  file = File.join('assets/sass', name) + '.sass'
-  error(404, "File not found: #{file}") unless File.exist?(file)
-  content_type 'text/css', charset: 'utf-8'
-  sass name.to_sym, views: "#{settings.root}/assets/sass"
-end
-
-get '/js/*.js' do
-  file = File.join('assets/js', params[:splat].first) + '.js'
-  error(404, "File not found: #{file}") unless File.exist?(file)
-  content_type 'application/javascript'
-  IO.read(file)
-end
-
-not_found do
-  status 404
-  content_type 'text/html', charset: 'utf-8'
-  haml :not_found, layout: :layout, locals: merged(
-    page_title: 'Page not found'
-  )
-end
-
-error do
-  e = env['sinatra.error']
-  if e.is_a?(WTS::UserError)
-    settings.log.error("#{request.url}: #{e.message}")
-    body(Backtrace.new(e).to_s)
-    headers['X-Zold-Error'] = e.message[0..256]
-    if params[:noredirect]
-      content_type 'text/plain', charset: 'utf-8'
-      return Backtrace.new(e).to_s
-    end
-    flash('/', e.message, error: true)
-  end
-  status 503
-  Raven.capture_exception(e, extra: { 'request_url' => request.url })
-  if params[:noredirect]
-    Backtrace.new(e).to_s
-  else
-    haml :error, layout: :layout, locals: merged(
-      page_title: 'Error',
-      error: Backtrace.new(e).to_s
-    )
-  end
 end
 
 private
@@ -1506,10 +1043,6 @@ def register_referral(login)
   )
 end
 
-def price
-  settings.zache.get(:price, lifetime: 5 * 60) { settings.btc.price }
-end
-
 def github_exists?(login)
   Zold::Http.new(uri: "https://api.github.com/users/#{login}").get.status == 200
 end
@@ -1525,4 +1058,12 @@ def callback(args)
   raise "198: Callback failure with HTTP code #{res.status} at #{uri}" unless res.status == 200
 end
 
+require_relative 'front/errors'
+require_relative 'front/misc'
+require_relative 'front/toggles'
+require_relative 'front/paypal'
+require_relative 'front/jobs'
+require_relative 'front/callback_api'
+require_relative 'front/rate'
 require_relative 'front/btc'
+require_relative 'front/login'

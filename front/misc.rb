@@ -6,6 +6,7 @@
 # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
+#
 # The above copyright notice and this permission notice shall be included in all
 # copies or substantial portions of the Software.
 #
@@ -17,44 +18,38 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-source 'https://rubygems.org'
-ruby '2.6.0'
+get '/terms' do
+  haml :terms, layout: :layout, locals: merged(
+    page_title: 'Terms of Use'
+  )
+end
 
-gem 'active_paypal_adaptive_payment', '0.3.16'
-gem 'aws-sdk-s3', '1.30.0'
-gem 'aws-sdk-sns', '1.9.0'
-gem 'backports', '3.11.4'
-gem 'backtrace', '0.3.0'
-gem 'codecov', '0.1.13'
-gem 'coinbase', '4.2.0'
-gem 'concurrent-ruby', '>=1.1'
-gem 'eslintrb', '2.1.0'
-gem 'futex', '0.8.6'
-gem 'geocoder', '1.5.0'
-gem 'get_process_mem', '~>0.2'
-gem 'glogin', '0.5.0'
-gem 'haml', '5.0.4'
-gem 'minitest', '5.11.3'
-gem 'paypal-sdk-rest', '1.7.3'
-gem 'pg', '1.1.3'
-gem 'rack', '2.0.6'
-gem 'rack-ssl', '1.4.1'
-gem 'rack-test', '1.1.0'
-gem 'rake', '12.3.1', require: false
-gem 'random-port', '0.3.1', require: false
-gem 'rerun', '0.13.0', require: false
-gem 'rubocop', '0.62.0', require: false
-gem 'rubocop-rspec', '1.31.0', require: false
-gem 'sass', '3.7.3'
-gem 'sentry-raven', '2.7.4'
-gem 'sibit', '0.4.0'
-gem 'sinatra', '2.0.4'
-gem 'sinatra-contrib', '2.0.4'
-gem 'svg-graph', '2.1.3'
-gem 'telebot', '0.1.2'
-gem 'telepost', '>=0.3.1'
-gem 'total', '>=0.2.0'
-gem 'webmock', '3.5.1'
-gem 'xcop', '0.6'
-gem 'zache', '>=0.12.0'
-gem 'zold', '0.29.27'
+get '/robots.txt' do
+  content_type 'text/plain'
+  "User-agent: *\nDisallow: /"
+end
+
+get '/version' do
+  content_type 'text/plain'
+  WTS::VERSION
+end
+
+get '/context' do
+  content_type 'text/plain'
+  context
+end
+
+get '/css/*.css' do
+  name = params[:splat].first
+  file = File.join('assets/sass', name) + '.sass'
+  error(404, "File not found: #{file}") unless File.exist?(file)
+  content_type 'text/css', charset: 'utf-8'
+  sass name.to_sym, views: "#{settings.root}/assets/sass"
+end
+
+get '/js/*.js' do
+  file = File.join('assets/js', params[:splat].first) + '.js'
+  error(404, "File not found: #{file}") unless File.exist?(file)
+  content_type 'application/javascript'
+  IO.read(file)
+end
