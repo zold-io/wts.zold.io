@@ -589,13 +589,14 @@ end
 
 post '/do-pay' do
   prohibit('pay')
-  raise WTS::UserError, '196: You have to pull your wallet first' unless user.wallet_exists?
   raise WTS::UserError, '109: Parameter "bnf" is not provided' if params[:bnf].nil?
   bnf = params[:bnf].strip
   raise WTS::UserError, '110: Parameter "amount" is not provided' if params[:amount].nil?
   amount = Zold::Amount.new(zld: params[:amount].to_f)
-  balance = user.wallet(&:balance)
-  raise WTS::UserError, "197: Not enough funds to send #{amount} only #{balance} left" if balance < amount
+  if user.wallet_exists?
+    balance = user.wallet(&:balance)
+    raise WTS::UserError, "197: Not enough funds to send #{amount} only #{balance} left" if balance < amount
+  end
   raise WTS::UserError, '111: Parameter "details" is not provided' if params[:details].nil?
   details = params[:details]
   raise WTS::UserError, "118: Invalid details \"#{details}\"" unless details =~ %r{^[a-zA-Z0-9\ @!?*_\-.:,'/]+$}
