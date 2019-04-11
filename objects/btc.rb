@@ -40,7 +40,7 @@ class WTS::Btc
     end
 
     def create
-      { hash: '1yrhsahfdjdfkjslk', pvt: '', pub: '' }
+      { hash: '1fffffffffffffffffff', pvt: '', pub: '' }
     end
   end
 

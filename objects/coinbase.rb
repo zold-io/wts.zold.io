@@ -18,24 +18,43 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require 'backtrace'
 require 'zold/log'
-require_relative 'pgsql'
+require 'coinbase/wallet'
+require_relative 'wts'
 require_relative 'user_error'
 
 #
-# BTC hashes.
+# Coinbase gateway.
 #
-class WTS::Hashes
-  def initialize(pgsql, log: Zold::Log::NULL)
-    @pgsql = pgsql
+class WTS::Coinbase
+  def initialize(key, secret, account, log: Zold::Log::NULL)
+    @key = key
+    @secret = secret
+    @account = account
     @log = log
   end
 
-  def seen?(hash)
-    !@pgsql.exec('SELECT * FROM btx WHERE hash = $1', [hash]).empty?
+  # Get BTC balance, in BTC
+  def balance
+    acc = Coinbase::Wallet::Client.new(api_key: @key, api_secret: @secret).account(@account)
+    acc.balance['amount'].to_f
   end
 
-  def add(hash, login, wallet)
-    @pgsql.exec('INSERT INTO btx (hash, login, wallet) VALUES ($1, $2, $3)', [hash, login, wallet.to_s])
+  # Convert USD to BTC.
+  def buy(usd)
+    acc = Coinbase::Wallet::Client.new(api_key: @key, api_secret: @secret).account(@account)
+    acc.buy(amount: usd.to_s, currency: 'USD')
+  end
+
+  # Send BTC.
+  def send(address, usd, details)
+    acc = Coinbase::Wallet::Client.new(api_key: @key, api_secret: @secret).account(@account)
+    response = acc.send(to: address, amount: usd, currency: 'USD', description: details)
+    @log.info("Coinbase payment has been sent, their transaction ID is #{response['id']}")
+    response['id']
+  rescue StandardError => e
+    @log.error(Backtrace.new(e))
+    raise "Failed to send \"#{usd}\" to \"#{address}\" with details of \"#{details}\": #{e.message}"
   end
 end

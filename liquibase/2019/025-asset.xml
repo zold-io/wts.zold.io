@@ -27,15 +27,16 @@ SOFTWARE.
     <sql>
       CREATE TABLE asset (
         hash VARCHAR(64) PRIMARY KEY,
-        satoshi BIGINT NOT NULL,
-        pvt TEXT NOT NULL,
+        login VARCHAR(128) PRIMARY KEY REFERENCES item(login),
+        value BIGINT NOT NULL,
+        pvt TEXT,
         updated TIMESTAMPTZ DEFAULT now() NOT NULL
       );
-      CREATE INDEX idx_asset1 ON asset (satoshi);
+      CREATE INDEX idx_asset1 ON asset (value);
+      CREATE INDEX idx_asset2 ON asset (login);
     </sql>
     <sql>
-      DELETE FROM address;
-      ALTER TABLE address ADD COLUMN pvt TEXT NOT NULL;
+      DROP TABLE address;
     </sql>
   </changeSet>
 </databaseChangeLog>

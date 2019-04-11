@@ -37,23 +37,30 @@ class WTS::Assets
     @pgsql.exec('SELECT * FROM asset').map do |r|
       {
         hash: r['hash'],
-        satoshi: r['satoshi'].to_i,
-        updated: Time.parse(r['updated'])
+        value: r['value'].to_i,
+        updated: Time.parse(r['updated']),
+        hot: !r['pvt'].nil?;
       }
     end
   end
 
-  # Get BTC balance, in BTC
+  # Get total BTC balance, in BTC.
   def balance
-    @pgsql.exec('SELECT satoshi FROM asset').map { |r| r['satoshi'].to_i }.inject(&:+) / 100_000_000
+    @pgsql.exec('SELECT SUM(value) FROM asset')[0]['sum'].to_i / 100_000_000
   end
 
-  # Add new asset.
-  def add(hash, satoshi, pvt)
-    @pgsql.exec('INSERT INTO asset (hash, satoshi, pvt) VALUES ($1, $2, $3)', [hash, satoshi, pvt])
+  # Create a new asset/address for a given user (return existing one if it is
+  # already in the database).
+  def acquire(login)
+    row = @pgsql.exec('SELECT hash FROM asset WHERE login = $1', [login])[0]
+    if row.nil?
+      @pgsql.exec('INSERT INTO asset (hash, satoshi, pvt) VALUES ($1, $2, $3)', [hash, satoshi, pvt])
+    else
+      row['hash']
+    end
   end
 
-  # Prepare a batch to send.
+  # Prepare an array of addresses and their private keys to send out a payment.
   def prepare(satoshi)
     batch = []
     left = satoshi
