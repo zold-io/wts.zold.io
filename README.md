@@ -159,6 +159,11 @@ which return the result immediately:
 
   * `GET /usd_rate`: returns current rate of ZLD in USD.
 
+  * `GET /txn.json`: retrieves a single transaction details in JSON,
+    expecting `tid` as a single query parameter (wallet ID + `:` + transaction ID).
+    However, this information is not secure enough. This is just the data
+    from the "general ledger," don't rely on it.
+
 These entry points, just like the `/do-pay` explained above, are asynchronous.
 In each of them you should expect `200` response with the `X-Zold-Job`
 header inside. Using that job ID you can check the status of the job
@@ -174,14 +179,12 @@ as explained above in `/job.json`.
   * `GET /create`: creates a new wallet, assigns a new wallet ID to the user,
     leaving the keygap and private RSA key the same.
 
-  * `GET /txn.json`: retrieves a single transaction details in JSON,
-    expecting `tid` as a single query parameter (wallet ID + `:` + transaction ID).
-    However, this information is not secure enough. This is just the data
-    from the "general ledger," don't rely on it.
-
 Make sure you always use the `noredirect=1` query parameter. Without it
 you may get unpredictable response codes, like 302/303, and an HTML document
 in the response body.
+
+In any asychronous request you may specify a `callback` URI, which will
+be triggered if the request finished successfully.
 
 ## Callback API
 

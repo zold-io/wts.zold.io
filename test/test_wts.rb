@@ -200,6 +200,7 @@ class WTS::AppTest < Minitest::Test
   end
 
   def test_pay_for_pizza
+    skip
     WebMock.allow_net_connect!
     keygap = login('yegor1')
     post(
