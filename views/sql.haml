@@ -20,7 +20,7 @@
       - result.take(max).each do |r|
         %tr
           - r.each do |k, v|
-            %td= CGI.escapeHTML(v).gsub(/([^ ]{16})/, '\1&shy;')
+            %td= CGI.escapeHTML(v).gsub(/([^ ]{4})/, '\1&shy;')
   - if result.count > max
     %p
       There are
