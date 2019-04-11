@@ -52,7 +52,6 @@ require 'zold/json_page'
 require 'zold/log'
 require 'zold/remotes'
 require 'zold/sync_wallets'
-require_relative 'objects/addresses'
 require_relative 'objects/assets'
 require_relative 'objects/async_job'
 require_relative 'objects/btc'
@@ -63,7 +62,6 @@ require_relative 'objects/db_log'
 require_relative 'objects/file_log'
 require_relative 'objects/gl'
 require_relative 'objects/graph'
-require_relative 'objects/hashes'
 require_relative 'objects/item'
 require_relative 'objects/jobs'
 require_relative 'objects/mcodes'
@@ -180,7 +178,7 @@ configure do
   set :gl, WTS::Gl.new(settings.pgsql, log: settings.log)
   set :payables, WTS::Payables.new(settings.pgsql, settings.remotes, log: settings.log)
   set :toggles, WTS::Toggles.new(settings.pgsql, log: settings.log)
-  set :hashes, WTS::Hashes.new(settings.pgsql, log: settings.log)
+  set :utxos, WTS::Utxos.new(settings.pgsql, log: settings.log)
   set :tokens, WTS::Tokens.new(settings.pgsql, log: settings.log)
   set :referrals, WTS::Referrals.new(settings.pgsql, log: settings.log)
   set :jobs, WTS::Jobs.new(settings.pgsql, log: settings.log)
@@ -204,12 +202,16 @@ configure do
   )
   set :assets, WTS::Assets.new(settings.pgsql, log: settings.log)
   set :btc, WTS::Btc.new(log: settings.log)
-  set :coinbase, WTS::Coinbase.new(
-    settings.config['coinbase']['key'],
-    settings.config['coinbase']['secret'],
-    settings.config['coinbase']['account'],
-    log: settings.log
-  )
+  if settings.config['coinbase']
+    set :coinbase, WTS::Coinbase.new(
+      settings.config['coinbase']['key'],
+      settings.config['coinbase']['secret'],
+      settings.config['coinbase']['account'],
+      log: settings.log
+    )
+  else
+    set :coinbase, WTS::Coinbase::Fake.new
+  end
   set :smss, WTS::Smss.new(
     settings.pgsql,
     Aws::SNS::Client.new(
@@ -355,7 +357,7 @@ and dated #{t[:date].utc.iso8601}")
       next unless settings.btc.trustable?(satoshi, confirmations)
       boss = user(settings.config['exchange']['login'])
       job(boss) do
-        if settings.hashes.seen?(hash)
+        if settings.utxos.seen?(hash)
           settings.log.info("A duplicate notification from Blockchain about #{bitcoin} bitcoins \
 arrival to #{address}, for #{bnf.login}; we ignore it.")
         else
@@ -366,10 +368,7 @@ arrival to #{address}, for #{bnf.login}; we ignore it.")
             zld,
             "BTC exchange of #{bitcoin} at #{hash[0..8]}, rate is #{rate}"
           )
-          settings.addresses.destroy(address, bnf.login) do |pvt|
-            settings.assets.add(address, satoshi, pvt)
-          end
-          settings.hashes.add(hash, bnf.login, bnf.item.id)
+          settings.utxos.add(address, hash)
           settings.telepost.spam(
             "In: #{bitcoin} BTC [exchanged](https://blog.zold.io/2018/12/09/btc-to-zld.html) to #{zld}",
             "by #{title_md(bnf)}",
@@ -892,7 +891,7 @@ end
 
 get '/btc-to-zld' do
   prohibit('btc')
-  address = settings.assets.acquire(confirmed_user.login, settings.sibit)
+  address = settings.assets.acquire(confirmed_user.login)
   headers['X-Zold-BtcAddress'] = address
   haml :btc_to_zld, layout: :layout, locals: merged(
     page_title: title('buy'),

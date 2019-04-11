@@ -172,7 +172,7 @@ class WTS::AppTest < Minitest::Test
       )
     end
     assets = WTS::Assets.new(WTS::Pgsql::TEST.start, log: test_log)
-    assets.add("32wtFfKbjWHpu9WFzX9adGsFFAosqPk#{rand(999)}", 10_000_000, 'pvt')
+    assets.set("32wtFfKbjWHpu9WFzX9adGsFFAosqPk#{rand(999)}", 10_000_000)
     post(
       '/do-zld-to-btc',
       form(

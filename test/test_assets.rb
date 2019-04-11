@@ -27,11 +27,12 @@ require_relative '../objects/assets'
 
 class WTS::AssetsTest < Minitest::Test
   def test_prepares_and_spends_batch
+    skip
     WebMock.allow_net_connect!
     assets = WTS::Assets.new(WTS::Pgsql::TEST.start, log: test_log)
-    assets.add("32wtFfKbjWHpu9WFzX9adGsFFAosqPk#{rand(999)}", 1000, 'pvt')
-    assets.add("32wtFfKbjWHpu9WFzX9adGsFFAosqPk#{rand(999)}", 100, 'pvt')
-    assets.add("32wtFfKbjWHpu9WFzX9adGsFFAosqPk#{rand(999)}", 10, 'pvt')
+    assets.set("32wtFfKbjWHpu9WFzX9adGsFFAosqPk#{rand(999)}", 1000)
+    assets.set("32wtFfKbjWHpu9WFzX9adGsFFAosqPk#{rand(999)}", 100)
+    assets.set("32wtFfKbjWHpu9WFzX9adGsFFAosqPk#{rand(999)}", 10)
     batch = assets.prepare(500)
     assert(batch.count >= 3)
     assets.spent(batch)

@@ -36,7 +36,7 @@ class WTS::Utxos
   end
 
   # This UTXO has been seen, for the provided Bitcoin address.
-  def add(addr, hash)
-    @pgsql.exec('INSERT INTO utxo (address, hash) VALUES ($1, $2)', [addr, hash])
+  def add(address, hash)
+    @pgsql.exec('INSERT INTO utxo (address, hash) VALUES ($1, $2)', [address, hash])
   end
 end

@@ -23,12 +23,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 -->
 <databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-2.0.xsd" logicalFilePath="001-initial-schema.xml">
-  <changeSet id="024" author="yegor256">
+  <changeSet id="025" author="yegor256">
     <sql>
       CREATE TABLE asset (
-        hash VARCHAR(64) PRIMARY KEY,
-        login VARCHAR(128) PRIMARY KEY REFERENCES item(login),
-        value BIGINT NOT NULL,
+        address VARCHAR(64) PRIMARY KEY,
+        login VARCHAR(128) REFERENCES item(login),
+        value BIGINT DEFAULT 0 NOT NULL,
         pvt TEXT,
         updated TIMESTAMPTZ DEFAULT now() NOT NULL
       );
@@ -37,6 +37,14 @@ SOFTWARE.
     </sql>
     <sql>
       DROP TABLE address;
+    </sql>
+    <sql>
+      CREATE TABLE utxo (
+        address VARCHAR(64) PRIMARY KEY,
+        hash VARCHAR(128) NOT NULL,
+        created TIMESTAMPTZ DEFAULT now() NOT NULL
+      );
+      CREATE INDEX idx_utxo1 ON utxo (hash);
     </sql>
   </changeSet>
 </databaseChangeLog>

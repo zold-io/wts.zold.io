@@ -22,15 +22,16 @@ require 'minitest/autorun'
 require 'webmock/minitest'
 require_relative 'test__helper'
 require_relative '../objects/pgsql'
-require_relative '../objects/hashes'
+require_relative '../objects/utxos'
 
-class WTS::HashesTest < Minitest::Test
+class WTS::UtxosTest < Minitest::Test
   def test_saves_hash_and_loads
     WebMock.allow_net_connect!
-    btc = WTS::Hashes.new(WTS::Pgsql::TEST.start, log: test_log)
-    hash = 'c3c0a51ff985618dd8373eadf3540fd1bea44d676452dbab47fe0cc07209547e'
+    btc = WTS::Utxos.new(WTS::Pgsql::TEST.start, log: test_log)
+    address = '1JvCsJtLmCxEk7ddZFnVkGXpr9uhxZPmJi'
+    hash = '5de641d3867eb8fec3eb1a5ef2b44df39b54e0b3bb664ab520f2ae26a5b18ffc'
     assert(!btc.seen?(hash))
-    btc.add(hash, 'jeff123', 'c3c0a51ff985618d')
+    btc.add(address, hash)
     assert(btc.seen?(hash))
   end
 end

@@ -28,6 +28,21 @@ require_relative 'user_error'
 # Coinbase gateway.
 #
 class WTS::Coinbase
+  # Fake one
+  class Fake
+    def balance
+      1
+    end
+
+    def buy(_usd)
+      # Nothing
+    end
+
+    def send(_address, _usd, _details)
+      # Nothing
+    end
+  end
+
   def initialize(key, secret, account, log: Zold::Log::NULL)
     @key = key
     @secret = secret

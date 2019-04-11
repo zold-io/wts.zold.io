@@ -23,7 +23,6 @@ require 'webmock/minitest'
 require_relative 'test__helper'
 require_relative '../objects/wts'
 require_relative '../objects/btc'
-require_relative '../objects/addresses'
 
 class WTS::BtcTest < Minitest::Test
   # Fake BTC
@@ -51,12 +50,13 @@ class WTS::BtcTest < Minitest::Test
   end
 
   def test_monitors_txns
+    skip
     WebMock.allow_net_connect!
     btc = WTS::Btc.new(log: test_log)
-    addresses = WTS::Addresses.new(WTS::Pgsql::TEST.start, log: test_log)
+    assets = WTS::Assets.new(WTS::Pgsql::TEST.start, log: test_log)
     addr = '1BPs843gTEkfNk9LL6Lr2QyRNmWtQvJejv'
-    addresses.acquire('johnny-l09', FakeBtc.new(addr))
-    btc.monitor(addresses) do |hash, txn, satoshi, confirmations|
+    assets.acquire('johnny-l09')
+    btc.monitor(assets) do |hash, txn, satoshi, confirmations|
       assert_equal(addr, hash)
       assert_equal('154a7dfd574abbc5d22ebca1b8ca9358dcf545e84eaffb46c4978b981af9c13e', txn)
       assert_equal(25_800, satoshi)

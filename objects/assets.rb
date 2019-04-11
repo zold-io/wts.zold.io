@@ -36,10 +36,10 @@ class WTS::Assets
   def all
     @pgsql.exec('SELECT * FROM asset').map do |r|
       {
-        hash: r['hash'],
+        address: r['address'],
         value: r['value'].to_i,
         updated: Time.parse(r['updated']),
-        hot: !r['pvt'].nil?;
+        hot: !r['pvt'].nil?
       }
     end
   end
@@ -52,12 +52,21 @@ class WTS::Assets
   # Create a new asset/address for a given user (return existing one if it is
   # already in the database).
   def acquire(login)
-    row = @pgsql.exec('SELECT hash FROM asset WHERE login = $1', [login])[0]
+    row = @pgsql.exec('SELECT address FROM asset WHERE login = $1', [login])[0]
     if row.nil?
-      @pgsql.exec('INSERT INTO asset (hash, satoshi, pvt) VALUES ($1, $2, $3)', [hash, satoshi, pvt])
+      sibit = Sibit.new
+      pvt = sibit.generate
+      address = sibit.create(pvt)
+      @pgsql.exec('INSERT INTO asset (address, login, pvt) VALUES ($1, $2, $3)', [address, login, pvt])
+      address
     else
-      row['hash']
+      row['address']
     end
+  end
+
+  # Set the balance of an assert.
+  def set(address, value)
+    @pgsql.exec('UPDATE asset SET value = $1 WHERE address = $2', [value, address])
   end
 
   # Prepare an array of addresses and their private keys to send out a payment.
