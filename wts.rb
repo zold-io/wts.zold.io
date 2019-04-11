@@ -383,7 +383,6 @@ arrival to #{address}, for #{bnf.login}; we ignore it.")
             "via [#{address[0..8]}](https://www.blockchain.com/btc/address/#{address}),",
             "to the wallet [#{bnf.item.id}](http://www.zold.io/ledger.html?wallet=#{bnf.item.id})",
             "with the balance of #{bnf.wallet(&:balance)};",
-            "the gap of Blockchain.com is #{settings.btc.gap};",
             "BTC price at the moment of exchange was [$#{settings.btc.price}](https://blockchain.info/ticker);",
             "the payer is #{title_md(boss)} with the wallet",
             "[#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id}),",
@@ -879,12 +878,11 @@ end
 get '/btc-to-zld' do
   prohibit('btc')
   address = settings.addresses.acquire(confirmed_user.login, settings.btc) do
-    address = settings.btc.create
+    a = settings.btc.create
     settings.telepost.spam(
-      'New Bitcoin address acquired',
-      "[#{address}](https://www.blockchain.com/btc/address/#{address})",
+      'New Bitcoin address created',
+      "[#{a[:address]}](https://www.blockchain.com/btc/address/#{a[:address]})",
       "by request of #{title_md} from #{anon_ip};",
-      "Blockchain.com gap is #{settings.btc.gap};",
       settings.btc.to_s
     )
     address

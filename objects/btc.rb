@@ -19,7 +19,7 @@
 # SOFTWARE.
 
 require 'backtrace'
-require 'bitcoin'
+require 'sibit'
 require 'zold/http'
 require 'zold/json_page'
 require_relative 'wts'
@@ -55,10 +55,11 @@ class WTS::Btc
 
   # Create new BTC address to accept payments, and returns {hash, pvt}
   def create
-    pvt, pub = Bitcoin.generate_key
-    address = Bitcoin.pubkey_to_address(pub)
+    sibit = Sibit.new
+    pvt = sibit.generate
+    address = sibit.create(pvt)
     @log.info("New Bitcoin address created: #{address}")
-    { hash: address, pvt: pvt, pub: pub }
+    { hash: address, pvt: pvt }
   end
 
   def monitor(addresses)
