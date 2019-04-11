@@ -21,8 +21,8 @@
     - assets.all.each do |a|
       %tr
         %td
-          %a{href: "https://www.blockchain.com/btc/address/#{a[:hash]}"}= a[:hash]
-        %td.right{title: a[:satoshi]}
-          = (a[:satoshi] / 100_000_000).round(4)
+          %a{href: "https://www.blockchain.com/btc/address/#{a[:address]}"}= a[:address]
+        %td.right{title: a[:value]}
+          = (a[:value] / 100_000_000).round(4)
         %td{title: a[:updated].utc.iso8601}
           = Zold::Age.new(a[:updated])
