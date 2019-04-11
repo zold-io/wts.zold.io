@@ -37,6 +37,11 @@ require 'sinatra'
 require 'sinatra/cookies'
 require 'telepost'
 require 'tempfile'
+require 'telepost'
+require 'telebot'
+require 'uri'
+require 'rack/ssl'
+require 'get_process_mem'
 require 'total'
 require 'yaml'
 require 'zold'
@@ -600,6 +605,10 @@ get '/create' do
         job_link(jid)
       )
     end
+    callback(
+      login: user.login,
+      wallet: user.item.id
+    )
   end
   flash('/', 'Your wallet is created and will be pushed soon')
 end
@@ -637,10 +646,13 @@ end
 
 post '/do-pay' do
   prohibit('pay')
+  raise WTS::UserError, '196: You have to pull your wallet first' unless user.wallet_exists?
   raise WTS::UserError, '109: Parameter "bnf" is not provided' if params[:bnf].nil?
   bnf = params[:bnf].strip
   raise WTS::UserError, '110: Parameter "amount" is not provided' if params[:amount].nil?
   amount = Zold::Amount.new(zld: params[:amount].to_f)
+  balance = user.wallet(&:balance)
+  raise WTS::UserError, "197: Not enough funds to send #{amount} only #{balance} left" if balance < amount
   raise WTS::UserError, '111: Parameter "details" is not provided' if params[:details].nil?
   details = params[:details]
   raise WTS::UserError, "118: Invalid details \"#{details}\"" unless details =~ %r{^[a-zA-Z0-9\ @!?*_\-.:,'/]+$}
@@ -694,6 +706,14 @@ post '/do-pay' do
       "\"#{safe_md(details)}\";",
       job_link(jid)
     )
+    callback(
+      tid: "#{user.item.id}:#{txn.id}",
+      login: user.login,
+      prefix: txn.prefix,
+      source: txn.bnf.to_s,
+      amount: txn.amount.to_i,
+      details: txn.details
+    )
   end
   flash('/', "Payment has been sent to #{bnf} for #{amount}")
 end
@@ -704,6 +724,11 @@ get '/pull' do
     if !user.wallet_exists? || params[:force]
       ops(log: log).remove
       ops(log: log).pull
+      callback(
+        login: user.login,
+        wallet: user.item.id,
+        balance: user.wallet(&:balance).to_i
+      )
     end
   end
   flash('/', "Your wallet #{user.item.id} will be pulled soon")
@@ -1828,4 +1853,15 @@ end
 
 def github_exists?(login)
   Zold::Http.new(uri: "https://api.github.com/users/#{login}").get.status == 200
+end
+
+def callback(args)
+  uri = params[:callback]
+  return if uri.nil?
+  uri = URI.parse(uri)
+  query = URI.decode_www_form(String(uri.query))
+  args.each { |k, v| query << [k, v] }
+  uri.query = URI.encode_www_form(query)
+  res = Zold::Http.new(uri: uri.to_s).get
+  raise "198: Callback failure with HTTP code #{res.status} at #{uri}" unless res.status == 200
 end
