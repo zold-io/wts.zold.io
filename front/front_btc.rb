@@ -122,7 +122,7 @@ end
 post '/add-asset' do
   raise WTS::UserError, 'E129: You are not allowed to see this' unless vip?
   address = params[:address]
-  settings.asset.add_cold(address)
+  settings.assets.add_cold(address)
   flash('/assets', "Cold asset added at #{address}")
 end
 

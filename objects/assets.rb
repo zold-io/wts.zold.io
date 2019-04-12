@@ -162,7 +162,7 @@ total unspent was #{unspent}; tx hash is #{txn}")
 
   # This UTXO has been seen, for the provided Bitcoin address.
   def see(address, hash)
-    @pgsql.exec('INSERT INTO utxo (address, hash) VALUES ($1, $2)', [address, hash])
+    @pgsql.exec('INSERT INTO utxo (address, hash) VALUES ($1, $2) ON CONFLICT(address) DO NOTHING', [address, hash])
     @log.info("Bitcoin tx hash #{hash} recorded as seen at #{address}")
   end
 end
