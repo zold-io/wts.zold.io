@@ -20,6 +20,7 @@
 
 require_relative '../objects/db_log'
 require_relative '../objects/file_log'
+require_relative '../objects/async_job'
 require_relative '../objects/jobs'
 require_relative '../objects/safe_job'
 require_relative '../objects/tee_log'

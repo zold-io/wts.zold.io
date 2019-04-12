@@ -45,7 +45,7 @@ merge:
   commanders: []
   script: |-
     pdd -f /dev/null
-    bundle install
+    bundle install --no-color
     bundle exec rake
 deploy:
   script: |-
