@@ -81,7 +81,8 @@ settings.daemons.start('btc-monitor') do
       )
     else
       settings.telepost.spam(
-        "#{format('%.06f', bitcoin)} BTC arrived to #{address}",
+        "#{format('%.06f', bitcoin)} BTC arrived to",
+        "[#{address}](https://www.blockchain.com/btc/address/#{address})",
         "which doesn't belong to anyone,",
         "tx hash is [#{hash}](https://www.blockchain.com/btc/tx/#{hash.gsub(/:[0-9]+$/, '')});",
         'deposited to our fund; many thanks to whoever it was!'
@@ -203,6 +204,9 @@ while we allow one user to sell up to #{limits} (daily/weekly/monthly)"
 users of WTS, while our limits are #{limits} (daily/weekly/monthly), sorry about this :("
   end
   bitcoin = (amount.to_zld(8).to_f * rate).round(8)
+  if bitcoin > settings.assets.balance
+    raise WTS::UserError, "E198: The amount #{amount} is too big for us, we have only ${settings.assets.balance}"
+  end
   boss = user(settings.config['exchange']['login'])
   rewards = user(settings.config['rewards']['login'])
   job(exclusive: true) do |jid, log|
@@ -257,7 +261,7 @@ users of WTS, while our limits are #{limits} (daily/weekly/monthly), sorry about
       )
     end
   end
-  flash('/zld-to-btc', "We took #{amount} from your wallet and sent you #{bitcoin} BTC")
+  flash('/zld-to-btc', "We took #{amount} from your wallet and will send you #{bitcoin} BTC soon")
 end
 
 get '/assets' do

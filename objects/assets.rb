@@ -60,6 +60,11 @@ class WTS::Assets
     !@pgsql.exec('SELECT * FROM asset WHERE address = $1 AND login IS NOT NULL', [address]).empty?
   end
 
+  # This address is cold?
+  def cold?(address)
+    !@pgsql.exec('SELECT * FROM asset WHERE address = $1 AND pvt IS NOT NULL', [address]).empty?
+  end
+
   # Current price of BTC in USD.
   def price
     @sibit.price
