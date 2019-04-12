@@ -79,13 +79,20 @@ settings.daemons.start('btc-monitor') do
         "[#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id}),",
         "the remaining balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t)"
       )
-    else
+    elsif settings.assets.cold?(address)
       settings.telepost.spam(
         "#{format('%.06f', bitcoin)} BTC arrived to",
         "[#{address}](https://www.blockchain.com/btc/address/#{address})",
         "which doesn't belong to anyone,",
         "tx hash is [#{hash}](https://www.blockchain.com/btc/tx/#{hash.gsub(/:[0-9]+$/, '')});",
         'deposited to our fund; many thanks to whoever it was!'
+      )
+    else
+      settings.telepost.spam(
+        "#{format('%.06f', bitcoin)} BTC returned back to",
+        "[#{address}](https://www.blockchain.com/btc/address/#{address})",
+        'as a change from the previous payment,',
+        "tx hash is [#{hash}](https://www.blockchain.com/btc/tx/#{hash.gsub(/:[0-9]+$/, '')})"
       )
     end
     settings.assets.see(address, hash)
@@ -204,7 +211,7 @@ while we allow one user to sell up to #{limits} (daily/weekly/monthly)"
 users of WTS, while our limits are #{limits} (daily/weekly/monthly), sorry about this :("
   end
   bitcoin = (amount.to_zld(8).to_f * rate).round(8)
-  if bitcoin > settings.assets.balance
+  if bitcoin > settings.assets.balance(hot_only: true)
     raise WTS::UserError, "E198: The amount #{amount} is too big for us, we have only ${settings.assets.balance}"
   end
   boss = user(settings.config['exchange']['login'])
@@ -269,7 +276,8 @@ get '/assets' do
     page_title: 'Assets',
     assets: settings.assets,
     balance: settings.assets.balance,
-    price: price
+    price: price,
+    limit: settings.assets.balance(hot_only: true)
   )
 end
 

@@ -54,6 +54,7 @@ class WTS::AssetsTest < Minitest::Test
     assets = WTS::Assets.new(WTS::Pgsql::TEST.start, log: test_log, sibit: Sibit::Fake.new)
     address = "1JvCsJtLmCxEk7ddZFnVkGXpr9uhxZP#{rand(999)}"
     assets.add_cold(address)
+    assert(assets.cold?(address))
   end
 
   def test_sets_value
@@ -62,6 +63,7 @@ class WTS::AssetsTest < Minitest::Test
     address = assets.acquire
     assets.set(address, 50_000_000)
     assets.set(address, 100_000_000)
+    assert(!assets.cold?(address))
     assert_equal(100_000_000, assets.all.select { |a| a[:address] == address }[0][:value])
     assert(assets.balance >= 1, assets.balance)
   end

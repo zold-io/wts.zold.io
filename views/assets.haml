@@ -21,12 +21,13 @@
 - else
   %p
     The total balance is
-    %strong= balance
+    %strong= format('%.04f', balance)
     BTC /
     approx.
-    = "$#{(price * balance).round}:"
-  %p
-    This is a full list of our Bitcoin assets:
+    = "$#{(price * balance).round}."
+    The biggest Bitcoin payout we can send at the moment is
+    = format('%.04f', limit)
+    BTC:
   %table.compact
     %colgroup
       %col{style: 'width: 25em'}

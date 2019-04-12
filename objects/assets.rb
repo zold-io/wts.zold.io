@@ -62,7 +62,7 @@ class WTS::Assets
 
   # This address is cold?
   def cold?(address)
-    !@pgsql.exec('SELECT * FROM asset WHERE address = $1 AND pvt IS NOT NULL', [address]).empty?
+    !@pgsql.exec('SELECT * FROM asset WHERE address = $1 AND pvt IS NULL', [address]).empty?
   end
 
   # Current price of BTC in USD.
@@ -71,8 +71,10 @@ class WTS::Assets
   end
 
   # Get total BTC balance, in BTC.
-  def balance
-    @pgsql.exec('SELECT SUM(value) FROM asset')[0]['sum'].to_f / 100_000_000
+  def balance(hot_only: false)
+    @pgsql.exec(
+      'SELECT SUM(value) FROM asset' + (hot_only ? ' WHERE pvt IS NOT NULL' : '')
+    )[0]['sum'].to_f / 100_000_000
   end
 
   # Create a new asset/address for a given user (return existing one if it is
