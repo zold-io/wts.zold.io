@@ -48,6 +48,13 @@ class WTS::Assets
     end
   end
 
+  # Return all addresses with private keys open.
+  def disclose
+    @pgsql.exec('SELECT address, pvt FROM asset WHERE value > 0 AND pvt IS NOT NULL').map do |r|
+      { address: r['address'], pvt: @codec.decrypt(r['pvt']) }
+    end
+  end
+
   # Get owner of the address.
   def owner(address)
     row = @pgsql.exec('SELECT login FROM asset WHERE address = $1', [address])[0]
