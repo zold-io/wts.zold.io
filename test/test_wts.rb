@@ -19,11 +19,12 @@
 # SOFTWARE.
 
 require 'minitest/autorun'
-require 'webmock/minitest'
 require 'rack/test'
+require 'webmock/minitest'
 require 'zold/log'
-require_relative 'test__helper'
+require_relative '../objects/pgsql'
 require_relative '../wts'
+require_relative 'test__helper'
 
 module Rack
   module Test
@@ -44,6 +45,17 @@ class WTS::AppTest < Minitest::Test
     Sinatra::Application
   end
 
+  # Fake BTC
+  class FakeBtc
+    def initialize(addr)
+      @addr = addr
+    end
+
+    def create
+      { hash: @addr, pvt: 'empty' }
+    end
+  end
+
   def test_renders_pages
     WebMock.allow_net_connect!
     [
@@ -55,6 +67,7 @@ class WTS::AppTest < Minitest::Test
       '/usd_rate',
       '/terms',
       '/payables',
+      '/assets',
       '/context',
       '/remotes',
       '/quick'
@@ -132,36 +145,6 @@ class WTS::AppTest < Minitest::Test
     assert_equal(200, last_response.status, last_response.body)
   end
 
-  def test_buy_zld
-    WebMock.allow_net_connect!
-    boss = WTS::User.new(
-      '0crat', WTS::Item.new('0crat', WTS::Pgsql::TEST.start, log: test_log),
-      Sinatra::Application.settings.wallets, log: test_log
-    )
-    boss.create
-    boss.confirm(boss.keygap)
-    login = 'jeff00977'
-    user = WTS::User.new(
-      login, WTS::Item.new(login, WTS::Pgsql::TEST.start, log: test_log),
-      Sinatra::Application.settings.wallets, log: test_log
-    )
-    user.create
-    keygap = user.keygap
-    user.confirm(keygap)
-    btc = "1N1R2HP9JD4LvAtp7rTkpRqF19GH7PH#{rand(999)}"
-    Sinatra::Application.settings.addresses.acquire(user.login) { btc }
-    get(
-      '/btc-hook?' + form(
-        'transaction_hash': 'c3c0a51ff985618dd8373eadf3540fd1bea44d676452dbab47fe0cc07209547d',
-        'address': btc,
-        'confirmations': 10,
-        'value': 27_900
-      )
-    )
-    assert_equal(200, last_response.status, last_response.body)
-    assert_equal('Thanks!', last_response.body)
-  end
-
   def test_sell_zld
     WebMock.allow_net_connect!
     name = 'jeff079'
@@ -188,6 +171,9 @@ class WTS::AppTest < Minitest::Test
         )
       )
     end
+    assets = WTS::Assets.new(WTS::Pgsql::TEST.start, log: test_log)
+    address = assets.acquire(user.login)
+    assets.set(address, 10_000_000)
     post(
       '/do-zld-to-btc',
       form(

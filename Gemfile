@@ -47,9 +47,11 @@ gem 'rubocop', '0.62.0', require: false
 gem 'rubocop-rspec', '1.31.0', require: false
 gem 'sass', '3.7.3'
 gem 'sentry-raven', '2.7.4'
+gem 'sibit', '0.7.0'
 gem 'sinatra', '2.0.4'
 gem 'sinatra-contrib', '2.0.4'
 gem 'svg-graph', '2.1.3'
+gem 'syncem', '0.1.0'
 gem 'telebot', '0.1.2'
 gem 'telepost', '>=0.3.1'
 gem 'total', '>=0.2.0'

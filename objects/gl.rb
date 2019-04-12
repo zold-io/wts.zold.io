@@ -91,7 +91,7 @@ class WTS::Gl
 
   def txn(source, id)
     row = @pgsql.exec('SELECT * FROM txn WHERE source = $1 AND id = $2', [source, id])[0]
-    raise WTS::UserError, "192: Transaction #{source}:#{id} not found in GL" if row.nil?
+    raise WTS::UserError, "E192: Transaction #{source}:#{id} not found in GL" if row.nil?
     map(row)
   end
 

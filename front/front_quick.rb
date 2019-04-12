@@ -18,45 +18,18 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'zold/log'
-require_relative 'pgsql'
-require_relative 'user_error'
-
-#
-# Ticks in AWS DynamoDB.
-#
-class WTS::Ticks
-  def initialize(pgsql, log: Zold::Log::NULL)
-    @pgsql = pgsql
-    @log = log
-  end
-
-  # Already exists for the current time?
-  def exists?(key, seconds = 6 * 60 * 60)
-    !@pgsql.exec(
-      "SELECT FROM tick WHERE key = $1 AND created > NOW() - INTERVAL \'#{seconds} SECONDS\'",
-      [key]
-    ).empty?
-  end
-
-  # Add ticks.
-  def add(hash)
-    hash.each do |k, v|
-      @pgsql.exec('INSERT INTO tick (key, value) VALUES ($1, $2)', [k, v])
-    end
-  end
-
-  # Fetch them all.
-  def fetch(key)
-    @pgsql.exec('SELECT * FROM tick WHERE key = $1', [key]).map do |r|
-      { key: r['key'], value: r['value'].to_f, created: Time.parse(r['created']) }
-    end
-  end
-
-  # Fetch the latest.
-  def latest(key)
-    row = @pgsql.exec('SELECT * FROM tick WHERE key = $1 ORDER BY created DESC LIMIT 1', [key])[0]
-    raise WTS::UserError, "E182: No ticks found for #{key}" if row.nil?
-    row['value'].to_f
-  end
+get '/quick' do
+  prohibit('quick')
+  flash('/home', 'Please logout first') if @locals[:guser]
+  page = params[:haml] || 'default'
+  raise WTS::UserError, 'E172: HAML page name is not valid' unless /^[a-zA-Z0-9]{,64}$/.match?(page)
+  http = Zold::Http.new(uri: "https://raw.githubusercontent.com/zold-io/quick/master/#{page}.haml").get
+  html = Haml::Engine.new(
+    http.status == 200 ? http.body : IO.read(File.join(__dir__, 'views/quick_default.haml'))
+  ).render(self)
+  haml :quick, layout: :layout, locals: merged(
+    page_title: 'Zold: Quick Start',
+    header_off: true,
+    html: html
+  )
 end

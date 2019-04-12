@@ -12,25 +12,29 @@
 #
 # THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFINGEMENT. IN NO EVENT SHALL THE
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 # AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'minitest/autorun'
-require 'webmock/minitest'
-require_relative 'test__helper'
-require_relative '../objects/pgsql'
-require_relative '../objects/hashes'
+require_relative '../objects/toggles'
+require_relative '../objects/user_error'
 
-class WTS::HashesTest < Minitest::Test
-  def test_saves_hash_and_loads
-    WebMock.allow_net_connect!
-    btc = WTS::Hashes.new(WTS::Pgsql::TEST.start, log: test_log)
-    hash = 'c3c0a51ff985618dd8373eadf3540fd1bea44d676452dbab47fe0cc07209547e'
-    assert(!btc.seen?(hash))
-    btc.add(hash, 'jeff123', 'c3c0a51ff985618d')
-    assert(btc.seen?(hash))
-  end
+set :toggles, WTS::Toggles.new(settings.pgsql, log: settings.log)
+
+get '/toggles' do
+  raise WTS::UserError, 'E170: You are not allowed to see this' unless vip?
+  haml :toggles, layout: :layout, locals: merged(
+    page_title: 'Toggles',
+    toggles: settings.toggles
+  )
+end
+
+post '/set-toggle' do
+  raise WTS::UserError, 'E171: You are not allowed to see this' unless vip?
+  key = params[:key].strip
+  value = params[:value].strip
+  settings.toggles.set(key, value)
+  flash('/toggles', "The feature toggle #{key.inspect} re/set")
 end

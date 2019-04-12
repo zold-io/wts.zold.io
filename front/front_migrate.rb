@@ -18,45 +18,26 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'zold/log'
-require_relative 'pgsql'
-require_relative 'user_error'
+get '/migrate' do
+  prohibit('migrate')
+  haml :migrate, layout: :layout, locals: merged(
+    page_title: title('migrate')
+  )
+end
 
-#
-# Ticks in AWS DynamoDB.
-#
-class WTS::Ticks
-  def initialize(pgsql, log: Zold::Log::NULL)
-    @pgsql = pgsql
-    @log = log
+get '/do-migrate' do
+  prohibit('migrate')
+  headers['X-Zold-Job'] = job do |jid, log|
+    origin = user.item.id
+    ops(log: log).migrate(keygap)
+    settings.telepost.spam(
+      "The wallet [#{origin}](http://www.zold.io/ledger.html?wallet=#{origin})",
+      "with #{settings.wallets.acq(origin, &:txns).count} transactions",
+      "and #{user.wallet(&:balance)}",
+      "has been migrated to a new wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})",
+      "by #{title_md} from #{anon_ip}",
+      job_link(jid)
+    )
   end
-
-  # Already exists for the current time?
-  def exists?(key, seconds = 6 * 60 * 60)
-    !@pgsql.exec(
-      "SELECT FROM tick WHERE key = $1 AND created > NOW() - INTERVAL \'#{seconds} SECONDS\'",
-      [key]
-    ).empty?
-  end
-
-  # Add ticks.
-  def add(hash)
-    hash.each do |k, v|
-      @pgsql.exec('INSERT INTO tick (key, value) VALUES ($1, $2)', [k, v])
-    end
-  end
-
-  # Fetch them all.
-  def fetch(key)
-    @pgsql.exec('SELECT * FROM tick WHERE key = $1', [key]).map do |r|
-      { key: r['key'], value: r['value'].to_f, created: Time.parse(r['created']) }
-    end
-  end
-
-  # Fetch the latest.
-  def latest(key)
-    row = @pgsql.exec('SELECT * FROM tick WHERE key = $1 ORDER BY created DESC LIMIT 1', [key])[0]
-    raise WTS::UserError, "E182: No ticks found for #{key}" if row.nil?
-    row['value'].to_f
-  end
+  flash('/', 'You got a new wallet ID, your funds will be transferred soon...')
 end

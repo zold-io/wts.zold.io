@@ -18,24 +18,38 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'zold/log'
-require_relative 'pgsql'
-require_relative 'user_error'
+get '/terms' do
+  haml :terms, layout: :layout, locals: merged(
+    page_title: 'Terms of Use'
+  )
+end
 
-#
-# BTC hashes.
-#
-class WTS::Hashes
-  def initialize(pgsql, log: Zold::Log::NULL)
-    @pgsql = pgsql
-    @log = log
-  end
+get '/robots.txt' do
+  content_type 'text/plain'
+  "User-agent: *\nDisallow: /"
+end
 
-  def seen?(hash)
-    !@pgsql.exec('SELECT * FROM btx WHERE hash = $1', [hash]).empty?
-  end
+get '/version' do
+  content_type 'text/plain'
+  WTS::VERSION
+end
 
-  def add(hash, login, wallet)
-    @pgsql.exec('INSERT INTO btx (hash, login, wallet) VALUES ($1, $2, $3)', [hash, login, wallet.to_s])
-  end
+get '/context' do
+  content_type 'text/plain'
+  context
+end
+
+get '/css/*.css' do
+  name = params[:splat].first
+  file = File.join('assets/sass', name) + '.sass'
+  error(404, "File not found: #{file}") unless File.exist?(file)
+  content_type 'text/css', charset: 'utf-8'
+  sass name.to_sym, views: "#{settings.root}/assets/sass"
+end
+
+get '/js/*.js' do
+  file = File.join('assets/js', params[:splat].first) + '.js'
+  error(404, "File not found: #{file}") unless File.exist?(file)
+  content_type 'application/javascript'
+  IO.read(file)
 end

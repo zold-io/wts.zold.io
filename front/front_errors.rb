@@ -18,45 +18,34 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'zold/log'
-require_relative 'pgsql'
-require_relative 'user_error'
+not_found do
+  status 404
+  content_type 'text/html', charset: 'utf-8'
+  haml :not_found, layout: :layout, locals: merged(
+    page_title: 'Page not found'
+  )
+end
 
-#
-# Ticks in AWS DynamoDB.
-#
-class WTS::Ticks
-  def initialize(pgsql, log: Zold::Log::NULL)
-    @pgsql = pgsql
-    @log = log
-  end
-
-  # Already exists for the current time?
-  def exists?(key, seconds = 6 * 60 * 60)
-    !@pgsql.exec(
-      "SELECT FROM tick WHERE key = $1 AND created > NOW() - INTERVAL \'#{seconds} SECONDS\'",
-      [key]
-    ).empty?
-  end
-
-  # Add ticks.
-  def add(hash)
-    hash.each do |k, v|
-      @pgsql.exec('INSERT INTO tick (key, value) VALUES ($1, $2)', [k, v])
+error do
+  e = env['sinatra.error']
+  if e.is_a?(WTS::UserError)
+    settings.log.error("#{request.url}: #{e.message}")
+    body(Backtrace.new(e).to_s)
+    headers['X-Zold-Error'] = e.message[0..256]
+    if params[:noredirect]
+      content_type 'text/plain', charset: 'utf-8'
+      return Backtrace.new(e).to_s
     end
+    flash('/', e.message, error: true)
   end
-
-  # Fetch them all.
-  def fetch(key)
-    @pgsql.exec('SELECT * FROM tick WHERE key = $1', [key]).map do |r|
-      { key: r['key'], value: r['value'].to_f, created: Time.parse(r['created']) }
-    end
-  end
-
-  # Fetch the latest.
-  def latest(key)
-    row = @pgsql.exec('SELECT * FROM tick WHERE key = $1 ORDER BY created DESC LIMIT 1', [key])[0]
-    raise WTS::UserError, "E182: No ticks found for #{key}" if row.nil?
-    row['value'].to_f
+  status 503
+  Raven.capture_exception(e, extra: { 'request_url' => request.url })
+  if params[:noredirect]
+    Backtrace.new(e).to_s
+  else
+    haml :error, layout: :layout, locals: merged(
+      page_title: 'Error',
+      error: Backtrace.new(e).to_s
+    )
   end
 end

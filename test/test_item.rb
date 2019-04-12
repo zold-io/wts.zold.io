@@ -19,14 +19,14 @@
 # SOFTWARE.
 
 require 'minitest/autorun'
-require 'webmock/minitest'
 require 'openssl'
-require 'zold/key'
-require 'zold/id'
+require 'webmock/minitest'
 require 'zold/http'
-require_relative 'test__helper'
-require_relative '../objects/pgsql'
+require 'zold/id'
+require 'zold/key'
 require_relative '../objects/item'
+require_relative '../objects/pgsql'
+require_relative 'test__helper'
 
 class WTS::ItemTest < Minitest::Test
   def test_create_and_read

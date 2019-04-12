@@ -20,14 +20,14 @@
 
 require 'minitest/autorun'
 require 'tmpdir'
-require 'zold/amount'
-require 'zold/wallets'
-require 'zold/remotes'
-require 'zold/id'
 require 'webmock/minitest'
-require_relative 'test__helper'
-require_relative '../objects/user'
+require 'zold/amount'
+require 'zold/id'
+require 'zold/remotes'
+require 'zold/wallets'
 require_relative '../objects/item'
+require_relative '../objects/user'
+require_relative 'test__helper'
 
 class WTS::UserTest < Minitest::Test
   def test_creates
