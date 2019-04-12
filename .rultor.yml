@@ -46,5 +46,8 @@ merge:
   script: |-
     pdd -f /dev/null
     bundle install
-    rake
-deploy: {}
+    bundle exec rake
+deploy:
+  script: |-
+    echo "It's not deployable, use 'release'"
+    exit -1
