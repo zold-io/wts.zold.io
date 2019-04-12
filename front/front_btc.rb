@@ -101,7 +101,7 @@ get '/funded' do
   boss = user(settings.config['exchange']['login'])
   btc = usd / price
   zld = Zold::Amount.new(zld: btc / rate)
-  job(boss) do |jid, log|
+  job(boss, exclusive: true) do |jid, log|
     log.info("Buying bitcoins for $#{usd} at Coinbase...")
     ops(boss, log: log).pull
     ops(zerocrat, log: log).pull
@@ -205,7 +205,7 @@ users of WTS, while our limits are #{limits} (daily/weekly/monthly), sorry about
   bitcoin = (amount.to_zld(8).to_f * rate).round(8)
   boss = user(settings.config['exchange']['login'])
   rewards = user(settings.config['rewards']['login'])
-  job do |jid, log|
+  job(exclusive: true) do |jid, log|
     log.info("Sending #{bitcoin} bitcoins to #{address}...")
     f = fee
     ops(log: log).pull

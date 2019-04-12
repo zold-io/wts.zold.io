@@ -18,9 +18,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require_relative '../objects/db_log'
-require_relative '../objects/file_log'
 require_relative '../objects/async_job'
+require_relative '../objects/db_log'
+require_relative '../objects/exclusive_job'
+require_relative '../objects/file_log'
 require_relative '../objects/jobs'
 require_relative '../objects/safe_job'
 require_relative '../objects/tee_log'
@@ -31,7 +32,7 @@ require_relative '../objects/versioned_job'
 
 set :jobs, WTS::Jobs.new(settings.pgsql, log: settings.log)
 
-def job(u = user)
+def job(u = user, exclusive: false)
   jid = settings.jobs.start(u.login)
   log = WTS::TeeLog.new(user_log(u.login), WTS::DbLog.new(settings.pgsql, jid))
   job = WTS::SafeJob.new(
@@ -49,6 +50,7 @@ def job(u = user)
     ),
     log: log
   )
+  job = WTS::ExclusiveJob.new(job, File.join(settings.root, 'exclusive-job'), log: log) if exclusive
   job = WTS::AsyncJob.new(job, settings.pool, latch(u.login)) unless ENV['RACK_ENV'] == 'test'
   job.call(jid)
   jid
