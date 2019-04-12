@@ -74,7 +74,7 @@ class WTS::Assets
   # already in the database).
   def acquire(login = nil)
     row = if login.nil?
-      @pgsql.exec('SELECT address FROM asset WHERE login IS NULL')[0]
+      @pgsql.exec('SELECT address FROM asset WHERE login IS NULL AND pvt IS NOT NULL')[0]
     else
       @pgsql.exec('SELECT address FROM asset WHERE login = $1', [login])[0]
     end

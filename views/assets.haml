@@ -21,9 +21,10 @@
 - else
   %p
     The total balance is
-    = succeed ':' do
-      %strong= balance
-      BTC
+    %strong= balance
+    BTC /
+    approx.
+    = "$#{(price * balance).round}:"
   %p
     This is a full list of our Bitcoin assets:
   %table.compact

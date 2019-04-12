@@ -264,7 +264,8 @@ get '/assets' do
   haml :assets, layout: :layout, locals: merged(
     page_title: 'Assets',
     assets: settings.assets,
-    balance: settings.assets.balance
+    balance: settings.assets.balance,
+    price: price
   )
 end
 
