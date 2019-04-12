@@ -49,22 +49,22 @@ settings.daemons.start('btc-monitor') do
     zld = Zold::Amount.new(zld: bitcoin / rate)
     bnf = user(settings.assets.owner(address))
     boss = user(settings.config['exchange']['login'])
-    log.info("Accepting #{bitcoin} bitcoins from #{address}...")
-    ops(boss, log: log).pull
-    ops(boss, log: log).pay(
+    settings.log.info("Accepting #{bitcoin} bitcoins from #{address}...")
+    ops(boss, log: settings.log).pull
+    ops(boss, log: settings.log).pay(
       settings.config['exchange']['keygap'],
       bnf.item.id, zld,
       "BTC exchange of #{bitcoin} at #{hash}, rate is #{rate}"
     )
     if settings.referrals.exists?(bnf.login)
       fee = settings.toggles.get('referral-fee', '0.04').to_f
-      ops(boss, log: log).pay(
+      ops(boss, log: settings.log).pay(
         settings.config['exchange']['keygap'],
         user(settings.referrals.ref(bnf.login)).item.id,
         zld * fee, "#{(fee * 100).round(2)} referral fee for BTC exchange"
       )
     end
-    ops(boss, log: log).push
+    ops(boss, log: settings.log).push
     settings.assets.see(address, hash)
     settings.telepost.spam(
       "In: #{bitcoin} BTC [exchanged](https://blog.zold.io/2018/12/09/btc-to-zld.html) to **#{zld}**",

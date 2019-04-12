@@ -7,35 +7,43 @@
     %input{type: 'text', name: 'address', maxlength: 100, size: 35, placeholder: 'Bitcoin address', autocomplete: 'off', tabindex: 1}
     %input{type: 'submit', tabindex: 2, value: 'Add'}
 
-%p
-  This is a full list of our Bitcoin assets:
+- list = assets.all
 
-%table.compact
-  %colgroup
-    %col{style: 'width: 5em'}
-    %col{style: 'width: 5em'}
-    %col{style: 'width: 5em'}
-  %thead
-    %tr
-      %th
-        Address
-      %th
-        Balance
-      %th
-        Updated
-      %th
-        Hot
-  %tbody
-    - assets.all.each do |a|
+- if list.empty?
+  %p
+    The list is empty. Most probably there is something wrong.
+    Please,
+    %a{href: 'https://t.me/zold_io'} contact us
+    in our Telegram group.
+- else
+  %p
+    This is a full list of our Bitcoin assets:
+  %table.compact
+    %colgroup
+      %col{style: 'width: 5em'}
+      %col{style: 'width: 5em'}
+      %col{style: 'width: 5em'}
+    %thead
       %tr
-        %td
-          %a{href: "https://www.blockchain.com/btc/address/#{a[:address]}"}= a[:address]
-        %td.right{title: a[:value]}
-          = format('%.04f', a[:value].to_f / 100_000_000)
-        %td{title: a[:updated].utc.iso8601}
-          = Zold::Age.new(a[:updated])
-        %td
-          - if a[:hot]
-            Yes
-          - else
-            No
+        %th
+          Address
+        %th
+          Balance
+        %th
+          Updated
+        %th
+          Hot
+    %tbody
+      - list.each do |a|
+        %tr
+          %td
+            %a{href: "https://www.blockchain.com/btc/address/#{a[:address]}"}= a[:address]
+          %td.right{title: a[:value]}
+            = format('%.04f', a[:value].to_f / 100_000_000)
+          %td{title: a[:updated].utc.iso8601}
+            = Zold::Age.new(a[:updated])
+          %td
+            - if a[:hot]
+              Yes
+            - else
+              No
