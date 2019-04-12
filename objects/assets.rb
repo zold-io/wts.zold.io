@@ -36,7 +36,7 @@ class WTS::Assets
   end
 
   def all
-    @pgsql.exec('SELECT * FROM asset').map do |r|
+    @pgsql.exec('SELECT * FROM asset WHERE value > 0').map do |r|
       {
         address: r['address'],
         login: r['login'],
@@ -102,7 +102,7 @@ class WTS::Assets
   # there and find those, which we are waiting for. Then, yield them one
   # by one if they haven't been seen yet in UTXOs.
   def monitor(seen, max: 1)
-    ours = Set.new(all.map { |a| a[:address] })
+    ours = Set.new(@pgsql.exec('SELECT address FROM asset').map { |r| r['address'] })
     block = start = @sibit.latest
     count = 0
     while block != seen && count < max
