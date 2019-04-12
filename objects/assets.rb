@@ -89,6 +89,12 @@ class WTS::Assets
     end
   end
 
+  # Add cold asset.
+  def add_cold(address)
+    @pgsql.exec('INSERT INTO asset (address) VALUES ($1)', [address])
+    set(address, @sibit.balance(address))
+  end
+
   # Set the balance of an assert.
   def set(address, value)
     before = @pgsql.exec('SELECT value FROM asset WHERE address = $1', [address])[0]

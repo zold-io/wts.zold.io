@@ -48,6 +48,13 @@ class WTS::AssetsTest < Minitest::Test
     assert_equal(address, assets.acquire)
   end
 
+  def test_add_cold_asset
+    WebMock.allow_net_connect!
+    assets = WTS::Assets.new(WTS::Pgsql::TEST.start, log: test_log, sibit: Sibit::Fake.new)
+    address = "1JvCsJtLmCxEk7ddZFnVkGXpr9uhxZP#{rand(999)}"
+    assets.add_cold(address)
+  end
+
   def test_sets_value
     WebMock.allow_net_connect!
     assets = WTS::Assets.new(WTS::Pgsql::TEST.start, log: test_log)
