@@ -33,6 +33,8 @@
           (your current balance is
           = succeed ')' do
             %code= user.wallet(&:balance)
+        - else
+          = ''
     %input{type: 'text', id: 'zld', name: 'amount', size: 12, maxlength: 8, autocomplete: 'off', tabindex: 2, oninput: "wts_rerate(#{rate.round(8)}, #{price.round(2)}, #{fee.round(4)});"}
     %span.gray.small{id: 'out'}
     %label

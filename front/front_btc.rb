@@ -156,6 +156,7 @@ end
 
 get '/zld-to-btc' do
   prohibit('btc')
+  prohibit('sell-btc')
   haml :zld_to_btc, layout: :layout, locals: merged(
     page_title: title('sell'),
     user: confirmed_user,
@@ -167,6 +168,7 @@ end
 
 post '/do-zld-to-btc' do
   prohibit('sell')
+  prohibit('sell-btc')
   raise WTS::UserError, 'E141: Amount is not provided' if params[:amount].nil?
   raise WTS::UserError, 'E142: Bitcoin address is not provided' if params[:btc].nil?
   raise WTS::UserError, 'E143: Keygap is not provided' if params[:keygap].nil?
