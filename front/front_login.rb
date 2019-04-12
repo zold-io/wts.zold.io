@@ -21,9 +21,11 @@
 require 'aws-sdk-sns'
 require 'glogin'
 require_relative '../objects/mcodes'
+require_relative '../objects/tokens'
 require_relative '../objects/smss'
 require_relative '../objects/user_error'
 
+set :tokens, WTS::Tokens.new(settings.pgsql, log: settings.log)
 set :mcodes, WTS::Mcodes.new(settings.pgsql, log: settings.log)
 if settings.config['sns']
   set :smss, WTS::Smss.new(

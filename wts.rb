@@ -21,7 +21,6 @@
 STDOUT.sync = true
 
 require 'backtrace'
-require 'base64'
 require 'concurrent'
 require 'geocoder'
 require 'get_process_mem'
@@ -49,8 +48,6 @@ require 'zold/log'
 require 'zold/remotes'
 require 'zold/sync_wallets'
 require_relative 'objects/daemons'
-require_relative 'objects/gl'
-require_relative 'objects/graph'
 require_relative 'objects/item'
 require_relative 'objects/ops'
 require_relative 'objects/payouts'
@@ -145,7 +142,6 @@ configure do
     user: settings.config['pgsql']['user'],
     password: settings.config['pgsql']['password']
   ).start(1)
-  set :tokens, WTS::Tokens.new(settings.pgsql, log: settings.log)
   set :payouts, WTS::Payouts.new(settings.pgsql, log: settings.log)
   set :daemons, WTS::Daemons.new(settings.pgsql, log: settings.log)
   set :codec, GLogin::Codec.new(config['api_secret'])
@@ -434,30 +430,6 @@ get '/invoice.json' do
   JSON.pretty_generate(prefix: prefix, invoice: inv, id: id)
 end
 
-get '/migrate' do
-  prohibit('migrate')
-  haml :migrate, layout: :layout, locals: merged(
-    page_title: title('migrate')
-  )
-end
-
-get '/do-migrate' do
-  prohibit('migrate')
-  headers['X-Zold-Job'] = job do |jid, log|
-    origin = user.item.id
-    ops(log: log).migrate(keygap)
-    settings.telepost.spam(
-      "The wallet [#{origin}](http://www.zold.io/ledger.html?wallet=#{origin})",
-      "with #{settings.wallets.acq(origin, &:txns).count} transactions",
-      "and #{user.wallet(&:balance)}",
-      "has been migrated to a new wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})",
-      "by #{title_md} from #{anon_ip}",
-      job_link(jid)
-    )
-  end
-  flash('/', 'You got a new wallet ID, your funds will be transferred soon...')
-end
-
 get '/sql' do
   raise WTS::UserError, 'E129: You are not allowed to see this' unless vip?
   query = params[:query] || 'SELECT * FROM txn LIMIT 16'
@@ -500,22 +472,6 @@ end
 get '/remotes' do
   haml :remotes, layout: :layout, locals: merged(
     page_title: '/remotes'
-  )
-end
-
-get '/quick' do
-  prohibit('quick')
-  flash('/home', 'Please logout first') if @locals[:guser]
-  page = params[:haml] || 'default'
-  raise WTS::UserError, 'E172: HAML page name is not valid' unless /^[a-zA-Z0-9]{,64}$/.match?(page)
-  http = Zold::Http.new(uri: "https://raw.githubusercontent.com/zold-io/quick/master/#{page}.haml").get
-  html = Haml::Engine.new(
-    http.status == 200 ? http.body : IO.read(File.join(__dir__, 'views/quick_default.haml'))
-  ).render(self)
-  haml :quick, layout: :layout, locals: merged(
-    page_title: 'Zold: Quick Start',
-    header_off: true,
-    html: html
   )
 end
 
@@ -690,8 +646,10 @@ require_relative 'front/front_callbacks'
 require_relative 'front/front_errors'
 require_relative 'front/front_jobs'
 require_relative 'front/front_login'
+require_relative 'front/front_migrate'
 require_relative 'front/front_misc'
 require_relative 'front/front_pay'
 require_relative 'front/front_paypal'
+require_relative 'front/front_quick'
 require_relative 'front/front_rate'
 require_relative 'front/front_toggles'
