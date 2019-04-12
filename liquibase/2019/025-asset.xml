@@ -40,6 +40,9 @@ SOFTWARE.
       DROP TABLE address;
     </sql>
     <sql>
+      DROP TABLE btx;
+    </sql>
+    <sql>
       CREATE TABLE utxo (
         address VARCHAR(64) PRIMARY KEY,
         hash VARCHAR(128) NOT NULL,

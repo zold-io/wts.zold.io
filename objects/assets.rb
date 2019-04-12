@@ -29,10 +29,10 @@ require_relative 'user_error'
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 class WTS::Assets
-  def initialize(pgsql, log: Zold::Log::NULL)
+  def initialize(pgsql, log: Zold::Log::NULL, sibit: Sibit.new(log: @log))
     @pgsql = pgsql
     @log = log
-    @sibit = Sibit.new(log: @log)
+    @sibit = sibit
   end
 
   def all
@@ -91,7 +91,11 @@ class WTS::Assets
 
   # Set the balance of an assert.
   def set(address, value)
+    before = @pgsql.exec('SELECT value FROM asset WHERE address = $1', [address])[0]
+    raise "Asset #{address} is absent" if before.nil?
+    before = before['value'].to_i
     @pgsql.exec('UPDATE asset SET value = $1, updated = NOW() WHERE address = $2', [value, address])
+    @log.info("Bitcoin balance of #{address} reset from #{before} to #{value}")
   end
 
   # Get the latest block from the blockchain, scan all transactions visible
@@ -109,13 +113,12 @@ class WTS::Assets
           address = o['addr']
           next if address.nil?
           next unless ours.include?(address)
-          next unless owned?(address)
           hash = "#{t['hash']}:#{o['n']}"
           next if seen?(hash)
           set(address, @sibit.balance(address))
           satoshi = o['value']
-          yield(address, hash, satoshi)
-          @log.info("Tx found at #{hash} for #{satoshi}s sent to #{address}")
+          yield(address, hash, satoshi) if owned?(address)
+          @log.info("Bitcoin tx found at #{hash} for #{satoshi} sent to #{address}")
         end
       end
       block = json['prev_block']
@@ -136,6 +139,8 @@ class WTS::Assets
     raise "Not enough funds to send #{satoshi}, only #{unspent} left" if unspent < satoshi
     txn = @sibit.pay(satoshi, 'M', batch, address, acquire)
     batch.keys.each { |a| set(a, 0) }
+    @log.info("Sent #{satoshi} to #{address} from #{batch.count} addresses: #{batch.keys.join(', ')}; \
+total unspent was #{unspent}; tx hash is #{txn}")
     txn
   end
 
@@ -146,5 +151,6 @@ class WTS::Assets
   # This UTXO has been seen, for the provided Bitcoin address.
   def see(address, hash)
     @pgsql.exec('INSERT INTO utxo (address, hash) VALUES ($1, $2)', [address, hash])
+    @log.info("Bitcoin tx hash #{hash} recorded as seen at #{address}")
   end
 end
