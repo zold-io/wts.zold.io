@@ -95,7 +95,7 @@ users of WTS, while our limits are #{limits} (daily/weekly/monthly), sorry about
   usd = (bitcoin * price).round(2)
   boss = user(settings.config['zerocrat']['login'])
   rewards = user(settings.config['rewards']['login'])
-  job do |jid, log|
+  job(exclusive: true) do |jid, log|
     log.info("Sending $#{usd} via PayPal to #{email}...")
     f = fee
     ops(log: log).pull

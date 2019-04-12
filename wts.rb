@@ -290,6 +290,9 @@ get '/txn.json' do
   tid = params[:tid]
   raise WTS::UserError, "E193: Parameter 'tid' is mandatory" if tid.nil?
   source, id = tid.split(':')
+  raise WTS::UserError, "E199: The wallet ID #{source.inspect} is wrong" unless /^[0-9a-f]{16}$/.match?(source)
+  raise WTS::UserError, "E200: The transaction ID #{id.inspect} is wrong" unless /^[0-9]+$/.match?(id)
+  id = id.to_i
   content_type 'application/json'
   JSON.pretty_generate(settings.gl.txn(source, id))
 end

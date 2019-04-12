@@ -235,7 +235,8 @@ users of WTS, while our limits are #{limits} (daily/weekly/monthly), sorry about
       "Fee for exchange of #{bitcoin} BTC at #{address}, rate is #{rate}, fee is #{f}"
     )
     ops(log: log).push
-    settings.assets.pay(address, (bitcoin * 100_000_000 * (1 - fee)).round)
+    tx = settings.assets.pay(address, (bitcoin * 100_000_000 * (1 - fee)).round)
+    log.info("Bitcoin transaction hash is #{tx}")
     settings.payouts.add(
       user.login, user.item.id, amount,
       "#{bitcoin} BTC sent to #{address}, the price was $#{price.round}/BTC, the fee was #{(f * 100).round(2)}%"
@@ -279,6 +280,12 @@ get '/assets' do
     price: price,
     limit: settings.assets.balance(hot_only: true)
   )
+end
+
+get '/assets-private-keys' do
+  raise WTS::UserError, 'E129: You are not allowed to see this' unless vip?
+  content_type 'text/plain'
+  settings.assets.disclose.map { |a, k| "#{a}: #{k}" }.join("\n")
 end
 
 get '/referrals' do
