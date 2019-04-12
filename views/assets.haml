@@ -51,6 +51,10 @@
             = Zold::Age.new(a[:updated])
           %td
             - if a[:hot]
-              Hot
+              %span.green Hot
             - else
-              Cold
+              %span.red Cold
+  %p
+    = succeed ':' do
+      %strong.red ATTENTION
+    Do not send your bitcoins to these addresses!

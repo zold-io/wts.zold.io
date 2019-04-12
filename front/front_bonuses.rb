@@ -31,6 +31,7 @@ end
 def pay_hosting_bonuses(boss, jid, log)
   prohibit('bonuses')
   bonus = Zold::Amount.new(zld: 1.0)
+  ops(boss, log: log).remove
   ops(boss, log: log).pull
   latest = boss.wallet(&:txns).reverse.find { |t| t.amount.negative? }
   return if !latest.nil? && latest.date > Time.now - 60 * 60
