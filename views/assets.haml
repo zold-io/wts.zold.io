@@ -20,6 +20,11 @@
     in our Telegram group.
 - else
   %p
+    The total balance is
+    = succeed ':' do
+      %strong= balance
+      BTC
+  %p
     This is a full list of our Bitcoin assets:
   %table.compact
     %colgroup
@@ -35,7 +40,6 @@
         %th
           Updated
         %th
-          Hot
     %tbody
       - list.each do |a|
         %tr
@@ -47,6 +51,6 @@
             = Zold::Age.new(a[:updated])
           %td
             - if a[:hot]
-              Yes
+              Hot
             - else
-              No
+              Cold

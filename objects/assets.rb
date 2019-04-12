@@ -127,7 +127,7 @@ class WTS::Assets
           next if seen?(hash)
           set(address, @sibit.balance(address))
           satoshi = o['value']
-          yield(address, hash, satoshi) if owned?(address)
+          yield(address, hash, satoshi)
           @log.info("Bitcoin tx found at #{hash} for #{satoshi} sent to #{address}")
         end
       end
