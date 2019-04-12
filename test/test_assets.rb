@@ -39,6 +39,7 @@ class WTS::AssetsTest < Minitest::Test
     assert(!address.nil?)
     assert_equal(address, assets.acquire(login))
     assert_equal(login, assets.owner(address))
+    assert(!assets.disclose.empty?)
   end
 
   def test_orphan_address
@@ -47,7 +48,6 @@ class WTS::AssetsTest < Minitest::Test
     address = assets.acquire
     assert(!address.nil?)
     assert_equal(address, assets.acquire)
-    assert(!assets.disclose.empty?)
   end
 
   def test_add_cold_asset
