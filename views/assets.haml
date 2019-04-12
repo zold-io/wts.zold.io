@@ -31,7 +31,7 @@
         %td
           %a{href: "https://www.blockchain.com/btc/address/#{a[:address]}"}= a[:address]
         %td.right{title: a[:value]}
-          = format('%.04f', a[:value] / 100_000_000)
+          = format('%.04f', a[:value].to_f / 100_000_000)
         %td{title: a[:updated].utc.iso8601}
           = Zold::Age.new(a[:updated])
         %td

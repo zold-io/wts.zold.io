@@ -82,14 +82,12 @@ class WTS::AssetsTest < Minitest::Test
   def test_pays
     WebMock.allow_net_connect!
     assets = WTS::Assets.new(WTS::Pgsql::TEST.start, log: test_log, sibit: Sibit::Fake.new)
-    login = "jeff#{rand(999)}"
-    item = WTS::Item.new(login, WTS::Pgsql::TEST.start, log: test_log)
-    item.create(Zold::Id.new, Zold::Key.new(text: OpenSSL::PKey::RSA.new(2048).to_pem))
-    assets.set(assets.acquire(login), 70)
-    root = assets.acquire
-    assets.set(root, 70)
-    address = "1JvCsJtLmCxEk7ddZFnVkGXpr9uhxZP#{rand(999)}"
-    tx = assets.pay(address, 100)
+    ["jeff#{rand(999)}", "johnny#{rand(999)}"].each do |login|
+      item = WTS::Item.new(login, WTS::Pgsql::TEST.start, log: test_log)
+      item.create(Zold::Id.new, Zold::Key.new(text: OpenSSL::PKey::RSA.new(2048).to_pem))
+      assets.set(assets.acquire(login), 70)
+    end
+    tx = assets.pay("1JvCsJtLmCxEk7ddZFnVkGXpr9uhxZP#{rand(999)}", 100)
     assert(!tx.nil?)
   end
 
