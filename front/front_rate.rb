@@ -19,6 +19,10 @@
 # SOFTWARE.
 
 require 'json'
+require 'zold/amount'
+require 'zold/id'
+require 'zold/commands/pull'
+require_relative '../objects/graph'
 require_relative '../objects/ticks'
 
 set :ticks, WTS::Ticks.new(settings.pgsql, log: settings.log)
