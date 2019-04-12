@@ -76,8 +76,7 @@ settings.daemons.start('btc-monitor') do
       "BTC price at the moment of exchange was [$#{price}](https://blockchain.info/ticker);",
       "the payer is #{title_md(boss)} with the wallet",
       "[#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id}),",
-      "the remaining balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t);",
-      job_link(jid)
+      "the remaining balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t)"
     )
   end
   settings.toggles.set('latestblock', seen)
