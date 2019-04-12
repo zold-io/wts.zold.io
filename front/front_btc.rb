@@ -25,8 +25,8 @@ require_relative '../objects/coinbase'
 require_relative '../objects/referrals'
 require_relative '../objects/user_error'
 
-set :referrals, SyncEm.new(WTS::Referrals.new(settings.pgsql, log: settings.log))
-set :assets, SyncEm.new(WTS::Assets.new(settings.pgsql, log: settings.log))
+set :referrals, WTS::Referrals.new(settings.pgsql, log: settings.log)
+set :assets, WTS::Assets.new(settings.pgsql, log: settings.log)
 if settings.config['coinbase']
   set :coinbase, SyncEm.new(
     WTS::Coinbase.new(

@@ -137,12 +137,14 @@ class WTS::Assets
   def pay(address, satoshi)
     batch = {}
     unspent = 0
-    @pgsql.exec('SELECT address, pvt, value FROM asset WHERE value > 0 AND pvt IS NOT NULL ORDER BY value').each do |r|
+    @pgsql.exec('SELECT * FROM asset WHERE value > 0 AND pvt IS NOT NULL ORDER BY value').each do |r|
       batch[r['address']] = r['pvt']
       unspent += r['value'].to_i
       break if unspent > satoshi
     end
-    raise "Not enough funds to send #{satoshi}, only #{unspent} left" if unspent < satoshi
+    if unspent < satoshi
+      raise "Not enough funds to send #{satoshi}, only #{unspent} left in #{batch.count} Bitcoin addresses"
+    end
     txn = @sibit.pay(satoshi, 'M', batch, address, acquire)
     batch.keys.each { |a| set(a, 0) }
     @log.info("Sent #{satoshi} to #{address} from #{batch.count} addresses: #{batch.keys.join(', ')}; \

@@ -18,6 +18,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require 'haml'
+require 'zold/http'
+
 get '/quick' do
   prohibit('quick')
   flash('/home', 'Please logout first') if @locals[:guser]
@@ -25,7 +28,7 @@ get '/quick' do
   raise WTS::UserError, 'E172: HAML page name is not valid' unless /^[a-zA-Z0-9]{,64}$/.match?(page)
   http = Zold::Http.new(uri: "https://raw.githubusercontent.com/zold-io/quick/master/#{page}.haml").get
   html = Haml::Engine.new(
-    http.status == 200 ? http.body : IO.read(File.join(__dir__, 'views/quick_default.haml'))
+    http.status == 200 ? http.body : IO.read(File.join(__dir__, '../views/quick_default.haml'))
   ).render(self)
   haml :quick, layout: :layout, locals: merged(
     page_title: 'Zold: Quick Start',
