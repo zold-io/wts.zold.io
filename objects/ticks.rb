@@ -56,7 +56,7 @@ class WTS::Ticks
   # Fetch the latest.
   def latest(key)
     row = @pgsql.exec('SELECT * FROM tick WHERE key = $1 ORDER BY created DESC LIMIT 1', [key])[0]
-    raise WTS::UserError, "182: No ticks found for #{key}" if row.nil?
+    raise WTS::UserError, "E182: No ticks found for #{key}" if row.nil?
     row['value'].to_f
   end
 end

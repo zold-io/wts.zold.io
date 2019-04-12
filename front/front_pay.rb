@@ -27,32 +27,32 @@ end
 
 post '/do-pay' do
   prohibit('pay')
-  raise WTS::UserError, '109: Parameter "bnf" is not provided' if params[:bnf].nil?
+  raise WTS::UserError, 'E109: Parameter "bnf" is not provided' if params[:bnf].nil?
   bnf = params[:bnf].strip
-  raise WTS::UserError, '110: Parameter "amount" is not provided' if params[:amount].nil?
+  raise WTS::UserError, 'E110: Parameter "amount" is not provided' if params[:amount].nil?
   amount = Zold::Amount.new(zld: params[:amount].to_f)
   if user.wallet_exists?
     balance = user.wallet(&:balance)
-    raise WTS::UserError, "197: Not enough funds to send #{amount} only #{balance} left" if balance < amount
+    raise WTS::UserError, "E197: Not enough funds to send #{amount} only #{balance} left" if balance < amount
   end
-  raise WTS::UserError, '111: Parameter "details" is not provided' if params[:details].nil?
+  raise WTS::UserError, 'E111: Parameter "details" is not provided' if params[:details].nil?
   details = params[:details]
-  raise WTS::UserError, "118: Invalid details \"#{details}\"" unless details =~ %r{^[a-zA-Z0-9\ @!?*_\-.:,'/]+$}
+  raise WTS::UserError, "E118: Invalid details \"#{details}\"" unless details =~ %r{^[a-zA-Z0-9\ @!?*_\-.:,'/]+$}
   if /^[a-f0-9]{16}$/.match?(bnf)
     bnf = Zold::Id.new(bnf)
-    raise WTS::UserError, '112: You can\'t pay yourself' if bnf == user.item.id
+    raise WTS::UserError, 'E112: You can\'t pay yourself' if bnf == user.item.id
   elsif /^[a-zA-Z0-9]+@[a-f0-9]{16}$/.match?(bnf)
     bnf = params[:bnf]
-    raise WTS::UserError, '113: You can\'t pay yourself' if bnf.split('@')[1] == user.item.id.to_s
+    raise WTS::UserError, 'E113: You can\'t pay yourself' if bnf.split('@')[1] == user.item.id.to_s
   elsif /^\\+[0-9]+$/.match?(bnf)
     friend = user(bnf[0..32].to_i.to_s)
-    raise WTS::UserError, '114: The user with this mobile phone is not registered yet' unless friend.item.exists?
+    raise WTS::UserError, 'E114: The user with this mobile phone is not registered yet' unless friend.item.exists?
     bnf = friend.item.id
   elsif /^@[a-zA-Z0-9\-]+$/.match?(bnf)
     login = bnf.downcase.gsub(/^@/, '')
-    raise WTS::UserError, "115: Invalid GitHub user name: #{bnf.inspect}" unless login =~ /^[a-z0-9-]{3,32}$/
-    raise WTS::UserError, '116: You can\'t pay yourself' if login == user.login
-    raise WTS::UserError, "189: GitHub user #{login.inspect} doesn't exist" unless github_exists?(login)
+    raise WTS::UserError, "E115: Invalid GitHub user name: #{bnf.inspect}" unless login =~ /^[a-z0-9-]{3,32}$/
+    raise WTS::UserError, 'E116: You can\'t pay yourself' if login == user.login
+    raise WTS::UserError, "E189: GitHub user #{login.inspect} doesn't exist" unless github_exists?(login)
     friend = user(login)
     unless friend.item.exists?
       friend.create(settings.remotes)
@@ -60,7 +60,7 @@ post '/do-pay' do
     end
     bnf = friend.item.id
   else
-    raise WTS::UserError, "190: Can't understand the beneficiary #{bnf.inspect}"
+    raise WTS::UserError, "E190: Can't understand the beneficiary #{bnf.inspect}"
   end
   if settings.toggles.get('ban:do-pay').split(',').include?(confirmed_user.login)
     settings.telepost.spam(
@@ -69,12 +69,12 @@ post '/do-pay' do
       "the balance of the user is #{user.wallet(&:balance)}",
       "at the wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})"
     )
-    raise WTS::UserError, '117: Your account is not allowed to send any payments at the moment, sorry'
+    raise WTS::UserError, 'E117: Your account is not allowed to send any payments at the moment, sorry'
   end
   headers['X-Zold-Job'] = job do |jid, log|
     log.info("Sending #{amount} to #{bnf}...")
     ops(log: log).pull
-    raise WTS::UserError, "119: You don't have enough funds to send #{amount}" if user.wallet(&:balance) < amount
+    raise WTS::UserError, "E119: You don't have enough funds to send #{amount}" if user.wallet(&:balance) < amount
     txn = ops(log: log).pay(keygap, bnf, amount, details)
     settings.jobs.result(jid, 'txn', txn.id.to_s)
     settings.jobs.result(jid, 'tid', "#{user.item.id}:#{txn.id}")

@@ -40,7 +40,7 @@ class WTS::Callbacks
   # Adds a new callback
   def add(login, wallet, prefix, regexp, uri, token = 'none', repeat: false, forever: false)
     total = @pgsql.exec('SELECT COUNT(*) FROM callback WHERE login = $1', [login])[0]['count'].to_i
-    raise WTS::UserError, "You have too many of them already: #{total}" if total >= MAX
+    raise WTS::UserError, "EYou have too many of them already: #{total}" if total >= MAX
     found = @pgsql.exec(
       'SELECT id FROM callback WHERE login = $1 AND wallet = $2 AND prefix = $3 AND regexp = $4 AND uri = $5',
       [login, wallet, prefix, regexp, uri]

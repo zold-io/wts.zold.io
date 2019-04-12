@@ -107,10 +107,10 @@ get '/wait-for' do
   prohibit('api')
   wallet = params[:wallet] || confirmed_user.item.id.to_s
   prefix = params[:prefix]
-  raise WTS::UserError, '120: The parameter "prefix" is mandatory' if prefix.nil?
+  raise WTS::UserError, 'E120: The parameter "prefix" is mandatory' if prefix.nil?
   regexp = params[:regexp] ? Regexp.new(params[:regexp]) : /^.*$/
   uri = URI(params[:uri])
-  raise WTS::UserError, '121: The parameter "uri" is mandatory' if uri.nil?
+  raise WTS::UserError, 'E121: The parameter "uri" is mandatory' if uri.nil?
   id = settings.callbacks.add(
     user.login, Zold::Id.new(wallet), prefix, regexp, uri,
     params[:token] || 'none',

@@ -132,9 +132,9 @@ get '/rate.json' do
 end
 
 get '/graph.svg' do
-  raise WTS::UserError, "156: Param 'keys' is mandatory" unless params[:keys]
-  raise WTS::UserError, "157: Param 'div' is mandatory" unless params[:div]
-  raise WTS::UserError, "158: Param 'digits' is mandatory" unless params[:digits]
+  raise WTS::UserError, "E156: Param 'keys' is mandatory" unless params[:keys]
+  raise WTS::UserError, "E157: Param 'div' is mandatory" unless params[:div]
+  raise WTS::UserError, "E158: Param 'digits' is mandatory" unless params[:digits]
   content_type 'image/svg+xml'
   settings.zache.clean
   settings.zache.get(request.url, lifetime: 10 * 60) do

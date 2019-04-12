@@ -213,8 +213,8 @@ before '/*' do
   cookies[:utm_medium] = params[:utm_medium] if params[:utm_medium]
   cookies[:utm_campaign] = params[:utm_campaign] if params[:utm_campaign]
   request.env['rack.request.query_hash'].each do |k, v|
-    raise WTS::UserError, "101: The param #{k.inspect} can't be empty" if v.nil?
-    raise WTS::UserError, "102: Invalid encoding of #{k.inspect} param" unless v.valid_encoding?
+    raise WTS::UserError, "E101: The param #{k.inspect} can't be empty" if v.nil?
+    raise WTS::UserError, "E102: Invalid encoding of #{k.inspect} param" unless v.valid_encoding?
   end
 end
 
@@ -308,7 +308,7 @@ get '/create' do
 end
 
 get '/keygap' do
-  raise WTS::UserError, '108: We don\'t have it in the database anymore' if user.item.wiped?
+  raise WTS::UserError, 'E108: We don\'t have it in the database anymore' if user.item.wiped?
   content_type 'text/plain'
   user.item.keygap
 end
@@ -383,7 +383,7 @@ end
 
 get '/txn.json' do
   tid = params[:tid]
-  raise WTS::UserError, "193: Parameter 'tid' is mandatory" if tid.nil?
+  raise WTS::UserError, "E193: Parameter 'tid' is mandatory" if tid.nil?
   source, id = tid.split(':')
   content_type 'application/json'
   JSON.pretty_generate(settings.gl.txn(source, id))
@@ -459,7 +459,7 @@ get '/do-migrate' do
 end
 
 get '/sql' do
-  raise WTS::UserError, '129: You are not allowed to see this' unless vip?
+  raise WTS::UserError, 'E129: You are not allowed to see this' unless vip?
   query = params[:query] || 'SELECT * FROM txn LIMIT 16'
   haml :sql, layout: :layout, locals: merged(
     page_title: title('SQL'),
@@ -507,7 +507,7 @@ get '/quick' do
   prohibit('quick')
   flash('/home', 'Please logout first') if @locals[:guser]
   page = params[:haml] || 'default'
-  raise WTS::UserError, '172: HAML page name is not valid' unless /^[a-zA-Z0-9]{,64}$/.match?(page)
+  raise WTS::UserError, 'E172: HAML page name is not valid' unless /^[a-zA-Z0-9]{,64}$/.match?(page)
   http = Zold::Http.new(uri: "https://raw.githubusercontent.com/zold-io/quick/master/#{page}.haml").get
   html = Haml::Engine.new(
     http.status == 200 ? http.body : IO.read(File.join(__dir__, 'views/quick_default.haml'))
@@ -578,7 +578,7 @@ def user_log(u = user.login)
 end
 
 def user(login = @locals[:guser])
-  raise WTS::UserError, '173: You have to login first' unless login
+  raise WTS::UserError, 'E173: You have to login first' unless login
   WTS::User.new(
     login, WTS::Item.new(login, settings.pgsql, log: user_log(login)),
     settings.wallets, log: user_log(login)
@@ -587,7 +587,7 @@ end
 
 def confirmed_user(login = @locals[:guser])
   u = user(login)
-  raise WTS::UserError, "174: You, #{login}, have to confirm your keygap first" unless u.confirmed?
+  raise WTS::UserError, "E174: You, #{login}, have to confirm your keygap first" unless u.confirmed?
   u
 end
 
@@ -613,11 +613,11 @@ end
 
 def keygap
   gap = params[:keygap]
-  raise WTS::UserError, '175: Keygap is required' if gap.nil?
+  raise WTS::UserError, 'E175: Keygap is required' if gap.nil?
   begin
     confirmed_user.item.key(gap).to_s
   rescue StandardError => e
-    raise WTS::UserError, "176: This doesn\'t seem to be a valid keygap: '#{'*' * gap.length}' (#{e.class.name})"
+    raise WTS::UserError, "E176: This doesn\'t seem to be a valid keygap: '#{'*' * gap.length}' (#{e.class.name})"
   end
   gap
 end
@@ -644,7 +644,7 @@ end
 
 def prohibit(feature)
   return unless settings.toggles.get("stop:#{feature}", 'no') == 'yes'
-  raise WTS::UserError, "177: This feature \"#{feature}\" is temporarily disabled, sorry"
+  raise WTS::UserError, "E177: This feature \"#{feature}\" is temporarily disabled, sorry"
 end
 
 def safe_md(txt)

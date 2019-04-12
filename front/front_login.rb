@@ -48,7 +48,7 @@ get '/github-callback' do
   )
   cookies[:glogin] = c.to_s
   unless known?(c.login) || vip?(c.login) || c.login == '0c63ba1bbcb753dd'
-    raise WTS::UserError, "103: @#{c.login} doesn't work in Zerocracy, can't login via GitHub, use mobile phone"
+    raise WTS::UserError, "E103: @#{c.login} doesn't work in Zerocracy, can't login via GitHub, use mobile phone"
   end
   register_referral(c.login)
   flash('/', "You have been logged in as @#{c.login}")
@@ -76,7 +76,7 @@ get '/mobile_token' do
 end
 
 get '/confirm' do
-  raise WTS::UserError, '106: You have done this already, your keygap has been generated' if user.confirmed?
+  raise WTS::UserError, 'E106: You have done this already, your keygap has been generated' if user.confirmed?
   haml :confirm, layout: :layout, locals: merged(
     page_title: title('keygap')
   )
@@ -88,7 +88,7 @@ get '/confirmed' do
 end
 
 get '/do-confirm' do
-  raise WTS::UserError, '107: You have done this already, your keygap has been generated' if user.confirmed?
+  raise WTS::UserError, 'E107: You have done this already, your keygap has been generated' if user.confirmed?
   user.confirm(params[:keygap])
   flash('/', 'The account has been confirmed')
 end
@@ -96,14 +96,14 @@ end
 get '/mobile/send' do
   prohibit('api')
   phone = params[:phone]
-  raise WTS::UserError, '159: Mobile phone number is required' if phone.nil?
-  raise WTS::UserError, '160: Phone number can\'t be empty, format it according to E.164' if phone.empty?
+  raise WTS::UserError, 'E159: Mobile phone number is required' if phone.nil?
+  raise WTS::UserError, 'E160: Phone number can\'t be empty, format it according to E.164' if phone.empty?
   unless /^[0-9]+$/.match?(phone)
-    raise WTS::UserError, "161: Invalid phone #{phone.inspect}, digits only allowed (E.164)"
+    raise WTS::UserError, "E161: Invalid phone #{phone.inspect}, digits only allowed (E.164)"
   end
-  raise WTS::UserError, '161: The phone shouldn\'t start with zeros' if /^0+/.match?(phone)
-  raise WTS::UserError, "162: The phone number #{phone.inspect} is too short" if phone.length < 6
-  raise WTS::UserError, "163: The phone number #{phone.inspect} is too long" if phone.length > 14
+  raise WTS::UserError, 'E161: The phone shouldn\'t start with zeros' if /^0+/.match?(phone)
+  raise WTS::UserError, "E162: The phone number #{phone.inspect} is too short" if phone.length < 6
+  raise WTS::UserError, "E163: The phone number #{phone.inspect} is too long" if phone.length > 14
   phone = phone.to_i
   mcode = rand(1000..9999)
   if settings.mcodes.exists?(phone)
@@ -122,16 +122,16 @@ end
 get '/mobile/token' do
   prohibit('api')
   phone = params[:phone]
-  raise WTS::UserError, '164: Mobile phone number is required' if phone.nil?
-  raise WTS::UserError, '165: Phone number can\'t be empty, format it according to E.164' if phone.empty?
+  raise WTS::UserError, 'E164: Mobile phone number is required' if phone.nil?
+  raise WTS::UserError, 'E165: Phone number can\'t be empty, format it according to E.164' if phone.empty?
   unless /^[0-9]+$/.match?(phone)
-    raise WTS::UserError, "166: Invalid phone #{phone.inspect}, digits only allowed (E.164)"
+    raise WTS::UserError, "E166: Invalid phone #{phone.inspect}, digits only allowed (E.164)"
   end
   phone = phone.to_i
   mcode = params[:code].strip
-  raise WTS::UserError, '167: Mobile confirmation code can\'t be empty' if mcode.empty?
-  raise WTS::UserError, "168: Invalid code #{mcode.inspect}, must be four digits" unless /^[0-9]{4}$/.match?(mcode)
-  raise WTS::UserError, '169: Mobile code mismatch' unless settings.mcodes.get(phone) == mcode.to_i
+  raise WTS::UserError, 'E167: Mobile confirmation code can\'t be empty' if mcode.empty?
+  raise WTS::UserError, "E168: Invalid code #{mcode.inspect}, must be four digits" unless /^[0-9]{4}$/.match?(mcode)
+  raise WTS::UserError, 'E169: Mobile code mismatch' unless settings.mcodes.get(phone) == mcode.to_i
   settings.mcodes.remove(phone)
   u = user(phone.to_s)
   u.create(settings.remotes) unless u.item.exists?

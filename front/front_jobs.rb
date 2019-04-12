@@ -56,8 +56,8 @@ end
 get '/job' do
   prohibit('api')
   id = params['id']
-  raise WTS::UserError, "150: Job in 'id' query parameter is mandatory" if id.nil? || id.empty?
-  raise WTS::UserError, "151: Job ID #{id} is not found" unless settings.jobs.exists?(id)
+  raise WTS::UserError, "E150: Job in 'id' query parameter is mandatory" if id.nil? || id.empty?
+  raise WTS::UserError, "E151: Job ID #{id} is not found" unless settings.jobs.exists?(id)
   content_type 'text/plain', charset: 'utf-8'
   settings.jobs.read(id)
 end
@@ -65,8 +65,8 @@ end
 get '/job.json' do
   prohibit('api')
   id = params['id']
-  raise WTS::UserError, "152: Job in 'id' query parameter is mandatory" if id.nil? || id.empty?
-  raise WTS::UserError, "153: Job ID #{id} is not found" unless settings.jobs.exists?(id)
+  raise WTS::UserError, "E152: Job in 'id' query parameter is mandatory" if id.nil? || id.empty?
+  raise WTS::UserError, "E153: Job ID #{id} is not found" unless settings.jobs.exists?(id)
   content_type 'application/json'
   JSON.pretty_generate(
     {
@@ -80,8 +80,8 @@ end
 get '/output' do
   prohibit('api')
   id = params['id']
-  raise WTS::UserError, "154: Job in 'id' query parameter is mandatory" if id.nil? || id.empty?
-  raise WTS::UserError, "155: Job ID #{id} is not found" unless settings.jobs.exists?(id)
+  raise WTS::UserError, "E154: Job in 'id' query parameter is mandatory" if id.nil? || id.empty?
+  raise WTS::UserError, "E155: Job ID #{id} is not found" unless settings.jobs.exists?(id)
   content_type 'text/plain', charset: 'utf-8'
   headers['X-Zold-JobStatus'] = settings.jobs.status(id)
   settings.jobs.output(id)

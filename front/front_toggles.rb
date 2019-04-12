@@ -24,7 +24,7 @@ require_relative '../objects/user_error'
 set :toggles, WTS::Toggles.new(settings.pgsql, log: settings.log)
 
 get '/toggles' do
-  raise WTS::UserError, '170: You are not allowed to see this' unless vip?
+  raise WTS::UserError, 'E170: You are not allowed to see this' unless vip?
   haml :toggles, layout: :layout, locals: merged(
     page_title: 'Toggles',
     toggles: settings.toggles
@@ -32,7 +32,7 @@ get '/toggles' do
 end
 
 post '/set-toggle' do
-  raise WTS::UserError, '171: You are not allowed to see this' unless vip?
+  raise WTS::UserError, 'E171: You are not allowed to see this' unless vip?
   key = params[:key].strip
   value = params[:value].strip
   settings.toggles.set(key, value)

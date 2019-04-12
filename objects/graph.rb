@@ -50,9 +50,9 @@ class WTS::Graph
         max = t[:created] if max < t[:created]
       end
     end
-    raise WTS::UserError, 'There are no ticks, sorry' if sets.empty?
+    raise WTS::UserError, 'EThere are no ticks, sorry' if sets.empty?
     step = (max - min) / STEPS
-    raise WTS::UserError, 'Step is too small, can\'t render, sorry' if step.zero?
+    raise WTS::UserError, 'EStep is too small, can\'t render, sorry' if step.zero?
     params = {
       width: 400, height: 200,
       show_x_guidelines: true, show_y_guidelines: true,

@@ -56,7 +56,7 @@ class WTS::Ops
     start = Time.now
     if @remotes.all.empty?
       return if ENV['RACK_ENV'] == 'test'
-      raise WTS::UserError, "185: There are no visible remote nodes, can\'t PULL #{id}"
+      raise WTS::UserError, "E185: There are no visible remote nodes, can\'t PULL #{id}"
     end
     begin
       @log.info("Pulling #{id} from the network...")
@@ -64,7 +64,7 @@ class WTS::Ops
         ['pull', id.to_s, "--network=#{@network}", '--retry=4', '--shallow']
       )
     rescue Zold::Fetch::NotFound => e
-      raise WTS::UserError, "186: We didn't manage to find your wallet #{@user.item.id} \
+      raise WTS::UserError, "E186: We didn't manage to find your wallet #{@user.item.id} \
 in any of visible Zold nodes (#{@user.login}). \
 You should try to PULL again. If it doesn't work, most likely your wallet #{id} is lost \
 and can't be recovered. If you have its copy locally, you can push it to the \
@@ -82,10 +82,10 @@ see this happening! #{e.message}"
     id = @item.id
     if @remotes.all.empty?
       return if ENV['RACK_ENV'] == 'test'
-      raise WTS::UserError, "187: There are no visible remote nodes, can\'t PUSH #{id}"
+      raise WTS::UserError, "E187: There are no visible remote nodes, can\'t PUSH #{id}"
     end
     unless @wallets.acq(id, &:exists?)
-      raise WTS::UserError, "The wallet #{id} of #{@user.login} is absent, can't PUSH; \
+      raise WTS::UserError, "EThe wallet #{id} of #{@user.login} is absent, can't PUSH; \
 most probably you just have to RESTART your wallet"
     end
     begin
@@ -120,8 +120,8 @@ most probably you just have to RESTART your wallet"
   end
 
   def pay(keygap, bnf, amount, details)
-    raise WTS::UserError, '187: Payment amount can\'t be zero' if amount.zero?
-    raise WTS::UserError, '188: Payment amount can\'t be negative' if amount.negative?
+    raise WTS::UserError, 'E187: Payment amount can\'t be zero' if amount.zero?
+    raise WTS::UserError, 'E188: Payment amount can\'t be negative' if amount.negative?
     raise "The user #{@user.login} is not registered yet" unless @item.exists?
     raise "The account #{@user.login} is not confirmed yet" unless @user.confirmed?
     start = Time.now

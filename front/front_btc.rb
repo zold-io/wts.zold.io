@@ -82,11 +82,11 @@ settings.daemons.start('btc-monitor') do
 end
 
 get '/funded' do
-  raise WTS::UserError, '104: Amount parameter is mandatory' unless params[:amount]
+  raise WTS::UserError, 'E104: Amount parameter is mandatory' unless params[:amount]
   usd = params[:amount].to_f
-  raise WTS::UserError, '105: The amount can\'t be zero' if usd.zero?
+  raise WTS::UserError, 'E105: The amount can\'t be zero' if usd.zero?
   zerocrat = user(settings.config['zerocrat']['login'])
-  raise WTS::UserError, '191: Only Zerocrat is allowed to do this' unless user.login == zerocrat.login
+  raise WTS::UserError, 'E191: Only Zerocrat is allowed to do this' unless user.login == zerocrat.login
   boss = user(settings.config['exchange']['login'])
   btc = usd / price
   zld = Zold::Amount.new(zld: btc / rate)
@@ -141,16 +141,16 @@ end
 
 post '/do-zld-to-btc' do
   prohibit('sell')
-  raise WTS::UserError, '141: Amount is not provided' if params[:amount].nil?
-  raise WTS::UserError, '142: Bitcoin address is not provided' if params[:btc].nil?
-  raise WTS::UserError, '143: Keygap is not provided' if params[:keygap].nil?
+  raise WTS::UserError, 'E141: Amount is not provided' if params[:amount].nil?
+  raise WTS::UserError, 'E142: Bitcoin address is not provided' if params[:btc].nil?
+  raise WTS::UserError, 'E143: Keygap is not provided' if params[:keygap].nil?
   amount = Zold::Amount.new(zld: params[:amount].to_f)
   min = Zold::Amount.new(zld: settings.toggles.get('min-out-btc', '0').to_f)
-  raise WTS::UserError, "195: The amount #{amount} is too small, smaller than #{min}" if amount < min
+  raise WTS::UserError, "E195: The amount #{amount} is too small, smaller than #{min}" if amount < min
   address = params[:btc].strip
-  raise WTS::UserError, "144: Bitcoin address is not valid: #{address.inspect}" unless address =~ /^[a-zA-Z0-9]+$/
-  raise WTS::UserError, '145: Bitcoin address must start with 1, 3 or bc1' unless address =~ /^(1|3|bc1)/
-  raise WTS::UserError, "146: You don't have enough to send #{amount}" if confirmed_user.wallet(&:balance) < amount
+  raise WTS::UserError, "E144: Bitcoin address is not valid: #{address.inspect}" unless address =~ /^[a-zA-Z0-9]+$/
+  raise WTS::UserError, 'E145: Bitcoin address must start with 1, 3 or bc1' unless address =~ /^(1|3|bc1)/
+  raise WTS::UserError, "E146: You don't have enough to send #{amount}" if confirmed_user.wallet(&:balance) < amount
   if settings.toggles.get('ban:do-sell').split(',').include?(user.login)
     settings.telepost.spam(
       "The user #{title_md} from #{anon_ip} is trying to sell #{amount},",
@@ -158,7 +158,7 @@ post '/do-zld-to-btc' do
       "the balance of the user is #{user.wallet(&:balance)}",
       "at the wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})"
     )
-    raise WTS::UserError, '147: Your account is not allowed to sell any ZLD at the moment, email us'
+    raise WTS::UserError, 'E147: Your account is not allowed to sell any ZLD at the moment, email us'
   end
   limits = settings.toggles.get('limits', '64/128/256')
   unless settings.payouts.allowed?(user.login, amount, limits) || vip?
@@ -169,7 +169,7 @@ post '/do-zld-to-btc' do
       "the balance of the user is #{user.wallet(&:balance)}",
       "at the wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})"
     )
-    raise WTS::UserError, "148: With #{amount} you are going over your limits, #{consumed} were sold already, \
+    raise WTS::UserError, "E148: With #{amount} you are going over your limits, #{consumed} were sold already, \
 while we allow one user to sell up to #{limits} (daily/weekly/monthly)"
   end
   limits = settings.toggles.get('system-limits', '512/2048/8196')
@@ -181,7 +181,7 @@ while we allow one user to sell up to #{limits} (daily/weekly/monthly)"
       "the balance of the user is #{user.wallet(&:balance)}",
       "at the wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})"
     )
-    raise WTS::UserError, "149: With #{amount} you are going over our limits, #{consumed} were sold by ALL \
+    raise WTS::UserError, "E149: With #{amount} you are going over our limits, #{consumed} were sold by ALL \
 users of WTS, while our limits are #{limits} (daily/weekly/monthly), sorry about this :("
   end
   bitcoin = (amount.to_zld(8).to_f * rate).round(8)

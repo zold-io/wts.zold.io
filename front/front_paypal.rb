@@ -35,8 +35,8 @@ set :paypal, WTS::PayPal.new(
 
 get '/zld-to-paypal' do
   prohibit('paypal')
-  raise WTS::UserError, '130: You have to work in Zerocracy in order to cash out to PayPal' unless known?
-  raise WTS::UserError, '131: You have to be identified in Zerocracy' unless kyc?
+  raise WTS::UserError, 'E130: You have to work in Zerocracy in order to cash out to PayPal' unless known?
+  raise WTS::UserError, 'E131: You have to be identified in Zerocracy' unless kyc?
   haml :zld_to_paypal, layout: :layout, locals: merged(
     page_title: title('paypal'),
     rate: rate,
@@ -48,16 +48,16 @@ end
 
 post '/do-zld-to-paypal' do
   prohibit('paypal')
-  raise WTS::UserError, '132: You have to work in Zerocracy in order to cash out to PayPal' unless known?
-  raise WTS::UserError, '133: You have to be identified in Zerocracy' unless kyc?
-  raise WTS::UserError, '134: Amount is not provided' if params[:amount].nil?
-  raise WTS::UserError, '135: Email address is not provided' if params[:email].nil?
-  raise WTS::UserError, '136: Keygap is not provided' if params[:keygap].nil?
+  raise WTS::UserError, 'E132: You have to work in Zerocracy in order to cash out to PayPal' unless known?
+  raise WTS::UserError, 'E133: You have to be identified in Zerocracy' unless kyc?
+  raise WTS::UserError, 'E134: Amount is not provided' if params[:amount].nil?
+  raise WTS::UserError, 'E135: Email address is not provided' if params[:email].nil?
+  raise WTS::UserError, 'E136: Keygap is not provided' if params[:keygap].nil?
   amount = Zold::Amount.new(zld: params[:amount].to_f)
   min = Zold::Amount.new(zld: settings.toggles.get('min-out-paypal', '0').to_f)
-  raise WTS::UserError, "194: The amount #{amount} is too small, smaller than #{min}" if amount < min
+  raise WTS::UserError, "E194: The amount #{amount} is too small, smaller than #{min}" if amount < min
   email = params[:email].strip
-  raise WTS::UserError, "137: You don't have enough to send #{amount}" if confirmed_user.wallet(&:balance) < amount
+  raise WTS::UserError, "E137: You don't have enough to send #{amount}" if confirmed_user.wallet(&:balance) < amount
   if settings.toggles.get('ban:do-sell').split(',').include?(user.login)
     settings.telepost.spam(
       "The user #{title_md} from #{anon_ip} is trying to send #{amount} to PayPal,",
@@ -65,7 +65,7 @@ post '/do-zld-to-paypal' do
       "the balance of the user is #{user.wallet(&:balance)}",
       "at the wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})"
     )
-    raise WTS::UserError, '138: Your account is not allowed to sell any ZLD at the moment, email us'
+    raise WTS::UserError, 'E138: Your account is not allowed to sell any ZLD at the moment, email us'
   end
   limits = settings.toggles.get('limits', '64/128/256')
   unless settings.payouts.allowed?(user.login, amount, limits) || vip?
@@ -76,7 +76,7 @@ post '/do-zld-to-paypal' do
       "the balance of the user is #{user.wallet(&:balance)}",
       "at the wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})"
     )
-    raise WTS::UserError, "139: With #{amount} you are going over your limits, #{consumed} were sold already, \
+    raise WTS::UserError, "E139: With #{amount} you are going over your limits, #{consumed} were sold already, \
 while we allow one user to sell up to #{limits} (daily/weekly/monthly)"
   end
   limits = settings.toggles.get('system-limits', '512/2048/8196')
@@ -88,7 +88,7 @@ while we allow one user to sell up to #{limits} (daily/weekly/monthly)"
       "the balance of the user is #{user.wallet(&:balance)}",
       "at the wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})"
     )
-    raise WTS::UserError, "140: With #{amount} you are going over our limits, #{consumed} were sold by ALL \
+    raise WTS::UserError, "E140: With #{amount} you are going over our limits, #{consumed} were sold by ALL \
 users of WTS, while our limits are #{limits} (daily/weekly/monthly), sorry about this :("
   end
   bitcoin = (amount.to_zld(8).to_f * rate).round(8)

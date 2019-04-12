@@ -59,7 +59,7 @@ class WTS::Jobs
   # Read the Job result (OK, or backtrace or 'Running')
   def read(id)
     rows = @pgsql.exec('SELECT log FROM job WHERE id = $1', [id])
-    raise WTS::UserError, "Job #{id} not found" if rows.empty?
+    raise WTS::UserError, "EJob #{id} not found" if rows.empty?
     rows[0]['log']
   end
 
@@ -86,7 +86,7 @@ class WTS::Jobs
   # Read the Job full output
   def output(id)
     rows = @pgsql.exec('SELECT output FROM job WHERE id = $1', [id])
-    raise WTS::UserError, "Job #{id} not found" if rows.empty?
+    raise WTS::UserError, "EJob #{id} not found" if rows.empty?
     rows[0]['output']
   end
 end

@@ -43,7 +43,7 @@ class WTS::Mcodes
 
   def get(phone)
     r = @pgsql.exec('SELECT code FROM mcode WHERE phone = $1', [phone])[0]
-    raise WTS::UserError, "There is not the code associated with #{phone}" if r.nil?
+    raise WTS::UserError, "EThere is not the code associated with #{phone}" if r.nil?
     r['code'].to_i
   end
 
