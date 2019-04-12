@@ -29,10 +29,11 @@ require_relative 'user_error'
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 class WTS::Assets
-  def initialize(pgsql, log: Zold::Log::NULL, sibit: Sibit.new(log: @log))
+  def initialize(pgsql, log: Zold::Log::NULL, sibit: Sibit.new(log: @log), codec: GLogin::Codec.new)
     @pgsql = pgsql
     @log = log
     @sibit = sibit
+    @codec = codec
   end
 
   def all
@@ -81,7 +82,10 @@ class WTS::Assets
       sibit = Sibit.new(log: @log)
       pvt = sibit.generate
       address = sibit.create(pvt)
-      @pgsql.exec('INSERT INTO asset (address, login, pvt) VALUES ($1, $2, $3)', [address, login, pvt])
+      @pgsql.exec(
+        'INSERT INTO asset (address, login, pvt) VALUES ($1, $2, $3)',
+        [address, login, @codec.encrypt(pvt)]
+      )
       @log.info("Bitcoin address #{address} acquired by #{login.inspect}")
       address
     else
@@ -138,7 +142,7 @@ class WTS::Assets
     batch = {}
     unspent = 0
     @pgsql.exec('SELECT * FROM asset WHERE value > 0 AND pvt IS NOT NULL ORDER BY value').each do |r|
-      batch[r['address']] = r['pvt']
+      batch[r['address']] = @codec.decrypt(r['pvt'])
       unspent += r['value'].to_i
       break if unspent > satoshi
     end

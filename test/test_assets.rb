@@ -21,6 +21,7 @@
 require 'minitest/autorun'
 require 'webmock/minitest'
 require 'zold'
+require 'glogin'
 require_relative 'test__helper'
 require_relative '../objects/wts'
 require_relative '../objects/pgsql'
@@ -81,7 +82,12 @@ class WTS::AssetsTest < Minitest::Test
 
   def test_pays
     WebMock.allow_net_connect!
-    assets = WTS::Assets.new(WTS::Pgsql::TEST.start, log: test_log, sibit: Sibit::Fake.new)
+    assets = WTS::Assets.new(
+      WTS::Pgsql::TEST.start,
+      log: test_log,
+      sibit: Sibit::Fake.new,
+      codec: GLogin::Codec.new('some secret')
+    )
     ["jeff#{rand(999)}", "johnny#{rand(999)}"].each do |login|
       item = WTS::Item.new(login, WTS::Pgsql::TEST.start, log: test_log)
       item.create(Zold::Id.new, Zold::Key.new(text: OpenSSL::PKey::RSA.new(2048).to_pem))

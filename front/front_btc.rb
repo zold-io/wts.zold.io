@@ -20,13 +20,15 @@
 
 require 'sibit'
 require 'syncem'
+require 'glogin'
 require_relative '../objects/assets'
 require_relative '../objects/coinbase'
 require_relative '../objects/referrals'
 require_relative '../objects/user_error'
 
+set :codec, GLogin::Codec.new(settings.config['pkey_secret'])
 set :referrals, WTS::Referrals.new(settings.pgsql, log: settings.log)
-set :assets, WTS::Assets.new(settings.pgsql, log: settings.log)
+set :assets, WTS::Assets.new(settings.pgsql, log: settings.log, codec: settings.codec)
 if settings.config['coinbase']
   set :coinbase, SyncEm.new(
     WTS::Coinbase.new(

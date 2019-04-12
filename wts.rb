@@ -67,6 +67,7 @@ configure do
   Haml::Options.defaults[:format] = :xhtml
   config = if ENV['RACK_ENV'] == 'test'
     {
+      'pkey_secret' => 'fake',
       'rewards' => {
         'login' => 'zonuses',
         'keygap' => '?'
