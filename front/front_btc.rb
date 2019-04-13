@@ -27,7 +27,6 @@ require_relative '../objects/referrals'
 require_relative '../objects/user_error'
 
 set :codec, GLogin::Codec.new(settings.config['pkey_secret'])
-set :sibit, Sibit.new(log: settings.log)
 
 def assets(log: settings.log)
   SyncEm.new(
@@ -35,7 +34,7 @@ def assets(log: settings.log)
       settings.pgsql,
       log: log,
       codec: settings.codec,
-      sibit: settings.sibit
+      sibit: Sibit.new(log: log)
     )
   )
 end
