@@ -308,7 +308,7 @@ end
 get '/assets-private-keys' do
   raise WTS::UserError, 'E129: You are not allowed to see this' unless vip?
   content_type 'text/plain'
-  assets.disclose.map { |a| "#{a[:address]}: #{a[:pvt]}" }.join("\n")
+  assets.disclose.map { |a| "#{a[:address]}: #{a[:pvt]} / #{a[:value]}" }.join("\n")
 end
 
 get '/referrals' do
