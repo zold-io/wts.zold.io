@@ -85,7 +85,8 @@ class WTS::Assets
   end
 
   # Create a new asset/address for a given user (return existing one if it is
-  # already in the database).
+  # already in the database). When a new address is assigned, a block given
+  # will be called.
   def acquire(login = nil)
     row = if login.nil?
       @pgsql.exec('SELECT address FROM asset WHERE login IS NULL AND pvt IS NOT NULL')[0]
@@ -96,10 +97,12 @@ class WTS::Assets
       sibit = Sibit.new(log: @log)
       pvt = sibit.generate
       address = sibit.create(pvt)
+      encrypted = @codec.encrypt(pvt)
       @pgsql.exec(
         'INSERT INTO asset (address, login, pvt) VALUES ($1, $2, $3)',
-        [address, login, @codec.encrypt(pvt)]
+        [address, login, encrypted]
       )
+      yield(address, encrypted) if block_given?
       @log.info("Bitcoin address #{address} acquired by #{login.inspect}")
       address
     else

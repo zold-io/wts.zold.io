@@ -52,7 +52,7 @@ class WTS::AssetsTest < Minitest::Test
 
   def test_add_cold_asset
     WebMock.allow_net_connect!
-    assets = WTS::Assets.new(WTS::Pgsql::TEST.start, log: test_log, sibit: Sibit::Fake.new(log: test_log))
+    assets = WTS::Assets.new(WTS::Pgsql::TEST.start, log: test_log, sibit: Sibit::Fake.new)
     address = "1JvCsJtLmCxEk7ddZFnVkGXpr9uhxZP#{rand(999)}"
     assets.add_cold(address)
     assert(assets.cold?(address))
@@ -88,7 +88,7 @@ class WTS::AssetsTest < Minitest::Test
     assets = WTS::Assets.new(
       WTS::Pgsql::TEST.start,
       log: test_log,
-      sibit: Sibit::Fake.new(log: test_log),
+      sibit: Sibit::Fake.new,
       codec: GLogin::Codec.new('some secret')
     )
     ["jeff#{rand(999)}", "johnny#{rand(999)}"].each do |login|

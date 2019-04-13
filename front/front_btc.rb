@@ -163,7 +163,12 @@ end
 
 get '/btc-to-zld' do
   features('btc', 'buy-btc')
-  address = assets.acquire(confirmed_user.login)
+  address = assets.acquire(confirmed_user.login) do |a, encrypted|
+    settings.telepost.spam(
+      "A new bitcoin address [#{a}](https://www.blockchain.com/btc/address/#{a}) generated",
+      "with this private key (it is encrypted):\n\n```\n#{encrypted.gsub(/(?<=\G.{32})/, "\n")}\n```"
+    )
+  end
   headers['X-Zold-BtcAddress'] = address
   haml :btc_to_zld, layout: :layout, locals: merged(
     page_title: title('buy'),
