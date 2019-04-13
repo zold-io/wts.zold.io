@@ -22,7 +22,7 @@ require 'haml'
 require 'zold/http'
 
 get '/quick' do
-  prohibit('quick')
+  features('quick')
   flash('/home', 'Please logout first') if @locals[:guser]
   page = params[:haml] || 'default'
   raise WTS::UserError, 'E172: HAML page name is not valid' unless /^[a-zA-Z0-9]{,64}$/.match?(page)

@@ -91,7 +91,7 @@ settings.daemons.start('callbacks') do
 end
 
 get '/callbacks' do
-  prohibit('api')
+  features('api')
   haml :callbacks, layout: :layout, locals: merged(
     page_title: title('callbacks'),
     callbacks: settings.callbacks
@@ -104,7 +104,7 @@ get '/null' do
 end
 
 get '/wait-for' do
-  prohibit('api')
+  features('api')
   wallet = params[:wallet] || confirmed_user.item.id.to_s
   prefix = params[:prefix]
   raise WTS::UserError, 'E120: The parameter "prefix" is mandatory' if prefix.nil?

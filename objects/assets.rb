@@ -131,6 +131,7 @@ class WTS::Assets
     count = 0
     while block != seen && count < max
       json = @sibit.get_json("/rawblock/#{block}")
+      raise "Txns not found in block #{block}: #{json}" if json['tx'].nil?
       json['tx'].each do |t|
         t['out'].each do |o|
           next if o['spent']

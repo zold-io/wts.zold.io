@@ -29,7 +29,7 @@ settings.daemons.start('hosting-bonuses', 10 * 60) do
 end
 
 def pay_hosting_bonuses(boss, jid, log)
-  prohibit('bonuses')
+  features('bonuses')
   bonus = Zold::Amount.new(zld: 1.0)
   ops(boss, log: log).remove
   ops(boss, log: log).pull

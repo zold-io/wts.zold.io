@@ -57,7 +57,7 @@ def job(u = user, exclusive: false)
 end
 
 get '/job' do
-  prohibit('api')
+  features('api')
   id = params['id']
   raise WTS::UserError, "E150: Job in 'id' query parameter is mandatory" if id.nil? || id.empty?
   raise WTS::UserError, "E151: Job ID #{id} is not found" unless settings.jobs.exists?(id)
@@ -66,7 +66,7 @@ get '/job' do
 end
 
 get '/job.json' do
-  prohibit('api')
+  features('api')
   id = params['id']
   raise WTS::UserError, "E152: Job in 'id' query parameter is mandatory" if id.nil? || id.empty?
   raise WTS::UserError, "E153: Job ID #{id} is not found" unless settings.jobs.exists?(id)
@@ -81,7 +81,7 @@ get '/job.json' do
 end
 
 get '/output' do
-  prohibit('api')
+  features('api')
   id = params['id']
   raise WTS::UserError, "E154: Job in 'id' query parameter is mandatory" if id.nil? || id.empty?
   raise WTS::UserError, "E155: Job ID #{id} is not found" unless settings.jobs.exists?(id)

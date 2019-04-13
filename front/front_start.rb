@@ -19,7 +19,7 @@
 # SOFTWARE.
 
 get '/create' do
-  prohibit('create')
+  features('create')
   job do |jid, log|
     log.info('Creating a new wallet by /create request...')
     user.create(settings.remotes)
@@ -104,7 +104,7 @@ get '/pull' do
 end
 
 get '/restart' do
-  prohibit('restart')
+  features('restart')
   haml :restart, layout: :layout, locals: merged(
     page_title: title('restart')
   )

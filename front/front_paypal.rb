@@ -22,19 +22,21 @@ require 'zold'
 require_relative '../objects/paypal'
 require_relative '../objects/user_error'
 
-set :paypal, WTS::PayPal.new(
-  {
-    email: settings.config['paypal']['email'],
-    login: settings.config['paypal']['login'],
-    password: settings.config['paypal']['password'],
-    signature: settings.config['paypal']['signature'],
-    appid: settings.config['paypal']['appid']
-  },
-  log: settings.log
-)
+def paypal(log: settings.log)
+  WTS::PayPal.new(
+    {
+      email: settings.config['paypal']['email'],
+      login: settings.config['paypal']['login'],
+      password: settings.config['paypal']['password'],
+      signature: settings.config['paypal']['signature'],
+      appid: settings.config['paypal']['appid']
+    },
+    log: log
+  )
+end
 
 get '/zld-to-paypal' do
-  prohibit('paypal')
+  features('sell', 'sell-paypal')
   raise WTS::UserError, 'E130: You have to work in Zerocracy in order to cash out to PayPal' unless known?
   raise WTS::UserError, 'E131: You have to be identified in Zerocracy' unless kyc?
   haml :zld_to_paypal, layout: :layout, locals: merged(
@@ -47,7 +49,7 @@ get '/zld-to-paypal' do
 end
 
 post '/do-zld-to-paypal' do
-  prohibit('paypal')
+  features('sell-paypal', 'sell')
   raise WTS::UserError, 'E132: You have to work in Zerocracy in order to cash out to PayPal' unless known?
   raise WTS::UserError, 'E133: You have to be identified in Zerocracy' unless kyc?
   raise WTS::UserError, 'E134: Amount is not provided' if params[:amount].nil?
@@ -114,7 +116,7 @@ users of WTS, while our limits are #{limits} (daily/weekly/monthly), sorry about
       "Fee for exchange of #{usd} PayPal, rate is #{rate}, fee is #{f}"
     )
     ops(log: log).push
-    settings.paypal.send(
+    paypal(log: log).send(
       email,
       (usd * (1.0 - f)).round(2),
       "Zerocracy development, TID #{user.item.id}:#{txn.id}"

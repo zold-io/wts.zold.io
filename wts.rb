@@ -312,7 +312,7 @@ get '/download' do
 end
 
 get '/api' do
-  prohibit('api')
+  features('api')
   haml :api, layout: :layout, locals: merged(
     page_title: title('api'),
     token: "#{confirmed_user.login}-#{settings.tokens.get(confirmed_user.login)}"
@@ -320,7 +320,7 @@ get '/api' do
 end
 
 get '/api-reset' do
-  prohibit('api')
+  features('api')
   settings.tokens.reset(confirmed_user.login)
   settings.telepost.spam(
     "API token has been reset by #{title_md}",
@@ -364,7 +364,7 @@ get '/payouts' do
 end
 
 get '/buy-sell' do
-  prohibit('buy-sell')
+  features('buy-sell')
   haml :buy_sell, layout: :layout, locals: merged(
     page_title: title('buy/sell')
   )
@@ -510,9 +510,15 @@ def ops(u = user, log: user_log(u.login))
   )
 end
 
-def prohibit(feature)
-  return unless settings.toggles.get("stop:#{feature}", 'no') == 'yes'
-  raise WTS::UserError, "E177: This feature \"#{feature}\" is temporarily disabled, sorry"
+# Make sure these features are enabled and let the execution
+# continue. If at least one of them is prohibited in the Toggles,
+# an exception will be raised.
+def features(*list)
+  return if @locals[:guser] && vip?
+  list.each do |f|
+    next unless settings.toggles.get("stop:#{f}", 'no') == 'yes'
+    raise WTS::UserError, "E177: This feature \"#{f}\" is temporarily disabled, sorry"
+  end
 end
 
 def safe_md(txt)

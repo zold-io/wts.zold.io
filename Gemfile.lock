@@ -198,7 +198,7 @@ GEM
       tilt (>= 1.3, < 3)
     slop (4.6.2)
     svg-graph (2.1.3)
-    syncem (0.1.0)
+    syncem (0.1.1)
     sys-proctable (1.2.1)
       ffi
     telebot (0.1.2)
@@ -306,7 +306,7 @@ DEPENDENCIES
   sinatra (= 2.0.4)
   sinatra-contrib (= 2.0.4)
   svg-graph (= 2.1.3)
-  syncem (= 0.1.0)
+  syncem (= 0.1.1)
   telebot (= 0.1.2)
   telepost (>= 0.3.1)
   total (>= 0.2.0)

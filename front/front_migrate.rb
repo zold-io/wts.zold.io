@@ -19,14 +19,14 @@
 # SOFTWARE.
 
 get '/migrate' do
-  prohibit('migrate')
+  features('migrate')
   haml :migrate, layout: :layout, locals: merged(
     page_title: title('migrate')
   )
 end
 
 get '/do-migrate' do
-  prohibit('migrate')
+  features('migrate')
   headers['X-Zold-Job'] = job do |jid, log|
     origin = user.item.id
     ops(log: log).migrate(keygap)

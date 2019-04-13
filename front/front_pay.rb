@@ -19,14 +19,14 @@
 # SOFTWARE.
 
 get '/pay' do
-  prohibit('pay')
+  features('pay')
   haml :pay, layout: :layout, locals: merged(
     page_title: title('pay')
   )
 end
 
 post '/do-pay' do
-  prohibit('pay')
+  features('pay')
   raise WTS::UserError, 'E109: Parameter "bnf" is not provided' if params[:bnf].nil?
   bnf = params[:bnf].strip
   raise WTS::UserError, 'E110: Parameter "amount" is not provided' if params[:amount].nil?

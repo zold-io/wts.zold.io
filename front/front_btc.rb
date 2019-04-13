@@ -27,28 +27,45 @@ require_relative '../objects/referrals'
 require_relative '../objects/user_error'
 
 set :codec, GLogin::Codec.new(settings.config['pkey_secret'])
-set :referrals, WTS::Referrals.new(settings.pgsql, log: settings.log)
-set :assets, WTS::Assets.new(settings.pgsql, log: settings.log, codec: settings.codec)
-if settings.config['coinbase']
-  set :coinbase, SyncEm.new(
-    WTS::Coinbase.new(
-      settings.config['coinbase']['key'],
-      settings.config['coinbase']['secret'],
-      settings.config['coinbase']['account'],
-      log: settings.log
+set :sibit, Sibit.new(log: settings.log)
+
+def assets(log: settings.log)
+  SyncEm.new(
+    WTS::Assets.new(
+      settings.pgsql,
+      log: log,
+      codec: settings.codec,
+      sibit: settings.sibit
     )
   )
-else
-  set :coinbase, WTS::Coinbase::Fake.new
+end
+
+def coinbase(log: settings.log)
+  if settings.config['coinbase']
+    SyncEm.new(
+      WTS::Coinbase.new(
+        settings.config['coinbase']['key'],
+        settings.config['coinbase']['secret'],
+        settings.config['coinbase']['account'],
+        log: log
+      )
+    )
+  else
+    WTS::Coinbase::Fake.new
+  end
+end
+
+def referrals(log: settings.log)
+  WTS::Referrals.new(settings.pgsql, log: log)
 end
 
 settings.daemons.start('btc-monitor') do
   seen = settings.toggles.get('latestblock', '')
-  seen = settings.assets.monitor(seen) do |address, hash, satoshi|
+  seen = assets.monitor(seen) do |address, hash, satoshi|
     bitcoin = (satoshi.to_f / 100_000_000).round(8)
-    if settings.assets.owned?(address)
+    if assets.owned?(address)
       zld = Zold::Amount.new(zld: bitcoin / rate)
-      bnf = user(settings.assets.owner(address))
+      bnf = user(assets.owner(address))
       boss = user(settings.config['exchange']['login'])
       settings.log.info("Accepting #{bitcoin} bitcoins from #{address}...")
       ops(boss, log: settings.log).pull
@@ -57,11 +74,11 @@ settings.daemons.start('btc-monitor') do
         bnf.item.id, zld,
         "BTC exchange of #{bitcoin} at #{hash}, rate is #{rate}"
       )
-      if settings.referrals.exists?(bnf.login)
+      if exists?(bnf.login)
         fee = settings.toggles.get('referral-fee', '0.04').to_f
         ops(boss, log: settings.log).pay(
           settings.config['exchange']['keygap'],
-          user(settings.referrals.ref(bnf.login)).item.id,
+          user(referrals.ref(bnf.login)).item.id,
           zld * fee, "#{(fee * 100).round(2)} referral fee for BTC exchange"
         )
       end
@@ -79,7 +96,7 @@ settings.daemons.start('btc-monitor') do
         "[#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id}),",
         "the remaining balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t)"
       )
-    elsif settings.assets.cold?(address)
+    elsif assets.cold?(address)
       settings.telepost.spam(
         "#{format('%.06f', bitcoin)} BTC arrived to",
         "[#{address}](https://www.blockchain.com/btc/address/#{address})",
@@ -95,7 +112,7 @@ settings.daemons.start('btc-monitor') do
         "tx hash is [#{hash}](https://www.blockchain.com/btc/tx/#{hash.gsub(/:[0-9]+$/, '')})"
       )
     end
-    settings.assets.see(address, hash)
+    assets.see(address, hash)
   end
   settings.toggles.set('latestblock', seen)
 end
@@ -113,7 +130,7 @@ get '/funded' do
     log.info("Buying bitcoins for $#{usd} at Coinbase...")
     ops(boss, log: log).pull
     ops(zerocrat, log: log).pull
-    settings.coinbase.buy(usd)
+    coinbase(log: log).buy(usd)
     txn = ops(boss, log: log).pay(
       settings.config['exchange']['keygap'],
       zerocrat.item.id,
@@ -140,13 +157,13 @@ end
 post '/add-asset' do
   raise WTS::UserError, 'E129: You are not allowed to see this' unless vip?
   address = params[:address]
-  settings.assets.add_cold(address)
+  assets.add_cold(address)
   flash('/assets', "Cold asset added at #{address}")
 end
 
 get '/btc-to-zld' do
-  prohibit('btc')
-  address = settings.assets.acquire(confirmed_user.login)
+  features('btc', 'buy-btc')
+  address = assets.acquire(confirmed_user.login)
   headers['X-Zold-BtcAddress'] = address
   haml :btc_to_zld, layout: :layout, locals: merged(
     page_title: title('buy'),
@@ -155,8 +172,7 @@ get '/btc-to-zld' do
 end
 
 get '/zld-to-btc' do
-  prohibit('btc')
-  prohibit('sell-btc')
+  features('btc', 'sell-btc')
   haml :zld_to_btc, layout: :layout, locals: merged(
     page_title: title('sell'),
     user: confirmed_user,
@@ -167,8 +183,7 @@ get '/zld-to-btc' do
 end
 
 post '/do-zld-to-btc' do
-  prohibit('sell')
-  prohibit('sell-btc')
+  features('sell', 'sell-btc')
   raise WTS::UserError, 'E141: Amount is not provided' if params[:amount].nil?
   raise WTS::UserError, 'E142: Bitcoin address is not provided' if params[:btc].nil?
   raise WTS::UserError, 'E143: Keygap is not provided' if params[:keygap].nil?
@@ -213,8 +228,8 @@ while we allow one user to sell up to #{limits} (daily/weekly/monthly)"
 users of WTS, while our limits are #{limits} (daily/weekly/monthly), sorry about this :("
   end
   bitcoin = (amount.to_zld(8).to_f * rate).round(8)
-  if bitcoin > settings.assets.balance(hot_only: true)
-    raise WTS::UserError, "E198: The amount #{amount} is too big for us, we have only ${settings.assets.balance}"
+  if bitcoin > assets.balance(hot_only: true)
+    raise WTS::UserError, "E198: The amount #{amount} is too big for us, we have only ${assets.balance}"
   end
   boss = user(settings.config['exchange']['login'])
   rewards = user(settings.config['rewards']['login'])
@@ -237,7 +252,7 @@ users of WTS, while our limits are #{limits} (daily/weekly/monthly), sorry about
       "Fee for exchange of #{bitcoin} BTC at #{address}, rate is #{rate}, fee is #{f}"
     )
     ops(log: log).push
-    tx = settings.assets.pay(address, (bitcoin * 100_000_000 * (1 - fee)).round)
+    tx = assets(log: log).pay(address, (bitcoin * 100_000_000 * (1 - fee)).round)
     log.info("Bitcoin transaction hash is #{tx}")
     settings.payouts.add(
       user.login, user.item.id, amount,
@@ -250,8 +265,8 @@ users of WTS, while our limits are #{limits} (daily/weekly/monthly), sorry about
       "with the remaining balance of #{user.wallet(&:balance)}",
       "to bitcoin address [#{address}](https://www.blockchain.com/btc/address/#{address});",
       "BTC price at the time of exchange was [$#{price.round}](https://blockchain.info/ticker);",
-      "our bitcoin assets still have [#{settings.assets.balance.round(4)} BTC](https://wts.zold.io/assets)",
-      "(worth about $#{(settings.assets.balance * price).round});",
+      "our bitcoin assets still have [#{assets.balance.round(4)} BTC](https://wts.zold.io/assets)",
+      "(worth about $#{(assets.balance * price).round});",
       "zolds were deposited to [#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id})",
       "of [#{boss.login}](https://github.com/#{boss.login}),",
       "the balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t);",
@@ -275,29 +290,31 @@ users of WTS, while our limits are #{limits} (daily/weekly/monthly), sorry about
 end
 
 get '/assets' do
+  features('see-assets')
   haml :assets, layout: :layout, locals: merged(
     page_title: 'Assets',
-    assets: settings.assets,
-    balance: settings.assets.balance,
+    assets: assets,
+    balance: assets.balance,
     price: price,
-    limit: settings.assets.balance(hot_only: true)
+    limit: assets.balance(hot_only: true)
   )
 end
 
 get '/assets-private-keys' do
   raise WTS::UserError, 'E129: You are not allowed to see this' unless vip?
   content_type 'text/plain'
-  settings.assets.disclose.map { |a| "#{a[:address]}: #{a[:pvt]}" }.join("\n")
+  assets.disclose.map { |a| "#{a[:address]}: #{a[:pvt]}" }.join("\n")
 end
 
 get '/referrals' do
+  features('see-referrals')
   haml :referrals, layout: :layout, locals: merged(
     page_title: title('referrals'),
-    referrals: settings.referrals,
+    referrals: referrals,
     fee: settings.toggles.get('referral-fee', '0.04').to_f
   )
 end
 
 def price
-  settings.zache.get(:price, lifetime: 5 * 60) { settings.assets.price }
+  settings.zache.get(:price, lifetime: 5 * 60) { assets.price }
 end

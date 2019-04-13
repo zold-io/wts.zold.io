@@ -96,7 +96,7 @@ get '/do-confirm' do
 end
 
 get '/mobile/send' do
-  prohibit('api')
+  features('api')
   phone = params[:phone]
   raise WTS::UserError, 'E159: Mobile phone number is required' if phone.nil?
   raise WTS::UserError, 'E160: Phone number can\'t be empty, format it according to E.164' if phone.empty?
@@ -122,7 +122,7 @@ get '/mobile/send' do
 end
 
 get '/mobile/token' do
-  prohibit('api')
+  features('api')
   phone = params[:phone]
   raise WTS::UserError, 'E164: Mobile phone number is required' if phone.nil?
   raise WTS::UserError, 'E165: Phone number can\'t be empty, format it according to E.164' if phone.empty?
