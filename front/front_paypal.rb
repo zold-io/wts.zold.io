@@ -19,19 +19,22 @@
 # SOFTWARE.
 
 require 'zold'
+require 'syncem'
 require_relative '../objects/paypal'
 require_relative '../objects/user_error'
 
 def paypal(log: settings.log)
-  WTS::PayPal.new(
-    {
-      email: settings.config['paypal']['email'],
-      login: settings.config['paypal']['login'],
-      password: settings.config['paypal']['password'],
-      signature: settings.config['paypal']['signature'],
-      appid: settings.config['paypal']['appid']
-    },
-    log: log
+  SyncEm.new(
+    WTS::PayPal.new(
+      {
+        email: settings.config['paypal']['email'],
+        login: settings.config['paypal']['login'],
+        password: settings.config['paypal']['password'],
+        signature: settings.config['paypal']['signature'],
+        appid: settings.config['paypal']['appid']
+      },
+      log: log
+    )
   )
 end
 
