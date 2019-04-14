@@ -73,7 +73,7 @@ settings.daemons.start('btc-monitor') do
         bnf.item.id, zld,
         "BTC exchange of #{bitcoin} at #{hash}, rate is #{rate}"
       )
-      if exists?(bnf.login)
+      if referrals.exists?(bnf.login)
         fee = settings.toggles.get('referral-fee', '0.04').to_f
         ops(boss, log: settings.log).pay(
           settings.config['exchange']['keygap'],
