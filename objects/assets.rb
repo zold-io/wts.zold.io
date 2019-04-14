@@ -50,7 +50,7 @@ class WTS::Assets
 
   # Return all addresses with private keys open.
   def disclose
-    @pgsql.exec('SELECT address, pvt FROM asset WHERE pvt IS NOT NULL').map do |r|
+    @pgsql.exec('SELECT * FROM asset WHERE pvt IS NOT NULL').map do |r|
       { address: r['address'], pvt: @codec.decrypt(r['pvt']), value: r['value'].to_i }
     end
   end
