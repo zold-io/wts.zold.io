@@ -33,4 +33,4 @@
           - if t[:value].empty?
             = '&mdash;'
           - else
-            = t[:value]
+            = t[:value].gsub(/([^ ]{4})/, '\1&shy;')
