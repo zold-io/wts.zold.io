@@ -287,4 +287,7 @@ Then, in another terminal:
 $ bundle exec ruby test/test_item.rb -n test_create_and_read
 ```
 
+Then, if you want to test the UI, open `http://localhost:4567` in your browser,
+and login, if necessary, by adding `?auth=tester` to the URL.
+
 Should work.
