@@ -387,8 +387,6 @@ get '/remotes' do
   )
 end
 
-private
-
 def rate
   settings.toggles.get('rate', '0.00025').to_f
 end
