@@ -32,7 +32,11 @@ post '/do-pay' do
   raise WTS::UserError, 'E109: Parameter "bnf" is not provided' if params[:bnf].nil?
   bnf = params[:bnf].strip
   raise WTS::UserError, 'E110: Parameter "amount" is not provided' if params[:amount].nil?
+  raise WTS::UserError, 'E201: The amount must be only digits' unless /^[0-9]+$/.match?(params[:amount])
+  raise WTS::UserError, "E202: The amount #{params[:amount]} is too big" if params[:amount].to_i > Zold::Amount.MAX
   amount = Zold::Amount.new(zld: params[:amount].to_f)
+  raise WTS::UserError, 'E203: The amount can\'t be zero' if amount.zero?
+  raise WTS::UserError, 'E204: The amount can\'t be negative' if amount.negative?
   if user.wallet_exists?
     balance = user.wallet(&:balance)
     raise WTS::UserError, "E197: Not enough funds to send #{amount} only #{balance} left" if balance < amount
