@@ -21,7 +21,9 @@
 get '/pay' do
   features('pay')
   haml :pay, layout: :layout, locals: merged(
-    page_title: title('pay')
+    page_title: title('pay'),
+    rate: rate,
+    price: price
   )
 end
 

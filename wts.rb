@@ -238,7 +238,7 @@ get '/home' do
   haml :home, layout: :layout, locals: merged(
     page_title: title,
     start: params[:start] ? Time.parse(params[:start]) : nil,
-    usd_rate: settings.zache.exists?(:rate) ? settings.zache.get(:rate)[:usd_rate] : nil
+    usd_rate: rate * price
   )
 end
 
