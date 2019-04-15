@@ -104,7 +104,7 @@ def parsed_amount
   elsif /^[0-9]+(\.[0-9]+)?$/.match?(param)
     Zold::Amount.new(zld: param.to_f)
   else
-    raise WTS::UserError, 'E201: The amount only digits or must end with "z"'
+    raise WTS::UserError, 'E201: The amount must be only digits or must end with "z"'
   end
   raise WTS::UserError, 'E203: The amount can\'t be zero' if amount.zero?
   raise WTS::UserError, 'E204: The amount can\'t be negative' if amount.negative?
