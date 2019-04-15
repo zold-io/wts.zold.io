@@ -50,7 +50,12 @@ class WTS::Assets
   # Return all addresses with private keys open.
   def disclose
     @pgsql.exec('SELECT * FROM asset WHERE pvt IS NOT NULL').map do |r|
-      { address: r['address'], pvt: @codec.decrypt(r['pvt']), value: r['value'].to_i }
+      {
+        address: r['address'],
+        login: r['login'],
+        pvt: @codec.decrypt(r['pvt']),
+        value: r['value'].to_i
+      }
     end
   end
 
@@ -127,7 +132,7 @@ class WTS::Assets
   # Get the latest block from the blockchain, scan all transactions visible
   # there and find those, which we are waiting for. Then, yield them one
   # by one if they haven't been seen yet in UTXOs.
-  def monitor(seen, max: 1)
+  def monitor(seen, max: 32)
     ours = Set.new(@pgsql.exec('SELECT address FROM asset').map { |r| r['address'] })
     block = start = @sibit.latest
     count = 0
