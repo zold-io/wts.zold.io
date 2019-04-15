@@ -37,14 +37,14 @@ class WTS::OpsTest < Minitest::Test
       remotes = Zold::Remotes.new(file: File.join(dir, 'remotes.csv'))
       remotes.clean
       login = 'jeff01'
-      item = WTS::Item.new(login, WTS::Pgsql::TEST.start, log: test_log)
+      item = WTS::Item.new(login, test_pgsql, log: test_log)
       user = WTS::User.new(login, item, wallets, log: test_log)
       user.create
       keygap = user.keygap
       user.confirm(keygap)
       friend = WTS::User.new(
         'friend',
-        WTS::Item.new('friend', WTS::Pgsql::TEST.start, log: test_log),
+        WTS::Item.new('friend', test_pgsql, log: test_log),
         wallets, log: test_log
       )
       friend.create

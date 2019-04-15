@@ -51,7 +51,6 @@ require_relative 'objects/daemons'
 require_relative 'objects/item'
 require_relative 'objects/ops'
 require_relative 'objects/payouts'
-require_relative 'objects/pgsql'
 require_relative 'objects/tokens'
 require_relative 'objects/user'
 require_relative 'objects/wts'
@@ -135,14 +134,15 @@ configure do
     file: File.join(settings.root, '.zold-wts/remotes'),
     network: ENV['RACK_ENV'] == 'test' ? 'test' : 'zold'
   )
+  cfg = File.exist?('target/pgsql-config.yml') ? YAML.load_file('target/pgsql-config.yml') : config
+  set :pgsql, Pgtk::Pool.new(
+    host: cfg['pgsql']['host'],
+    port: cfg['pgsql']['port'],
+    dbname: cfg['pgsql']['dbname'],
+    user: cfg['pgsql']['user'],
+    password: cfg['pgsql']['password']
+  ).start(4)
   set :copies, File.join(settings.root, '.zold-wts/copies')
-  set :pgsql, WTS::Pgsql.new(
-    host: settings.config['pgsql']['host'],
-    port: settings.config['pgsql']['port'],
-    dbname: settings.config['pgsql']['dbname'],
-    user: settings.config['pgsql']['user'],
-    password: settings.config['pgsql']['password']
-  ).start(1)
   set :payouts, WTS::Payouts.new(settings.pgsql, log: settings.log)
   set :daemons, WTS::Daemons.new(settings.pgsql, log: settings.log)
   set :codec, GLogin::Codec.new(config['api_secret'])

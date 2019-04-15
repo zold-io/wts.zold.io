@@ -23,7 +23,6 @@ require 'zold/txn'
 require 'zold/id'
 require 'zold/amount'
 require 'zold/json_page'
-require_relative 'pgsql'
 
 # General ledger.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)

@@ -20,7 +20,6 @@
 
 require 'zold/log'
 require 'time'
-require_relative 'pgsql'
 require_relative 'user_error'
 
 #

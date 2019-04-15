@@ -19,7 +19,6 @@
 # SOFTWARE.
 
 require 'zold/log'
-require_relative 'pgsql'
 require_relative 'user_error'
 
 #

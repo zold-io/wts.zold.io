@@ -21,7 +21,6 @@
 require 'zold/log'
 require 'sibit'
 require_relative 'wts'
-require_relative 'pgsql'
 require_relative 'user_error'
 
 # Bitcoin assets.

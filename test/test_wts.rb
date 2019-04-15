@@ -22,7 +22,6 @@ require 'minitest/autorun'
 require 'rack/test'
 require 'webmock/minitest'
 require 'zold/log'
-require_relative '../objects/pgsql'
 require_relative '../wts'
 require_relative 'test__helper'
 
@@ -98,7 +97,7 @@ class WTS::AppTest < Minitest::Test
     name = 'bill'
     login(name)
     user = WTS::User.new(
-      name, WTS::Item.new(name, WTS::Pgsql::TEST.start, log: test_log),
+      name, WTS::Item.new(name, test_pgsql, log: test_log),
       Sinatra::Application.settings.wallets, log: test_log
     )
     user.create
@@ -151,12 +150,12 @@ class WTS::AppTest < Minitest::Test
     name = 'jeff079'
     login(name)
     boss = WTS::User.new(
-      '0crat', WTS::Item.new('0crat', WTS::Pgsql::TEST.start, log: test_log),
+      '0crat', WTS::Item.new('0crat', test_pgsql, log: test_log),
       Sinatra::Application.settings.wallets, log: test_log
     )
     boss.create
     user = WTS::User.new(
-      name, WTS::Item.new(name, WTS::Pgsql::TEST.start, log: test_log),
+      name, WTS::Item.new(name, test_pgsql, log: test_log),
       Sinatra::Application.settings.wallets, log: test_log
     )
     user.create
@@ -172,7 +171,7 @@ class WTS::AppTest < Minitest::Test
         )
       )
     end
-    assets = WTS::Assets.new(WTS::Pgsql::TEST.start, log: test_log)
+    assets = WTS::Assets.new(test_pgsql, log: test_log)
     address = assets.acquire(user.login)
     assets.set(address, 10_000_000)
     post(

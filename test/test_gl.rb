@@ -22,7 +22,6 @@ require 'minitest/autorun'
 require 'webmock/minitest'
 require 'zold/remotes'
 require_relative 'test__helper'
-require_relative '../objects/pgsql'
 require_relative '../objects/gl'
 
 class WTS::GlTest < Minitest::Test
@@ -57,7 +56,7 @@ class WTS::GlTest < Minitest::Test
         )
       )
       remotes.add('localhost', 4096)
-      gl = WTS::Gl.new(WTS::Pgsql::TEST.start, log: test_log)
+      gl = WTS::Gl.new(test_pgsql, log: test_log)
       gl.scan(remotes) do |t|
         assert_equal(id, t[:id], t)
         assert_equal("#{t[:source]}:#{t[:id]}", t[:tid], t)
@@ -74,7 +73,7 @@ class WTS::GlTest < Minitest::Test
   end
 
   def test_calc_volume
-    gl = WTS::Gl.new(WTS::Pgsql::TEST.start, log: test_log)
+    gl = WTS::Gl.new(test_pgsql, log: test_log)
     assert(!gl.volume(4).nil?)
   end
 end

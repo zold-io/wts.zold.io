@@ -23,7 +23,6 @@ require 'webmock/minitest'
 require 'zold/remotes'
 require 'zold/amount'
 require_relative 'test__helper'
-require_relative '../objects/pgsql'
 require_relative '../objects/payables'
 
 class WTS::PayablesTest < Minitest::Test
@@ -53,7 +52,7 @@ class WTS::PayablesTest < Minitest::Test
           )
         end
       end
-      payables = WTS::Payables.new(WTS::Pgsql::TEST.start, remotes, log: test_log)
+      payables = WTS::Payables.new(test_pgsql, remotes, log: test_log)
       payables.discover
       assert_equal(wallets.count, payables.fetch.count)
       payables.update(max: wallets.count)

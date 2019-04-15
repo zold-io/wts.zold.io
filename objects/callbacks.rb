@@ -21,7 +21,6 @@
 require 'time'
 require 'zold/http'
 require 'zold/id'
-require_relative 'pgsql'
 require_relative 'user_error'
 
 # Callbacks.

@@ -18,7 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require_relative 'pgsql'
+require 'zold/log'
 
 # Payouts.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)

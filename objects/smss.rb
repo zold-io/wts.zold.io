@@ -19,7 +19,6 @@
 # SOFTWARE.
 
 require 'zold/http'
-require_relative 'pgsql'
 require_relative 'user_error'
 
 # SMS messages.

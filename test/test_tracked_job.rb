@@ -28,7 +28,7 @@ class WTS::TrackedJobTest < Minitest::Test
   def test_simple_call
     done = false
     WebMock.allow_net_connect!
-    jobs = WTS::Jobs.new(WTS::Pgsql::TEST.start, log: test_log)
+    jobs = WTS::Jobs.new(test_pgsql, log: test_log)
     id = jobs.start('me')
     job = WTS::TrackedJob.new(
       proc { done = true },

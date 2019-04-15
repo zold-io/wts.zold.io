@@ -36,7 +36,7 @@ class WTS::UserTest < Minitest::Test
       wallets = Zold::Wallets.new(File.join(dir, 'wallets'))
       login = 'jeffrey'
       user = WTS::User.new(
-        login, WTS::Item.new(login, WTS::Pgsql::TEST.start, log: test_log),
+        login, WTS::Item.new(login, test_pgsql, log: test_log),
         wallets, log: test_log
       )
       user.create

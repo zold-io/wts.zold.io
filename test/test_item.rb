@@ -25,13 +25,12 @@ require 'zold/http'
 require 'zold/id'
 require 'zold/key'
 require_relative '../objects/item'
-require_relative '../objects/pgsql'
 require_relative 'test__helper'
 
 class WTS::ItemTest < Minitest::Test
   def test_create_and_read
     WebMock.allow_net_connect!
-    item = WTS::Item.new("jeff#{rand(999)}", WTS::Pgsql::TEST.start, log: test_log)
+    item = WTS::Item.new("jeff#{rand(999)}", test_pgsql, log: test_log)
     assert(!item.exists?)
     pvt = OpenSSL::PKey::RSA.new(2048)
     id = Zold::Id.new
@@ -42,7 +41,7 @@ class WTS::ItemTest < Minitest::Test
 
   def test_attach_tags
     WebMock.allow_net_connect!
-    item = WTS::Item.new("jeff#{rand(999)}", WTS::Pgsql::TEST.start, log: test_log)
+    item = WTS::Item.new("jeff#{rand(999)}", test_pgsql, log: test_log)
     item.create(Zold::Id.new, Zold::Key.new(text: OpenSSL::PKey::RSA.new(2048).to_pem))
     tag = 'hey-you'
     assert(!item.tags.exists?(tag))
@@ -52,7 +51,7 @@ class WTS::ItemTest < Minitest::Test
 
   def test_wipes_keygap
     WebMock.allow_net_connect!
-    item = WTS::Item.new("jeff#{rand(999)}", WTS::Pgsql::TEST.start, log: test_log)
+    item = WTS::Item.new("jeff#{rand(999)}", test_pgsql, log: test_log)
     pvt = OpenSSL::PKey::RSA.new(2048)
     id = Zold::Id.new
     pem = pvt.to_pem

@@ -21,13 +21,12 @@
 require 'minitest/autorun'
 require 'webmock/minitest'
 require_relative 'test__helper'
-require_relative '../objects/pgsql'
 require_relative '../objects/toggles'
 
 class WTS::TogglesTest < Minitest::Test
   def test_sets_and_gets
     WebMock.allow_net_connect!
-    toggles = WTS::Toggles.new(WTS::Pgsql::TEST.start, log: test_log)
+    toggles = WTS::Toggles.new(test_pgsql, log: test_log)
     key = 'hey'
     assert_equal('', toggles.get(key))
     toggles.set(key, 'hello, world!')

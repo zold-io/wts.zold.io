@@ -22,7 +22,6 @@ require 'raven'
 require 'backtrace'
 require 'zold/log'
 require_relative 'wts'
-require_relative 'pgsql'
 require_relative 'user_error'
 
 #

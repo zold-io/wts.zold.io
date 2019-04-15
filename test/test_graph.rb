@@ -27,7 +27,7 @@ require_relative '../objects/graph'
 class WTS::GraphTest < Minitest::Test
   def test_renders_svg
     WebMock.allow_net_connect!
-    ticks = WTS::Ticks.new(WTS::Pgsql::TEST.start, log: test_log)
+    ticks = WTS::Ticks.new(test_pgsql, log: test_log)
     ticks.add('Price' => 1, 'time' => tme(-1))
     ticks.add('Price' => 3, 'time' => tme(-2))
     ticks.add('Price' => 2, 'time' => tme(-10))

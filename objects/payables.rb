@@ -24,7 +24,6 @@ require 'zold/amount'
 require 'zold/id'
 require 'zold/age'
 require 'zold/json_page'
-require_relative 'pgsql'
 require_relative 'user_error'
 
 # Payables.

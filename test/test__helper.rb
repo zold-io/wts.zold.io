@@ -32,12 +32,25 @@ end
 require 'zold/hands'
 Zold::Hands.start
 
+require 'yaml'
 require 'minitest/autorun'
+require 'pgtk/pool'
 module Minitest
   class Test
     def test_log
       require 'zold/log'
       @test_log ||= ENV['TEST_QUIET_LOG'] ? Zold::Log::NULL : Zold::Log::VERBOSE
+    end
+
+    def test_pgsql
+      config = YAML.load_file('target/pgsql-config.yml')
+      @test_pgsql ||= Pgtk::Pool.new(
+        host: config['pgsql']['host'],
+        port: config['pgsql']['port'].to_i,
+        dbname: config['pgsql']['dbname'],
+        user: config['pgsql']['user'],
+        password: config['pgsql']['password']
+      ).start
     end
   end
 end
