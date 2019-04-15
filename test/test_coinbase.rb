@@ -31,7 +31,7 @@ class WTS::CoinbaseTest < Minitest::Test
     )
     stub_request(:post, 'https://api.coinbase.com/v2/accounts//transactions').to_return(status: 200)
     bank = WTS::Coinbase.new('key', 'secret', 'account', log: test_log)
-    bank.send('1N1R2HP9JD4LvAtp7rTkpRqF19GH7PH2ZF', 1.0, 'test')
+    bank.pay('1N1R2HP9JD4LvAtp7rTkpRqF19GH7PH2ZF', 1.0, 'test')
   end
 
   # @todo #91:30min This unit test doesn't work for some reason. I can't
@@ -51,6 +51,6 @@ class WTS::CoinbaseTest < Minitest::Test
     skip
     WebMock.allow_net_connect!
     bank = WTS::Coinbase.new('...', '...', '...', log: test_log)
-    bank.send('16KU4QyyEDXZUeiAPMEj4HWz4V57sLLuL3', 3.3, 'Just a test')
+    bank.pay('16KU4QyyEDXZUeiAPMEj4HWz4V57sLLuL3', 3.3, 'Just a test')
   end
 end

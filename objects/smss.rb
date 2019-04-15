@@ -28,7 +28,7 @@ require_relative 'user_error'
 class WTS::Smss
   # Fake
   class Fake
-    def send(_phone, _msg)
+    def deliver(_phone, _msg)
       # Nothing
     end
   end
@@ -40,7 +40,7 @@ class WTS::Smss
   end
 
   # Send a new SMS
-  def send(phone, msg)
+  def deliver(phone, msg)
     recent = @pgsql.exec(
       'SELECT COUNT(*) FROM sms WHERE phone = $1 AND created > NOW() - INTERVAL \'4 HOURS\'',
       [phone]

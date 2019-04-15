@@ -35,7 +35,7 @@ class WTS::PayPal
   end
 
   # Send PayPal
-  def send(email, usd, details)
+  def pay(email, usd, details)
     require 'openssl'
     OpenSSL::SSL.const_set(:VERIFY_PEER, OpenSSL::SSL::VERIFY_NONE)
     gateway = ActiveMerchant::Billing::PaypalAdaptivePayment.new(

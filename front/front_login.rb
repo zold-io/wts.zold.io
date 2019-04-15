@@ -113,7 +113,7 @@ get '/mobile/send' do
   else
     settings.mcodes.set(phone, mcode)
   end
-  cid = settings.smss.send(phone, "Your authorization code for wts.zold.io is: #{mcode}")
+  cid = settings.smss.deliver(phone, "Your authorization code for wts.zold.io is: #{mcode}")
   if params[:noredirect]
     content_type 'text/plain'
     return cid.to_s

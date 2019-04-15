@@ -119,7 +119,7 @@ users of WTS, while our limits are #{limits} (daily/weekly/monthly), sorry about
       "Fee for exchange of #{usd} PayPal, rate is #{rate}, fee is #{f}"
     )
     ops(log: log).push
-    paypal(log: log).send(
+    paypal(log: log).pay(
       email,
       (usd * (1.0 - f)).round(2),
       "Zerocracy development, TID #{user.item.id}:#{txn.id}"

@@ -38,7 +38,7 @@ class WTS::Coinbase
       # Nothing
     end
 
-    def send(_address, _usd, _details)
+    def pay(_address, _usd, _details)
       # Nothing
     end
   end
@@ -63,7 +63,7 @@ class WTS::Coinbase
   end
 
   # Send BTC.
-  def send(address, usd, details)
+  def pay(address, usd, details)
     acc = Coinbase::Wallet::Client.new(api_key: @key, api_secret: @secret).account(@account)
     response = acc.send(to: address, amount: usd, currency: 'USD', description: details)
     @log.info("Coinbase payment has been sent, their transaction ID is #{response['id']}")
