@@ -93,7 +93,14 @@ class WTS::Assets
   # will be called.
   def acquire(login = nil)
     row = if login.nil?
-      @pgsql.exec('SELECT address FROM asset WHERE login IS NULL AND pvt IS NOT NULL')[0]
+      @pgsql.exec(
+        [
+          'SELECT address FROM asset',
+          'WHERE login IS NULL AND pvt IS NOT NULL',
+          'ORDER BY RANDOM()',
+          'LIMIT 1 OFFSET 7'
+        ].join(' ')
+      )[0]
     else
       @pgsql.exec('SELECT address FROM asset WHERE login = $1', [login])[0]
     end

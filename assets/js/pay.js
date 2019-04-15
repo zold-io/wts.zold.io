@@ -26,7 +26,7 @@ function wts_recalc(rate, price) {
   'use strict';
   var txt = $('#zld').val();
   var zld = parseFloat(txt);
-  if (zld === NaN) {
+  if (isNaN(zld)) {
     $('#out').text('');
   } else {
     var btc = zld * rate;

@@ -44,9 +44,9 @@ class WTS::AssetsTest < Minitest::Test
   def test_orphan_address
     WebMock.allow_net_connect!
     assets = WTS::Assets.new(test_pgsql, log: test_log)
-    address = assets.acquire
-    assert(!address.nil?)
-    assert_equal(address, assets.acquire)
+    addresses = Set.new
+    40.times { addresses << assets.acquire }
+    assert_equal(8, addresses.count)
   end
 
   def test_add_cold_asset

@@ -58,62 +58,64 @@ def referrals(log: settings.log)
   WTS::Referrals.new(settings.pgsql, log: log)
 end
 
-settings.daemons.start('btc-monitor') do
-  seen = settings.toggles.get('latestblock', '')
-  seen = assets.monitor(seen) do |address, hash, satoshi|
-    bitcoin = (satoshi.to_f / 100_000_000).round(8)
-    if assets.owned?(address)
-      zld = Zold::Amount.new(zld: bitcoin / rate)
-      bnf = user(assets.owner(address))
-      boss = user(settings.config['exchange']['login'])
-      settings.log.info("Accepting #{bitcoin} bitcoins from #{address}...")
-      ops(boss, log: settings.log).pull
-      ops(boss, log: settings.log).pay(
-        settings.config['exchange']['keygap'],
-        bnf.item.id, zld,
-        "BTC exchange of #{bitcoin} at #{hash}, rate is #{rate}"
-      )
-      if referrals.exists?(bnf.login)
-        fee = settings.toggles.get('referral-fee', '0.04').to_f
+unless ENV['RACK_ENV'] == 'test'
+  settings.daemons.start('btc-monitor') do
+    seen = settings.toggles.get('latestblock', '')
+    seen = assets.monitor(seen) do |address, hash, satoshi|
+      bitcoin = (satoshi.to_f / 100_000_000).round(8)
+      if assets.owned?(address)
+        zld = Zold::Amount.new(zld: bitcoin / rate)
+        bnf = user(assets.owner(address))
+        boss = user(settings.config['exchange']['login'])
+        settings.log.info("Accepting #{bitcoin} bitcoins from #{address}...")
+        ops(boss, log: settings.log).pull
         ops(boss, log: settings.log).pay(
           settings.config['exchange']['keygap'],
-          user(referrals.ref(bnf.login)).item.id,
-          zld * fee, "#{(fee * 100).round(2)} referral fee for BTC exchange"
+          bnf.item.id, zld,
+          "BTC exchange of #{bitcoin} at #{hash}, rate is #{rate}"
+        )
+        if referrals.exists?(bnf.login)
+          fee = settings.toggles.get('referral-fee', '0.04').to_f
+          ops(boss, log: settings.log).pay(
+            settings.config['exchange']['keygap'],
+            user(referrals.ref(bnf.login)).item.id,
+            zld * fee, "#{(fee * 100).round(2)} referral fee for BTC exchange"
+          )
+        end
+        ops(boss, log: settings.log).push
+        settings.telepost.spam(
+          "In: #{format('%.06f', bitcoin)} BTC",
+          "[exchanged](https://blog.zold.io/2018/12/09/btc-to-zld.html) to **#{zld}**",
+          "by #{title_md(bnf)}",
+          "in [#{hash}](https://www.blockchain.com/btc/tx/#{hash.gsub(/:[0-9]+$/, '')})",
+          "via [#{address}](https://www.blockchain.com/btc/address/#{address}),",
+          "to the wallet [#{bnf.item.id}](http://www.zold.io/ledger.html?wallet=#{bnf.item.id})",
+          "with the balance of #{bnf.wallet(&:balance)};",
+          "BTC price at the moment of exchange was [$#{price}](https://blockchain.info/ticker);",
+          "the payer is #{title_md(boss)} with the wallet",
+          "[#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id}),",
+          "the remaining balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t)"
+        )
+      elsif assets.cold?(address)
+        settings.telepost.spam(
+          "#{format('%.06f', bitcoin)} BTC arrived to",
+          "[#{address}](https://www.blockchain.com/btc/address/#{address})",
+          "which doesn't belong to anyone,",
+          "tx hash is [#{hash}](https://www.blockchain.com/btc/tx/#{hash.gsub(/:[0-9]+$/, '')});",
+          'deposited to our fund; many thanks to whoever it was!'
+        )
+      else
+        settings.telepost.spam(
+          "#{format('%.06f', bitcoin)} BTC returned back to",
+          "[#{address}](https://www.blockchain.com/btc/address/#{address})",
+          'as a change from the previous payment,',
+          "tx hash is [#{hash}](https://www.blockchain.com/btc/tx/#{hash.gsub(/:[0-9]+$/, '')})"
         )
       end
-      ops(boss, log: settings.log).push
-      settings.telepost.spam(
-        "In: #{format('%.06f', bitcoin)} BTC",
-        "[exchanged](https://blog.zold.io/2018/12/09/btc-to-zld.html) to **#{zld}**",
-        "by #{title_md(bnf)}",
-        "in [#{hash}](https://www.blockchain.com/btc/tx/#{hash.gsub(/:[0-9]+$/, '')})",
-        "via [#{address}](https://www.blockchain.com/btc/address/#{address}),",
-        "to the wallet [#{bnf.item.id}](http://www.zold.io/ledger.html?wallet=#{bnf.item.id})",
-        "with the balance of #{bnf.wallet(&:balance)};",
-        "BTC price at the moment of exchange was [$#{price}](https://blockchain.info/ticker);",
-        "the payer is #{title_md(boss)} with the wallet",
-        "[#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id}),",
-        "the remaining balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t)"
-      )
-    elsif assets.cold?(address)
-      settings.telepost.spam(
-        "#{format('%.06f', bitcoin)} BTC arrived to",
-        "[#{address}](https://www.blockchain.com/btc/address/#{address})",
-        "which doesn't belong to anyone,",
-        "tx hash is [#{hash}](https://www.blockchain.com/btc/tx/#{hash.gsub(/:[0-9]+$/, '')});",
-        'deposited to our fund; many thanks to whoever it was!'
-      )
-    else
-      settings.telepost.spam(
-        "#{format('%.06f', bitcoin)} BTC returned back to",
-        "[#{address}](https://www.blockchain.com/btc/address/#{address})",
-        'as a change from the previous payment,',
-        "tx hash is [#{hash}](https://www.blockchain.com/btc/tx/#{hash.gsub(/:[0-9]+$/, '')})"
-      )
+      assets.see(address, hash)
     end
-    assets.see(address, hash)
+    settings.toggles.set('latestblock', seen)
   end
-  settings.toggles.set('latestblock', seen)
 end
 
 get '/funded' do
