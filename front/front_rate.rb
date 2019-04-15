@@ -55,8 +55,8 @@ settings.daemons.start('snapshot', 24 * 60 * 60) do
       "  Rate: [#{format('%.08f', rate)}](https://wts.zold.io/rate) ($#{(price * rate).round(2)})",
       "  Coverage: [#{format('%.08f', coverage)}](https://wts.zold.io/rate) \
 / [#{(100 * coverage / rate).round}%](http://papers.zold.io/fin-model.pdf)",
-      "  BTC fund: [#{settings.assets.balance.round(4)}](https://wts.zold.io/rate) \
-($#{(price * settings.assets.balance).round})",
+      "  BTC fund: [#{assets.balance.round(4)}](https://wts.zold.io/rate) \
+($#{(price * assets.balance).round})",
       "\nThanks for staying with us!"
     ].join("\n")
   )
@@ -77,7 +77,7 @@ get '/rate' do
         wallets: settings.wallets, remotes: settings.remotes, copies: settings.copies, log: settings.log
       ).run(['pull', Zold::Id::ROOT.to_s, "--network=#{network}"])
       hash = {
-        bank: settings.assets.balance,
+        bank: assets.balance,
         boss: settings.wallets.acq(boss.item.id, &:balance),
         root: settings.wallets.acq(Zold::Id::ROOT, &:balance) * -1,
         boss_wallet: boss.item.id
