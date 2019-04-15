@@ -186,9 +186,6 @@ Make sure you always use the `noredirect=1` query parameter. Without it
 you may get unpredictable response codes, like 302/303, and an HTML document
 in the response body.
 
-In any asychronous request you may specify a `callback` URI, which will
-be triggered if the request finished successfully.
-
 ## Callback API
 
 If you want to integrate Zold into your website or mobile app, where your

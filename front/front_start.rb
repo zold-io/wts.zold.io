@@ -73,10 +73,6 @@ get '/create' do
         job_link(jid)
       )
     end
-    callback(
-      login: user.login,
-      wallet: user.item.id
-    )
   end
   flash('/', 'Your wallet is created and will be pushed soon')
 end
@@ -93,11 +89,6 @@ get '/pull' do
     if !user.wallet_exists? || params[:force]
       ops(log: log).remove
       ops(log: log).pull
-      callback(
-        login: user.login,
-        wallet: user.item.id,
-        balance: user.wallet(&:balance).to_i
-      )
     end
   end
   flash('/', "Your wallet #{user.item.id} will be pulled soon")

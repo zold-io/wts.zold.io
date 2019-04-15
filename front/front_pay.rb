@@ -38,7 +38,10 @@ post '/do-pay' do
   end
   raise WTS::UserError, 'E111: Parameter "details" is not provided' if params[:details].nil?
   details = params[:details]
-  raise WTS::UserError, "E118: Invalid details \"#{details}\"" unless details =~ %r{^[a-zA-Z0-9\ @!?*_\-.:,'/]+$}
+  unless %r{^[a-zA-Z0-9\ @!?*_\-.:,'/]+$}.match?(details)
+    raise WTS::UserError, "E118: Invalid details #{details.inspect}, \
+see the White Paper, only a limited subset of characters is allowed: [a-zA-Z0-9@!?*_-,:,'/]"
+  end
   if /^[a-f0-9]{16}$/.match?(bnf)
     bnf = Zold::Id.new(bnf)
     raise WTS::UserError, 'E112: You can\'t pay yourself' if bnf == user.item.id
@@ -89,14 +92,6 @@ post '/do-pay' do
       "\"#{safe_md(details)}\";",
       job_link(jid)
     )
-    callback(
-      tid: "#{user.item.id}:#{txn.id}",
-      login: user.login,
-      prefix: txn.prefix,
-      source: txn.bnf.to_s,
-      amount: txn.amount.to_i,
-      details: txn.details
-    )
   end
   flash('/', "Payment has been sent to #{bnf} for #{amount}")
 end
@@ -109,7 +104,7 @@ def parsed_amount
   elsif /^[0-9]+(\.[0-9]+)?$/.match?(param)
     Zold::Amount.new(zld: param.to_f)
   else
-    raise WTS::UserError, 'E201: The amount only digits or must end with "z"' unless /^[0-9]+z?$/.match?(param)
+    raise WTS::UserError, 'E201: The amount only digits or must end with "z"'
   end
   raise WTS::UserError, 'E203: The amount can\'t be zero' if amount.zero?
   raise WTS::UserError, 'E204: The amount can\'t be negative' if amount.negative?

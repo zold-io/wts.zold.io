@@ -546,17 +546,6 @@ def github_exists?(login)
   Zold::Http.new(uri: "https://api.github.com/users/#{login}").get.status == 200
 end
 
-def callback(args)
-  uri = params[:callback]
-  return if uri.nil?
-  uri = URI.parse(uri)
-  query = URI.decode_www_form(String(uri.query))
-  args.each { |k, v| query << [k, v] }
-  uri.query = URI.encode_www_form(query)
-  res = Zold::Http.new(uri: uri.to_s).get
-  raise "198: Callback failure with HTTP code #{res.status} at #{uri}" unless res.status == 200
-end
-
 require_relative 'front/front_bonuses'
 require_relative 'front/front_btc'
 require_relative 'front/front_callbacks'
