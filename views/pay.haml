@@ -18,20 +18,21 @@
         %a{href: 'https://blog.zold.io/2019/03/30/keygap-is-lost.html'} lost?
     %input{type: 'password', name: 'keygap', autocomplete: 'off', required: true, tabindex: 1, autofocus: true}
     %label
-      Send ZLD to (either wallet ID,
+      Send ZLD to (either a wallet ID,
+      an
       = succeed ',' do
         %a{href: 'https://blog.zold.io/2018/08/06/invoices.html'} invoice
       %a{href: 'https://github.com'} GitHub
       ID stated with
       = succeed ',' do
         %code @
-      or mobile phone number started with
+      or a mobile phone number started with
       = succeed '):' do
         %code +
-    %input{type: 'text', name: 'bnf', maxlength: 128, size: 35, placeholder: 'e.g. "@yegor256"', autocomplete: 'off', required: true, tabindex: 2, oninput: "wts_recalc(#{rate.round(8)}, #{price.round(2)});"}
+    %input{type: 'text', name: 'bnf', maxlength: 128, size: 35, placeholder: 'e.g. "@yegor256"', autocomplete: 'off', required: true, tabindex: 2}
     %label
       The amount to pay, ZLD:
-    %input{type: 'text', id: 'zld', name: 'amount', maxlength: 32, size: 10, placeholder: 'e.g. "14.95"', autocomplete: 'off', required: true, tabindex: 3}
+    %input{type: 'text', id: 'zld', name: 'amount', maxlength: 32, size: 10, placeholder: 'e.g. "14.95"', autocomplete: 'off', required: true, tabindex: 3, oninput: "wts_recalc(#{rate.round(8)}, #{price.round(2)});"}
     %span.gray.small{id: 'out'}
     %label
       Payment details:
