@@ -54,6 +54,9 @@ X-Zold-Wts: user-111222333444
 bnf=yegor256&amount=19.99&details=For+the+pizza&keygap=84Hjsow9
 ```
 
+If you want to send zents, add `z` to the end of the amount, for example:
+`8900000z`.
+
 You can do the same from the command line, using
 [curl](https://en.wikipedia.org/wiki/CURL):
 

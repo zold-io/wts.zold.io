@@ -31,12 +31,7 @@ post '/do-pay' do
   features('pay')
   raise WTS::UserError, 'E109: Parameter "bnf" is not provided' if params[:bnf].nil?
   bnf = params[:bnf].strip
-  raise WTS::UserError, 'E110: Parameter "amount" is not provided' if params[:amount].nil?
-  raise WTS::UserError, 'E201: The amount must be only digits' unless /^[0-9]+$/.match?(params[:amount])
-  raise WTS::UserError, "E202: The amount #{params[:amount]} is too big" if params[:amount].to_i > Zold::Amount.MAX
-  amount = Zold::Amount.new(zld: params[:amount].to_f)
-  raise WTS::UserError, 'E203: The amount can\'t be zero' if amount.zero?
-  raise WTS::UserError, 'E204: The amount can\'t be negative' if amount.negative?
+  amount = parsed_amount
   if user.wallet_exists?
     balance = user.wallet(&:balance)
     raise WTS::UserError, "E197: Not enough funds to send #{amount} only #{balance} left" if balance < amount
@@ -104,4 +99,19 @@ post '/do-pay' do
     )
   end
   flash('/', "Payment has been sent to #{bnf} for #{amount}")
+end
+
+def parsed_amount
+  raise WTS::UserError, 'E110: Parameter "amount" is not provided' if params[:amount].nil?
+  param = params[:amount]
+  amount = if /^[0-9]+z$/.match?(param)
+    Zold::Amount.new(zents: param.to_i)
+  elsif /^[0-9]+(\.[0-9]+)?$/.match?(param)
+    Zold::Amount.new(zld: param.to_f)
+  else
+    raise WTS::UserError, 'E201: The amount only digits or must end with "z"' unless /^[0-9]+z?$/.match?(param)
+  end
+  raise WTS::UserError, 'E203: The amount can\'t be zero' if amount.zero?
+  raise WTS::UserError, 'E204: The amount can\'t be negative' if amount.negative?
+  amount
 end
