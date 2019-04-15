@@ -113,7 +113,7 @@ class WTS::Assets
         'INSERT INTO asset (address, login, pvt) VALUES ($1, $2, $3)',
         [address, login, encrypted]
       )
-      yield(address, encrypted) if block_given?
+      yield(login, address, encrypted) if block_given?
       @log.info("Bitcoin address #{address} acquired by #{login.inspect}")
       address
     else

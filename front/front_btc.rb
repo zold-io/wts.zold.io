@@ -164,10 +164,11 @@ end
 
 get '/btc-to-zld' do
   features('btc', 'buy-btc')
-  address = assets.acquire(confirmed_user.login) do |a, encrypted|
+  address = assets.acquire(confirmed_user.login) do |u, a, k|
     settings.telepost.spam(
-      "A new bitcoin address [#{a}](https://www.blockchain.com/btc/address/#{a}) generated",
-      "with this private key (it is encrypted):\n\n```\n#{encrypted.gsub(/(?<=\G.{24})/, "\n")}\n```"
+      "A new Bitcoin address [#{a}](https://www.blockchain.com/btc/address/#{a}) generated",
+      u.nil? ? 'as a storage for change' : 'by a user',
+      "with this private key (it is encrypted):\n\n```\n#{k.gsub(/(?<=\G.{24})/, "\n")}\n```"
     )
   end
   headers['X-Zold-BtcAddress'] = address
