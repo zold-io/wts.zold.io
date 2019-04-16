@@ -132,7 +132,7 @@ GEM
       multi_json (~> 1.0)
       xml-simple
     pg (1.1.4)
-    pgtk (0.2.1)
+    pgtk (0.2.2)
       backtrace (~> 0.3)
       pg (~> 1.1)
       random-port (~> 0.3)
@@ -295,7 +295,7 @@ DEPENDENCIES
   haml (= 5.0.4)
   minitest (= 5.11.3)
   paypal-sdk-rest (= 1.7.3)
-  pgtk (= 0.2.1)
+  pgtk (= 0.2.2)
   rack (= 2.0.6)
   rack-ssl (= 1.4.1)
   rack-test (= 1.1.0)

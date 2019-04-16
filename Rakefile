@@ -74,7 +74,7 @@ end
 require 'pgtk/liquibase_task'
 Pgtk::LiquibaseTask.new(liquibase: :pgsql) do |t|
   t.master = 'liquibase/master.xml'
-  t.yaml = 'target/pgsql-config.yml'
+  t.yaml = ['target/pgsql-config.yml', 'config.yml']
 end
 
 task(run: :liquibase) do
