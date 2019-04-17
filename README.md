@@ -220,7 +220,7 @@ with the following query arguments:
 
 Your callback has to return `200` and `OK` as a text. Unless it happens,
 our server will send you another `GET` request in 5 minutes and will
-keep doing that for 4 hours. Then it will give up.
+keep doing that for 24 hours. Then it will give up, and will be deleted.
 
 If your callback is never matched, it will be removed from the system
 in 24 hours (unless you set `forever` to `true`).

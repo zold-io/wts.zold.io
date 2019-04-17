@@ -162,7 +162,7 @@ prefix \"#{prefix}\", regexp #{regexp}, and URI: #{uri}")
     q = [
       'SELECT callback.* FROM callback',
       'JOIN match ON match.callback = callback.id',
-      'WHERE match.created < NOW() - INTERVAL \'4 HOURS\''
+      'WHERE match.created < NOW() - INTERVAL \'24 HOURS\''
     ].join(' ')
     @pgsql.exec(q).each do |r|
       c = map(r)
