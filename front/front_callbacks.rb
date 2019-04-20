@@ -108,7 +108,12 @@ get '/wait-for' do
   wallet = params[:wallet] || confirmed_user.item.id.to_s
   prefix = params[:prefix]
   raise WTS::UserError, 'E120: The parameter "prefix" is mandatory' if prefix.nil?
-  regexp = params[:regexp] ? Regexp.new(params[:regexp]) : /^.*$/
+  regexp = /^.*$/
+  begin
+    regexp = Regexp.new(params[:regexp]) if params[:regexp]
+  rescue RegexpError => e
+    raise WTS::UserError, "E205: Regular expression #{params[:regexp].inspect} is not valid: #{e.message}"
+  end
   uri = URI(params[:uri])
   raise WTS::UserError, 'E121: The parameter "uri" is mandatory' if uri.nil?
   id = settings.callbacks.add(
