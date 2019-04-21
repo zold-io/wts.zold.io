@@ -313,7 +313,7 @@ get '/assets' do
   features('see-assets')
   haml :assets, layout: :layout, locals: merged(
     page_title: 'Assets',
-    assets: assets,
+    assets: assets.all(show_empty: params[:empty]),
     balance: assets.balance,
     price: price,
     limit: assets.balance(hot_only: true)
@@ -337,4 +337,12 @@ end
 
 def price
   settings.zache.get(:price, lifetime: 5 * 60) { assets.price }
+end
+
+def register_referral(login)
+  return unless cookies[:ref] && !referrals.exists?(login)
+  referrals.register(
+    login, cookies[:ref],
+    source: cookies[:utm_source], medium: cookies[:utm_medium], campaign: cookies[:utm_campaign]
+  )
 end

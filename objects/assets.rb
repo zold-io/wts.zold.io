@@ -35,8 +35,8 @@ class WTS::Assets
     @codec = codec
   end
 
-  def all
-    @pgsql.exec('SELECT * FROM asset WHERE value > 0').map do |r|
+  def all(show_empty: false)
+    @pgsql.exec('SELECT * FROM asset' + (show_empty ? '' : ' WHERE value > 0')).map do |r|
       {
         address: r['address'],
         login: r['login'],

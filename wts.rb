@@ -534,14 +534,6 @@ def job_link(jid)
   "full log is [here](http://wts.zold.io/output?id=#{jid})"
 end
 
-def register_referral(login)
-  return unless cookies[:ref] && !settings.referrals.exists?(login)
-  settings.referrals.register(
-    login, cookies[:ref],
-    source: cookies[:utm_source], medium: cookies[:utm_medium], campaign: cookies[:utm_campaign]
-  )
-end
-
 def github_exists?(login)
   Zold::Http.new(uri: "https://api.github.com/users/#{login}").get.status == 200
 end

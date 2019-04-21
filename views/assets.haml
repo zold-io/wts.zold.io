@@ -12,10 +12,10 @@
   %p
     %a{href: '/assets-private-keys'} Click here
     to see all private keys.
+    %a{href: '?empty=true'} Click here
+    to see empty wallets too.
 
-- list = assets.all
-
-- if list.empty?
+- if assets.empty?
   %p
     The list is empty. Most probably there is something wrong.
     Please,
@@ -47,7 +47,7 @@
           Updated
         %th
     %tbody
-      - list.each do |a|
+      - assets.each do |a|
         %tr
           %td
             %a{href: "https://www.blockchain.com/btc/address/#{a[:address]}"}= a[:address].gsub(/([^ ]{4})/, '\1&shy;')
