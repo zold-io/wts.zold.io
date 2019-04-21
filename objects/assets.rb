@@ -83,7 +83,7 @@ class WTS::Assets
 
   # Recheck the blockchain and update balances.
   def reconcile
-    all.each do |a|
+    all(show_empty: true).each do |a|
       after = @sibit.balance(a[:address])
       if after != a[:value]
         set(a[:address], after)
