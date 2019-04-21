@@ -59,6 +59,15 @@ def referrals(log: settings.log)
 end
 
 unless ENV['RACK_ENV'] == 'test'
+  settings.daemons.start('btc-reconcile', 5 * 60) do
+    assets.reconcile do |address, before, after|
+      settings.telepost.spam(
+        "The balance at [#{address}](https://www.blockchain.com/btc/address/#{address})",
+        "was changed from #{format('%.06f', before)} to #{format('%.06f', after)};",
+        "our bitcoin assets have [#{assets.balance.round(4)} BTC](https://wts.zold.io/assets)"
+      )
+    end
+  end
   settings.daemons.start('btc-monitor') do
     seen = settings.toggles.get('latestblock', '')
     seen = assets.monitor(seen) do |address, hash, satoshi|

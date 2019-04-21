@@ -81,6 +81,17 @@ class WTS::Assets
     @sibit.price
   end
 
+  # Recheck the blockchain and update balances.
+  def reconcile
+    all.each do |a|
+      after = @sibit.balance(a[:address])
+      if after != a[:value]
+        set(a[:address], after)
+        yield(a[:address], a[:value], after)
+      end
+    end
+  end
+
   # Get total BTC balance, in BTC.
   def balance(hot_only: false)
     @pgsql.exec(
