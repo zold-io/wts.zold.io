@@ -63,7 +63,7 @@ unless ENV['RACK_ENV'] == 'test'
     assets.reconcile do |address, before, after|
       settings.telepost.spam(
         "The balance at [#{address}](https://www.blockchain.com/btc/address/#{address})",
-        "was changed from #{format('%.06f', before)} to #{format('%.06f', after)};",
+        "was changed from #{before} to #{after} satoshi;",
         "our bitcoin assets have [#{assets.balance.round(4)} BTC](https://wts.zold.io/assets)"
       )
     end
