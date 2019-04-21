@@ -36,7 +36,7 @@ class WTS::Assets
   end
 
   def all(show_empty: false)
-    @pgsql.exec('SELECT * FROM asset' + (show_empty ? '' : ' WHERE value > 0')).map do |r|
+    @pgsql.exec('SELECT * FROM asset' + (show_empty ? '' : ' WHERE value > 0') + ' ORDER BY value DESC').map do |r|
       {
         address: r['address'],
         login: r['login'],
