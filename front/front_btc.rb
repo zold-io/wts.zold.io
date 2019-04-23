@@ -61,9 +61,11 @@ end
 unless ENV['RACK_ENV'] == 'test'
   settings.daemons.start('btc-reconcile', 5 * 60) do
     assets.reconcile do |address, before, after|
+      diff = after - before
       settings.telepost.spam(
         "The balance at [#{address}](https://www.blockchain.com/btc/address/#{address})",
-        "was changed from #{before} to #{after} satoshi;",
+        "was #{diff.positive? ? 'increases' : 'decreased'} by #{diff}",
+        "from #{before} to #{after} satoshi;",
         "our bitcoin assets have [#{assets.balance.round(4)} BTC](https://wts.zold.io/assets)"
       )
     end
@@ -103,7 +105,7 @@ unless ENV['RACK_ENV'] == 'test'
           "BTC price at the moment of exchange was [$#{price}](https://blockchain.info/ticker);",
           "the payer is #{title_md(boss)} with the wallet",
           "[#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id}),",
-          "the remaining balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t)",
+          "the remaining balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t);",
           "our bitcoin assets have [#{assets.balance.round(4)} BTC](https://wts.zold.io/assets)"
         )
       elsif assets.cold?(address)
