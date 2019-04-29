@@ -63,8 +63,9 @@ unless ENV['RACK_ENV'] == 'test'
     assets.reconcile do |address, before, after|
       diff = after - before
       settings.telepost.spam(
+        diff.positive? ? '' : '**ALERT**:',
         "The balance at [#{address}](https://www.blockchain.com/btc/address/#{address})",
-        "was #{diff.positive? ? 'increases' : 'decreased'} by #{diff}",
+        "was #{diff.positive? ? 'increased' : 'decreased'} by #{diff}",
         "from #{before} to #{after} satoshi;",
         "our bitcoin assets have [#{assets.balance.round(4)} BTC](https://wts.zold.io/assets)"
       )
@@ -137,7 +138,9 @@ get '/funded' do
   usd = params[:amount].to_f
   raise WTS::UserError, 'E105: The amount can\'t be zero' if usd.zero?
   zerocrat = user(settings.config['zerocrat']['login'])
-  raise WTS::UserError, 'E191: Only Zerocrat is allowed to do this' unless user.login == zerocrat.login
+  unless user.login == zerocrat.login || vip?
+    raise WTS::UserError, "E191: Only Zerocrat and VIP users are allowed to do this, you are #{user.login}"
+  end
   boss = user(settings.config['exchange']['login'])
   btc = usd / price
   zld = Zold::Amount.new(zld: btc / rate)
@@ -326,6 +329,7 @@ end
 
 get '/assets-private-keys' do
   raise WTS::UserError, 'E129: You are not allowed to see this' unless vip?
+  raise WTS::UserError, 'E129: You are not allowed to see this, only yegor256' unless user.login == 'yegor256'
   content_type 'text/plain'
   assets.disclose.map { |a| "#{a[:address]}: #{a[:pvt]} / #{a[:value]}s #{a[:login]}" }.join("\n")
 end
