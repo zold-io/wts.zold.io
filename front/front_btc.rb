@@ -148,7 +148,7 @@ get '/funded' do
     log.info("Buying bitcoins for $#{usd} at Coinbase...")
     ops(boss, log: log).pull
     ops(zerocrat, log: log).pull
-    coinbase(log: log).buy(usd)
+    cid = coinbase(log: log).buy(usd)
     txn = ops(boss, log: log).pay(
       settings.config['exchange']['keygap'],
       zerocrat.item.id,
@@ -156,7 +156,7 @@ get '/funded' do
       "Purchased #{btc} BTC for #{usd} USD at Coinbase"
     )
     settings.telepost.spam(
-      "Buy: **#{btc.round(4)}** BTC purchased for $#{usd.round(2)} at Coinbase,",
+      "Buy: **#{btc.round(4)}** BTC were purchased for $#{usd.round(2)} at [Coinbase](https://coinbase.com),",
       "#{zld} were deposited to the wallet",
       "[#{zerocrat.item.id}](http://www.zold.io/ledger.html?wallet=#{zerocrat.item.id})",
       "owned by [#{zerocrat.login}](https://github.com/#{zerocrat.login})",
@@ -165,7 +165,8 @@ get '/funded' do
       "zolds were sent by [#{zerocrat.login}](https://github.com/#{zerocrat.login})",
       "from the wallet [#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id})",
       "with the remaining balance of #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t);",
-      "transaction ID is #{txn.id};",
+      "Zold transaction ID is #{txn.id};",
+      "Coinbase payment ID is #{cid};",
       "our bitcoin assets have [#{assets.balance.round(4)} BTC](https://wts.zold.io/assets)",
       job_link(jid)
     )
