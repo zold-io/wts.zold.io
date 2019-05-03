@@ -75,8 +75,8 @@ class WTS::AssetsTest < Minitest::Test
     item = WTS::Item.new(login, test_pgsql, log: test_log)
     item.create(Zold::Id.new, Zold::Key.new(text: OpenSSL::PKey::RSA.new(2048).to_pem))
     assets.acquire(login)
-    assets.monitor('', max: 2) do |address, hash, satoshi|
-      assert(!address.nil?)
+    assets.monitor('000000000000000000209d79fe981cfd16279f07db246d63f42ce1f11c68103b', max: 2) do |addr, hash, satoshi|
+      assert(!addr.nil?)
       assert(!hash.nil?)
       assert(!satoshi.nil?)
     end

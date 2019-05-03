@@ -150,13 +150,13 @@ class WTS::Assets
   # Get the latest block from the blockchain, scan all transactions visible
   # there and find those, which we are waiting for. Then, yield them one
   # by one if they haven't been seen yet in UTXOs.
-  def monitor(seen, max: 50)
+  def monitor(seen, max: 4)
     ours = Set.new(@pgsql.exec('SELECT address FROM asset').map { |r| r['address'] })
-    block = start = @sibit.latest
+    block = seen
     count = 0
-    while block != seen && count < max
+    while count < max
       json = @sibit.get_json("/rawblock/#{block}")
-      raise "Txns not found in block #{block}: #{json}" if json['tx'].nil?
+      break if json['tx'].nil?
       json['tx'].each do |t|
         t['out'].each do |o|
           next if o['spent']
@@ -171,10 +171,12 @@ class WTS::Assets
           @log.info("Bitcoin tx found at #{hash} for #{satoshi} sent to #{address}")
         end
       end
-      block = json['prev_block']
+      n = json['next_block']
+      break if n.empty?
+      block = n[0]
       count += 1
     end
-    start
+    block
   end
 
   # Send a payment to the address.
