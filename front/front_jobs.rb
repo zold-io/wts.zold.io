@@ -56,6 +56,18 @@ def job(u = user, exclusive: false)
   jid
 end
 
+get '/jobs' do
+  raise WTS::UserError, 'E129: You are not allowed to see this' unless vip?
+  offset = [(params[:offset] || '0').to_i, 0].max
+  limit = (params[:limit] || '25').to_i
+  haml :jobs, layout: :layout, locals: merged(
+    page_title: '/jobs',
+    offset: offset,
+    limit: limit,
+    jobs: settings.jobs.fetch(offset: offset, limit: limit)
+  )
+end
+
 get '/job' do
   features('api')
   id = params['id']

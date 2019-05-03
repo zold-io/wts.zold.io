@@ -49,7 +49,8 @@ get '/github-callback' do
     context
   )
   unless known?(c.login) || vip?(c.login) || settings.toggles.get('allow', '').split(',').include?(c.login)
-    raise WTS::UserError, "E103: @#{c.login} doesn't work in Zerocracy, can't login via GitHub, use mobile phone"
+    raise WTS::UserError, "E103: @#{c.login} doesn't work in Zerocracy, can't login via GitHub, \
+use mobile phone (see our Terms of Use)"
   end
   cookies[:glogin] = c.to_s
   register_referral(c.login)

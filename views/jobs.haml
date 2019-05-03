@@ -1,0 +1,29 @@
+%h2
+  Jobs
+
+- if jobs.empty?
+  %p
+    The list of jobs is empty.
+- else
+  %table.compact
+    %colgroup
+      %col{style: ''}
+      %col{style: 'width: 8em'}
+      %col{style: 'width: 6em'}
+    %thead
+      %tr
+        %th
+          Id
+        %th
+          Log
+        %th
+          Started
+    %tbody
+      - jobs.each do |j|
+        %tr
+          %td
+            %a{href: "/job?id=#{j[:id]}"}= j[:id]
+          %td
+            &= j[:log]
+          %td
+            = Zold::Age.new(j[:started])
