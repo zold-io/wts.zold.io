@@ -34,7 +34,7 @@ class WTS::Jobs
 
   # Fetch them all.
   def fetch(offset: 0, limit: 25)
-    @pgsql.exec('SELECT * FROM job ORDER BY started DESC OFFSET $1 LIMIT $2', [limit, offset]).map do |r|
+    @pgsql.exec('SELECT * FROM job ORDER BY started DESC OFFSET $1 LIMIT $2', [offset, limit]).map do |r|
       {
         id: r['id'],
         log: r['log'],
