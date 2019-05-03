@@ -48,7 +48,7 @@ get '/github-callback' do
     settings.config['github']['encryption_secret'],
     context
   )
-  unless known?(c.login) || vip?(c.login) || c.login == '0c63ba1bbcb753dd'
+  unless known?(c.login) || vip?(c.login) || settings.toggles.get('allow', '').split(',').include?(c.login)
     raise WTS::UserError, "E103: @#{c.login} doesn't work in Zerocracy, can't login via GitHub, use mobile phone"
   end
   cookies[:glogin] = c.to_s
