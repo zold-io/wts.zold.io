@@ -48,10 +48,10 @@ get '/github-callback' do
     settings.config['github']['encryption_secret'],
     context
   )
-  cookies[:glogin] = c.to_s
   unless known?(c.login) || vip?(c.login) || c.login == '0c63ba1bbcb753dd'
     raise WTS::UserError, "E103: @#{c.login} doesn't work in Zerocracy, can't login via GitHub, use mobile phone"
   end
+  cookies[:glogin] = c.to_s
   register_referral(c.login)
   flash('/', "You have been logged in as @#{c.login}")
 end
