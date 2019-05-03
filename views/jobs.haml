@@ -23,8 +23,7 @@
         %tr
           %td
             %a{href: iri.cut('/job').add(id: j[:id])}= j[:id][0..7]
-            = '/'
-            %a{href: iri.cut('/output').add(id: j[:id])}= j[:id][0..7]
+            %a{href: iri.cut('/output').add(id: j[:id])}= Log
           %td
             &= j[:log]
           %td

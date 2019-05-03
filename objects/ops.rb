@@ -147,6 +147,7 @@ most probably you just have to RESTART your wallet"
     pay_taxes(keygap)
     origin = @user.item.id
     balance = @user.wallet(&:balance)
+    raise WTS::UserError, 'E206: The wallet is empty, nothing to migrate' if balance.zero?
     target = Tempfile.open do |f|
       File.write(f, @user.wallet(&:key).to_s)
       Zold::Create.new(wallets: @wallets, remotes: @remotes, log: @log).run(

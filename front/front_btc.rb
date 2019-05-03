@@ -59,7 +59,7 @@ def referrals(log: settings.log)
 end
 
 unless ENV['RACK_ENV'] == 'test'
-  settings.daemons.start('btc-reconcile', 5 * 60) do
+  settings.daemons.start('btc-reconcile', 60 * 60) do
     assets.reconcile do |address, before, after|
       diff = after - before
       settings.telepost.spam(
@@ -71,7 +71,7 @@ unless ENV['RACK_ENV'] == 'test'
       )
     end
   end
-  settings.daemons.start('btc-monitor') do
+  settings.daemons.start('btc-monitor', 5 * 60) do
     seen = settings.toggles.get('latestblock', '')
     seen = assets.monitor(seen) do |address, hash, satoshi|
       bitcoin = (satoshi.to_f / 100_000_000).round(8)
