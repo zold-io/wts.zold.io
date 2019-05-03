@@ -22,8 +22,13 @@
       - jobs.each do |j|
         %tr
           %td
-            %a{href: "/job?id=#{j[:id]}"}= j[:id]
+            %a{href: iri.cut('/job').add(id: j[:id])}= j[:id][0..8]
           %td
             &= j[:log]
           %td
             = Zold::Age.new(j[:started])
+  %p
+    - if offset.positive?
+      %a.item{href: iri.over(offset: offset - 25)} Previous
+    - if jobs.count >= limit
+      %a.item{href: iri.over(offset: offset + 25)} Next

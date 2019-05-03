@@ -26,6 +26,7 @@ require 'geocoder'
 require 'get_process_mem'
 require 'glogin'
 require 'haml'
+require 'iri'
 require 'json'
 require 'pgtk/pool'
 require 'rack/ssl'
@@ -174,6 +175,7 @@ end
 before '/*' do
   @locals = {
     ver: WTS::VERSION,
+    iri: Iri.new(request.url),
     login_link: settings.glogin.login_uri,
     wallets: settings.wallets,
     remotes: settings.remotes,

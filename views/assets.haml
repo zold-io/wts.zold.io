@@ -5,14 +5,14 @@
   Assets
 
 - if defined?(guser) && vip?
-  %form{method: 'POST', action: '/add-asset'}
+  %form{method: 'POST', action: iri.cut('/add-asset')}
     %label Add cold asset:
     %input{type: 'text', name: 'address', maxlength: 100, size: 35, placeholder: 'Bitcoin address', autocomplete: 'off', tabindex: 1}
     %input{type: 'submit', tabindex: 2, value: 'Add'}
   %p
-    %a{href: '/assets-private-keys'} Click here
+    %a{href: iri.cut('/assets-private-keys')} Click here
     to see all private keys.
-    %a{href: '?empty=true'} Click here
+    %a{href: iri.add(empty: true)} Click here
     to see empty wallets too.
 
 - if assets.empty?

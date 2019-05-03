@@ -19,7 +19,7 @@
 
 %p
   The transactions you see in this list were collected from all
-  %a{href: '/remotes'} visible
+  %a{href: iri.cut('/remotes')} visible
   nodes. They are not fully confirmed. You
   %strong.red
   can't rely
@@ -52,7 +52,7 @@
     - if since
       %tr
         %td.center{colspan: 6}
-          %a{href: '/gl'} Show most recent transactions
+          %a{href: iri.cut('/gl')} Show most recent transactions
       %tr
         %td.center{colspan: 6}
           = 'Since ' + since.utc.iso8601
@@ -82,4 +82,4 @@
       - if @last && txns.count == max
         %tr
           %td.center{colspan: 6}
-            %a{href: '?since=' + @last.utc.iso8601} Show more
+            %a{href: iri.add(since: @last.utc.iso8601)} Show more

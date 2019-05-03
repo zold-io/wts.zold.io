@@ -17,7 +17,7 @@
         = '/'
         approx.
         = "$#{(usd_rate * w.balance.to_f).round(2)}"
-        %a{href: '/rate'} Why?
+        %a{href: iri.cut('/rate')} Why?
       %br
       Transactions:
       = w.txns.count
@@ -29,7 +29,7 @@
       File size:
       = "#{Zold::Size.new(w.size)}"
       = '/'
-      %a{href: '/download'} Download
+      %a{href: iri.cut('/download')} Download
       %br
       Modified:
       = "#{w.mtime.utc.iso8601} (#{Zold::Age.new(w.mtime.utc.iso8601)} ago)"
@@ -38,7 +38,7 @@
   %p.red
     You have too many transactions in your wallet, which makes
     its processing too slow. It is recommended to
-    %a{href: '/migrate'} migrate
+    %a{href: iri.cut('/migrate')} migrate
     to a new wallet.
 
 - if u.wallet_exists? && u.wallet(&:balance).negative?
@@ -46,7 +46,7 @@
     Your balance is negative, which means that some of your
     transactions will be rolled back in the nearest future!
     Try to
-    %a{href: '/pull'} pull your wallet
+    %a{href: iri.cut('/pull')} pull your wallet
     in a few minutes to get it back to the normal state.
 
 - if u.wallet_exists?
@@ -84,7 +84,7 @@
         - if start
           %tr
             %td.center{colspan: 5}
-              %a{href: '/home'} Show most recent transactions
+              %a{href: iri.cut('/home')} Show most recent transactions
           %tr
             %td.center{colspan: 5}
               = 'Since ' + start.utc.iso8601
@@ -117,10 +117,10 @@
           - if @last && txns.count == max
             %tr
               %td.center{colspan: 5}
-                %a{href: '?start=' + @last.utc.iso8601} Show more
+                %a{href: iri.add(start: @last.utc.iso8601)} Show more
 - else
   %p
     Your wallet doesn't exist on our server yet.
     Please,
-    %a{href: '/pull'} pull it
+    %a{href: iri.cut('/pull')} pull it
     from the network!

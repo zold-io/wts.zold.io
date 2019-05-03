@@ -1,7 +1,7 @@
 %h2
   SQL
 
-%form{method: 'GET', action: '/sql'}
+%form{method: 'GET', action: iri.cut('/sql')}
   %input{type: 'text', name: 'query', size: 60, autocomplete: 'off', required: true, tabindex: 1, autofocus: true, value: query}
   %input{type: 'submit', tabindex: 2, value: 'Query'}
 

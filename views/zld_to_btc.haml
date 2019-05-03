@@ -9,7 +9,7 @@
   BTC/ZLD, or about
   = succeed '.' do
     %strong= "$#{(rate * price).round(2)}"
-  %a{href: '/rate'} Why?
+  %a{href: iri.cut('/rate')} Why?
 
 %p
   To sell your ZLD and receive BTC just fill this form
@@ -17,7 +17,7 @@
   = "#{(fee * 100)}%"
   fee:
 
-%form{method: 'POST', action: '/do-zld-to-btc'}
+%form{method: 'POST', action: iri.cut('/do-zld-to-btc')}
   %fieldset
     %label
       Your

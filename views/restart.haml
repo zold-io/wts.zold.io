@@ -20,11 +20,11 @@
   Before you do that we
   %strong strongly
   recommend you to download your
-  %a{href: '/key'} private RSA key
+  %a{href: iri.cut('/key')} private RSA key
   and record the ID of your wallet,
   just in case you change you mind in the future.
 
 %p
   If you understand what you are doing, click
-  %a{href: '/create', onclick: "return confirm('The wallet will be re-created, the existing RSA private key will be deleted from our database, are you sure?')"} here
+  %a{href: iri.cut('/create'), onclick: "return confirm('The wallet will be re-created, the existing RSA private key will be deleted from our database, are you sure?')"} here
   (think twice).

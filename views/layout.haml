@@ -37,7 +37,7 @@
         %nav
           %ul
             %li
-              %a{href: '/'}
+              %a{href: iri.cut('/')}
                 %img.logo{src: 'https://www.zold.io/images/logo-blue.svg', alt: 'Zold logo'}
         %nav
           %ul
@@ -59,71 +59,71 @@
             - else
               - if defined? guser
                 %li
-                  %a{href: '/home'}
+                  %a{href: iri.cut('/home')}
                     = title
               - else
                 %li
-                  %a{href: '/mobile_send'}
+                  %a{href: iri.cut('/mobile_send')}
                     Login
                 %li
-                  %a{href: '/mobile_send'}
+                  %a{href: iri.cut('/mobile_send')}
                     Sign Up
               %li
-                %a{href: '/rate'} Rate
+                %a{href: iri.cut('/rate')} Rate
               %li{title: 'All wallets available in the local directory'}
                 Wallets:
                 = wallets.all.count
               %li{title: 'All visible remote nodes'}
                 Remotes:
-                %a{href: '/remotes'}
+                %a{href: iri.cut('/remotes')}
                   = remotes.all.count
               %li{title: 'Currently running jobs vs. jobs waiting in the line'}
                 Pool:
-                %a{href: '/log'}
+                %a{href: iri.cut('/log')}
                   = "#{pool.length}/#{pool.queue_length}"
               - if defined? guser
                 %li
-                  %a{href: '/logout'}
+                  %a{href: iri.cut('/logout')}
                     Logout
         - if defined? guser
           %nav
             %ul
               %li
                 - if user.wallet_exists?
-                  %a{href: '/pay'} Pay
+                  %a{href: iri.cut('/pay')} Pay
                 - else
                   %span.gray Pay
               %li
-                %a{href: '/pull?force=true'} Pull
+                %a{href: iri.cut('/pull').add(force: true)} Pull
               %li
                 - if user.wallet_exists?
-                  %a{href: '/invoice'} Invoice
+                  %a{href: iri.cut('/invoice')} Invoice
                 - else
                   %span.gray Invoice
               %li
-                %a{href: '/migrate'} Migrate
+                %a{href: iri.cut('/migrate')} Migrate
               %li
                 - if user.wallet_exists?
-                  %a{href: '/buy-sell'} Buy/Sell
+                  %a{href: iri.cut('/buy-sell')} Buy/Sell
                 - else
                   %span.gray Buy/Sell
               %li
-                %a{href: '/log', style: (File.exist?(latch) ? 'color:red' : '')} Log
+                %a{href: iri.cut('/log'), style: (File.exist?(latch) ? 'color:red' : '')} Log
               %li
-                %a{href: '/key'} Key
+                %a{href: iri.cut('/key')} Key
               %li
                 %del
-                  %a{href: '/restart'} Restart
+                  %a{href: iri.cut('/restart')} Restart
           - if File.exist?(latch)
             %nav
               %ul
                 %li{style: 'color:red'}
                   We are
-                  %a{href: '/log'} updating
+                  %a{href: iri.cut('/log')} updating
                   your wallet right now.
                   Please, refresh the page in a minute.
                   If it doesn't help, check the
-                  %a{href: '/log'} Log
+                  %a{href: iri.cut('/log')} Log
                   tab.
         - if defined? flash_msg
           %p{style: 'background-color:' + flash_color + ';color:white;padding:.1em .5em;border-radius:4px;width:100%;'}
@@ -136,29 +136,29 @@
           %nav
             %ul
               %li
-                %a{href: '/gl'} General Ledger
+                %a{href: iri.cut('/gl')} General Ledger
               %li
-                %a{href: '/payables'} Payables
+                %a{href: iri.cut('/payables')} Payables
               %li
-                %a{href: '/assets'} Assets
+                %a{href: iri.cut('/assets')} Assets
               - if defined? guser
                 %li
-                  %a{href: '/api'} API
+                  %a{href: iri.cut('/api')} API
                 %li
-                  %a{href: '/callbacks'} Callbacks
+                  %a{href: iri.cut('/callbacks')} Callbacks
                 %li
-                  %a{href: '/payouts'} Payouts
+                  %a{href: iri.cut('/payouts')} Payouts
                 %li
-                  %a{href: '/referrals'} Referrals
+                  %a{href: iri.cut('/referrals')} Referrals
                 - if vip?
                   %li
-                    %a{href: '/jobs'} Jobs
+                    %a{href: iri.cut('/jobs')} Jobs
                   %li
-                    %a{href: '/queue'} Queue
+                    %a{href: iri.cut('/queue')} Queue
                   %li
-                    %a{href: '/toggles'} Toggles
+                    %a{href: iri.cut('/toggles')} Toggles
                   %li
-                    %a{href: '/sql'} SQL
+                    %a{href: iri.cut('/sql')} SQL
           %nav
             %ul
               %li
@@ -188,7 +188,7 @@
               = "#{request.ip}/#{country}"
         %nav
           %ul
-            %a{href: '/terms'} Terms of Use
+            %a{href: iri.cut('/terms')} Terms of Use
         %nav
           %ul
             %a{href: 'https://github.com/zold-io/wts.zold.io/stargazers'}

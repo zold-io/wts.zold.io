@@ -8,7 +8,7 @@
   = succeed '.' do
     %code= confirmed_user.wallet(&:balance)
 
-%form{method: 'POST', action: '/do-pay'}
+%form{method: 'POST', action: iri.cut('/do-pay')}
   %fieldset
     %label
       Your

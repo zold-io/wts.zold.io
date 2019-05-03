@@ -1,7 +1,7 @@
 %h2
   Step 1: Request Code
 
-%form{method: 'GET', action: '/mobile/send'}
+%form{method: 'GET', action: iri.cut('/mobile/send')}
   %fieldset
     %label
       Enter your mobile phone in
@@ -29,4 +29,4 @@
     %strong.red ATTENTION
   By logging in you automatically accept the
   = succeed '.' do
-    %a{href: '/terms'} Terms of Use
+    %a{href: iri.cut('/terms')} Terms of Use
