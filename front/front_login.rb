@@ -49,8 +49,8 @@ get '/github-callback' do
     context
   )
   unless known?(c.login) || vip?(c.login)
-    allowed = settings.toggles.get('allow', '').strip.split(',')
-    unless allowed.include?(c.login)
+    allowed = settings.toggles.get('allow').strip.split(',')
+    unless allowed.include?(c.login.downcase)
       raise WTS::UserError, "E103: #{c.login.inspect} doesn't work in Zerocracy, can't login via GitHub, \
 use mobile phone (see KYC section in our Terms of Use) /#{allowed.count}"
     end
