@@ -48,9 +48,12 @@ get '/github-callback' do
     settings.config['github']['encryption_secret'],
     context
   )
-  unless known?(c.login) || vip?(c.login) || settings.toggles.get('allow', '').split(',').include?(c.login)
-    raise WTS::UserError, "E103: @#{c.login.inspect} doesn't work in Zerocracy, can't login via GitHub, \
-use mobile phone (see our Terms of Use)"
+  unless known?(c.login) || vip?(c.login)
+    allowed = settings.toggles.get('allow', '').split(',')
+    unless allowed.include?(c.login)
+      raise WTS::UserError, "E103: #{c.login.inspect} doesn't work in Zerocracy, can't login via GitHub, \
+use mobile phone (see KYC section in our Terms of Use) / #{allowed.count}"
+    end
   end
   cookies[:glogin] = c.to_s
   register_referral(c.login)
