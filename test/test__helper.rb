@@ -50,7 +50,8 @@ module Minitest
         port: config['pgsql']['port'].to_i,
         dbname: config['pgsql']['dbname'],
         user: config['pgsql']['user'],
-        password: config['pgsql']['password']
+        password: config['pgsql']['password'],
+        log: test_log
       ).start
       # rubocop:enable Style/ClassVars
     end
