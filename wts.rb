@@ -533,7 +533,7 @@ def vip?(login = user.login)
 end
 
 def job_link(jid)
-  "full log is [here](http://wts.zold.io/output?id=#{jid})"
+  "the full log is [here](http://wts.zold.io/output?id=#{jid})"
 end
 
 def github_exists?(login)
