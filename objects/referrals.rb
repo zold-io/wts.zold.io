@@ -28,6 +28,7 @@ class WTS::Referrals
   class Crypt
     ALPHABET = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-'
     ENCODINGS = [
+      # Generated with ALPHABET.split('').shuffle.join
       'MOhqm0PnycUZeLdK8Yv\-DCgNfb7FJtiHT52BrxoAkas9RWlXpEujSGI64VzQ31w',
       'xJCVNc0nRd7sDozhlw5aMW2q4A1SKr\-6FG8jk9YUyILEbvQHZ3tuTBOpmgXiePf',
       'HWk3BKjXzTbr5YD87GqpiwUISfvlLZg2uV6nQ4R9aNOy0txe1EF\-hPomCJcdMAs',
@@ -35,7 +36,17 @@ class WTS::Referrals
       'TBRVtqDQ938OvPexSCnrgl52NM1KILAs6zfFYuy4dGhZmEaW7p0\-bUiXkojcHwJ',
       'urX\-vD3HiFt9SBxaTe7ONWhYzyJbmP4nUkAsEKgVfGwd6jc2lp5ZMLqRQ01oI8C',
       'k9MarwhgQCER3BZ1evOzpfcI2UPi\-0WFnbDtJmXdoTy57lsLYSKGjH6xu8q4NVA',
-      'lQNacTqdr3m0iuVLtwRv7xIkJ1eKFCPjYXApMHs64WSh5BfgbE8OGnozUZ\-2yD9'
+      'lQNacTqdr3m0iuVLtwRv7xIkJ1eKFCPjYXApMHs64WSh5BfgbE8OGnozUZ\-2yD9',
+      'R7focy9gYDXGmwLSuJOZzrtibpTFU1MPvnVQEAsqH8h23C0\-N54eKIdakxWj6lB',
+      'CdtM4gfFqGJRl2knxo7UsaZp\-95H3wi0hyADLQWujEvOKBIVSrP1YNXcbz8Tem6',
+      'PldNJbzKFAETGDLXx1eR3UHc2ug85hnYIMjWqSOa0rZ4o6viCVytm9pwB7k\-fQs',
+      'Na5GVYUHv6wFmth8cePDQk37bXTpASLuIKCs\-yj9Bd2ZfRrinE1q0OgxJzloW4M',
+      'JPuOncwY63EXbo9NyDQxVqWhr8sdF24gHTtUpl\-LzZM5iGe7RvAB1ajmCSI0fKk',
+      'iKnhSka5C3H\-gr0QJ69LPfd2x4DtMEqBO7IbZoGwAm1yNlVRYTXcjWszFvpeu8U',
+      '6KkPx4waRo9tAjQq5WHuEgNDMzcmyb1nGd\-2VFXLTBpI38YiOJrf0UhvZ7sSleC',
+      'MTceKFPkU9QthIzpv4mdOfuljgWoi3wbN1xV5As8Cy2aHnDGLBX0S\-6qJYE7rZR',
+      '8zVu1rqO0TKj\-m5g6LWvcRHDFbBXxp7SdneAiIyZN9EUto2QlkfY34GshCMJwPa',
+      'KD\-qzdFVwaWLl6tBNxUY5eXbi9TQc2kvf3yR1S8mHA04PpnOg7MJhrGEZsojuIC'
     ]
 
     def encode(text)
