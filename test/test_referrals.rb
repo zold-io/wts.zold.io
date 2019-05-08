@@ -21,6 +21,7 @@
 require 'minitest/autorun'
 require 'webmock/minitest'
 require_relative 'test__helper'
+require_relative '../objects/wts'
 require_relative '../objects/referrals'
 
 class WTS::ReferralsTest < Minitest::Test
@@ -31,5 +32,13 @@ class WTS::ReferralsTest < Minitest::Test
     referrals.register(login, 'friend', source: nil)
     assert(referrals.exists?(login))
     assert_equal('friend', referrals.ref(login))
+  end
+
+  def test_encrypts_and_decrypts
+    crypt = WTS::Referrals::Crypt.new
+    ['yegor256-2', '', 'abc'].each do |login|
+      enc = crypt.encode(login)
+      assert_equal(login, crypt.decode(enc))
+    end
   end
 end

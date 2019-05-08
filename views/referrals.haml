@@ -21,6 +21,12 @@
   %code utm_campaign
   to it.
 
+%p
+  You can also do
+  %code= "?ref=#{login_alias}"
+  and we will understand that it's you.
+  Refresh the page to get a new alias.
+
 - list = referrals.fetch(confirmed_user.login)
 
 - if list.empty?

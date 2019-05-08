@@ -340,7 +340,8 @@ get '/referrals' do
   haml :referrals, layout: :layout, locals: merged(
     page_title: title('referrals'),
     referrals: referrals,
-    fee: settings.toggles.get('referral-fee', '0.04').to_f
+    fee: settings.toggles.get('referral-fee', '0.04').to_f,
+    login_alias: WTS::Referrals::Crypt.new.encode(user.login)
   )
 end
 

@@ -25,6 +25,30 @@ require_relative 'user_error'
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 class WTS::Referrals
+  class Crypt
+    ALPHABET = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-'
+    ENCODINGS = [
+      'MOhqm0PnycUZeLdK8Yv\-DCgNfb7FJtiHT52BrxoAkas9RWlXpEujSGI64VzQ31w',
+      'xJCVNc0nRd7sDozhlw5aMW2q4A1SKr\-6FG8jk9YUyILEbvQHZ3tuTBOpmgXiePf',
+      'HWk3BKjXzTbr5YD87GqpiwUISfvlLZg2uV6nQ4R9aNOy0txe1EF\-hPomCJcdMAs',
+      'E3WG1vDUkB78smKYIR4fjybxiArt5C6wNoPhn2Qup\-JzeZqgcF0SHTalVd9LOXM',
+      'TBRVtqDQ938OvPexSCnrgl52NM1KILAs6zfFYuy4dGhZmEaW7p0\-bUiXkojcHwJ',
+      'urX\-vD3HiFt9SBxaTe7ONWhYzyJbmP4nUkAsEKgVfGwd6jc2lp5ZMLqRQ01oI8C',
+      'k9MarwhgQCER3BZ1evOzpfcI2UPi\-0WFnbDtJmXdoTy57lsLYSKGjH6xu8q4NVA',
+      'lQNacTqdr3m0iuVLtwRv7xIkJ1eKFCPjYXApMHs64WSh5BfgbE8OGnozUZ\-2yD9'
+    ]
+
+    def encode(text)
+      pos = rand(ENCODINGS.count)
+      "#{pos}#{text.tr(ALPHABET, ENCODINGS[pos])}"
+    end
+
+    def decode(text)
+      pos = text[0].to_i
+      text[1..-1].tr(ENCODINGS[pos], ALPHABET)
+    end
+  end
+
   def initialize(pgsql, log: Zold::Log::NULL)
     @pgsql = pgsql
     @log = log
@@ -66,7 +90,10 @@ class WTS::Referrals
 
   # Get referral.
   def ref(login)
-    row = @pgsql.exec('SELECT ref FROM referral WHERE login = $1 LIMIT 1', [login])
+    row = @pgsql.exec(
+      'SELECT ref FROM referral WHERE login = $1 OR login = $2 LIMIT 1',
+      [login, Crypt.new.decode(login)]
+    )
     raise WTS::UserError, "E184: No referral for #{login}" if row.empty?
     row[0]['ref']
   end
