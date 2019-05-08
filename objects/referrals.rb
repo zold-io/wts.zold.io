@@ -40,12 +40,12 @@ class WTS::Referrals
 
     def encode(text)
       pos = rand(ENCODINGS.count)
-      "#{pos}#{text.tr(ALPHABET, ENCODINGS[pos])}"
+      "#{format('%02d', pos)}#{text.tr(ALPHABET, ENCODINGS[pos])}"
     end
 
     def decode(text)
-      pos = text[0].to_i
-      text[1..-1].tr(ENCODINGS[pos], ALPHABET)
+      pos = text[0..1].to_i
+      text[2..-1].tr(ENCODINGS[pos], ALPHABET)
     end
   end
 
