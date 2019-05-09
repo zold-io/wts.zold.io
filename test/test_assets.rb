@@ -45,7 +45,7 @@ class WTS::AssetsTest < Minitest::Test
     WebMock.allow_net_connect!
     assets = WTS::Assets.new(test_pgsql, log: test_log)
     addresses = Set.new
-    40.times { addresses << assets.acquire }
+    200.times { addresses << assets.acquire }
     assert_equal(8, addresses.count)
   end
 
