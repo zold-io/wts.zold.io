@@ -140,23 +140,15 @@ configure do
       log: settings.log
     )
   else
+    uri = URI(ENV['DATABASE_URL'])
     set :pgsql, Pgtk::Pool.new(
-      host: config['pgsql']['host'],
-      port: config['pgsql']['port'],
-      dbname: config['pgsql']['dbname'],
-      user: config['pgsql']['user'],
-      password: config['pgsql']['password'],
+      host: uri.host,
+      port: uri.port,
+      dbname: uri.path[1..-1],
+      user: uri.userinfo.split(':')[0],
+      password: uri.userinfo.split(':')[1],
       log: settings.log
     )
-    # uri = URI(ENV['DATABASE_URL'])
-    # set :pgsql, Pgtk::Pool.new(
-    #   host: uri.host,
-    #   port: uri.port,
-    #   dbname: uri.path[1..-1],
-    #   user: uri.userinfo.split(':')[0],
-    #   password: uri.userinfo.split(':')[1],
-    #   log: nil
-    # )
   end
   settings.pgsql.start(4)
   set :copies, File.join(settings.root, '.zold-wts/copies')
