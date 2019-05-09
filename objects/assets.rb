@@ -150,7 +150,7 @@ class WTS::Assets
   # Get the latest block from the blockchain, scan all transactions visible
   # there and find those, which we are waiting for. Then, yield them one
   # by one if they haven't been seen yet in UTXOs.
-  def monitor(seen, max: 4)
+  def monitor(seen, max: 1)
     ours = Set.new(@pgsql.exec('SELECT address FROM asset').map { |r| r['address'] })
     block = seen
     count = 0

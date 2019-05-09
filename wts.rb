@@ -92,13 +92,6 @@ configure do
       },
       'api_secret' => 'test',
       'sentry' => '',
-      'pgsql' => {
-        'host' => 'localhost',
-        'port' => 0,
-        'user' => 'test',
-        'dbname' => 'test',
-        'password' => 'test'
-      },
       'telegram' => {
         'token' => '',
         'chat' => '111'
@@ -136,14 +129,28 @@ configure do
     file: File.join(settings.root, '.zold-wts/remotes'),
     network: ENV['RACK_ENV'] == 'test' ? 'test' : 'zold'
   )
-  cfg = File.exist?('target/pgsql-config.yml') ? YAML.load_file('target/pgsql-config.yml') : config
-  set :pgsql, Pgtk::Pool.new(
-    host: cfg['pgsql']['host'],
-    port: cfg['pgsql']['port'],
-    dbname: cfg['pgsql']['dbname'],
-    user: cfg['pgsql']['user'],
-    password: cfg['pgsql']['password']
-  ).start(4)
+  if File.exist?('target/pgsql-config.yml')
+    cfg = YAML.load_file('target/pgsql-config.yml')
+    set :pgsql, Pgtk::Pool.new(
+      host: cfg['pgsql']['host'],
+      port: cfg['pgsql']['port'],
+      dbname: cfg['pgsql']['dbname'],
+      user: cfg['pgsql']['user'],
+      password: cfg['pgsql']['password'],
+      log: nil
+    )
+  else
+    uri = URI(ENV['DATABASE_URL'])
+    set :pgsql, Pgtk::Pool.new(
+      host: uri.host,
+      port: uri.port,
+      dbname: uri.path[1..-1],
+      user: uri.userinfo.split(':')[0],
+      password: uri.userinfo.split(':')[1],
+      log: nil
+    )
+  end
+  settings.pgsql.start(4)
   set :copies, File.join(settings.root, '.zold-wts/copies')
   set :payouts, WTS::Payouts.new(settings.pgsql, log: settings.log)
   set :daemons, WTS::Daemons.new(settings.pgsql, log: settings.log)

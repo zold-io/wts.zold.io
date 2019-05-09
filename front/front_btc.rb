@@ -71,7 +71,7 @@ unless ENV['RACK_ENV'] == 'test'
       )
     end
   end
-  settings.daemons.start('btc-monitor', 10 * 60) do
+  settings.daemons.start('btc-monitor', 60) do
     seen = settings.toggles.get('latestblock', '')
     seen = assets.monitor(seen) do |address, hash, satoshi|
       bitcoin = (satoshi.to_f / 100_000_000).round(8)

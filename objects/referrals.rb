@@ -25,8 +25,9 @@ require_relative 'user_error'
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 class WTS::Referrals
+  # To encryp and decrypt aliases.
   class Crypt
-    ALPHABET = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-'
+    ALPHABET = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-'.freeze
     ENCODINGS = [
       # Generated with ALPHABET.split('').shuffle.join
       'MOhqm0PnycUZeLdK8Yv\-DCgNfb7FJtiHT52BrxoAkas9RWlXpEujSGI64VzQ31w',
@@ -47,7 +48,7 @@ class WTS::Referrals
       'MTceKFPkU9QthIzpv4mdOfuljgWoi3wbN1xV5As8Cy2aHnDGLBX0S\-6qJYE7rZR',
       '8zVu1rqO0TKj\-m5g6LWvcRHDFbBXxp7SdneAiIyZN9EUto2QlkfY34GshCMJwPa',
       'KD\-qzdFVwaWLl6tBNxUY5eXbi9TQc2kvf3yR1S8mHA04PpnOg7MJhrGEZsojuIC'
-    ]
+    ].freeze
 
     def encode(text)
       pos = rand(ENCODINGS.count)
