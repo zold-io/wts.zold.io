@@ -4,7 +4,7 @@
 
 [![EO principles respected here](http://www.elegantobjects.org/badge.svg)](http://www.elegantobjects.org)
 [![Managed by Zerocracy](https://www.0crat.com/badge/CAZPZR9FS.svg)](https://www.0crat.com/p/CAZPZR9FS)
-[![DevOps By Rultor.com](http://www.rultor.com/b/zold-io/out)](http://www.rultor.com/p/zold-io/out)
+[![DevOps By Rultor.com](http://www.rultor.com/b/zold-io/wts.zold.io)](http://www.rultor.com/p/zold-io/wts.zold.io)
 [![We recommend RubyMine](http://www.elegantobjects.org/rubymine.svg)](https://www.jetbrains.com/ruby/)
 
 [![Build Status](https://travis-ci.org/zold-io/wts.zold.io.svg)](https://travis-ci.org/zold-io/wts.zold.io)
@@ -12,6 +12,8 @@
 [![Test Coverage](https://img.shields.io/codecov/c/github/zold-io/wts.zold.io.svg)](https://codecov.io/github/zold-io/wts.zold.io?branch=master)
 [![Maintainability](https://api.codeclimate.com/v1/badges/25b798dc13147f13bb59/maintainability)](https://codeclimate.com/github/zold-io/wts.zold.io/maintainability)
 [![Hits-of-Code](https://hitsofcode.com/github/zold-io/wts.zold.io)](https://hitsofcode.com/view/github/zold-io/wts.zold.io)
+
+[![Availability at SixNines](http://www.sixnines.io/b/2e39)](http://www.sixnines.io/h/2e39)
 
 Here is the [White Paper](https://papers.zold.io//wp.pdf).
 

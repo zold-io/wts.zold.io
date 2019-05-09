@@ -88,7 +88,7 @@ see the White Paper, only a limited subset of characters is allowed: [a-zA-Z0-9@
       "from [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})",
       "with the remaining balance of #{user.wallet(&:balance)} (#{user.wallet(&:txns).count}t)",
       "to `#{txn.prefix}` at [#{txn.bnf}](http://www.zold.io/ledger.html?wallet=#{txn.bnf})",
-      "for **#{txn.amount}** from #{anon_ip}:",
+      "for **#{txn.amount * -1}** from #{anon_ip}:",
       "\"#{safe_md(details)}\";",
       job_link(jid)
     )

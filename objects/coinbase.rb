@@ -59,7 +59,8 @@ class WTS::Coinbase
   # Convert USD to BTC.
   def buy(usd)
     acc = Coinbase::Wallet::Client.new(api_key: @key, api_secret: @secret).account(@account)
-    acc.buy(amount: usd.to_s, currency: 'USD')
+    response = acc.buy(amount: usd.to_s, currency: 'USD')
+    response['id']
   end
 
   # Send BTC.
