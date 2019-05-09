@@ -108,5 +108,8 @@ class WTS::AssetsTest < Minitest::Test
     assets.see(address, hash)
     assets.see(address, hash)
     assert(assets.seen?(hash))
+    hash2 = "5de641d3867eb8fec3eb1a5ef2b44df39b54e0b3bb664ab520f2ae26a5b19#{rand(999)}"
+    assets.see(address, hash2)
+    assert(assets.seen?(hash2))
   end
 end
