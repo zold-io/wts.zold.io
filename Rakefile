@@ -33,7 +33,7 @@ ENV['RACK_ENV'] = 'test'
 task default: %i[clean test rubocop xcop eslint copyright]
 
 require 'rake/testtask'
-Rake::TestTask.new(test: :liquibase) do |test|
+Rake::TestTask.new(test: %i[pgsql liquibase]) do |test|
   Rake::Cleaner.cleanup_files(['coverage'])
   ENV['TEST_QUIET_LOG'] = 'true' if ARGV.include?('--quiet')
   test.libs << 'lib' << 'test'
@@ -72,12 +72,12 @@ Pgtk::PgsqlTask.new(:pgsql) do |t|
 end
 
 require 'pgtk/liquibase_task'
-Pgtk::LiquibaseTask.new(liquibase: :pgsql) do |t|
+Pgtk::LiquibaseTask.new(:liquibase) do |t|
   t.master = 'liquibase/master.xml'
   t.yaml = ['target/pgsql-config.yml', 'config.yml']
 end
 
-task(run: :liquibase) do
+task(run: %i[pgsql liquibase]) do
   puts 'Starting the app...'
   system('rerun -b "RACK_ENV=test ruby wts.rb"')
 end
