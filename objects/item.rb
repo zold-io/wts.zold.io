@@ -122,4 +122,8 @@ keygap is '#{keygap[0, 2]}#{'.' * (keygap.length - 2)}'")
     @pgsql.exec('DELETE FROM keygap WHERE login = $1', [@login])
     @log.debug("The keygap of #{@login} was destroyed")
   end
+
+  def touch
+    @pgsql.exec('UPDATE item SET touched = NOW() WHERE login = $1', [@login])
+  end
 end
