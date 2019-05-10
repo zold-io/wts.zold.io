@@ -139,7 +139,7 @@ unless ENV['RACK_ENV'] == 'test'
       cid = coinbase.pay(address, amount, 'Going home')
       settings.telepost.spam(
         "Transfer: #{format('%.04f', amount)} BTC was sent from our Coinbase account",
-        "to our cold address [#{address}](https://www.blockchain.com/btc/address/#{address})",
+        "to our cold address [#{address}](https://www.blockchain.com/btc/address/#{address});",
         "Coinbase payment ID is #{cid};",
         "our bitcoin assets still have [#{assets.balance.round(4)} BTC](https://wts.zold.io/assets)"
       )
