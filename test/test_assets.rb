@@ -69,7 +69,13 @@ class WTS::AssetsTest < Minitest::Test
   end
 
   def test_monitors_blockchain
-    WebMock.allow_net_connect!
+    WebMock.disable_net_connect!
+    stub_request(
+      :get, 'https://blockchain.info/latestblock'
+    ).to_return(status: 200, body: '{"hash": "000000000000000000209d79fe981cfd16279f07db246d63f42ce1f11c68103f"}')
+    stub_request(
+      :get, 'https://blockchain.info/rawblock/000000000000000000209d79fe981cfd16279f07db246d63f42ce1f11c68103b'
+    ).to_return(status: 200, body: '{}')
     assets = WTS::Assets.new(test_pgsql, log: test_log)
     login = "jeff#{rand(999)}"
     item = WTS::Item.new(login, test_pgsql, log: test_log)

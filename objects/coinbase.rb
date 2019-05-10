@@ -64,9 +64,9 @@ class WTS::Coinbase
   end
 
   # Send BTC.
-  def pay(address, usd, details)
+  def pay(address, btc, details)
     acc = Coinbase::Wallet::Client.new(api_key: @key, api_secret: @secret).account(@account)
-    response = acc.send(to: address, amount: usd, currency: 'USD', description: details)
+    response = acc.send(to: address, amount: btc, currency: 'BTC', description: details)
     @log.info("Coinbase payment has been sent, their transaction ID is #{response['id']}")
     response['id']
   rescue StandardError => e

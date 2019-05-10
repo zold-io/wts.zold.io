@@ -71,9 +71,9 @@ unless ENV['RACK_ENV'] == 'test'
       )
     end
   end
-  settings.daemons.start('btc-monitor', 60) do
+  settings.daemons.start('btc-monitor', 5 * 60) do
     seen = settings.toggles.get('latestblock', '')
-    seen = assets.monitor(seen) do |address, hash, satoshi|
+    seen = assets.monitor(seen, max: 4) do |address, hash, satoshi|
       bitcoin = (satoshi.to_f / 100_000_000).round(8)
       if assets.owned?(address)
         zld = Zold::Amount.new(zld: bitcoin / rate)
@@ -131,6 +131,20 @@ unless ENV['RACK_ENV'] == 'test'
     end
     settings.toggles.set('latestblock', seen)
   end
+  settings.daemons.start('btc-from-coinbase', 12 * 60 * 60) do
+    btc = coinbase.balance
+    if btc > 0.01
+      address = assets.all(show_empty: true).reject { |a| a[:hot] }.first[:address]
+      amount = btc * 0.95
+      cid = coinbase.pay(address, btc, details)
+      settings.telepost.spam(
+        "Transfer: #{format('%.04f', amount)} BTC was sent from our Coinbase account",
+        "to our cold address [#{address}](https://www.blockchain.com/btc/address/#{address})",
+        "Coinbase payment ID is #{cid};",
+        "our bitcoin assets still have [#{assets.balance.round(4)} BTC](https://wts.zold.io/assets)"
+      )
+    end
+  end
 end
 
 get '/funded' do
@@ -167,7 +181,7 @@ get '/funded' do
       "with the remaining balance of #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t);",
       "Zold transaction ID is #{txn.id};",
       "Coinbase payment ID is #{cid};",
-      "our bitcoin assets have [#{assets.balance.round(4)} BTC](https://wts.zold.io/assets)",
+      "our bitcoin assets still have [#{assets.balance.round(4)} BTC](https://wts.zold.io/assets)",
       job_link(jid)
     )
   end
