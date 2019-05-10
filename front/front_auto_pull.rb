@@ -22,9 +22,11 @@ unless ENV['RACK_ENV'] == 'test'
   settings.daemons.start('auto-pull', 60) do
     settings.pgsql.exec('SELECT login FROM item WHERE touched > NOW() - INTERVAL \'30 DAYS\'').each do |r|
       u = user(r['login'])
-      log = user_log(u.login)
       next if u.wallet_exists?
-      ops(u, log: log).pull
+      job(u) do |_jid, log|
+        log.info("Auto-pulling wallet #{u.item.id}...")
+        ops(u, log: log).pull
+      end
     end
   end
 end
