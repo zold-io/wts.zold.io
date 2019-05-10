@@ -300,7 +300,7 @@ users of WTS, while our limits are #{limits} (daily/weekly/monthly), sorry about
       user.login, user.item.id, amount,
       "#{bitcoin} BTC sent to #{address} in tx hash #{tx}; \
 the price was $#{price.round}/BTC; the fee was #{(f * 100).round(2)}%, \
-bitcoin assets still have [#{assets.balance.round(4)} BTC"
+bitcoin assets still have #{assets.balance.round(4)} BTC"
     )
     settings.telepost.spam(
       "Out: #{amount} [exchanged](https://blog.zold.io/2018/12/09/btc-to-zld.html) to #{bitcoin} BTC",
