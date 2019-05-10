@@ -23,7 +23,7 @@ unless ENV['RACK_ENV'] == 'test'
     settings.pgsql.exec('SELECT login FROM item WHERE touched > NOW() - INTERVAL \'30 DAYS\'').each do |r|
       u = user(r['login'])
       log = user_log(u.login)
-      next if user.wallet_exists?
+      next if u.wallet_exists?
       ops(u, log: log).pull
     end
   end
