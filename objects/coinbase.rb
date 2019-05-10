@@ -71,6 +71,6 @@ class WTS::Coinbase
     response['id']
   rescue StandardError => e
     @log.error(Backtrace.new(e))
-    raise "Failed to send \"#{usd}\" to \"#{address}\" with details of \"#{details}\": #{e.message}"
+    raise "Failed to send \"#{btc}\" to \"#{address}\" with details of \"#{details}\": #{e.message}"
   end
 end

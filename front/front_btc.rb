@@ -136,7 +136,7 @@ unless ENV['RACK_ENV'] == 'test'
     if btc > 0.01
       address = assets.all(show_empty: true).reject { |a| a[:hot] }.first[:address]
       amount = [btc * 0.95, 0.1].min
-      cid = coinbase.pay(address, btc, 'Going home')
+      cid = coinbase.pay(address, amount, 'Going home')
       settings.telepost.spam(
         "Transfer: #{format('%.04f', amount)} BTC was sent from our Coinbase account",
         "to our cold address [#{address}](https://www.blockchain.com/btc/address/#{address})",
