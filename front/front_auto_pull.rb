@@ -24,7 +24,7 @@ unless ENV['RACK_ENV'] == 'test'
       u = user(r['login'])
       log = user_log(u.login)
       next if user.wallet_exists?
-      ops(log: log).pull
+      ops(u, log: log).pull
     end
   end
 end
