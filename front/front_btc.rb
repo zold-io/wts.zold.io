@@ -143,6 +143,8 @@ unless ENV['RACK_ENV'] == 'test'
         "Coinbase payment ID is #{cid};",
         "our bitcoin assets still have [#{assets.balance.round(4)} BTC](https://wts.zold.io/assets)"
       )
+    else
+      settings.log.info("We've got just #{btc} BTC in Coinbase, no need to transfer")
     end
   end
 end
