@@ -473,7 +473,9 @@ def known?(login = @locals[:guser])
   return true if ENV['RACK_ENV'] == 'test'
   return true if login == settings.config['rewards']['login']
   return true if login == settings.config['exchange']['login']
-  Zold::Http.new(uri: 'https://www.0crat.com/known/' + login).get.code == 200
+  settings.zache.get("#{login}_known?") do
+    Zold::Http.new(uri: 'https://www.0crat.com/known/' + login).get.code == 200
+  end
 end
 
 # This user is identified in Zerocracy.
@@ -482,9 +484,10 @@ def kyc?(login = @locals[:guser])
   return true if ENV['RACK_ENV'] == 'test'
   return true if login == settings.config['rewards']['login']
   return true if login == settings.config['exchange']['login']
-  res = Zold::Http.new(uri: 'https://www.0crat.com/known/' + login).get
-  return false unless res.code == 200
-  Zold::JsonPage.new(res.body).to_hash['identified']
+  settings.zache.get("#{login}_kyc?") do
+    res = Zold::Http.new(uri: 'https://www.0crat.com/known/' + login).get
+    res.code == 200 && Zold::JsonPage.new(res.body).to_hash['identified']
+  end
 end
 
 def keygap
