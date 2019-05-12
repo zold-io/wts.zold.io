@@ -67,7 +67,8 @@ unless ENV['RACK_ENV'] == 'test'
         "The balance at [#{address}](https://www.blockchain.com/btc/address/#{address})",
         "was #{diff.positive? ? 'increased' : 'decreased'} by #{diff}",
         "from #{before} to #{after} satoshi;",
-        "our bitcoin assets have [#{assets.balance.round(4)} BTC](https://wts.zold.io/assets)"
+        "our bitcoin assets have [#{assets.balance.round(4)} BTC](https://wts.zold.io/assets)",
+        "($#{(price * assets.balance).round})"
       )
     end
   end
@@ -96,7 +97,7 @@ unless ENV['RACK_ENV'] == 'test'
         end
         ops(boss, log: settings.log).push
         settings.telepost.spam(
-          "In: #{format('%.06f', bitcoin)} BTC",
+          "In: #{format('%.06f', bitcoin)} BTC ($#{(price * bitcoin).round})",
           "[exchanged](https://blog.zold.io/2018/12/09/btc-to-zld.html) to **#{zld}**",
           "by #{title_md(bnf)}",
           "in [#{hash}](https://www.blockchain.com/btc/tx/#{hash.gsub(/:[0-9]+$/, '')})",
@@ -107,24 +108,27 @@ unless ENV['RACK_ENV'] == 'test'
           "the payer is #{title_md(boss)} with the wallet",
           "[#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id}),",
           "the remaining balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t);",
-          "our bitcoin assets still have [#{assets.balance.round(4)} BTC](https://wts.zold.io/assets)"
+          "our bitcoin assets still have [#{assets.balance.round(4)} BTC](https://wts.zold.io/assets)",
+          "($#{(price * assets.balance).round})"
         )
       elsif assets.cold?(address)
         settings.telepost.spam(
-          "#{format('%.06f', bitcoin)} BTC arrived to",
+          "In: #{format('%.06f', bitcoin)} BTC ($#{(price * bitcoin).round}) arrived to",
           "[#{address}](https://www.blockchain.com/btc/address/#{address})",
           "which doesn't belong to anyone,",
           "tx hash was [#{hash}](https://www.blockchain.com/btc/tx/#{hash.gsub(/:[0-9]+$/, '')});",
           'deposited to our fund; many thanks to whoever it was;',
-          "our bitcoin assets still have [#{assets.balance.round(4)} BTC](https://wts.zold.io/assets)"
+          "our bitcoin assets still have [#{assets.balance.round(4)} BTC](https://wts.zold.io/assets)",
+          "($#{(price * assets.balance).round})"
         )
       else
         settings.telepost.spam(
-          "#{format('%.06f', bitcoin)} BTC returned back to",
+          "#{format('%.06f', bitcoin)} BTC ($#{(price * bitcoin).round}) returned back to",
           "[#{address}](https://www.blockchain.com/btc/address/#{address})",
           'as a change from the previous payment,',
           "tx hash is [#{hash}](https://www.blockchain.com/btc/tx/#{hash.gsub(/:[0-9]+$/, '')})",
-          "our bitcoin assets still have [#{assets.balance.round(4)} BTC](https://wts.zold.io/assets)"
+          "our bitcoin assets still have [#{assets.balance.round(4)} BTC](https://wts.zold.io/assets)",
+          "($#{(price * assets.balance).round})"
         )
       end
       assets.see(address, hash)
