@@ -360,6 +360,7 @@ def fee
 end
 
 def title(suffix = '')
+  return 'SANDBOX' if user.fake?
   (user.mobile? ? "+#{user.login}" : "@#{user.login}") + (suffix.empty? ? '' : '/' + suffix)
 end
 

@@ -39,11 +39,6 @@
             %li
               %a{href: iri.cut('/')}
                 %img.logo{src: 'https://www.zold.io/images/logo-blue.svg', alt: 'Zold logo'}
-        - if defined?(guser) && user.fake?
-          %nav
-            %ul
-              %li.strong.red
-                It is a sandbox account!
         %nav
           %ul
             - if defined? header_off
