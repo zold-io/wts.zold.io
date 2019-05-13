@@ -62,7 +62,6 @@ before '/*' do
       ).to_user[:login]&.downcase
     rescue OpenSSL::Cipher::CipherError => _
       @locals.delete(:guser)
-      flash('/', 'Invalid authentication cookie, try to login again')
     end
   end
   @locals[:guser] = Zold::Id::ROOT.to_s if params[:glogin] == Zold::Id::ROOT.to_s
