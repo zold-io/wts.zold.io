@@ -21,6 +21,7 @@
 require 'tempfile'
 require 'openssl'
 require 'zold/log'
+require 'zold/id'
 require_relative 'wts'
 require_relative 'user_error'
 
@@ -29,11 +30,17 @@ require_relative 'user_error'
 #
 class WTS::User
   attr_reader :item, :login
+
   def initialize(login, item, wallets, log: Zold::Log::NULL)
     @login = login.downcase
     @item = item
     @wallets = wallets
     @log = log
+  end
+
+  # It is a testing user, who is not allowed to do any real operations?
+  def fake?
+    @login == Zold::Id::ROOT.to_s
   end
 
   # Is it a mobile user?

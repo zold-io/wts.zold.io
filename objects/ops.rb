@@ -78,6 +78,10 @@ see this happening! #{e.message}"
   end
 
   def push
+    if @user.fake?
+      @log.info('It is a fake user, won\'t push to the network')
+      return
+    end
     start = Time.now
     id = @item.id
     if @remotes.all.empty?
@@ -103,6 +107,10 @@ most probably you just have to RESTART your wallet"
   def pay_taxes(keygap)
     raise "The user #{@user.login} is not registered yet" unless @item.exists?
     raise "The account #{@user.login} is not confirmed yet" unless @user.confirmed?
+    if @user.fake?
+      @log.info('It is a fake user, won\'t pay taxes')
+      return
+    end
     start = Time.now
     id = @item.id
     unless @wallets.acq(id, &:exists?)
@@ -124,6 +132,10 @@ most probably you just have to RESTART your wallet"
     raise WTS::UserError, 'E188: Payment amount can\'t be negative' if amount.negative?
     raise "The user #{@user.login} is not registered yet" unless @item.exists?
     raise "The account #{@user.login} is not confirmed yet" unless @user.confirmed?
+    if @user.fake?
+      @log.info('It is a fake user, won\'t send a real payment')
+      return
+    end
     start = Time.now
     id = @item.id
     unless @wallets.acq(id, &:exists?)
@@ -142,6 +154,10 @@ most probably you just have to RESTART your wallet"
   end
 
   def migrate(keygap)
+    if @user.fake?
+      @log.info('It is a fake user, won\'t migrate')
+      return
+    end
     start = Time.now
     pull
     pay_taxes(keygap)

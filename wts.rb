@@ -179,52 +179,6 @@ configure do
   )
 end
 
-before '/*' do
-  @locals = {
-    ver: WTS::VERSION,
-    iri: Iri.new(request.url),
-    login_link: settings.glogin.login_uri,
-    wallets: settings.wallets,
-    remotes: settings.remotes,
-    pool: settings.pool,
-    mem: settings.zache.get(:mem, lifetime: 60) { GetProcessMem.new.bytes.to_i },
-    total_mem: settings.zache.get(:total_mem, lifetime: 60) { Total::Mem.new.bytes }
-  }
-  cookies[:glogin] = params[:glogin] if params[:glogin]
-  if cookies[:glogin]
-    begin
-      @locals[:guser] = GLogin::Cookie::Closed.new(
-        cookies[:glogin],
-        settings.config['github']['encryption_secret'],
-        context
-      ).to_user[:login]&.downcase
-    rescue OpenSSL::Cipher::CipherError => _
-      @locals.delete(:guser)
-    end
-  end
-  header = request.env['HTTP_X_ZOLD_WTS'] || cookies[:wts] || nil
-  if header
-    login, token = header.strip.split('-', 2)
-    unless user(login).item.exists?
-      settings.log.info("API login: User #{login} is absent")
-      return
-    end
-    unless settings.tokens.get(login) == token
-      settings.log.info("Invalid token #{token.inspect} of #{login}")
-      return
-    end
-    @locals[:guser] = login.downcase
-  end
-  cookies[:ref] = params[:ref] if params[:ref]
-  cookies[:utm_source] = params[:utm_source] if params[:utm_source]
-  cookies[:utm_medium] = params[:utm_medium] if params[:utm_medium]
-  cookies[:utm_campaign] = params[:utm_campaign] if params[:utm_campaign]
-  request.env['rack.request.query_hash'].each do |k, v|
-    raise WTS::UserError, "E101: The param #{k.inspect} can't be empty" if v.nil?
-    raise WTS::UserError, "E102: Invalid encoding of #{k.inspect} param" unless v.valid_encoding?
-  end
-end
-
 after do
   headers['Access-Control-Allow-Origin'] = '*'
 end
