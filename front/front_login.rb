@@ -64,7 +64,6 @@ before '/*' do
       @locals.delete(:guser)
     end
   end
-  @locals[:guser] = Zold::Id::ROOT.to_s if params[:glogin] == Zold::Id::ROOT.to_s
   header = request.env['HTTP_X_ZOLD_WTS'] || cookies[:wts] || nil
   if header
     login, token = header.strip.split('-', 2)
@@ -105,6 +104,16 @@ use mobile phone (see KYC section in our Terms of Use) /#{allowed.count}"
   cookies[:glogin] = c.to_s
   register_referral(c.login)
   flash('/', "You have been logged in as @#{c.login}")
+end
+
+get '/sandbox' do
+  c = GLogin::Cookie::Open.new(
+    Zold::Id::ROOT.to_s,
+    settings.config['github']['encryption_secret'],
+    context
+  )
+  cookies[:glogin] = c.to_s
+  flash('/', 'You are in sandbox mode')
 end
 
 get '/logout' do
