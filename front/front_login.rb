@@ -108,7 +108,7 @@ end
 
 get '/sandbox' do
   c = GLogin::Cookie::Open.new(
-    { login: Zold::Id::ROOT.to_s, avatar: '', bearer: '' },
+    { 'login' => Zold::Id::ROOT.to_s, 'avatar_url' => '', 'bearer' => '' },
     settings.config['github']['encryption_secret'],
     context
   )
