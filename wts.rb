@@ -409,7 +409,7 @@ def user_log(u = user.login)
 end
 
 def user(login = @locals[:guser])
-  raise WTS::UserError, 'E173: You have to login first' unless login
+  raise 'E173: You have to login first' unless login
   WTS::User.new(
     login, WTS::Item.new(login, settings.pgsql, log: user_log(login)),
     settings.wallets, log: user_log(login)
