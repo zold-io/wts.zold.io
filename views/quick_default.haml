@@ -49,10 +49,10 @@
       %td.right
         You convert now:
       %td
-        %input{type: 'number', id: 'btc', oninput: 'wts_recalc();', style: 'width:5em', autocomplete: 'off', required: true, tabindex: 1, autofocus: true, value: '0.1'}
+        %input#btc{type: 'number', oninput: 'wts_recalc();', style: 'width:5em', autocomplete: 'off', required: true, tabindex: 1, autofocus: true, value: '0.1'}
         BTC
         ➜
-        %span{id: 'zld'}
+        %span#zld
         ZLD
     %tr
       %td.right
@@ -60,7 +60,7 @@
         %a{href: 'https://en.wikipedia.org/wiki/Hodl'} hodl
         for:
       %td
-        %input{type: 'number', id: 'months', oninput: 'wts_recalc();', style: 'width:3em', autocomplete: 'off', required: true, tabindex: 2, value: '6'}
+        %input#months{type: 'number', oninput: 'wts_recalc();', style: 'width:3em', autocomplete: 'off', required: true, tabindex: 2, value: '6'}
         months
 
 %table.quick.pl
@@ -73,38 +73,38 @@
       %td.right
         Total investment:
       %td.right
-        %span{id: 'spend'}
+        %span#spend
     %tr
       %td.right
         Zerocracy increment:
       %td.right.green
-        %span{id: 'zc_input'}
+        %span#zc_input
       %td
         %a{href: 'https://blog.zold.io/2019/01/16/make-me-rich.html'} Why?
     %tr
       %td.right
         Bitcoin rate growth:
       %td.right.green
-        %span{id: 'btc_growth'}
+        %span#btc_growth
       %td
         = '~10%/month'
     %tr
       %td.right
         Gross return:
       %td.right.green
-        %span{id: 'gross'}
+        %span#gross
     %tr
       %td.right
         Exchange fee:
       %td.right.red
-        %span{id: 'fee'}
+        %span#fee
     %tr
       %td.right
         Net profit:
       %td.right{style: 'border: 1px solid gray;'}
-        %strong{id: 'net'}
+        %strong#net
 
-%p{id: 'step2', style: 'display: none'}
+%p#step2{style: 'display: none'}
   In order to create an account we have to identify you first.
   Zold is a fully anonymous system: we don't track your IP and don't keep any logs.
   All we need to know about you is your phone number, which will uniquely
@@ -112,30 +112,30 @@
   %br
   %br
   Your mobile phone:
-  %input{type: 'text', name: 'phone', id: 'phone', pattern: "[0-9]+", size: 17, placeholder: 'e.g. 14085551234', required: true, tabindex: 4}
+  %input#phone{type: 'text', name: 'phone', pattern: "[0-9]+", size: 17, placeholder: 'e.g. 14085551234', required: true, tabindex: 4}
 
-%p{id: 'step3', style: 'display: none'}
+%p#step3{style: 'display: none'}
   4-digit authorization code you just received:
-  %input{type: 'text', name: 'code', id: 'code', pattern: "[0-9]+", size: 5, autocomplete: 'off', tabindex: 5}
+  %input#code{type: 'text', name: 'code', pattern: "[0-9]+", size: 5, autocomplete: 'off', tabindex: 5}
 
-%p{id: 'step4', style: 'display: none'}
+%p#step4{style: 'display: none'}
   This is your
   = succeed ':' do
     %a{href: 'https://blog.zold.io/2018/07/18/keygap.html'} keygap
   = succeed '.' do
-    %code{id: 'keygap'}
+    %code#keygap
   Write it down where it's safe.
   If you lose it, you will lose your Zold coins!
   We will not be able to restore this information!
 
-%p{id: 'step5', style: 'display: none'}
-  %img{id: 'qr', style: 'float:right;margin-left:.5em;margin-bottom:.5em;width:128px;height:128px;', src: ''}
+%p#step5{style: 'display: none'}
+  %img#qr{style: 'float:right;margin-left:.5em;margin-bottom:.5em;width:128px;height:128px;', src: ''}
   Send
   %strong
-    %span{id: 'amount'}
+    %span#amount
     bitcoins
   to this address:
-  %code{id: 'address'}
+  %code#address
   (it is valid only within the next 15 minutes!)
   Once the payment arrives, which may take up to an hour, you can go to
   %a{href: '/mobile_send'} your account
@@ -144,10 +144,10 @@
   Thanks for joining Zold community and helping Zerocracy
   make the world of software development better!
 
-%p{id: 'step6'}
-  %input{type: 'submit', id: 'button', tabindex: 5, value: 'Start'}
+%p#step6
+  %input#button{type: 'submit', tabindex: 5, value: 'Start'}
 
-%p.small.gray{id: 'error'}
+%p.small.gray#error
 
 %p.small.gray
   %sup *

@@ -28,7 +28,11 @@ get '/quick' do
   raise WTS::UserError, 'E172: HAML page name is not valid' unless /^[a-zA-Z0-9]{,64}$/.match?(page)
   http = Zold::Http.new(uri: "https://raw.githubusercontent.com/zold-io/quick/master/#{page}.haml").get
   html = Haml::Engine.new(
-    http.status == 200 ? http.body : IO.read(File.join(__dir__, '../views/quick_default.haml'))
+    if http.status == 200 && http.body.include?('step6')
+      http.body
+    else
+      IO.read(File.join(__dir__, '../views/quick_default.haml'))
+    end
   ).render(self)
   haml :quick, layout: :layout, locals: merged(
     page_title: 'Zold: Quick Start',
