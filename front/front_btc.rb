@@ -151,6 +151,20 @@ unless ENV['RACK_ENV'] == 'test'
       settings.log.info("We've got just #{btc} BTC in Coinbase, no need to transfer")
     end
   end
+  settings.daemons.start('btc-transfer-to-cold', 12 * 60 * 60) do
+    hot = assets.all.select { |a| a[:hot] }.map { |a| a[:value] }.inject(&:+) / 100_000_000
+    if hot * price > 2000
+      btc = 0.1
+      address = assets.all.reject { |a| a[:hot] }.sample[:address]
+      tx = assets.pay(address, btc)
+      settings.telepost.spam(
+        "Transfer: There were too many \"hot\" bitcoins in our assets, that's why",
+        "we transferred #{format('%.04f', btc)} BTC ($#{(btc * price).round}) to the cold address",
+        "[#{address}](https://www.blockchain.com/btc/address/#{address})",
+        "tx hash is [#{tx}](https://www.blockchain.com/btc/tx/#{tx})"
+      )
+    end
+  end
 end
 
 get '/funded' do
@@ -312,6 +326,7 @@ bitcoin assets still have #{assets.balance.round(4)} BTC"
       "from the wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})",
       "with the remaining balance of #{user.wallet(&:balance)}",
       "to bitcoin address [#{address}](https://www.blockchain.com/btc/address/#{address});",
+      "tx hash is [#{tx}](https://www.blockchain.com/btc/tx/#{tx});",
       "BTC price at the time of exchange was [$#{price.round}](https://blockchain.info/ticker);",
       "our bitcoin assets still have [#{assets.balance.round(4)} BTC](https://wts.zold.io/assets)",
       "(worth about $#{(assets.balance * price).round});",
