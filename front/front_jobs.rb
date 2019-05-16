@@ -30,7 +30,7 @@ require_relative '../objects/update_job'
 require_relative '../objects/user_error'
 require_relative '../objects/versioned_job'
 
-set :pool, Concurrent::FixedThreadPool.new(16, max_queue: 1024, fallback_policy: :abort)
+set :pool, Concurrent::FixedThreadPool.new(4, max_queue: 1024, fallback_policy: :abort)
 set :jobs, WTS::Jobs.new(settings.pgsql, log: settings.log)
 
 def job(u = user, exclusive: false)
