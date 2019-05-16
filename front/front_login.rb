@@ -152,7 +152,7 @@ end
 get '/do-confirm' do
   raise WTS::UserError, 'E107: You have done this already, your keygap has been generated' if user.confirmed?
   user.confirm(params[:keygap])
-  flash('/', 'The account has been confirmed')
+  flash('/', 'The account has been confirmed, you can use it now')
 end
 
 get '/mobile/send' do

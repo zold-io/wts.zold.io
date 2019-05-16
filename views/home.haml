@@ -1,6 +1,3 @@
-%h2
-  Zold Web Wallet
-
 - u = confirmed_user
 - max = 50
 
@@ -32,7 +29,7 @@
       %a{href: iri.cut('/download')} Download
       %br
       Modified:
-      = "#{w.mtime.utc.iso8601} (#{Zold::Age.new(w.mtime.utc.iso8601)} ago)"
+      %span{title: w.mtime.utc.iso8601}= "#{Zold::Age.new(w.mtime.utc.iso8601)} ago"
 
 - if u.wallet_exists? && u.wallet(&:txns).count > 1000
   %p.red

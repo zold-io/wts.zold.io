@@ -84,8 +84,7 @@
                   = remotes.all.count
               %li{title: 'Currently running jobs vs. jobs waiting in the line'}
                 Pool:
-                %a{href: iri.cut('/log')}
-                  = "#{pool.length}/#{pool.queue_length}"
+                = "#{pool.length}/#{pool.queue_length}"
               - if defined? guser
                 %li
                   %a{href: iri.cut('/logout')}
@@ -168,6 +167,7 @@
             %ul
               %li
                 Subscribe to our status updates in
+                %img{src: iri.cut('/telegram-logo.svg'), style: 'height: 1.1em; vertical-align: middle;'}
                 %a{href: 'https://t.me/zold_wts'} Telegram
         %nav
           %ul

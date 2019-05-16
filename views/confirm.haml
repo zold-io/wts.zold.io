@@ -2,20 +2,30 @@
   Confirm the Keygap
 
 %p
+  We just created a new Zold wallet
+  %code= user.item.id
+  for you. Each Zold wallet is a simple plain text file,
+  which includes a public RSA key inside. The private RSA key
+  is something you should keep secret, in order to send
+  payments from your wallet. We created that private RSA key for you
+  too and stored in our database. We extracted a small part of it
+  and giving it to you now. You should keep it secret, you will
+  need it later, in order to send payments.
   This is your
   = succeed ':' do
-    %a{href: 'https://blog.zold.io/2018/07/18/keygap.html'} keygap
+    %a{href: 'https://blog.zold.io/2018/07/18/keygap.html', title: 'Read more about Keygap'} keygap
 
-%p{style: 'font-size:4em;color:red;'}
-  = user.keygap
+%p
+  %span{style: 'font-size:4em;color:red;font-family:monospace;'}= user.keygap
 
 %p
   You have to save it right now, together with your wallet ID
   = succeed '.' do
-    %code
-      =user.item.id
+    %code= user.item.id
   Once you confirm that you saved it, we will destroy it from our database
   and will not be able to restore access to your wallet without this code.
+
+%p
   Click,
-  %a{href: iri.cut('/do-confirm').add(keygap: user.keygap), onclick: "return confirm('Are you sure? Did you save the code?')"} confirm
+  %a{href: iri.cut('/do-confirm').add(keygap: user.keygap), title: 'Click here when you are ready', onclick: "return confirm('Are you sure? Did you save the keygap and your wallet ID?')"} confirm
   when you are ready.
