@@ -66,7 +66,9 @@ end
 # See https://github.com/baldowl/rack_csrf
 require 'rack/csrf'
 use Rack::Session::Cookie
-use Rack::Csrf, raise: true
+use Rack::Csrf, raise: true, skip_if: lambda { |request|
+  request.env.key?('HTTP_X_ZOLD_WTS')
+}
 
 configure do
   Zold::Hands.start
