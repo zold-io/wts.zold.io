@@ -18,6 +18,7 @@
   fee:
 
 %form{method: 'POST', action: iri.cut('/do-zld-to-btc')}
+  = Rack::Csrf.tag(env)
   %fieldset
     %label
       Your

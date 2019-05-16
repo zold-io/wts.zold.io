@@ -2,6 +2,7 @@
   Step 1: Request Code
 
 %form{method: 'GET', action: iri.cut('/mobile/send')}
+  = Rack::Csrf.tag(env)
   %fieldset
     %label
       Enter your mobile phone in

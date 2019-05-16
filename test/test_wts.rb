@@ -174,12 +174,16 @@ class WTS::AppTest < Minitest::Test
     assets = WTS::Assets.new(test_pgsql, log: test_log)
     address = assets.acquire(user.login)
     assets.set(address, 10_000_000)
+    get('/zld-to-btc')
+    assert_equal(200, last_response.status, last_response.body)
+    csrf = Nokogiri.HTML(last_response.body).xpath('//input[@name="_csrf"]/@value')
     post(
       '/do-zld-to-btc',
       form(
         'amount': '1',
         'btc': '1N1R2HP9JD4LvAtp7rTkpRqF19GH7PH2ZF',
-        'keygap': keygap
+        'keygap': keygap,
+        '_csrf': csrf
       )
     )
     assert_equal(302, last_response.status, last_response.body)
@@ -189,13 +193,17 @@ class WTS::AppTest < Minitest::Test
     skip
     WebMock.allow_net_connect!
     keygap = login('yegor1')
+    get('/pay')
+    assert_equal(200, last_response.status, last_response.body)
+    csrf = Nokogiri.HTML(last_response.body).xpath('//input[@name="_csrf"]/@value')
     post(
       '/do-pay',
       form(
         'keygap': keygap,
         'bnf': '1111222233334444',
         'amount': 100,
-        'details': 'for pizza'
+        'details': 'for pizza',
+        '_csrf': csrf
       )
     )
     assert_equal(302, last_response.status, last_response.body)
@@ -235,7 +243,8 @@ class WTS::AppTest < Minitest::Test
     get('/keygap')
     assert_equal(200, last_response.status, last_response.body)
     keygap = last_response.body
-    get('/do-confirm?keygap=' + keygap)
+    csrf = Nokogiri.HTML(last_response.body).xpath('//input[@name="_csrf"]/@value')
+    get('/do-confirm?keygap=' + keygap + "&_csrf=#{csrf}")
     assert_equal(302, last_response.status, last_response.body)
     get('/id')
     assert_equal(200, last_response.status, last_response.body)

@@ -7,6 +7,7 @@
   document.
 
 %form{method: 'GET', action: iri.cut('/wait-for')}
+  = Rack::Csrf.tag(env)
   %fieldset
     %label
       The ID of the wallet to scan:

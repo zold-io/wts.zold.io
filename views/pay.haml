@@ -9,6 +9,7 @@
     %code= confirmed_user.wallet(&:balance)
 
 %form{method: 'POST', action: iri.cut('/do-pay')}
+  = Rack::Csrf.tag(env)
   %fieldset
     %label
       Your

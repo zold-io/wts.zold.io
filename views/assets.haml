@@ -6,6 +6,7 @@
 
 - if defined?(guser) && vip?
   %form{method: 'POST', action: iri.cut('/add-asset')}
+    = Rack::Csrf.tag(env)
     %label Add cold asset:
     %input{type: 'text', name: 'address', maxlength: 100, size: 35, placeholder: 'Bitcoin address', autocomplete: 'off', tabindex: 1}
     %input{type: 'submit', tabindex: 2, value: 'Add'}

@@ -11,6 +11,7 @@
     %code= confirmed_user.item.id
 
 %form{method: 'GET', action: '/id_rsa'}
+  = Rack::Csrf.tag(env)
   %label
     You may want to download your private RSA key
     and keep it locally, just in case something

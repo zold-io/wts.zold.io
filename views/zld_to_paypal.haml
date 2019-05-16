@@ -18,6 +18,7 @@
   fee:
 
 %form{method: 'POST', action: iri.cut('/do-zld-to-paypal')}
+  = Rack::Csrf.tag(env)
   %fieldset
     %label
       Your

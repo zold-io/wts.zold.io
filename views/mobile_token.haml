@@ -2,6 +2,7 @@
   Step 2: Enter Code
 
 %form{method: 'GET', action: '/mobile/token'}
+  = Rack::Csrf.tag(env)
   %fieldset
     %label
       Enter your mobile phone in

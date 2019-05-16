@@ -63,6 +63,11 @@ if ENV['RACK_ENV'] != 'test'
   use Rack::SSL
 end
 
+# See https://github.com/baldowl/rack_csrf
+require 'rack/csrf'
+use Rack::Session::Cookie
+use Rack::Csrf, raise: true
+
 configure do
   Zold::Hands.start
   Haml::Options.defaults[:format] = :xhtml

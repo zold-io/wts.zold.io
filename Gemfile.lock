@@ -148,6 +148,8 @@ GEM
       rack
     rack-test (1.1.0)
       rack (>= 1.0, < 3)
+    rack_csrf (2.6.0)
+      rack (>= 1.1.0)
     rainbow (3.0.0)
     rake (12.3.1)
     random-port (0.3.1)
@@ -301,6 +303,7 @@ DEPENDENCIES
   rack (= 2.0.6)
   rack-ssl (= 1.4.1)
   rack-test (= 1.1.0)
+  rack_csrf (= 2.6.0)
   rake (= 12.3.1)
   random-port (= 0.3.1)
   rerun (= 0.13.0)

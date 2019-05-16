@@ -2,6 +2,7 @@
   SQL
 
 %form{method: 'GET', action: iri.cut('/sql')}
+  = Rack::Csrf.tag(env)
   %input{type: 'text', name: 'query', size: 60, autocomplete: 'off', required: true, tabindex: 1, autofocus: true, value: query}
   %input{type: 'submit', tabindex: 2, value: 'Query'}
 

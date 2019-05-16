@@ -41,6 +41,7 @@ gem 'pgtk', '0.6.2'
 gem 'rack', '2.0.6'
 gem 'rack-ssl', '1.4.1'
 gem 'rack-test', '1.1.0'
+gem 'rack_csrf', '2.6.0'
 gem 'rake', '12.3.1', require: false
 gem 'random-port', '0.3.1', require: false
 gem 'rerun', '0.13.0', require: false
