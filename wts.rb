@@ -163,7 +163,6 @@ configure do
   set :daemons, WTS::Daemons.new(settings.pgsql, log: settings.log)
   set :codec, GLogin::Codec.new(config['api_secret'])
   set :zache, Zache.new(dirty: true)
-  set :pool, Concurrent::FixedThreadPool.new(16, max_queue: 64, fallback_policy: :abort)
   if settings.config['telegram']['token'].empty?
     set :telepost, Telepost::Fake.new
   else
