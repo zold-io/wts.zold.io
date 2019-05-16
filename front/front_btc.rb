@@ -153,16 +153,20 @@ unless ENV['RACK_ENV'] == 'test'
   end
   settings.daemons.start('btc-transfer-to-cold', 12 * 60 * 60) do
     hot = assets.all.select { |a| a[:hot] }.map { |a| a[:value] }.inject(&:+) / 100_000_000
-    if hot * price > 2000
-      btc = 0.1
+    usd = (hot * price).round
+    if usd > 2000
+      btc = 500.0 / price
       address = assets.all.reject { |a| a[:hot] }.sample[:address]
       tx = assets.pay(address, btc)
       settings.telepost.spam(
-        "Transfer: There were too many \"hot\" bitcoins in our assets, that's why",
+        'Transfer: There were too many "hot" bitcoins in our assets',
+        "(#{format('%.04f', hot)} BTC, $#{usd}), that's why",
         "we transferred #{format('%.04f', btc)} BTC ($#{(btc * price).round}) to the cold address",
         "[#{address}](https://www.blockchain.com/btc/address/#{address})",
         "tx hash is [#{tx}](https://www.blockchain.com/btc/tx/#{tx})"
       )
+    else
+      settings.log.info("There are #{hot} BTC in hot addresses ($#{usd}), no need to transfer")
     end
   end
 end
