@@ -8,12 +8,12 @@
   %form{method: 'POST', action: iri.cut('/add-asset')}
     = Rack::Csrf.tag(env)
     %label Add cold asset:
-    %input{type: 'text', name: 'address', maxlength: 100, size: 35, placeholder: 'Bitcoin address', autocomplete: 'off', tabindex: 1}
+    %input{type: 'text', name: 'address', maxlength: 64, size: 35, placeholder: 'Bitcoin address', autocomplete: 'off', tabindex: 1}
     %input{type: 'submit', tabindex: 2, value: 'Add'}
   %form{method: 'POST', action: iri.cut('/decrypt-pkey')}
     = Rack::Csrf.tag(env)
     %label Decrypt:
-    %input{type: 'text', name: 'text', maxlength: 100, size: 35, placeholder: 'TG encrypted private key', autocomplete: 'off', tabindex: 3}
+    %input{type: 'text', name: 'text', size: 35, placeholder: 'TG encrypted private key', autocomplete: 'off', tabindex: 3}
     %input{type: 'submit', tabindex: 4, value: 'Decrypt'}
   %p
     %a{href: iri.cut('/assets-private-keys')} Click here
