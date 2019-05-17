@@ -169,6 +169,19 @@ unless ENV['RACK_ENV'] == 'test'
       settings.log.info("There are #{hot} BTC in hot addresses ($#{usd}), no need to transfer")
     end
   end
+  settings.daemons.start('btc-rate-notify', 60 * 60) do
+    before = settings.toggles.get('recent-zld-rate', '2.03').to_f
+    after = rate * price
+    diff = abs(before - after)
+    if diff > before * 0.04
+      settings.toggles.set('recent-zld-rate', after.to_s)
+      settings.telepost.spam(
+        "The rate of ZLD moved #{after > before ? 'UP' : 'DOWN'}",
+        "from $#{format('%.02f', before)} to $#{format('%.02f', after)},",
+        'more details [here](https://wts.zold.io/rate)'
+      )
+    end
+  end
 end
 
 get '/funded' do
