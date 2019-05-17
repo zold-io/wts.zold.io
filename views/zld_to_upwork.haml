@@ -1,7 +1,7 @@
-%script{src: '/js/zld_to_paypal.js'}
+%script{src: '/js/zld_to_upwork.js'}
 
 %h2
-  Sell Zolds and Receive PayPal
+  Sell Zolds and Receive UpWork
 
 %p
   The rate is
@@ -12,12 +12,12 @@
   %a{href: iri.cut('/rate')} Why?
 
 %p
-  To sell your ZLD and receive PayPal just fill this form
+  To sell your ZLD and receive UpWork just fill this form
   and we will send you the payment promptly, deducting
   = "#{(fee * 100)}%"
   fee:
 
-%form{method: 'POST', action: iri.cut('/do-zld-to-paypal')}
+%form{method: 'POST', action: iri.cut('/do-zld-to-upwork')}
   = Rack::Csrf.tag(env)
   %fieldset
     %label
@@ -40,9 +40,9 @@
     %span.small.gray{id: 'out'}
     %label
       The
-      %a{href: 'https://www.paypal.com'} PayPal
-      email to receive the payment:
-    %input{type: 'email', name: 'email', maxlength: 50, size: 45, autocomplete: 'off', tabindex: 3}
+      %a{href: 'https://www.upwork.com'} UpWork
+      contract ID:
+    %input{type: 'text', name: 'contract', maxlength: 50, size: 30, autocomplete: 'off', tabindex: 3}
     %input{type: 'submit', tabindex: 4}
 
 %p
