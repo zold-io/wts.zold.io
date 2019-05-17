@@ -173,7 +173,7 @@ unless ENV['RACK_ENV'] == 'test'
     before = settings.toggles.get('recent-zld-rate', '2.03').to_f
     after = rate * price
     diff = abs(before - after)
-    if diff > before * 0.04
+    if diff > before * 0.04 || diff > after * 0.04
       settings.toggles.set('recent-zld-rate', after.to_s)
       settings.telepost.spam(
         "The rate of ZLD moved #{after > before ? 'UP' : 'DOWN'}",
