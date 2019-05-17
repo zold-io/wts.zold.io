@@ -10,6 +10,11 @@
     %label Add cold asset:
     %input{type: 'text', name: 'address', maxlength: 100, size: 35, placeholder: 'Bitcoin address', autocomplete: 'off', tabindex: 1}
     %input{type: 'submit', tabindex: 2, value: 'Add'}
+  %form{method: 'POST', action: iri.cut('/decrypt-pkey')}
+    = Rack::Csrf.tag(env)
+    %label Decrypt:
+    %input{type: 'text', name: 'text', maxlength: 100, size: 35, placeholder: 'TG encrypted private key', autocomplete: 'off', tabindex: 3}
+    %input{type: 'submit', tabindex: 4, value: 'Decrypt'}
   %p
     %a{href: iri.cut('/assets-private-keys')} Click here
     to see all private keys.
@@ -31,7 +36,9 @@
     = "$#{(price * balance).round}."
     The biggest Bitcoin payout we can send at the moment is
     = format('%.04f', limit)
-    BTC:
+    BTC
+    = succeed ':' do
+      = "($#{limit * price})"
   %table.compact
     %colgroup
       %col{style: 'width: 25em'}

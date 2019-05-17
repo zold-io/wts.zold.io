@@ -135,7 +135,7 @@ unless ENV['RACK_ENV'] == 'test'
     end
     settings.toggles.set('latestblock', seen)
   end
-  settings.daemons.start('btc-from-coinbase', 4 * 60 * 60) do
+  settings.daemons.start('btc-from-coinbase', 60 * 60) do
     btc = coinbase.balance
     if btc > 0.01
       address = assets.all(show_empty: true).reject { |a| a[:hot] }.sample[:address]
@@ -385,6 +385,14 @@ get '/assets-private-keys' do
   raise WTS::UserError, 'E129: You are not allowed to see this, only yegor256' unless user.login == 'yegor256'
   content_type 'text/plain'
   assets.disclose.map { |a| "#{a[:address]}: #{a[:pvt]} / #{a[:value]}s #{a[:login]}" }.join("\n")
+end
+
+post '/decrypt-pkey' do
+  raise WTS::UserError, 'E129: You are not allowed to see this' unless vip?
+  raise WTS::UserError, 'E129: You are not allowed to see this, only yegor256' unless user.login == 'yegor256'
+  text = params[:text]
+  content_type 'text/plain'
+  settings.codec.encrypt(text)
 end
 
 get '/referrals' do
