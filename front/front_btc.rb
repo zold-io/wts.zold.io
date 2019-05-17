@@ -392,7 +392,7 @@ post '/decrypt-pkey' do
   raise WTS::UserError, 'E129: You are not allowed to see this, only yegor256' unless user.login == 'yegor256'
   text = params[:text]
   content_type 'text/plain'
-  settings.codec.encrypt(text)
+  settings.codec.decrypt(text)
 end
 
 get '/referrals' do
