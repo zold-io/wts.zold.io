@@ -5,21 +5,22 @@
   Assets
 
 - if defined?(guser) && vip?
-  %form{method: 'POST', action: iri.cut('/add-asset')}
-    = Rack::Csrf.tag(env)
-    %label Add cold asset:
-    %input{type: 'text', name: 'address', maxlength: 64, size: 35, placeholder: 'Bitcoin address', autocomplete: 'off', tabindex: 1}
-    %input{type: 'submit', tabindex: 2, value: 'Add'}
-  %form{method: 'POST', action: iri.cut('/decrypt-pkey')}
-    = Rack::Csrf.tag(env)
-    %label Decrypt:
-    %input{type: 'text', name: 'text', size: 35, placeholder: 'TG encrypted private key', autocomplete: 'off', tabindex: 3}
-    %input{type: 'submit', tabindex: 4, value: 'Decrypt'}
-  %p
-    %a{href: iri.cut('/assets-private-keys')} Click here
-    to see all private keys.
-    %a{href: iri.add(empty: true)} Click here
-    to see empty wallets too.
+  %div{style: 'background-color: #FE938C;'}
+    %form{method: 'POST', action: iri.cut('/add-asset')}
+      = Rack::Csrf.tag(env)
+      %label Add cold asset:
+      %input{type: 'text', name: 'address', maxlength: 64, size: 35, placeholder: 'Bitcoin address', autocomplete: 'off', tabindex: 1}
+      %input{type: 'submit', tabindex: 2, value: 'Add'}
+    %form{method: 'POST', action: iri.cut('/decrypt-pkey')}
+      = Rack::Csrf.tag(env)
+      %label Decrypt:
+      %input{type: 'text', name: 'text', size: 35, placeholder: 'TG encrypted private key', autocomplete: 'off', tabindex: 3}
+      %input{type: 'submit', tabindex: 4, value: 'Decrypt'}
+    %p
+      %a{href: iri.cut('/assets-private-keys')} Click here
+      to see all private keys.
+      %a{href: iri.add(empty: true)} Click here
+      to see empty wallets too.
 
 - if assets.empty?
   %p

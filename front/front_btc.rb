@@ -238,7 +238,7 @@ get '/btc-to-zld' do
     settings.telepost.spam(
       "A new Bitcoin address [#{a}](https://www.blockchain.com/btc/address/#{a}) generated",
       u.nil? ? 'as a storage for change' : 'by a user',
-      "with this private key (it is encrypted):\n\n```\n#{k.gsub(/(?<=\G.{24})/, "\n")}\n```"
+      "with this private key (it is encrypted):\n\n```\n#{k.scan(/.{20}/).join("\n")}\n```"
     )
   end
   headers['X-Zold-BtcAddress'] = address
