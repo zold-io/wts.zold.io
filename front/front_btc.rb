@@ -138,7 +138,7 @@ unless ENV['RACK_ENV'] == 'test'
   settings.daemons.start('btc-from-coinbase', 4 * 60 * 60) do
     btc = coinbase.balance
     if btc > 0.01
-      address = assets.all(show_empty: true).reject { |a| a[:hot] }.first[:address]
+      address = assets.all(show_empty: true).reject { |a| a[:hot] }.sample[:address]
       amount = [btc * 0.95, 0.1].min.floor(4)
       cid = coinbase.pay(address, amount, 'Going home')
       settings.telepost.spam(
