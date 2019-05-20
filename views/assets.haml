@@ -39,7 +39,7 @@
     = format('%.04f', limit)
     BTC
     = succeed ':' do
-      = "($#{limit * price})"
+      = "($#{(limit * price).round})"
   %table.compact
     %colgroup
       %col{style: 'width: 25em'}

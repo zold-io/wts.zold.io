@@ -7,8 +7,8 @@
   document.
 
 %form{method: 'GET', action: iri.cut('/wait-for')}
-  = Rack::Csrf.tag(env)
   %fieldset
+    = Rack::Csrf.tag(env)
     %label
       The ID of the wallet to scan:
     %input{type: 'text', name: 'wallet', autocomplete: 'off', required: true, tabindex: 1, autofocus: true, value: user.item.id}

@@ -176,7 +176,7 @@ get '/mobile/send' do
   cid = settings.smss.deliver(phone, "Your authorization code for wts.zold.io is: #{mcode}")
   if params[:noredirect]
     content_type 'text/plain'
-    return cid.to_s
+    return "SMS ##{cid} has been delivered to #{phone}"
   end
   flash("/mobile_token?phone=#{phone}", "The SMS ##{cid} was sent with the auth code")
 end

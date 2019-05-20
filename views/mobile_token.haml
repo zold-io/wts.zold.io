@@ -2,8 +2,8 @@
   Step 2: Enter Code
 
 %form{method: 'GET', action: '/mobile/token'}
-  = Rack::Csrf.tag(env)
   %fieldset
+    = Rack::Csrf.tag(env)
     %label
       Enter your mobile phone in
       %a{href: 'https://en.wikipedia.org/wiki/E.164'} E.164

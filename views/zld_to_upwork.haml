@@ -18,8 +18,8 @@
   fee:
 
 %form{method: 'POST', action: iri.cut('/do-zld-to-upwork')}
-  = Rack::Csrf.tag(env)
   %fieldset
+    = Rack::Csrf.tag(env)
     %label
       Your
       %a{href: 'https://blog.zold.io/2018/07/18/keygap.html'} keygap
