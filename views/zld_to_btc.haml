@@ -37,7 +37,7 @@
         - else
           = ''
     %input{type: 'text', id: 'zld', name: 'amount', size: 12, maxlength: 8, autocomplete: 'off', tabindex: 2, oninput: "wts_rerate(#{rate.round(8)}, #{price.round(2)}, #{fee.round(4)});"}
-    %span.gray.small{id: 'out'}
+    %label.gray.small{id: 'out'}
     %label
       Bitcoin
       %a{href: 'https://en.bitcoin.it/wiki/Address'} address
@@ -50,7 +50,7 @@
       %a{href: 'https://en.bitcoin.it/wiki/Bech32'} Bech32
       format:
     %input{type: 'text', name: 'btc', maxlength: 50, size: 45, autocomplete: 'off', tabindex: 3}
-    %input{type: 'submit', onclick: "return confirm('Are you sure? This operation is not reversable!')", tabindex: 4}
+    %input{type: 'submit', onclick: "return confirm('Are you sure? This operation is not reversable!')", tabindex: 4, value: 'Sell'}
 
 %p
   This

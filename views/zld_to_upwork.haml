@@ -37,13 +37,13 @@
         - else
           = ''
     %input{type: 'text', id: 'zld', name: 'amount', size: 12, maxlength: 8, autocomplete: 'off', tabindex: 2, oninput: "wts_rerate(#{rate.round(8)}, #{price.round(2)}, #{fee.round(4)});"}
-    %span.small.gray{id: 'out'}
+    %label.small.gray{id: 'out'}
     %label
       The
       %a{href: 'https://www.upwork.com'} UpWork
       contract ID:
     %input{type: 'text', name: 'contract', maxlength: 50, size: 30, autocomplete: 'off', tabindex: 3}
-    %input{type: 'submit', tabindex: 4}
+    %input{type: 'submit', tabindex: 4, value: 'Send'}
 
 %p
   If any issues or the payment is lost, contact us in our

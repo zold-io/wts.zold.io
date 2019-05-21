@@ -34,7 +34,7 @@
     %label
       The amount to pay, ZLD:
     %input{type: 'text', id: 'zld', name: 'amount', maxlength: 32, size: 10, placeholder: 'e.g. "14.95"', autocomplete: 'off', required: true, tabindex: 3, oninput: "wts_recalc(#{rate.round(8)}, #{price.round(2)});"}
-    %span.gray.small{id: 'out'}
+    %label.gray.small{id: 'out'}
     %label
       Payment details:
     %input{type: 'text', name: 'details', maxlength: 512, style: 'width:100%', placeholder: 'e.g. "For services"', autocomplete: 'off', tabindex: 4}
