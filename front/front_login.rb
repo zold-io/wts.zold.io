@@ -71,7 +71,7 @@ before '/*' do
       settings.log.info("API login: User #{login} is absent")
       return
     end
-    unless settings.tokens.get(login) == token
+    unless settings.tokens.get(login) == token && login != Zold::Id::ROOT.to_s
       settings.log.info("Invalid token #{token.inspect} of #{login}")
       return
     end
@@ -163,22 +163,30 @@ get '/mobile/send' do
   unless /^[0-9]+$/.match?(phone)
     raise WTS::UserError, "E161: Invalid phone #{phone.inspect}, digits only allowed (E.164)"
   end
-  raise WTS::UserError, 'E161: The phone shouldn\'t start with zeros' if /^0+/.match?(phone)
-  raise WTS::UserError, "E162: The phone number #{phone.inspect} is too short" if phone.length < 6
-  raise WTS::UserError, "E163: The phone number #{phone.inspect} is too long" if phone.length > 14
-  phone = phone.to_i
-  mcode = rand(1000..9999)
-  if settings.mcodes.exists?(phone)
-    mcode = settings.mcodes.get(phone)
+  if phone == Zold::Id::ROOT.to_s
+    if params[:noredirect]
+      content_type 'text/plain'
+      return 'It is a sandbox account, no SMS sent, use any confirmation code you like'
+    end
+    flash("/mobile_token?phone=#{phone}", 'You are in sandbox mode, any confirmation code will work')
   else
-    settings.mcodes.set(phone, mcode)
+    raise WTS::UserError, 'E161: The phone shouldn\'t start with zeros' if /^0+/.match?(phone)
+    raise WTS::UserError, "E162: The phone number #{phone.inspect} is too short" if phone.length < 6
+    raise WTS::UserError, "E163: The phone number #{phone.inspect} is too long" if phone.length > 14
+    phone = phone.to_i
+    mcode = rand(1000..9999)
+    if settings.mcodes.exists?(phone)
+      mcode = settings.mcodes.get(phone)
+    else
+      settings.mcodes.set(phone, mcode)
+    end
+    cid = settings.smss.deliver(phone, "Your authorization code for wts.zold.io is: #{mcode}")
+    if params[:noredirect]
+      content_type 'text/plain'
+      return "SMS ##{cid} has been delivered to #{phone}"
+    end
+    flash("/mobile_token?phone=#{phone}", "The SMS ##{cid} was sent with the auth code")
   end
-  cid = settings.smss.deliver(phone, "Your authorization code for wts.zold.io is: #{mcode}")
-  if params[:noredirect]
-    content_type 'text/plain'
-    return "SMS ##{cid} has been delivered to #{phone}"
-  end
-  flash("/mobile_token?phone=#{phone}", "The SMS ##{cid} was sent with the auth code")
 end
 
 get '/mobile/token' do
@@ -189,19 +197,23 @@ get '/mobile/token' do
   unless /^[0-9]+$/.match?(phone)
     raise WTS::UserError, "E166: Invalid phone #{phone.inspect}, digits only allowed (E.164)"
   end
-  phone = phone.to_i
-  mcode = params[:code].strip
-  raise WTS::UserError, 'E167: Mobile confirmation code can\'t be empty' if mcode.empty?
-  raise WTS::UserError, "E168: Invalid code #{mcode.inspect}, must be four digits" unless /^[0-9]{4}$/.match?(mcode)
-  raise WTS::UserError, 'E169: Mobile code mismatch' unless settings.mcodes.get(phone) == mcode.to_i
-  settings.mcodes.remove(phone)
-  u = user(phone.to_s)
-  u.create(settings.remotes) unless u.item.exists?
-  job(u) do |_jid, log|
-    log.info("Just created a new wallet #{u.item.id}, going to push it...")
-    ops(u, log: log).push
+  u = user(phone)
+  token = 'empty'
+  unless phone == Zold::Id::ROOT.to_s
+    phone = phone.to_i
+    mcode = params[:code].strip
+    raise WTS::UserError, 'E167: Mobile confirmation code can\'t be empty' if mcode.empty?
+    raise WTS::UserError, "E168: Invalid code #{mcode.inspect}, must be four digits" unless /^[0-9]{4}$/.match?(mcode)
+    raise WTS::UserError, 'E169: Mobile code mismatch' unless settings.mcodes.get(phone) == mcode.to_i
+    settings.mcodes.remove(phone)
+    u.create(settings.remotes) unless u.item.exists?
+    job(u) do |_jid, log|
+      log.info("Just created a new wallet #{u.item.id}, going to push it...")
+      ops(u, log: log).push
+    end
+    token = settings.tokens.get(u.login)
   end
-  token = "#{u.login}-#{settings.tokens.get(u.login)}"
+  token = "#{u.login}-#{token}"
   if params[:noredirect]
     content_type 'text/plain'
     return token
