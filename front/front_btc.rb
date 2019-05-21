@@ -172,7 +172,7 @@ unless ENV['RACK_ENV'] == 'test'
   settings.daemons.start('btc-rate-notify', 60 * 60) do
     before = settings.toggles.get('recent-zld-rate', '2.03').to_f
     after = rate * price
-    diff = abs(before - after)
+    diff = (before - after).abs
     if diff > before * 0.04 || diff > after * 0.04
       settings.toggles.set('recent-zld-rate', after.to_s)
       settings.telepost.spam(
