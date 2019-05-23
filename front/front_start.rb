@@ -43,7 +43,7 @@ get '/create' do
             "to their wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})",
             "from our wallet [#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id})",
             "of [#{boss.login}](https://github.com/#{boss.login})",
-            "because there is not enough found, only #{boss.wallet(&:balance)} left;",
+            "because there is not enough funds, only #{boss.wallet(&:balance)} left;",
             job_link(jid2)
           )
         else
