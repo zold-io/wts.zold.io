@@ -34,7 +34,7 @@ def assets(log: settings.log)
       settings.pgsql,
       log: log,
       codec: settings.codec,
-      sibit: Sibit.new(log: log)
+      sibit: Sibit.new(log: log, attempts: 4)
     )
   )
 end
@@ -321,7 +321,7 @@ users of WTS, while our limits are #{limits} (daily/weekly/monthly), sorry about
       keygap,
       boss.item.id,
       amount * (1.0 - f),
-      "ZLD exchange to #{bitcoin} BTC at #{address}, rate is #{rate}, fee is #{f}"
+      "ZLD exchange to #{bitcoin} BTC at #{address}, rate is #{rate}, fee is #{f}, job ID is #{jid}"
     )
     ops(log: log).pay(
       keygap,

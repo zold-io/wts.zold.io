@@ -110,7 +110,7 @@ users of WTS, while our limits are #{limits} (daily/weekly/monthly), sorry about
       keygap,
       boss.item.id,
       amount * (1.0 - f),
-      "ZLD exchange to #{usd} PayPal, rate is #{rate}, fee is #{f}"
+      "ZLD exchange to #{usd} PayPal, rate is #{rate}, fee is #{f}, job ID is #{jid}"
     )
     ops(log: log).pay(
       keygap,
