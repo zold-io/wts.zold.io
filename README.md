@@ -13,7 +13,7 @@
 [![Maintainability](https://api.codeclimate.com/v1/badges/25b798dc13147f13bb59/maintainability)](https://codeclimate.com/github/zold-io/wts.zold.io/maintainability)
 [![Hits-of-Code](https://hitsofcode.com/github/zold-io/wts.zold.io)](https://hitsofcode.com/view/github/zold-io/wts.zold.io)
 
-[![Availability at SixNines](http://www.sixnines.io/b/2e39)](http://www.sixnines.io/h/2e39)
+[![Availability at SixNines](https://www.sixnines.io/b/2e39)](https://www.sixnines.io/h/2e39)
 
 Here is the [White Paper](https://papers.zold.io//wp.pdf).
 
