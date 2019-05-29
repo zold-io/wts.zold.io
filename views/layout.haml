@@ -187,7 +187,7 @@
               &copy;
               %a{href: 'https://www.zerocracy.com'} Zerocracy
             %li{title: 'Currently deployed version of WTS'}
-              = ver
+              = "#{ver}/#{ENV['HEROKU_RELEASE_VERSION']}"
             %li{title: 'The version of PostgreSQL server'}
               = "pg:#{settings.pgsql.version}"
             %li{title: 'Zold Ruby software version and the protocol ID'}
