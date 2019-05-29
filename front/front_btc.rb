@@ -258,7 +258,8 @@ get '/zld-to-btc' do
     rate: rate,
     fee: fee,
     price: price,
-    btc_fee: settings.sibit.fees[:L] * 250 / 100_000_000
+    btc_fee: settings.sibit.fees[:L] * 250 / 100_000_000,
+    available: assets.balance
   )
 end
 

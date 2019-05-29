@@ -23,6 +23,19 @@
   = "($#{format('%.02f', btc_fee * price)})"
   at the moment.
 
+%p
+  - if available.zero?
+    = succeed ':' do
+      %span.strong.red SORRY
+    We have no bitcoins left in our
+    = succeed ',' do
+      %a{href: iri.cut('/assets')} assets
+    please come back a bit later.
+  - else
+    We can send up to
+    = available
+    BTC now.
+
 %form{method: 'POST', action: iri.cut('/do-zld-to-btc')}
   %fieldset
     = Rack::Csrf.tag(env)
