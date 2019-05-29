@@ -98,7 +98,8 @@ get '/github-callback' do
     allowed = settings.toggles.get('allow').strip.split(',')
     unless allowed.include?(c.login.downcase)
       raise WTS::UserError, "E103: #{c.login.inspect} doesn't work in Zerocracy, can't login via GitHub, \
-use mobile phone (see KYC section in our Terms of Use) /#{allowed.count}"
+use mobile phone (see KYC section in our Terms of Use); this may also be a temporary network problem, \
+which you may solve by just trying again in a few minutes"
     end
   end
   cookies[:glogin] = c.to_s
