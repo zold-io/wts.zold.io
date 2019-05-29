@@ -48,7 +48,6 @@ settings.daemons.start('snapshot', 24 * 60 * 60) do
   distributed = Zold::Amount.new(
     zents: (settings.ticks.latest('Emission') - settings.ticks.latest('Office')).to_i
   )
-  sibit = Sibit.new(log: settings.log, attempts: 4)
   settings.telepost.spam(
     [
       "Today is #{Time.now.utc.strftime('%d-%b-%Y')} and we are doing great:\n",
@@ -60,7 +59,7 @@ settings.daemons.start('snapshot', 24 * 60 * 60) do
       "  24-hours txns count: [#{settings.gl.count}](https://wts.zold.io/gl)",
       "  Nodes: [#{settings.ticks.latest('Nodes').round}](https://wts.zold.io/remotes)",
       "  Bitcoin price: $#{price.round}",
-      "  Bitcoin tx fee: $#{format('%.02f', sibit.fees[:XL] * 250 / 100_000_000)}",
+      "  Bitcoin tx fee: $#{format('%.02f', settings.sibit.fees[:XL] * 250 / 100_000_000)}",
       "  Rate: [#{format('%.08f', rate)}](https://wts.zold.io/rate) ($#{(price * rate).round(2)})",
       "  Coverage: [#{format('%.08f', coverage)}](https://wts.zold.io/rate) \
 / [#{(100 * coverage / rate).round}%](http://papers.zold.io/fin-model.pdf)",

@@ -15,7 +15,13 @@
   To sell your ZLD and receive BTC just fill this form
   and we will send you the payment promptly, deducting
   = "#{(fee * 100)}%"
-  fee:
+  fee and.
+  We will also deduct Bitcoin transaction fee, which is
+  approximately
+  %span#btc_fee= format('%.06f', btc_fee)
+  BTC
+  = "($#{format('%.02f', btc_fee * price)})"
+  at the moment.
 
 %form{method: 'POST', action: iri.cut('/do-zld-to-btc')}
   %fieldset
@@ -36,8 +42,8 @@
             %code= user.wallet(&:balance)
         - else
           = ''
-    %input{type: 'text', id: 'zld', name: 'amount', size: 12, maxlength: 8, autocomplete: 'off', tabindex: 2, oninput: "wts_rerate(#{rate.round(8)}, #{price.round(2)}, #{fee.round(4)});"}
-    %label.gray.small{id: 'out'}
+    %input#zld{type: 'text', name: 'amount', size: 12, maxlength: 8, autocomplete: 'off', tabindex: 2, oninput: "wts_rerate(#{rate.round(8)}, #{price.round(2)}, #{fee.round(4)});"}
+    %label.gray.small#out
     %label
       Bitcoin
       %a{href: 'https://en.bitcoin.it/wiki/Address'} address

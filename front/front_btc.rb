@@ -27,6 +27,7 @@ require_relative '../objects/referrals'
 require_relative '../objects/user_error'
 
 set :codec, GLogin::Codec.new(settings.config['pkey_secret'])
+set :sibit, Sibit.new(log: settings.log, attempts: 4)
 
 def assets(log: settings.log)
   SyncEm.new(
@@ -256,7 +257,8 @@ get '/zld-to-btc' do
     user: confirmed_user,
     rate: rate,
     fee: fee,
-    price: price
+    price: price,
+    btc_fee: settings.sibit.fees[:L] * 250 / 100_000_000
   )
 end
 
@@ -307,7 +309,7 @@ users of WTS, while our limits are #{limits} (daily/weekly/monthly), sorry about
   end
   bitcoin = (amount.to_zld(8).to_f * rate).round(8)
   if bitcoin > assets.balance(hot_only: true)
-    raise WTS::UserError, "E198: The amount #{amount} is too big for us, we have only ${assets.balance}"
+    raise WTS::UserError, "E198: The amount #{amount} is too big for us, we have only #{assets.balance}"
   end
   boss = user(settings.config['exchange']['login'])
   rewards = user(settings.config['rewards']['login'])
