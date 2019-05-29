@@ -48,10 +48,14 @@ settings.daemons.start('snapshot', 24 * 60 * 60) do
   distributed = Zold::Amount.new(
     zents: (settings.ticks.latest('Emission') - settings.ticks.latest('Office')).to_i
   )
+  active = settings.pgsql.exec(
+    'SELECT COUNT(*) FROM item WHERE touched > NOW() - INTERVAL \'30 DAYS\''
+  )[0]['count'].to_i
   settings.telepost.spam(
     [
       "Today is #{Time.now.utc.strftime('%d-%b-%Y')} and we are doing great:\n",
       "  Wallets: [#{settings.payables.total}](https://wts.zold.io/payables)",
+      "  Active wallets: #{active}",
       "  Transactions: [#{settings.payables.txns}](https://wts.zold.io/payables)",
       "  Total emission: [#{settings.payables.balance}](https://wts.zold.io/payables)",
       "  Distributed: [#{distributed}](https://wts.zold.io/rate)",
