@@ -34,6 +34,7 @@ set :pool, Concurrent::FixedThreadPool.new(4, max_queue: 1024, fallback_policy: 
 set :jobs, WTS::Jobs.new(settings.pgsql, log: settings.log)
 
 def job(u = user, exclusive: false)
+  raise WTS::UserError, 'We are still busy with your wallet, check the Log' if File.exist?(latch(u.login))
   jid = settings.jobs.start(u.login)
   log = WTS::TeeLog.new(user_log(u.login), WTS::DbLog.new(settings.pgsql, jid))
   job = WTS::SafeJob.new(
