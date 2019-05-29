@@ -19,6 +19,7 @@
 # SOFTWARE.
 
 require 'futex'
+require 'fileutils'
 require 'backtrace'
 require 'zold/log'
 require 'zold/age'
@@ -36,12 +37,13 @@ class WTS::AsyncJob
   end
 
   def call(jid)
-    Futex.new(@lock, lock: @lock, log: @log, timeout: 10 * 60).open do
-      @pool.post do
+    FileUtils.touch(@lock)
+    @pool.post do
+      Futex.new(@lock, lock: @lock, log: @log, timeout: 10 * 60).open do
         @job.call(jid)
-      rescue StandardError => e
-        @log.error(Backtrace.new(e))
       end
+    rescue StandardError => e
+      @log.error(Backtrace.new(e))
     end
   end
 end
