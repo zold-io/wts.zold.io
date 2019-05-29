@@ -71,17 +71,16 @@
                 Remotes:
                 %a{href: iri.cut('/remotes')}
                   = remotes.all.count
-              %li{title: 'Currently running jobs vs. jobs waiting in the line'}
+              %li
                 Pool:
-                %span<
+                %span{title: "We are running #{pool.length} jobs at the moment"}<
                   = pool.length
-                %span<
-                  = '/'
-                %span{class: pool.queue_length > 16 ? 'red' : ''}<
+                = '/'
+                %span{class: pool.queue_length > 16 ? 'red' : '', title: "There are #{pool.queue_length} jobs waiting in the queue"}<
                   = pool.queue_length
               - if defined? guser
                 %li
-                  %a{href: iri.cut('/logout')}
+                  %a{href: iri.cut('/logout'), title: 'Exit and remove the cookies'}
                     Logout
         - if defined? guser
           %nav
