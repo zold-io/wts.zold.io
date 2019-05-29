@@ -37,6 +37,7 @@ class WTS::AsyncJob
   end
 
   def call(jid)
+    FileUtils.mkdir_p(File.dirname(@lock))
     FileUtils.touch(@lock)
     @pool.post do
       Futex.new(@lock, lock: @lock, log: @log, timeout: 10 * 60).open do
