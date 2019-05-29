@@ -21,7 +21,8 @@
   %span#btc_fee= format('%.06f', btc_fee)
   BTC
   = "($#{format('%.02f', btc_fee * price)})"
-  at the moment.
+  = succeed '.' do
+    %a{href: 'https://bitcoinfees.info/'} at the moment
 
 %p
   - if available.zero?

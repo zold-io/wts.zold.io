@@ -1,4 +1,4 @@
-<img src="http://www.zold.io/logo.svg" width="92px" height="92px"/>
+<img src="https://www.zold.io/logo.svg" width="92px" height="92px"/>
 
 [![Donate via Zerocracy](https://www.0crat.com/contrib-badge/CB28FH2NR.svg)](https://www.0crat.com/contrib/CB28FH2NR)
 
