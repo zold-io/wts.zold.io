@@ -25,7 +25,7 @@
 function wts_rerate(rate, price, fee) {
   'use strict';
   var txt = $('#zld').val();
-  var btc_fee = parseFloat($('#btc_fee').val());
+  var btc_fee = parseFloat($('#btc_fee').text());
   var zld = parseFloat(txt);
   if (isNaN(zld)) {
     $('#out').text('');
