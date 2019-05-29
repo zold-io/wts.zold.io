@@ -86,30 +86,34 @@
           %nav
             %ul
               %li
-                - if user.wallet_exists? && !File.exist?(latch)
-                  %a{href: iri.cut('/pay')} Pay
+                - if !user.wallet_exists?
+                  %span.gray{title: 'You can\'t pay, try to Pull the wallet first'} Pay
+                - elsif File.exist?(latch)
+                  %span.gray{title: 'You can\'t pay now, we are working with your wallet, try in a few minutes'} Pay
                 - else
-                  %span.gray Pay
+                  %a{href: iri.cut('/pay')} Pay
               %li
                 - if File.exist?(latch)
-                  %span.gray Pull
+                  %span.gray{title: 'We are working with your wallet, come back in a few minutes'} Pull
                 - else
                   %a{href: iri.cut('/pull').add(force: true)} Pull
               %li
                 - if user.wallet_exists?
                   %a{href: iri.cut('/invoice')} Invoice
                 - else
-                  %span.gray Invoice
+                  %span.gray{title: 'You have to Pull your wallet first'} Invoice
               %li
                 - if File.exist?(latch)
-                  %span.gray Migrate
+                  %span.gray{title: 'We are working with your wallet, can\'t Migrate now, come back in a few minutes'} Migrate
                 - else
                   %a{href: iri.cut('/migrate')} Migrate
               %li
-                - if user.wallet_exists? && !File.exist?(latch)
-                  %a{href: iri.cut('/buy-sell')} Buy/Sell
+                - if !user.wallet_exists?
+                  %span.gray{title: 'You have to Pull the wallet first'} Buy/Sell
+                - elsif File.exist?(latch)
+                  %span.gray{title: 'We are currently working with your wallet, come back in a few minutes'} Buy/Sell
                 - else
-                  %span.gray Buy/Sell
+                  %a{href: iri.cut('/buy-sell')} Buy/Sell
               %li
                 %a{href: iri.cut('/log'), style: (File.exist?(latch) ? 'color:red' : '')} Log
               %li
