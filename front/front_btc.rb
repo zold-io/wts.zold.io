@@ -199,30 +199,40 @@ get '/funded' do
   zld = Zold::Amount.new(zld: btc / rate)
   job(boss, exclusive: true) do |jid, log|
     log.info("Buying bitcoins for $#{usd} at Coinbase...")
-    ops(boss, log: log).pull
-    ops(zerocrat, log: log).pull
-    cid = coinbase(log: log).buy(usd)
-    txn = ops(boss, log: log).pay(
-      settings.config['exchange']['keygap'],
-      zerocrat.item.id,
-      zld,
-      "Purchased #{btc} BTC for #{usd} USD at Coinbase"
-    )
-    settings.telepost.spam(
-      "Buy: **#{btc.round(4)}** BTC were purchased for $#{usd.round(2)} at [Coinbase](https://coinbase.com),",
-      "#{zld} were deposited to the wallet",
-      "[#{zerocrat.item.id}](http://www.zold.io/ledger.html?wallet=#{zerocrat.item.id})",
-      "owned by [#{zerocrat.login}](https://github.com/#{zerocrat.login})",
-      "with the remaining balance of #{zerocrat.wallet(&:balance)};",
-      "BTC price at the time of exchange was [$#{price.round}](https://blockchain.info/ticker);",
-      "zolds were sent by [#{zerocrat.login}](https://github.com/#{zerocrat.login})",
-      "from the wallet [#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id})",
-      "with the remaining balance of #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t);",
-      "Zold transaction ID is #{txn.id};",
-      "Coinbase payment ID is #{cid};",
-      "our bitcoin assets still have [#{assets.balance.round(4)} BTC](https://wts.zold.io/assets)",
-      job_link(jid)
-    )
+    if settings.toggles.get('coinbase-buy', 'no') == 'yes'
+      ops(boss, log: log).pull
+      ops(zerocrat, log: log).pull
+      cid = coinbase(log: log).buy(usd)
+      txn = ops(boss, log: log).pay(
+        settings.config['exchange']['keygap'],
+        zerocrat.item.id,
+        zld,
+        "Purchased #{btc} BTC for #{usd} USD at Coinbase"
+      )
+      settings.telepost.spam(
+        "Buy: **#{btc.round(4)}** BTC were purchased for $#{usd.round(2)} at [Coinbase](https://coinbase.com),",
+        "#{zld} were deposited to the wallet",
+        "[#{zerocrat.item.id}](http://www.zold.io/ledger.html?wallet=#{zerocrat.item.id})",
+        "owned by [#{zerocrat.login}](https://github.com/#{zerocrat.login})",
+        "with the remaining balance of #{zerocrat.wallet(&:balance)};",
+        "BTC price at the time of exchange was [$#{price.round}](https://blockchain.info/ticker);",
+        "zolds were sent by [#{zerocrat.login}](https://github.com/#{zerocrat.login})",
+        "from the wallet [#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id})",
+        "with the remaining balance of #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t);",
+        "Zold transaction ID is #{txn.id};",
+        "Coinbase payment ID is #{cid};",
+        "our bitcoin assets still have [#{assets.balance.round(4)} BTC](https://wts.zold.io/assets)",
+        job_link(jid)
+      )
+    else
+      settings.telepost.spam(
+        "Would be great to purchase **#{btc.round(4)}** BTC for $#{usd.round(2)}",
+        'at [Coinbase](https://coinbase.com), but we aren\'t doing it,',
+        'because the `coinbase-buy` toggle is turned OFF;',
+        "our bitcoin assets still have [#{assets.balance.round(4)} BTC](https://wts.zold.io/assets)",
+        job_link(jid)
+      )
+    end
   end
   'OK, thanks'
 end

@@ -55,7 +55,7 @@ settings.daemons.start('snapshot', 24 * 60 * 60) do
     [
       "Today is #{Time.now.utc.strftime('%d-%b-%Y')} and we are doing great:\n",
       "  Wallets: [#{settings.payables.total}](https://wts.zold.io/payables)",
-      "  Active wallets: #{active}",
+      "  Active wallets: #{active} (last 30 days)",
       "  Transactions: [#{settings.payables.txns}](https://wts.zold.io/payables)",
       "  Total emission: [#{settings.payables.balance}](https://wts.zold.io/payables)",
       "  Distributed: [#{distributed}](https://wts.zold.io/rate)",
@@ -63,7 +63,7 @@ settings.daemons.start('snapshot', 24 * 60 * 60) do
       "  24-hours txns count: [#{settings.gl.count}](https://wts.zold.io/gl)",
       "  Nodes: [#{settings.ticks.latest('Nodes').round}](https://wts.zold.io/remotes)",
       "  Bitcoin price: [$#{price.round}](https://coinmarketcap.com/currencies/bitcoin/)",
-      "  Bitcoin tx fee: $#{format('%.02f', settings.sibit.fees[:XL] * 250 / 100_000_000)}",
+      "  Bitcoin tx fee: $#{format('%.02f', settings.sibit.fees[:XL] * 250.0 / 100_000_000)}",
       "  Rate: [#{format('%.08f', rate)}](https://wts.zold.io/rate) ($#{(price * rate).round(2)})",
       "  Coverage: [#{format('%.08f', coverage)}](https://wts.zold.io/rate) \
 / [#{(100 * coverage / rate).round}%](http://papers.zold.io/fin-model.pdf)",
