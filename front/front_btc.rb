@@ -411,6 +411,7 @@ post '/cold-to-hot' do
       hot,
       address
     )
+    assets(log: log).set(address, 0)
     settings.telepost.spam(
       "Transfer: #{format('%.04f', btc)} BTC ($#{(btc * price).round}) transferred from a cold address",
       "[#{address}](https://www.blockchain.com/btc/address/#{address});",

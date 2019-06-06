@@ -126,7 +126,7 @@ users of WTS, while our limits are #{limits} (daily/weekly/monthly), sorry about
     )
     settings.payouts.add(
       user.login, user.item.id, amount,
-      "$#{usd} sent to #{email}, the price was $#{price.round}/BTC, the fee was #{(f * 100).round(2)}%"
+      "PayPal $#{usd} sent to #{email}, the price was $#{price.round}/BTC, the fee was #{(f * 100).round(2)}%"
     )
     settings.telepost.spam(
       "Out: **#{amount}** [exchanged](https://blog.zold.io/2018/12/09/btc-to-zld.html) to $#{usd} PayPal",
