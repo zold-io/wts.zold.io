@@ -421,7 +421,7 @@ post '/cold-to-hot' do
       job_link(jid)
     )
   end
-  flash('/assets', "#{btc} will be sent to #{hot} address soon in #{tx}")
+  flash('/assets', 'Cold bitcoins will be trasferred to a hot address soon')
 end
 
 get '/assets' do
