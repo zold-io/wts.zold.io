@@ -24,7 +24,7 @@
             %option{value: a[:address]}
               = "#{a[:address]} / #{format('%.02f', a[:value].to_f / 100_000_000)}"
         %label Private key of the cold address:
-        %input{type: 'text', name: 'pkey', size: 35, placeholder: 'Bitcoin private key', autocomplete: 'off', tabindex: 6, required: true}
+        %input{type: 'password', name: 'pkey', size: 35, placeholder: 'Bitcoin private key', autocomplete: 'off', tabindex: 6, required: true}
         %label The amount to transfer:
         %input{type: 'text', name: 'amount', size: 12, placeholder: 'BTC', autocomplete: 'off', tabindex: 7, required: true}
         %input{type: 'submit', tabindex: 8, value: 'Send'}
