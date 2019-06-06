@@ -4,7 +4,7 @@
   Assets
 
 - if defined?(guser) && vip?
-  %div{style: 'background-color: #FE938C;'}
+  %div{style: 'background-color: #FE938C; padding: 1em; border: tomato 1px solid;'}
     %form{method: 'POST', action: iri.cut('/add-asset')}
       = Rack::Csrf.tag(env)
       %label Add cold asset:
@@ -31,6 +31,7 @@
     %p
       %a{href: iri.cut('/assets-private-keys')} Click here
       to see all private keys.
+    %p
       %a{href: iri.add(empty: true)} Click here
       to see empty wallets too.
 

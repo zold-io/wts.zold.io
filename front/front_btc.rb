@@ -190,7 +190,7 @@ unless ENV['RACK_ENV'] == 'test'
       settings.telepost.spam(
         "⚠️ There are just #{format('%.04f', hot)} BTC ($#{usd}) left in",
         'our hot Bitcoin addresses; this may not be enough for our daily operations;',
-        'consider transferring some cold [asserts](https://wts.zold.io/assets) back to hot'
+        'consider transferring some cold [assets](https://wts.zold.io/assets) back to hot'
       )
     end
   end
