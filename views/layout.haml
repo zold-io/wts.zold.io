@@ -196,6 +196,8 @@
               = "#{(mem / (1024 * 1024)).round}/#{(total_mem / (1024 * 1024)).round}"
             %li{title: 'Your visible IP address'}
               = "#{request.ip}/#{country}"
+            %li
+              = "#{((Time.now - http_start) * 1000).round}ms"
         %nav
           %ul
             %li

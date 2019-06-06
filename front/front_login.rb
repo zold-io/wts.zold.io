@@ -44,6 +44,7 @@ end
 before '/*' do
   @locals = {
     ver: WTS::VERSION,
+    http_start: Time.now,
     iri: Iri.new(request.url),
     login_link: settings.glogin.login_uri,
     wallets: settings.wallets,
