@@ -409,7 +409,7 @@ post '/cold-to-hot' do
       '-L',
       { address => params[:pkey].strip },
       hot,
-      assets(log: log).acquire
+      address
     )
     settings.telepost.spam(
       "Transfer: #{format('%.04f', btc)} BTC ($#{(btc * price).round}) transferred from a cold address",
