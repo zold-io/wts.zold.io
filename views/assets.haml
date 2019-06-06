@@ -8,12 +8,12 @@
     %form{method: 'POST', action: iri.cut('/add-asset')}
       = Rack::Csrf.tag(env)
       %label Add cold asset:
-      %input{type: 'text', name: 'address', maxlength: 64, size: 35, placeholder: 'Bitcoin address', autocomplete: 'off', tabindex: 1}
+      %input{type: 'text', name: 'address', maxlength: 64, size: 35, placeholder: 'Bitcoin address', autocomplete: 'off', tabindex: 1, required: true}
       %input{type: 'submit', tabindex: 2, value: 'Add'}
     %form{method: 'POST', action: iri.cut('/decrypt-pkey')}
       = Rack::Csrf.tag(env)
       %label Decrypt:
-      %input{type: 'text', name: 'text', size: 35, placeholder: 'TG encrypted private key', autocomplete: 'off', tabindex: 3}
+      %input{type: 'text', name: 'text', size: 35, placeholder: 'TG encrypted private key', autocomplete: 'off', tabindex: 3, required: true}
       %input{type: 'submit', tabindex: 4, value: 'Decrypt'}
     %form{method: 'POST', action: iri.cut('/cold-to-hot')}
       %fieldset
@@ -23,8 +23,10 @@
         - assets.reject { |a| a[:hot] }.each do |a|
           %option{value: a[:address]}
             = "#{a[:address]} / #{format('%.02f', a[:value] / 100_000_000)}"
-        %input{type: 'text', name: 'pkey', size: 35, placeholder: 'Bitcoin private key', autocomplete: 'off', tabindex: 6}
-        %input{type: 'text', name: 'amount', size: 12, placeholder: 'Amount in BTC', autocomplete: 'off', tabindex: 7}
+        %label Private key of the cold address:
+        %input{type: 'text', name: 'pkey', size: 35, placeholder: 'Bitcoin private key', autocomplete: 'off', tabindex: 6, required: true}
+        %label The amount to transfer:
+        %input{type: 'text', name: 'amount', size: 12, placeholder: 'Amount in BTC', autocomplete: 'off', tabindex: 7, required: true}
         %input{type: 'submit', tabindex: 8, value: 'Send'}
     %p
       %a{href: iri.cut('/assets-private-keys')} Click here
