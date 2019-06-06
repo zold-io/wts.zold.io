@@ -101,7 +101,7 @@ class WTS::Assets
 
   # Create a new asset/address for a given user (return existing one if it is
   # already in the database). When a new address is assigned, a block given
-  # will be called.
+  # will be called. If the login is NIL, a "change" address will be returned.
   def acquire(login = nil)
     row = if login.nil?
       @pgsql.exec(
@@ -184,7 +184,8 @@ class WTS::Assets
   def pay(address, satoshi)
     batch = {}
     unspent = 0
-    @pgsql.exec('SELECT * FROM asset WHERE value > 0 AND pvt IS NOT NULL ORDER BY value').each do |r|
+    @pgsql.exec('SELECT * FROM asset WHERE value > 0 ORDER BY value').each do |r|
+      next if r['pvt'].nil?
       batch[r['address']] = @codec.decrypt(r['pvt'])
       unspent += r['value'].to_i
       break if unspent > satoshi

@@ -27,7 +27,6 @@ require_relative '../objects/referrals'
 require_relative '../objects/user_error'
 
 set :codec, GLogin::Codec.new(settings.config['pkey_secret'])
-set :sibit, Sibit.new(log: settings.log, attempts: 4)
 
 def assets(log: settings.log)
   SyncEm.new(
@@ -35,7 +34,7 @@ def assets(log: settings.log)
       settings.pgsql,
       log: log,
       codec: settings.codec,
-      sibit: Sibit.new(log: log, attempts: 4)
+      sibit: sibit(log: log)
     )
   )
 end
@@ -64,7 +63,7 @@ unless ENV['RACK_ENV'] == 'test'
     assets.reconcile do |address, before, after|
       diff = after - before
       settings.telepost.spam(
-        diff.positive? ? '' : '**ALERT**:',
+        diff.positive? ? '' : '⚠️ ',
         "The balance at [#{address}](https://www.blockchain.com/btc/address/#{address})",
         "was #{diff.positive? ? 'increased' : 'decreased'} by #{diff}",
         "from #{before} to #{after} satoshi;",
@@ -98,7 +97,7 @@ unless ENV['RACK_ENV'] == 'test'
         end
         ops(boss, log: settings.log).push
         settings.telepost.spam(
-          "In: #{format('%.06f', bitcoin)} BTC ($#{(price * bitcoin).round})",
+          "👍 In: #{format('%.06f', bitcoin)} BTC ($#{(price * bitcoin).round})",
           "[exchanged](https://blog.zold.io/2018/12/09/btc-to-zld.html) to **#{zld}**",
           "by #{title_md(bnf)}",
           "in [#{hash}](https://www.blockchain.com/btc/tx/#{hash.gsub(/:[0-9]+$/, '')})",
@@ -114,7 +113,7 @@ unless ENV['RACK_ENV'] == 'test'
         )
       elsif assets.cold?(address)
         settings.telepost.spam(
-          "In: #{format('%.06f', bitcoin)} BTC ($#{(price * bitcoin).round}) arrived to",
+          "👍 In: #{format('%.06f', bitcoin)} BTC ($#{(price * bitcoin).round}) arrived to",
           "[#{address}](https://www.blockchain.com/btc/address/#{address})",
           "which doesn't belong to anyone,",
           "tx hash was [#{hash}](https://www.blockchain.com/btc/tx/#{hash.gsub(/:[0-9]+$/, '')});",
@@ -143,7 +142,7 @@ unless ENV['RACK_ENV'] == 'test'
       amount = [btc * 0.95, 0.1].min.floor(4)
       cid = coinbase.pay(address, amount, 'Going home')
       settings.telepost.spam(
-        "Transfer: #{format('%.04f', amount)} BTC was sent from our Coinbase account",
+        "📤 Transfer: #{format('%.04f', amount)} BTC was sent from our Coinbase account",
         "to our cold address [#{address}](https://www.blockchain.com/btc/address/#{address});",
         "Coinbase payment ID is #{cid};",
         "our bitcoin assets still have [#{assets.balance.round(4)} BTC](https://wts.zold.io/assets)"
@@ -160,7 +159,7 @@ unless ENV['RACK_ENV'] == 'test'
       address = assets.all.reject { |a| a[:hot] }.sample[:address]
       tx = assets.pay(address, btc)
       settings.telepost.spam(
-        'Transfer: There were too many "hot" bitcoins in our assets',
+        '📤 Transfer: There were too many "hot" bitcoins in our assets',
         "(#{format('%.04f', hot)} BTC, $#{usd}), that's why",
         "we transferred #{format('%.04f', btc)} BTC ($#{(btc * price).round}) to the cold address",
         "[#{address}](https://www.blockchain.com/btc/address/#{address})",
@@ -177,10 +176,21 @@ unless ENV['RACK_ENV'] == 'test'
     if diff > before * 0.04 || diff > after * 0.04
       settings.toggles.set('recent-zld-rate', after.to_s)
       settings.telepost.spam(
-        "The rate of ZLD moved #{after > before ? 'UP' : 'DOWN'}",
+        "#{after > before ? '📈' : '📉'} The rate of ZLD moved #{after > before ? 'UP' : 'DOWN'}",
         "from $#{format('%.02f', before)} to $#{format('%.02f', after)},",
         "Bitcoin price is $#{price.round},",
         'more details [here](https://wts.zold.io/rate)'
+      )
+    end
+  end
+  settings.daemons.start('btc-hot-deficit-notify', 12 * 60 * 60) do
+    hot = assets.all.select { |a| a[:hot] }.map { |a| a[:value] }.inject(&:+) / 100_000_000
+    usd = (hot * price).round
+    if usd < 1000
+      settings.telepost.spam(
+        "⚠️ There are just #{format('%.04f', hot)} BTC ($#{usd}) left in",
+        'our hot Bitcoin addresses; this may not be enough for our daily operations;',
+        'consider transferring some cold [asserts](https://wts.zold.io/assets) back to hot'
       )
     end
   end
@@ -226,7 +236,7 @@ get '/funded' do
       )
     else
       settings.telepost.spam(
-        "Would be great to purchase **#{btc.round(4)}** BTC for $#{usd.round(2)}",
+        "⚠️ Would be great to purchase **#{btc.round(4)}** BTC for $#{usd.round(2)}",
         'at [Coinbase](https://coinbase.com), but we aren\'t doing it,',
         'because the `coinbase-buy` toggle is turned OFF;',
         "our bitcoin assets still have [#{assets.balance.round(4)} BTC](https://wts.zold.io/assets)",
@@ -268,7 +278,7 @@ get '/zld-to-btc' do
     rate: rate,
     fee: fee,
     price: price,
-    btc_fee: settings.sibit.fees[:L] * 250.0 / 100_000_000,
+    btc_fee: sibit.fees[:L] * 250.0 / 100_000_000,
     available: assets.balance
   )
 end
@@ -320,7 +330,9 @@ users of WTS, while our limits are #{limits} (daily/weekly/monthly), sorry about
   end
   bitcoin = (amount.to_zld(8).to_f * rate).round(8)
   if bitcoin > assets.balance(hot_only: true)
-    raise WTS::UserError, "E198: The amount #{amount} is too big for us, we have only #{assets.balance}"
+    raise WTS::UserError, "E198: The amount #{amount} BTC is too big for us, \
+we've got only #{format('%.04f', assets.balance(hot_only: true))} left in hot addresses; \
+try to contact us in our Telegram group and notify the admin"
   end
   boss = user(settings.config['exchange']['login'])
   rewards = user(settings.config['rewards']['login'])
@@ -383,6 +395,35 @@ bitcoin assets still have #{assets.balance.round(4)} BTC"
   flash('/zld-to-btc', "We took #{amount} from your wallet and will send you #{bitcoin} BTC soon")
 end
 
+post '/cold-to-hot' do
+  raise WTS::UserError, 'E129: You are not allowed to use this, only yegor256' unless user.login == 'yegor256'
+  btc = params[:amount].to_f
+  raise WTS::UserError, "E219: he amount #{btc} BTC is too small" if amount < 0.01
+  raise WTS::UserError, "E220: The amount #{btc} BTC is too large" if amount > 0.2
+  address = params[:address].strip
+  job(exclusive: true) do |jid, log|
+    log.info("Sending cold #{btc} BTC from #{address} to a random hot one...")
+    hot = assets(log: log).acquire
+    tx = sibit(log: log).pay(
+      (btc * 100_000_000).round,
+      '-L',
+      { address => params[:pkey].strip },
+      hot,
+      assets(log: log).acquire
+    )
+    settings.telepost.spam(
+      "Transfer: #{format('%.04f', btc)} BTC ($#{(btc * price).round}) transferred from a cold address",
+      "[#{address}](https://www.blockchain.com/btc/address/#{address});",
+      "to the hot one [#{hot}](https://www.blockchain.com/btc/address/#{hot});",
+      "tx hash is [#{tx}](https://www.blockchain.com/btc/tx/#{tx});",
+      "our bitcoin assets still have [#{assets.balance.round(4)} BTC](https://wts.zold.io/assets)",
+      "(worth about $#{(assets.balance * price).round});",
+      job_link(jid)
+    )
+  end
+  flash('/assets', "#{btc} will be sent to #{hot} address soon in #{tx}")
+end
+
 get '/assets' do
   features('see-assets')
   haml :assets, layout: :layout, locals: merged(
@@ -395,14 +436,12 @@ get '/assets' do
 end
 
 get '/assets-private-keys' do
-  raise WTS::UserError, 'E129: You are not allowed to see this' unless vip?
   raise WTS::UserError, 'E129: You are not allowed to see this, only yegor256' unless user.login == 'yegor256'
   content_type 'text/plain'
   assets.disclose.map { |a| "#{a[:address]}: #{a[:pvt]} / #{a[:value]}s #{a[:login]}" }.join("\n")
 end
 
 post '/decrypt-pkey' do
-  raise WTS::UserError, 'E129: You are not allowed to see this' unless vip?
   raise WTS::UserError, 'E129: You are not allowed to see this, only yegor256' unless user.login == 'yegor256'
   text = params[:text]
   content_type 'text/plain'
@@ -429,4 +468,8 @@ def register_referral(login)
     login, cookies[:ref],
     source: cookies[:utm_source], medium: cookies[:utm_medium], campaign: cookies[:utm_campaign]
   )
+end
+
+def sibit(log: settings.log)
+  Sibit.new(log: log, attempts: 4)
 end
