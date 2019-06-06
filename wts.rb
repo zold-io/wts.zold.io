@@ -177,9 +177,9 @@ configure do
     end
   end
   settings.telepost.spam(
-    '[WTS](https://wts.zold.io) server software',
+    '👋 [WTS](https://wts.zold.io) server software',
     "[#{WTS::VERSION}](https://github.com/zold-io/wts.zold.io/releases/tag/#{WTS::VERSION})",
-    'has been deployed and starts to work;',
+    'has been deployed and starts working;',
     "Zold version is [#{Zold::VERSION}](https://rubygems.org/gems/zold/versions/#{Zold::VERSION}),",
     "the protocol is `#{Zold::PROTOCOL}`"
   )
