@@ -152,7 +152,7 @@ unless ENV['RACK_ENV'] == 'test'
     end
   end
   settings.daemons.start('btc-transfer-to-cold', 12 * 60 * 60) do
-    hot = assets.all.select { |a| a[:hot] }.map { |a| a[:value] }.inject(&:+) / 100_000_000
+    hot = assets.all.select { |a| a[:hot] }.map { |a| a[:value] }.inject(&:+).to_f / 100_000_000
     usd = (hot * price).round
     if usd > 2000
       btc = 500.0 / price
@@ -184,7 +184,7 @@ unless ENV['RACK_ENV'] == 'test'
     end
   end
   settings.daemons.start('btc-hot-deficit-notify', 12 * 60 * 60) do
-    hot = assets.all.select { |a| a[:hot] }.map { |a| a[:value] }.inject(&:+) / 100_000_000
+    hot = assets.all.select { |a| a[:hot] }.map { |a| a[:value] }.inject(&:+).to_f / 100_000_000
     usd = (hot * price).round
     if usd < 1000
       settings.telepost.spam(
