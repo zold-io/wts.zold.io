@@ -415,7 +415,8 @@ post '/cold-to-hot' do
     settings.telepost.spam(
       "Transfer: #{format('%.04f', btc)} BTC ($#{(btc * price).round}) transferred from a cold address",
       "[#{address}](https://www.blockchain.com/btc/address/#{address});",
-      "to the hot one [#{hot}](https://www.blockchain.com/btc/address/#{hot});",
+      "to the hot one [#{hot}](https://www.blockchain.com/btc/address/#{hot})",
+      "by #{title_md} from #{anon_ip}",
       "tx hash is [#{tx}](https://www.blockchain.com/btc/tx/#{tx});",
       "our bitcoin assets still have [#{assets.balance.round(4)} BTC](https://wts.zold.io/assets)",
       "(worth about $#{(assets.balance * price).round});",
