@@ -36,5 +36,9 @@ post '/set-toggle' do
   key = params[:key].strip
   value = params[:value].strip
   settings.toggles.set(key, value)
+  settings.telepost.spam(
+    "The toggle \"`#{key}`\" was set to \"`#{value}`\"",
+    "by #{title_md} from #{anon_ip}"
+  )
   flash('/toggles', "The feature toggle #{key.inspect} re/set")
 end
