@@ -178,7 +178,8 @@ unless ENV['RACK_ENV'] == 'test'
       settings.telepost.spam(
         "#{after > before ? '📈' : '📉'} The rate of ZLD moved #{after > before ? 'UP' : 'DOWN'}",
         "from $#{format('%.02f', before)} to $#{format('%.02f', after)},",
-        "Bitcoin price is $#{price.round},",
+        "which is #{after > before ? '+' : '-'}#{format('%.02f', (after - before / before) * 100)}%;",
+        "the price of Bitcoin is $#{price.round};",
         'more details [here](https://wts.zold.io/rate)'
       )
     end
