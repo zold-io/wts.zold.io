@@ -445,7 +445,7 @@ post '/cold-out' do
     assets(log: log).set(address, 0)
     settings.telepost.spam(
       "Out: #{format('%.04f', btc)} BTC ($#{(btc * price).round}) was sent from a cold address",
-      "[#{address}](https://www.blockchain.com/btc/address/#{address});",
+      "[#{address}](https://www.blockchain.com/btc/address/#{address})",
       "to a foreign one [#{target}](https://www.blockchain.com/btc/address/#{target})",
       "by #{title_md} from #{anon_ip};",
       "tx hash is [#{tx}](https://www.blockchain.com/btc/tx/#{tx});",
