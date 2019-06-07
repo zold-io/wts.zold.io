@@ -27,7 +27,22 @@
         %input{type: 'password', name: 'pkey', size: 35, placeholder: 'Bitcoin private key', autocomplete: 'off', tabindex: 6, required: true}
         %label The amount to transfer:
         %input{type: 'text', name: 'amount', size: 12, placeholder: 'BTC', autocomplete: 'off', tabindex: 7, required: true}
-        %input{type: 'submit', tabindex: 8, value: 'Send'}
+        %input{type: 'submit', tabindex: 8, value: 'Send', onclick: "return confirm('Are you sure?')"}
+    %form{method: 'POST', action: iri.cut('/cold-out')}
+      %fieldset
+        = Rack::Csrf.tag(env)
+        %label Send to this address:
+        %input{type: 'text', name: 'target', size: 35, autocomplete: 'off', tabindex: 9, required: true}
+        %label From this cold address:
+        %select{name: 'address', tabindex: 10}
+          - assets.reject { |a| a[:hot] }.each do |a|
+            %option{value: a[:address]}
+              = "#{a[:address]} / #{format('%.02f', a[:value].to_f / 100_000_000)}"
+        %label Private key of the cold address:
+        %input{type: 'password', name: 'pkey', size: 35, placeholder: 'Bitcoin private key', autocomplete: 'off', tabindex: 11, required: true}
+        %label The amount to transfer:
+        %input{type: 'text', name: 'amount', size: 12, placeholder: 'BTC', autocomplete: 'off', tabindex: 12, required: true}
+        %input{type: 'submit', tabindex: 13, value: 'Send', onclick: "return confirm('Are you sure?')"}
     %p
       %a{href: iri.cut('/assets-private-keys')} Click here
       to see all private keys.

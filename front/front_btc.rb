@@ -398,7 +398,7 @@ end
 post '/cold-to-hot' do
   raise WTS::UserError, 'E129: You are not allowed to use this, only yegor256' unless user.login == 'yegor256'
   btc = params[:amount].to_f
-  raise WTS::UserError, "E219: he amount #{btc} BTC is too small" if btc < 0.01
+  raise WTS::UserError, "E219: The amount #{btc} BTC is too small" if btc < 0.01
   raise WTS::UserError, "E220: The amount #{btc} BTC is too large" if btc > 0.2
   address = params[:address].strip
   job(exclusive: true) do |jid, log|
@@ -416,7 +416,7 @@ post '/cold-to-hot' do
       "Transfer: #{format('%.04f', btc)} BTC ($#{(btc * price).round}) transferred from a cold address",
       "[#{address}](https://www.blockchain.com/btc/address/#{address});",
       "to the hot one [#{hot}](https://www.blockchain.com/btc/address/#{hot})",
-      "by #{title_md} from #{anon_ip}",
+      "by #{title_md} from #{anon_ip};",
       "tx hash is [#{tx}](https://www.blockchain.com/btc/tx/#{tx});",
       "our bitcoin assets still have [#{assets.balance.round(4)} BTC](https://wts.zold.io/assets)",
       "(worth about $#{(assets.balance * price).round});",
@@ -424,6 +424,37 @@ post '/cold-to-hot' do
     )
   end
   flash('/assets', 'Cold bitcoins will be trasferred to a hot address soon')
+end
+
+post '/cold-out' do
+  raise WTS::UserError, 'E129: You are not allowed to use this, only yegor256' unless user.login == 'yegor256'
+  btc = params[:amount].to_f
+  raise WTS::UserError, "E219: The amount #{btc} BTC is too small" if btc < 0.01
+  raise WTS::UserError, "E220: The amount #{btc} BTC is too large" if btc > 0.2
+  address = params[:address].strip
+  target = params[:target].strip
+  job(exclusive: true) do |jid, log|
+    log.info("Sending cold #{btc} BTC from #{address} to #{target}...")
+    tx = sibit(log: log).pay(
+      (btc * 100_000_000).round,
+      'L',
+      { address => params[:pkey].strip },
+      target,
+      address
+    )
+    assets(log: log).set(address, 0)
+    settings.telepost.spam(
+      "Out: #{format('%.04f', btc)} BTC ($#{(btc * price).round}) was sent from a cold address",
+      "[#{address}](https://www.blockchain.com/btc/address/#{address});",
+      "to a foreign one [#{target}](https://www.blockchain.com/btc/address/#{target})",
+      "by #{title_md} from #{anon_ip};",
+      "tx hash is [#{tx}](https://www.blockchain.com/btc/tx/#{tx});",
+      "our bitcoin assets still have [#{assets.balance.round(4)} BTC](https://wts.zold.io/assets)",
+      "(worth about $#{(assets.balance * price).round});",
+      job_link(jid)
+    )
+  end
+  flash('/assets', 'Cold bitcoins will be trasferred soon')
 end
 
 get '/assets' do
