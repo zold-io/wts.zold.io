@@ -65,7 +65,7 @@ post '/do-zld-to-paypal' do
   raise WTS::UserError, "E137: You don't have enough to send #{amount}" if confirmed_user.wallet(&:balance) < amount
   if settings.toggles.get('ban:do-sell').split(',').include?(user.login)
     settings.telepost.spam(
-      "The user #{title_md} from #{anon_ip} is trying to send #{amount} to PayPal,",
+      "⚠️ The user #{title_md} from #{anon_ip} is trying to send #{amount} to PayPal,",
       'while their account is banned via "ban:do-sell";',
       "the balance of the user is #{user.wallet(&:balance)}",
       "at the wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})"
@@ -76,7 +76,7 @@ post '/do-zld-to-paypal' do
   unless settings.payouts.allowed?(user.login, amount, limits) || vip?
     consumed = settings.payouts.consumed(user.login)
     settings.telepost.spam(
-      "The user #{title_md} from #{anon_ip} with #{amount} payment to PayPal just attempted to go",
+      "⚠️ The user #{title_md} from #{anon_ip} with #{amount} payment to PayPal just attempted to go",
       "over their account limits: \"#{consumed}\", while allowed thresholds are \"#{limits}\";",
       "the balance of the user is #{user.wallet(&:balance)}",
       "at the wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})"
@@ -88,7 +88,7 @@ while we allow one user to sell up to #{limits} (daily/weekly/monthly)"
   unless settings.payouts.safe?(amount, limits) || vip?
     consumed = settings.payouts.system_consumed
     settings.telepost.spam(
-      "The user #{title_md} from #{anon_ip} with #{amount} payment to PayPal just attempted to go",
+      "⚠️ The user #{title_md} from #{anon_ip} with #{amount} payment to PayPal just attempted to go",
       "over our limits: \"#{consumed}\", while allowed thresholds are \"#{limits}\";",
       "the balance of the user is #{user.wallet(&:balance)}",
       "at the wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})"
@@ -130,7 +130,7 @@ users of WTS, while our limits are #{limits} (daily/weekly/monthly), sorry about
 the price was #{dollars(price)}/BTC, the fee was #{(f * 100).round(2)}%"
     )
     settings.telepost.spam(
-      "Out: **#{amount}** [exchanged](https://blog.zold.io/2018/12/09/btc-to-zld.html) to #{dollars(usd)} PayPal",
+      "😢 Out: **#{amount}** [exchanged](https://blog.zold.io/2018/12/09/btc-to-zld.html) to #{dollars(usd)} PayPal",
       "by #{title_md} from #{anon_ip}",
       "from the wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})",
       "with the remaining balance of #{user.wallet(&:balance)};",

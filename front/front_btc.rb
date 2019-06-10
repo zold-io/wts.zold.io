@@ -63,8 +63,8 @@ unless ENV['RACK_ENV'] == 'test'
     assets.reconcile do |address, before, after|
       diff = after - before
       settings.telepost.spam(
-        diff.positive? ? '' : '⚠️ ',
-        "The balance at [#{address}](https://www.blockchain.com/btc/address/#{address})",
+        diff.positive? ? '📥' : '⚠️',
+        " The balance at [#{address}](https://www.blockchain.com/btc/address/#{address})",
         "was #{diff.positive? ? 'increased' : 'decreased'} by #{diff}",
         "from #{before} to #{after} satoshi;",
         "our bitcoin assets have [#{assets.balance.round(4)} BTC](https://wts.zold.io/assets)",
@@ -123,7 +123,7 @@ unless ENV['RACK_ENV'] == 'test'
         )
       else
         settings.telepost.spam(
-          "#{format('%.06f', bitcoin)} BTC (#{dollars(price * bitcoin)}) returned back to",
+          "📥 #{format('%.06f', bitcoin)} BTC (#{dollars(price * bitcoin)}) returned back to",
           "[#{address}](https://www.blockchain.com/btc/address/#{address})",
           'as a change from the previous payment,',
           "tx hash is [#{hash}](https://www.blockchain.com/btc/tx/#{hash.gsub(/:[0-9]+$/, '')})",
@@ -221,7 +221,7 @@ get '/funded' do
         "Purchased #{btc} BTC for #{usd} USD at Coinbase"
       )
       settings.telepost.spam(
-        "Buy: **#{btc.round(4)}** BTC were purchased for #{dollars(usd)} at [Coinbase](https://coinbase.com),",
+        "✌️ Buy: **#{btc.round(4)}** BTC were purchased for #{dollars(usd)} at [Coinbase](https://coinbase.com),",
         "#{zld} were deposited to the wallet",
         "[#{zerocrat.item.id}](http://www.zold.io/ledger.html?wallet=#{zerocrat.item.id})",
         "owned by [#{zerocrat.login}](https://github.com/#{zerocrat.login})",
@@ -259,7 +259,7 @@ get '/btc-to-zld' do
   features('btc', 'buy-btc')
   address = assets.acquire(confirmed_user.login) do |u, a, k|
     settings.telepost.spam(
-      "A new Bitcoin address [#{a}](https://www.blockchain.com/btc/address/#{a}) generated",
+      "✍️ A new Bitcoin address [#{a}](https://www.blockchain.com/btc/address/#{a}) generated",
       u.nil? ? 'as a storage for change' : 'by a user',
       "with this private key (it is encrypted):\n\n```\n#{k.scan(/.{20}/).join("\n")}\n```"
     )
@@ -298,7 +298,7 @@ post '/do-zld-to-btc' do
   raise WTS::UserError, "E146: You don't have enough to send #{amount}" if confirmed_user.wallet(&:balance) < amount
   if settings.toggles.get('ban:do-sell').split(',').include?(user.login)
     settings.telepost.spam(
-      "The user #{title_md} from #{anon_ip} is trying to sell #{amount},",
+      "⚠️ The user #{title_md} from #{anon_ip} is trying to sell #{amount},",
       'while their account is banned via "ban:do-sell";',
       "the balance of the user is #{user.wallet(&:balance)}",
       "at the wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})"
@@ -309,7 +309,7 @@ post '/do-zld-to-btc' do
   unless settings.payouts.allowed?(user.login, amount, limits) || vip?
     consumed = settings.payouts.consumed(user.login)
     settings.telepost.spam(
-      "The user #{title_md} from #{anon_ip} with #{amount} payment just attempted to go",
+      "⚠️ The user #{title_md} from #{anon_ip} with #{amount} payment just attempted to go",
       "over their account limits: \"#{consumed}\", while allowed thresholds are \"#{limits}\";",
       "the balance of the user is #{user.wallet(&:balance)}",
       "at the wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})"
@@ -321,7 +321,7 @@ while we allow one user to sell up to #{limits} (daily/weekly/monthly)"
   unless settings.payouts.safe?(amount, limits) || vip?
     consumed = settings.payouts.system_consumed
     settings.telepost.spam(
-      "The user #{title_md} from #{anon_ip} with #{amount} payment just attempted to go",
+      "⚠️ The user #{title_md} from #{anon_ip} with #{amount} payment just attempted to go",
       "over our limits: \"#{consumed}\", while allowed thresholds are \"#{limits}\";",
       "the balance of the user is #{user.wallet(&:balance)}",
       "at the wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})"
@@ -365,7 +365,7 @@ the price was #{dollars(price)}/BTC; the fee was #{(f * 100).round(2)}%, \
 bitcoin assets still have #{assets.balance.round(4)} BTC"
     )
     settings.telepost.spam(
-      "Out: #{amount} [exchanged](https://blog.zold.io/2018/12/09/btc-to-zld.html) to #{bitcoin} BTC",
+      "😢 Out: #{amount} [exchanged](https://blog.zold.io/2018/12/09/btc-to-zld.html) to #{bitcoin} BTC",
       "by #{title_md} from #{anon_ip}",
       "from the wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})",
       "with the remaining balance of #{user.wallet(&:balance)}",
