@@ -514,6 +514,6 @@ end
 
 def dollars(usd)
   txt = usd.round.to_s
-  txt = format('%.02f', usd) if usd < 10
+  txt = format('%.02f', usd) if usd < 100
   '$' + txt
 end
