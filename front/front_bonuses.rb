@@ -75,7 +75,7 @@ def pay_hosting_bonuses(boss, jid, log)
     return
   end
   settings.telepost.spam(
-    'Hosting [bonus](https://blog.zold.io/2018/08/14/hosting-bonuses.html)',
+    '🍓 Hosting [bonus](https://blog.zold.io/2018/08/14/hosting-bonuses.html)',
     "of **#{bonus}** has been distributed among #{winners.count} wallets",
     '[visible](https://wts.zold.io/remotes) to us at the moment,',
     "among #{settings.remotes.all.count} [others](http://www.zold.io/health.html):",
