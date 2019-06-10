@@ -62,13 +62,13 @@
     %strong= format('%.04f', balance)
     BTC /
     approx.
-    = "$#{(price * balance).round}."
+    = dollars(price * balance)
   %p
     The biggest Bitcoin payout we can send at the moment is
     = format('%.04f', limit)
     BTC
     = succeed ':' do
-      = "($#{(limit * price).round})"
+      = "(#{dollars(limit * price)})"
   %table.compact
     %colgroup
       %col{style: 'width: 25em'}

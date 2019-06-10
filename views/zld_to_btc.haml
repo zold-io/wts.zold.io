@@ -10,7 +10,7 @@
   %strong= rate
   BTC/ZLD, or about
   = succeed '.' do
-    %strong= "$#{(rate * price).round(2)}"
+    %strong= dollars(rate * price)
   %a{href: iri.cut('/rate')} Why?
 
 %p
@@ -22,7 +22,7 @@
   approximately
   %span#btc_fee= format('%.06f', btc_fee)
   BTC
-  = "($#{format('%.02f', btc_fee * price)})"
+  = "(#{dollars(btc_fee * price)})"
   = succeed '.' do
     %a{href: 'https://bitcoinfees.info/'} at the moment
 

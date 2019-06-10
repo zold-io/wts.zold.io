@@ -41,7 +41,6 @@ class WTS::AppTest < Minitest::Test
   def app
     Sinatra::Application.set(:log, test_log)
     Sinatra::Application.set(:pool, Concurrent::FixedThreadPool.new(1, max_queue: 0, fallback_policy: :caller_runs))
-    Sinatra::Application.set(:sibit, Sibit::Fake.new)
     Sinatra::Application
   end
 

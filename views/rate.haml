@@ -10,7 +10,7 @@
     = format('%0.4f', formula[:bank])
     BTC
   = '/'
-  = "$#{format('%d', formula[:bank] * formula[:price])}"
+  = dollars(formula[:bank] * formula[:price])
   at the current
   %a{href: 'https://blockchain.info/ticker'} market price
   %br
@@ -53,7 +53,7 @@
   %code
     = format('%0.8f', rate)
   = '/'
-  = "$#{format('%0.2f', rate * formula[:price])}"
+  = dollars(rate * formula[:price])
   at the current
   %a{href: 'https://blockchain.info/ticker'} market price
   %br

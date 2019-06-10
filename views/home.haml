@@ -13,7 +13,7 @@
       - if usd_rate && !w.balance.zero?
         = '/'
         approx.
-        = "$#{(usd_rate * w.balance.to_f).round(2)}"
+        = dollars(usd_rate * w.balance.to_f)
         %a{href: iri.cut('/rate')} Why?
       %br
       Transactions:

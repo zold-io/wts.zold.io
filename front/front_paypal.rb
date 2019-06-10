@@ -101,7 +101,7 @@ users of WTS, while our limits are #{limits} (daily/weekly/monthly), sorry about
   boss = user(settings.config['zerocrat']['login'])
   rewards = user(settings.config['rewards']['login'])
   job(exclusive: true) do |jid, log|
-    log.info("Sending $#{usd} via PayPal to #{email}...")
+    log.info("Sending #{dollars(usd)} via PayPal to #{email}...")
     f = fee
     ops(log: log).pull
     ops(rewards, log: log).pull
@@ -126,14 +126,15 @@ users of WTS, while our limits are #{limits} (daily/weekly/monthly), sorry about
     )
     settings.payouts.add(
       user.login, user.item.id, amount,
-      "PayPal $#{usd} sent to #{email}, the price was $#{price.round}/BTC, the fee was #{(f * 100).round(2)}%"
+      "PayPal #{dollars(usd)} sent to #{email}, \
+the price was #{dollars(price)}/BTC, the fee was #{(f * 100).round(2)}%"
     )
     settings.telepost.spam(
-      "Out: **#{amount}** [exchanged](https://blog.zold.io/2018/12/09/btc-to-zld.html) to $#{usd} PayPal",
+      "Out: **#{amount}** [exchanged](https://blog.zold.io/2018/12/09/btc-to-zld.html) to #{dollars(usd)} PayPal",
       "by #{title_md} from #{anon_ip}",
       "from the wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})",
       "with the remaining balance of #{user.wallet(&:balance)};",
-      "BTC price at the time of exchange was [$#{price.round}](https://blockchain.info/ticker);",
+      "BTC price at the time of exchange was [#{dollars(price)}](https://blockchain.info/ticker);",
       "zolds were deposited to [#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id})",
       "of [#{boss.login}](https://github.com/#{boss.login}),",
       "the balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t);",
@@ -144,5 +145,8 @@ users of WTS, while our limits are #{limits} (daily/weekly/monthly), sorry about
       job_link(jid)
     )
   end
-  flash('/zld-to-paypal', "We took #{amount} from your wallet and sent you $#{usd} PayPal, more details in the log")
+  flash(
+    '/zld-to-paypal',
+    "We took #{amount} from your wallet and sent you #{dollars(usd)} PayPal, more details in the log"
+  )
 end
