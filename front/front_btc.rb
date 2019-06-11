@@ -513,7 +513,7 @@ def sibit(log: settings.log)
 end
 
 def dollars(usd)
-  txt = usd.round.to_s
+  txt = usd.round.to_s.reverse.gsub(/(\d{3})(?=\d)/, '\\1,').reverse
   txt = format('%.02f', usd) if usd < 100
   '$' + txt
 end
