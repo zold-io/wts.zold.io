@@ -63,7 +63,7 @@ settings.daemons.start('snapshot', 24 * 60 * 60) do
       "  24-hours txns count: [#{settings.gl.count}](https://wts.zold.io/gl)",
       "  Nodes: [#{settings.ticks.latest('Nodes').round}](https://wts.zold.io/remotes)",
       "  Bitcoin price: [#{dollars(price)}](https://coinmarketcap.com/currencies/bitcoin/)",
-      "  Bitcoin tx fee: #{dollars(sibit.fees[:XL] * 250.0 / 100_000_000)}",
+      "  Bitcoin tx fee: #{dollars(sibit.fees[:XL] * 250.0 * price / 100_000_000)}",
       "  Rate: [#{format('%.08f', rate)}](https://wts.zold.io/rate) (#{dollars(price * rate)})",
       "  Coverage: [#{format('%.08f', coverage)}](https://wts.zold.io/rate) \
 / [#{(100 * coverage / rate).round}%](http://papers.zold.io/fin-model.pdf)",
