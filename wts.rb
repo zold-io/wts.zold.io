@@ -173,7 +173,15 @@ configure do
     )
     settings.daemons.start('telepost') do
       settings.log.info("Starting Telegram chatbot at #{chat}...")
-      settings.telepost.run
+      settings.telepost.run do |cht, _msg|
+        settings.telepost.post(
+          cht,
+          'This bot is not answering here.',
+          'All it does is posting news to this channel: @zold_wts.',
+          'Don\'t hesitate to subscribe and stay informed about everything that is going on',
+          'in https://wts.zold.io.'
+        )
+      end
     end
   end
   settings.telepost.spam(
