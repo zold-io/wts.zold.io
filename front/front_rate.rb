@@ -45,6 +45,7 @@ end
 settings.daemons.start('snapshot', 24 * 60 * 60) do
   next unless settings.ticks.exists?('Coverage')
   coverage = settings.ticks.latest('Coverage') / 100_000_000
+  deficit = settings.ticks.latest('Deficit') / 100_000_000
   distributed = Zold::Amount.new(
     zents: (settings.ticks.latest('Emission') - settings.ticks.latest('Office')).to_i
   )
@@ -64,11 +65,12 @@ settings.daemons.start('snapshot', 24 * 60 * 60) do
       "  Nodes: [#{settings.ticks.latest('Nodes').round}](https://wts.zold.io/remotes)",
       "  Bitcoin price: [#{dollars(price)}](https://coinmarketcap.com/currencies/bitcoin/)",
       "  Bitcoin tx fee: #{dollars(sibit.fees[:XL] * 250.0 * price / 100_000_000)}",
-      "  Rate: [#{format('%.08f', rate)}](https://wts.zold.io/rate) (#{dollars(price * rate)})",
-      "  Coverage: [#{format('%.08f', coverage)}](https://wts.zold.io/rate) \
-/ [#{(100 * coverage / rate).round}%](http://papers.zold.io/fin-model.pdf)",
-      "  BTC fund: [#{assets.balance.round(4)}](https://wts.zold.io/rate) \
+      "  ZLD price: [#{format('%.08f', rate)}](https://wts.zold.io/rate) (#{dollars(price * rate)})",
+      "  Coverage: [#{(100 * coverage / rate).round}%](http://papers.zold.io/fin-model.pdf) \
+/ [#{format('%.08f', coverage)}](https://wts.zold.io/rate)",
+      "  The fund: [#{assets.balance.round(4)} BTC](https://wts.zold.io/rate) \
 (#{dollars(price * assets.balance)})",
+      "  Deficit: [#{deficit.round(2)} BTC](https://wts.zold.io/rate)",
       "\nThanks for keeping an eye on us!"
     ].join("\n")
   )
