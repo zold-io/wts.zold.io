@@ -19,6 +19,7 @@
 # SOFTWARE.
 
 require 'json'
+require 'octokit'
 require 'zold/amount'
 require 'zold/id'
 require 'zold/commands/pull'
@@ -52,6 +53,7 @@ settings.daemons.start('snapshot', 24 * 60 * 60) do
   active = settings.pgsql.exec(
     'SELECT COUNT(*) FROM item WHERE touched > NOW() - INTERVAL \'30 DAYS\''
   )[0]['count'].to_i
+  release = octokit.latest_release('zold/zold')['name']
   settings.telepost.spam(
     [
       "Today is #{Time.now.utc.strftime('%d-%b-%Y')} and we are doing great:\n",
@@ -62,7 +64,6 @@ settings.daemons.start('snapshot', 24 * 60 * 60) do
       "  Distributed: [#{distributed}](https://wts.zold.io/rate)",
       "  24-hours volume: [#{settings.gl.volume}](https://wts.zold.io/gl)",
       "  24-hours txns count: [#{settings.gl.count}](https://wts.zold.io/gl)",
-      "  Nodes: [#{settings.ticks.latest('Nodes').round}](https://wts.zold.io/remotes)",
       "  Bitcoin price: [#{dollars(price)}](https://coinmarketcap.com/currencies/bitcoin/)",
       "  Bitcoin tx fee: #{dollars(sibit.fees[:XL] * 250.0 * price / 100_000_000)}",
       "  ZLD price: [#{format('%.08f', rate)}](https://wts.zold.io/rate) (#{dollars(price * rate)})",
@@ -71,6 +72,11 @@ settings.daemons.start('snapshot', 24 * 60 * 60) do
       "  The fund: [#{assets.balance.round(4)} BTC](https://wts.zold.io/rate) \
 (#{dollars(price * assets.balance)})",
       "  Deficit: [#{deficit.round(2)} BTC](https://wts.zold.io/rate)",
+      '',
+      "  Zold version: [#{release}](https://github.com/zold-io/zold/releases/tag/#{release})",
+      "  Nodes: [#{settings.ticks.latest('Nodes').round}](https://wts.zold.io/remotes)",
+      "  [HoC](https://www.yegor256.com/2014/11/14/hits-of-code.html) in all repos: #{(hoc / 1000).round}K",
+      "  GitHub stars: #{stars}",
       "\nThanks for keeping an eye on us!"
     ].join("\n")
   )
@@ -163,4 +169,30 @@ get '/graph.svg' do
       title: params[:title] || ''
     )
   end
+end
+
+def octokit
+  Octokit::Client.new(
+    login: settings.config['github']['client_id'],
+    password: settings.config['github']['client_secret']
+  )
+end
+
+# Names of all our repos.
+def repositories
+  octokit.repositories('zold').map { |json| json['full_name'] }
+end
+
+# Total amount of hits-of-code in all Zold repositories
+def hoc
+  repositories.map do |_r|
+    0
+  end.inject(&:+)
+end
+
+# Total amount of GitHub stars.
+def stars
+  repositories.map do |r|
+    octokit.repository(r)['stargazers_count']
+  end.inject(&:+)
 end
