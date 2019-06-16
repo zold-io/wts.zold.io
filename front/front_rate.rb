@@ -53,7 +53,7 @@ settings.daemons.start('snapshot', 24 * 60 * 60) do
   active = settings.pgsql.exec(
     'SELECT COUNT(*) FROM item WHERE touched > NOW() - INTERVAL \'30 DAYS\''
   )[0]['count'].to_i
-  release = octokit.latest_release('zold/zold')['name']
+  release = octokit.latest_release('zold-io/zold')['name']
   settings.telepost.spam(
     [
       "Today is #{Time.now.utc.strftime('%d-%b-%Y')} and we are doing great:\n",
@@ -181,7 +181,7 @@ end
 
 # Names of all our repos.
 def repositories
-  octokit.repositories('zold').map { |json| json['full_name'] }
+  octokit.repositories('zold-io').map { |json| json['full_name'] }
 end
 
 # Total amount of hits-of-code in all Zold repositories
