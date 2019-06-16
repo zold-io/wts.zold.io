@@ -51,7 +51,7 @@ class WTS::Jobs
   # Start a new job and return its ID
   def start(login)
     @pgsql.exec(
-      'UPDATE job SET log = $1 WHERE started < NOW() - INTERVAL \'1 HOURS\'',
+      'UPDATE job SET log = $1 WHERE started < NOW() - INTERVAL \'1 HOURS\' AND log = \'Running\'',
       ['We are sorry, but most probably the job is lost; try again...']
     )
     uuid = SecureRandom.uuid
