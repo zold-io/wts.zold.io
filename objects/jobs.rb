@@ -52,7 +52,7 @@ class WTS::Jobs
   def start(login)
     @pgsql.exec(
       'UPDATE job SET log = $1 WHERE started < NOW() - INTERVAL \'1 HOURS\' AND log = \'Running\'',
-      ['We are sorry, but most probably the job is lost; try again...']
+      ["We are sorry, but most probably the job is lost (#{Time.now.utc.iso8601}); try again..."]
     )
     uuid = SecureRandom.uuid
     @pgsql.exec('INSERT INTO job (id, log, login) VALUES ($1, $2, $3)', [uuid, 'Running', login])
