@@ -77,7 +77,7 @@ settings.daemons.start('snapshot', 24 * 60 * 60) do
       "  Nodes: [#{settings.ticks.latest('Nodes').round}](https://wts.zold.io/remotes)",
       "  [HoC](https://www.yegor256.com/2014/11/14/hits-of-code.html) \
 in #{repositories.count} repos: #{(hoc / 1000).round}K",
-      "  GitHub stars: #{stars}",
+      "  GitHub stars/forks: #{stars}/#{forks}",
       "\nThanks for keeping an eye on us!"
     ].join("\n")
   )
@@ -195,5 +195,12 @@ end
 def stars
   repositories.map do |r|
     octokit.repository(r)['stargazers_count']
+  end.inject(&:+)
+end
+
+# Total amount of GitHub forks.
+def forks
+  repositories.map do |r|
+    octokit.repository(r)['forks_count']
   end.inject(&:+)
 end
