@@ -28,6 +28,9 @@ require_relative 'user_error'
 # Coinbase gateway.
 #
 class WTS::Coinbase
+  # If payment can't be sent right now, but may work later in the future.
+  class TryLater < StandardError; end
+
   # Fake one
   class Fake
     def balance
@@ -69,6 +72,8 @@ class WTS::Coinbase
     response = acc.send(to: address, amount: btc, currency: 'BTC', description: details)
     @log.info("Coinbase payment has been sent, their transaction ID is #{response['id']}")
     response['id']
+  rescue Coinbase::Wallet::ValidationError => e
+    raise TryLater, e.message
   rescue StandardError => e
     @log.error(Backtrace.new(e))
     raise "Failed to send \"#{btc}\" to \"#{address}\" with details of \"#{details}\": #{e.message}"

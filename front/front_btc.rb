@@ -150,6 +150,8 @@ unless ENV['RACK_ENV'] == 'test'
     else
       settings.log.info("We've got just #{btc} BTC in Coinbase, no need to transfer")
     end
+  rescue Coinbase::TryLater => e
+    settings.log.debug("Can't send #{btc} BTC from Coinbase, will try later: #{e.message}")
   end
   settings.daemons.start('btc-transfer-to-cold', 12 * 60 * 60) do
     hot = assets.all.select { |a| a[:hot] }.map { |a| a[:value] }.inject(&:+).to_f / 100_000_000
