@@ -50,9 +50,9 @@ class WTS::Graph
         max = t[:created] if max < t[:created]
       end
     end
-    raise WTS::UserError, 'EThere are no ticks, sorry' if sets.empty?
+    raise WTS::UserError, 'E221: There are no ticks, sorry' if sets.empty?
     step = (max - min) / STEPS
-    raise WTS::UserError, 'EStep is too small, can\'t render, sorry' if step.zero?
+    raise WTS::UserError, 'E222: Step is too small, can\'t render, sorry' if step.zero?
     params = {
       width: 400, height: 200,
       show_x_guidelines: true, show_y_guidelines: true,
@@ -65,7 +65,7 @@ class WTS::Graph
       fields: (0..STEPS - 1).map { |i| (min + i * step).strftime('%m/%d') }
     }
     unless title.empty?
-      params[:y_title] = title
+      params[:y_title] = title.gsub(/[^a-zA-Z0-9 ]/, ' ')
       params[:show_y_title] = true
     end
     g = SVG::Graph::Line.new(params)
