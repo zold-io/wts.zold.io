@@ -12,7 +12,7 @@ install: |-
   rvm use 2.6.0
   export GEM_HOME=~/.ruby
   export GEM_PATH=$GEM_HOME:$GEM_PATH
-  sudo gem install pdd
+  sudo gem install pdd -v 0.20.5
 release:
   sensitive:
     - config.yml
