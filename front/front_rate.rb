@@ -75,7 +75,8 @@ settings.daemons.start('snapshot', 24 * 60 * 60) do
       '',
       "  Zold version: [#{release}](https://github.com/zold-io/zold/releases/tag/#{release})",
       "  Nodes: [#{settings.ticks.latest('Nodes').round}](https://wts.zold.io/remotes)",
-      "  [HoC](https://www.yegor256.com/2014/11/14/hits-of-code.html) in all repos: #{(hoc / 1000).round}K",
+      "  [HoC](https://www.yegor256.com/2014/11/14/hits-of-code.html) \
+in #{repositories.count} repos: #{(hoc / 1000).round}K",
       "  GitHub stars: #{stars}",
       "\nThanks for keeping an eye on us!"
     ].join("\n")
