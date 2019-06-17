@@ -147,6 +147,7 @@ unless ENV['RACK_ENV'] == 'test'
       assets.see(address, hash)
     end
     settings.toggles.set('latestblock', seen)
+    settings.log.info("We've scanned the entire Blockchain, the latest block is #{seen}")
   end
   settings.daemons.start('btc-from-coinbase', 60 * 60) do
     btc = coinbase.balance
