@@ -72,7 +72,7 @@ unless ENV['RACK_ENV'] == 'test'
       )
     end
   end
-  settings.daemons.start('btc-monitor', 10 * 60) do
+  settings.daemons.start('btc-monitor', 60 * 60) do
     seen = settings.toggles.get('latestblock', '')
     latest = sibit.latest
     diff = sibit.get_json("/rawblock/#{latest}")['height'] - sibit.get_json("/rawblock/#{seen}")['height']
