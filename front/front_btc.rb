@@ -79,7 +79,7 @@ unless ENV['RACK_ENV'] == 'test'
     if diff > 10
       settings.telepost.spam(
         "⚠️ Our Bitcoin Blockchain monitoring system is behind, for #{diff} blocks!",
-        "The current block is [#{current}](https://www.blockchain.com/btc/block/#{current}),",
+        "The most recently seen block is [#{seen}](https://www.blockchain.com/btc/block/#{seen}),",
         "while the latest we've seen was [#{latest}](https://www.blockchain.com/btc/block/#{latest});",
         'most probably there is something wrong with [Sibit](https://github.com/yegor256/sibit), please check'
       )
