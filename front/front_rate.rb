@@ -53,7 +53,7 @@ settings.daemons.start('snapshot', 24 * 60 * 60) do
   active = settings.pgsql.exec(
     'SELECT COUNT(*) FROM item WHERE touched > NOW() - INTERVAL \'30 DAYS\''
   )[0]['count'].to_i
-  release = octokit.latest_release('zold-io/zold')['name']
+  release = octokit.latest_release('zold-io/zold')['tag_name']
   settings.telepost.spam(
     [
       "Today is #{Time.now.utc.strftime('%d-%b-%Y')} and we are doing great:\n",

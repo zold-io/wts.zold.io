@@ -66,9 +66,22 @@ unless ENV['RACK_ENV'] == 'test'
         diff.positive? ? '📥' : '⚠️',
         " The balance at [#{address}](https://www.blockchain.com/btc/address/#{address})",
         "was #{diff.positive? ? 'increased' : 'decreased'} by #{diff}",
-        "from #{before} to #{after} satoshi;",
+        "(#{dollars(diff * price / 100_000_000)}), from #{before} to #{after} satoshi;",
         "our bitcoin assets have [#{assets.balance.round(4)} BTC](https://wts.zold.io/assets)",
         "(#{dollars(price * assets.balance)})"
+      )
+    end
+  end
+  settings.daemons.start('btc-monitor', 10 * 60) do
+    seen = settings.toggles.get('latestblock', '')
+    latest = sibit.latest
+    diff = sibit.get_json("/rawblock/#{latest}")['height'] - sibit.get_json("/rawblock/#{seen}")['height']
+    if diff > 10
+      settings.telepost.spam(
+        "⚠️ Our Bitcoin Blockchain monitoring system is behind, for #{diff} blocks!",
+        "The current block is [#{current}](https://www.blockchain.com/btc/block/#{current}),",
+        "while the latest we've seen was [#{latest}](https://www.blockchain.com/btc/block/#{latest});",
+        'most probably there is something wrong with [Sibit](https://github.com/yegor256/sibit), please check'
       )
     end
   end
