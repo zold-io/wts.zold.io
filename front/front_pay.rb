@@ -46,7 +46,6 @@ see the White Paper, only a limited subset of characters is allowed: [a-zA-Z0-9@
     bnf = Zold::Id.new(bnf)
     raise WTS::UserError, 'E112: You can\'t pay yourself' if bnf == user.item.id
   elsif /^[a-zA-Z0-9]+@[a-f0-9]{16}$/.match?(bnf)
-    bnf = params[:bnf]
     raise WTS::UserError, 'E113: You can\'t pay yourself' if bnf.split('@')[1] == user.item.id.to_s
   elsif /^\\+[0-9]+$/.match?(bnf)
     friend = user(bnf[0..32].to_i.to_s)
