@@ -235,6 +235,23 @@ get '/balance' do
   confirmed_user.wallet(&:balance).to_i.to_s
 end
 
+get '/head.json' do
+  content_type 'application/json'
+  confirmed_user.wallet do |wallet|
+    JSON.pretty_generate(
+      id: wallet.id.to_s,
+      mtime: wallet.mtime.utc.iso8601,
+      age: wallet.age.to_s,
+      size: wallet.size,
+      digest: wallet.digest,
+      balance: wallet.balance.to_i,
+      txns: wallet.txns.count,
+      taxes: Zold::Tax.new(wallet).paid.to_i,
+      debt: Zold::Tax.new(wallet).debt.to_i
+    )
+  end
+end
+
 get '/find' do
   content_type 'text/plain'
   confirmed_user.wallet do |wallet|

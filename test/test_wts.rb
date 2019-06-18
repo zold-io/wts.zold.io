@@ -109,6 +109,7 @@ class WTS::AppTest < Minitest::Test
       '/balance',
       '/restart',
       '/log',
+      '/head.json',
       '/txns.json',
       '/referrals',
       '/invoice',

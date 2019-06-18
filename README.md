@@ -113,6 +113,10 @@ which return the result immediately:
   * `GET /txns.json`: returns a full list of transactions in the wallet, in JSON.
     You can specify the sorting order via `sort=asc` or `sort=desc`.
 
+  * `GET /head.json`: returns the head of the wallet, which includes
+    its ID, the balance, taxes, the size, and some other attributes; the
+    full list of them may vary.
+
   * `GET /job`: checks the status of the jobs, expecting `id` as a query argument.
     Returns `200` and plain text `OK` if the job is completed.
     Returns `200` and plain text `Running` if the job is still in progress.
