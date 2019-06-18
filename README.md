@@ -13,13 +13,12 @@
 [![Maintainability](https://api.codeclimate.com/v1/badges/25b798dc13147f13bb59/maintainability)](https://codeclimate.com/github/zold-io/wts.zold.io/maintainability)
 [![Hits-of-Code](https://hitsofcode.com/github/zold-io/wts.zold.io)](https://hitsofcode.com/view/github/zold-io/wts.zold.io)
 
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/yegor256/takes/blob/master/LICENSE.txt)
 [![Availability at SixNines](https://www.sixnines.io/b/2e391)](https://www.sixnines.io/h/2e391)
 
 Here is the [White Paper](https://papers.zold.io//wp.pdf).
 
 Join our [Telegram group](https://t.me/zold_io) to discuss it all live.
-
-The license is [MIT](https://github.com/zold-io/wts.zold.io/blob/master/LICENSE.txt).
 
 Zold Web WalleTS (hence the _WTS_ name) is a simple web front to the Zold
 network. In order to use all the features of Zold cryptocurrency, you will need
