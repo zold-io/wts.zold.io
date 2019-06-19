@@ -179,7 +179,7 @@ class WTS::Assets
       end
       n = json['next_block']
       break if n.empty?
-      block = n[0]
+      block = n.last
       count += 1
     end
     block
