@@ -157,6 +157,11 @@ class WTS::Assets
     count = 0
     while count < max
       json = @sibit.get_json("/rawblock/#{block}")
+      unless json['main_chain']
+        @log.info("Orphan block found at #{block}, moving one step back...")
+        block = json['prev_block']
+        next
+      end
       break if json['tx'].nil?
       json['tx'].each do |t|
         t['out'].each do |o|

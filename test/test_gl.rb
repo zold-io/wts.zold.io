@@ -32,7 +32,7 @@ class WTS::GlTest < Minitest::Test
       remotes.clean
       id = rand(1000)
       stub_request(:get, 'http://localhost:4096/ledger.json').to_return(
-        status: 200, body: JSON.pretty_generate(
+        body: JSON.pretty_generate(
           [
             {
               id: id,

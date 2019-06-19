@@ -37,7 +37,7 @@ class WTS::PayablesTest < Minitest::Test
       wallets = %w[0000111122223333 ffffeeeeddddcccc 0123456701234567 9090909090909090 a1a1a1a1a1a1a1a1]
       masters.each do |m|
         stub_request(:get, "http://#{m[:host]}:#{m[:port]}/wallets").to_return(
-          status: 200, body: wallets.join("\n")
+          body: wallets.join("\n")
         )
       end
       remotes.add('localhost', 444)
@@ -48,7 +48,7 @@ class WTS::PayablesTest < Minitest::Test
       masters.each do |m|
         wallets.each do |id|
           stub_request(:get, "http://#{m[:host]}:#{m[:port]}/wallet/#{id}").to_return(
-            status: 200, body: '{ "balance": 1234567, "txns": 5 }'
+            body: '{ "balance": 1234567, "txns": 5 }'
           )
         end
       end

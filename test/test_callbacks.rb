@@ -38,7 +38,7 @@ class WTS::CallbacksTest < Minitest::Test
     assert(!callbacks.match(tid, id.to_s, 'NOPREFIX', 'for pizza').empty?)
     assert(!callbacks.fetch(login)[0][:matched].nil?)
     assert(callbacks.match(tid, id.to_s, 'NOPREFIX', 'for pizza').empty?)
-    get = stub_request(:get, /localhost:888/).to_return(status: 200, body: 'OK')
+    get = stub_request(:get, /localhost:888/).to_return(body: 'OK')
     callbacks.ping do
       [
         Zold::Txn.new(
