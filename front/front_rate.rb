@@ -187,7 +187,9 @@ end
 # Total amount of hits-of-code in all Zold repositories
 def hoc
   repositories.map do |r|
-    Zold::Http.new(uri: "https://hitsofcode.com/github/#{r}/json").get['count']
+    res = Zold::Http.new(uri: "https://hitsofcode.com/github/#{r}/json").get
+    return 0 unless res.status == 200
+    res.body['count']
   end.inject(&:+)
 end
 
