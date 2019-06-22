@@ -195,8 +195,9 @@ unless ENV['RACK_ENV'] == 'test'
         "#{after > before ? '📈' : '📉'} The rate of ZLD moved #{after > before ? 'UP' : 'DOWN'}",
         "from #{dollars(before)} to #{dollars(after)},",
         "which is #{after > before ? '+' : '-'}#{format('%.02f', 100.0 * (after - before) / before)}%;",
-        "the price of Bitcoin is #{dollars(price)};",
-        'more details [here](https://wts.zold.io/rate)'
+        "the [price](https://coinmarketcap.com/currencies/bitcoin/) of Bitcoin is #{dollars(price)};",
+        'more details [here](https://wts.zold.io/rate);',
+        'it is time to buy, [click here](https://wts.zold.io/quick)'
       )
     end
   end
