@@ -65,7 +65,7 @@ settings.daemons.start('snapshot', 24 * 60 * 60) do
       "  24-hours volume: [#{settings.gl.volume}](https://wts.zold.io/gl)",
       "  24-hours txns count: [#{settings.gl.count}](https://wts.zold.io/gl)",
       "  Bitcoin price: [#{dollars(price)}](https://coinmarketcap.com/currencies/bitcoin/)",
-      "  Bitcoin tx fee: #{dollars(sibit.fees[:XL] * 250.0 * price / 100_000_000)}",
+      "  Bitcoin tx fee: [#{dollars(sibit.fees[:XL] * 250.0 * price / 100_000_000)}](https://bitcoinfees.info/)",
       "  ZLD price: [#{format('%.08f', rate)}](https://wts.zold.io/rate) (#{dollars(price * rate)})",
       "  Coverage: [#{(100 * coverage / rate).round}%](http://papers.zold.io/fin-model.pdf) \
 / [#{format('%.08f', coverage)}](https://wts.zold.io/rate)",
@@ -77,7 +77,7 @@ settings.daemons.start('snapshot', 24 * 60 * 60) do
       "  Nodes: [#{settings.ticks.latest('Nodes').round}](https://wts.zold.io/remotes)",
       "  [HoC](https://www.yegor256.com/2014/11/14/hits-of-code.html) \
 in #{repositories.count} repos: #{(hoc / 1000).round}K",
-      "  GitHub stars/forks: #{stars} / #{forks}",
+      "  [GitHub](https://github.com/zold-io) stars/forks: #{stars} / #{forks}",
       "\nThanks for keeping an eye on us!"
     ].join("\n")
   )
