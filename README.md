@@ -264,7 +264,7 @@ using the `X-Zold-Wts` HTTP header (see above).
 
 You may want to experiment with the API in a sandbox mode. Just
 login using this URL: https://wts.zold.io/sandbox. You
-won't be able to send any payments our or to do any manipulations with
+won't be able to send any payments out or do any manipulations with
 the real network, but you can play with all available features. It is
 perfectly safe, you won't damage anything.
 
