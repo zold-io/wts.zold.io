@@ -13,20 +13,20 @@
     %form{method: 'POST', action: iri.cut('/decrypt-pkey')}
       = Rack::Csrf.tag(env)
       %label Decrypt:
-      %input{type: 'text', name: 'text', size: 35, placeholder: 'TG encrypted private key', autocomplete: 'off', tabindex: 3, required: true}
+      %input{type: 'text', name: 'text', size: 45, placeholder: 'Encrypted private key from Telegram channel', autocomplete: 'off', tabindex: 3, required: true}
       %input{type: 'submit', tabindex: 4, value: 'Decrypt'}
     %form{method: 'POST', action: iri.cut('/cold-to-hot')}
       %fieldset
         = Rack::Csrf.tag(env)
-        %label Transfer from this cold address to a random hot one:
+        %label Transfer from this cold address to a random hot one (pick the smallest one):
         %select{name: 'address', tabindex: 5}
           - assets.reject { |a| a[:hot] }.each do |a|
             %option{value: a[:address]}
               = "#{a[:address]} / #{format('%.02f', a[:value].to_f / 100_000_000)}"
-        %label Private key of the cold address:
+        %label Private key of the cold address (64 hex digits):
         %input{type: 'password', name: 'pkey', size: 35, placeholder: 'Bitcoin private key', autocomplete: 'off', tabindex: 6, required: true}
         %label The amount to transfer:
-        %input{type: 'text', name: 'amount', size: 12, placeholder: 'BTC', autocomplete: 'off', tabindex: 7, required: true}
+        %input{type: 'text', name: 'amount', size: 8, placeholder: 'BTC', autocomplete: 'off', tabindex: 7, required: true}
         %input{type: 'submit', tabindex: 8, value: 'Send', onclick: "return confirm('Are you sure?')"}
     %form{method: 'POST', action: iri.cut('/cold-out')}
       %fieldset
@@ -38,10 +38,10 @@
           - assets.reject { |a| a[:hot] }.each do |a|
             %option{value: a[:address]}
               = "#{a[:address]} / #{format('%.02f', a[:value].to_f / 100_000_000)}"
-        %label Private key of the cold address:
+        %label Private key of the cold address (64 hex digits):
         %input{type: 'password', name: 'pkey', size: 35, placeholder: 'Bitcoin private key', autocomplete: 'off', tabindex: 11, required: true}
         %label The amount to transfer:
-        %input{type: 'text', name: 'amount', size: 12, placeholder: 'BTC', autocomplete: 'off', tabindex: 12, required: true}
+        %input{type: 'text', name: 'amount', size: 8, placeholder: 'BTC', autocomplete: 'off', tabindex: 12, required: true}
         %input{type: 'submit', tabindex: 13, value: 'Send', onclick: "return confirm('Are you sure?')"}
     %p
       %a{href: iri.cut('/assets-private-keys')} Click here
