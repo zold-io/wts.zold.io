@@ -100,7 +100,7 @@ function wts_step5(token) {
   wts_info('Requesting BTC address for user ' + token + '...');
   $.ajax({
     dataType: 'text',
-    url: '/btc?noredirect=1',
+    url: '/btc-to-zld?noredirect=1',
     headers: { 'X-Zold-Wts': token },
     success: function(data, textStatus, request) {
       var address = request.getResponseHeader('X-Zold-BtcAddress');

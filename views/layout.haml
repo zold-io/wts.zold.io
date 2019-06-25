@@ -20,6 +20,11 @@
     %meta{name: 'twitter:card', content: 'summary'}
     %meta{name: 'twitter:image:alt', content: 'Zold'}
     %script{src: 'https://code.jquery.com/jquery-3.3.1.min.js'}
+    %script{src: 'https://browser.sentry-cdn.com/5.4.3/bundle.min.js'}
+    :javascript
+      $(function() {
+        Sentry.init({ dsn: '#{sentry}' });
+      });
   %body
     %section
       %header

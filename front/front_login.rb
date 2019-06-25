@@ -46,6 +46,7 @@ before '/*' do
     ver: WTS::VERSION,
     http_start: Time.now,
     iri: Iri.new(request.url),
+    sentry: settings.config['sentry'],
     login_link: settings.glogin.login_uri,
     wallets: settings.wallets,
     remotes: settings.remotes,
