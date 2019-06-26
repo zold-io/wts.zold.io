@@ -62,7 +62,8 @@
     %strong= format('%.04f', balance)
     BTC /
     approx.
-    = dollars(price * balance)
+    %a{href: 'https://coinmarketcap.com/currencies/bitcoin/'}
+      = dollars(price * balance)
   %p
     The biggest Bitcoin payout we can send at the moment is
     = format('%.04f', limit)
