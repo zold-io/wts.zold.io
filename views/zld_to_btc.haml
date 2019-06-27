@@ -17,7 +17,7 @@
   To sell your ZLD and receive BTC just fill this form
   and we will send you the payment promptly, deducting
   = "#{(fee * 100)}%"
-  fee and.
+  fee.
   We will also deduct Bitcoin transaction fee, which is
   approximately
   %span#btc_fee= format('%.06f', btc_fee)
@@ -36,7 +36,7 @@
     please come back a bit later.
   - else
     We can send up to
-    = available
+    = format('%.04f', available)
     BTC now.
 
 %form{method: 'POST', action: iri.cut('/do-zld-to-btc')}
