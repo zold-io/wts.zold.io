@@ -188,7 +188,7 @@ end
 def hoc
   repositories.map do |r|
     uri = "https://hitsofcode.com/github/#{r}/json"
-    res = Zold::Http.new(uri: uri).get
+    res = Zold::Http.new(uri: uri).get(timeout: 32)
     unless res.status == 200
       settings.log.error("Can't retrieve HoC at #{uri} for #{r} (#{res.status}): #{res.body.inspect}")
       return 0
