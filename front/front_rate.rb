@@ -53,7 +53,7 @@ settings.daemons.start('snapshot', 24 * 60 * 60) do
   active = settings.pgsql.exec(
     'SELECT COUNT(*) FROM item WHERE touched > NOW() - INTERVAL \'30 DAYS\''
   )[0]['count'].to_i
-  release = octokit.latest_release('zold-io/zold')['tag_name']
+  release = octokit.latest_release('zold-io/zold')
   settings.telepost.spam(
     [
       "Today is #{Time.now.utc.strftime('%d-%b-%Y')} and we are doing great:\n",
@@ -73,7 +73,8 @@ settings.daemons.start('snapshot', 24 * 60 * 60) do
 (#{dollars(price * assets.balance)})",
       "  Deficit: [#{deficit.round(2)} BTC](https://wts.zold.io/rate)",
       '',
-      "  Zold version: [#{release}](https://github.com/zold-io/zold/releases/tag/#{release})",
+      "  Zold version: [#{release['tag_name']}](https://github.com/zold-io/zold/releases/tag/#{release['tag_name']}) \
+/ #{((Time.now - Time.parse(release['created_at'])) / (24 * 60 * 60)).round} days ago",
       "  Nodes: [#{settings.ticks.latest('Nodes').round}](https://wts.zold.io/remotes)",
       "  [HoC](https://www.yegor256.com/2014/11/14/hits-of-code.html) \
 in #{repositories.count} repos: #{(hoc / 1000).round}K",
