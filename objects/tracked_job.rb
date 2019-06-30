@@ -18,6 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require 'zold/commands/fetch'
 require 'backtrace'
 
 #
@@ -32,6 +33,9 @@ class WTS::TrackedJob
   def call(jid)
     @job.call(jid)
     @jobs.update(jid, 'OK')
+  rescue Zold::Fetch::NotFound => e
+    @jobs.result(jid, 'error_message', e.message)
+    @jobs.update(jid, e.message)
   rescue StandardError => e
     @jobs.result(jid, 'error_message', e.message)
     @jobs.update(jid, Backtrace.new(e).to_s)
