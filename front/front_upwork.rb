@@ -44,7 +44,7 @@ get '/zld-to-upwork' do
   raise WTS::UserError, 'E208: You have to be identified in Zerocracy' unless kyc?
   haml :zld_to_upwork, layout: :layout, locals: merged(
     page_title: title('upwork'),
-    rate: WTS::Rate.new(settings.toggles),
+    rate: WTS::Rate.new(settings.toggles).to_f,
     price: price,
     fee: fee,
     user: confirmed_user

@@ -105,6 +105,7 @@ get '/rate' do
   flash('/', 'Still working on it, come back in a few seconds') unless settings.zache.exists?(:rate)
   haml :rate, layout: :layout, locals: merged(
     page_title: '/rate',
+    rate: WTS::Rate.new(settings.toggles).to_f,
     formula: settings.zache.get(:rate),
     mtime: settings.zache.mtime(:rate)
   )

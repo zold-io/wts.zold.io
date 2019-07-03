@@ -101,7 +101,7 @@
                 - if File.exist?(latch)
                   %span.gray{title: 'We are working with your wallet, come back in a few minutes'} Pull
                 - else
-                  %a{href: iri.cut('/pull').add(force: true)} Pull
+                  %a{href: iri.cut('/pull').add(force: true), onclick: "return confirm('Are you sure? This will take about a minute.')"} Pull
               %li
                 - if user.wallet_exists?
                   %a{href: iri.cut('/invoice')} Invoice
