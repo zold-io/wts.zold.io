@@ -10,7 +10,7 @@
   %strong= rate
   BTC/ZLD, or about
   = succeed '.' do
-    %strong= dollars(rate * price)
+    %strong= WTS::Dollars.new(rate * price)
   %a{href: iri.cut('/rate')} Why?
 
 %p

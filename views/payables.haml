@@ -51,7 +51,7 @@
     wallets, which is worth around
     = (balance.to_f * rate).round(2)
     bitcoins (approx.
-    = "#{dollars(balance.to_f * rate * price / 1000)}K"
+    = "#{WTS::Dollars.new(balance.to_f * rate * price / 1000)}K"
     at this moment).
     = payables.txns
     transactions total.

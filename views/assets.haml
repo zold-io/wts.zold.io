@@ -63,13 +63,13 @@
     BTC /
     approx.
     %a{href: 'https://coinmarketcap.com/currencies/bitcoin/'}
-      = dollars(price * balance)
+      = WTS::Dollars.new(price * balance)
   %p
     The biggest Bitcoin payout we can send at the moment is
     = format('%.04f', limit)
     BTC
     = succeed ':' do
-      = "(#{dollars(limit * price)})"
+      = "(#{WTS::Dollars.new(limit * price)})"
   %table.compact
     %colgroup
       %col{style: 'width: 25em'}

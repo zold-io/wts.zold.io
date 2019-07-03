@@ -22,7 +22,7 @@ get '/pay' do
   features('pay')
   haml :pay, layout: :layout, locals: merged(
     page_title: title('pay'),
-    rate: rate,
+    rate: WTS::Rate.new(settings.toggles).to_f,
     price: price
   )
 end

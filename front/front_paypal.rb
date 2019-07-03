@@ -44,7 +44,7 @@ get '/zld-to-paypal' do
   raise WTS::UserError, 'E131: You have to be identified in Zerocracy' unless kyc?
   haml :zld_to_paypal, layout: :layout, locals: merged(
     page_title: title('paypal'),
-    rate: rate,
+    rate: WTS::Rate.new(settings.toggles).to_f,
     price: price,
     fee: fee,
     user: confirmed_user
@@ -96,12 +96,13 @@ while we allow one user to sell up to #{limits} (daily/weekly/monthly)"
     raise WTS::UserError, "E140: With #{amount} you are going over our limits, #{consumed} were sold by ALL \
 users of WTS, while our limits are #{limits} (daily/weekly/monthly), sorry about this :("
   end
+  rate = WTS::Rate.new(settings.toggles).to_f
   bitcoin = (amount.to_zld(8).to_f * rate).round(8)
   usd = (bitcoin * price).round(2)
   boss = user(settings.config['zerocrat']['login'])
   rewards = user(settings.config['rewards']['login'])
   job(exclusive: true) do |jid, log|
-    log.info("Sending #{dollars(usd)} via PayPal to #{email}...")
+    log.info("Sending #{WTS::Dollars.new(usd)} via PayPal to #{email}...")
     f = fee
     ops(log: log).pull
     ops(rewards, log: log).pull
@@ -126,15 +127,16 @@ users of WTS, while our limits are #{limits} (daily/weekly/monthly), sorry about
     )
     settings.payouts.add(
       user.login, user.item.id, amount,
-      "PayPal #{dollars(usd)} sent to #{email}, \
-the price was #{dollars(price)}/BTC, the fee was #{(f * 100).round(2)}%"
+      "PayPal #{WTS::Dollars.new(usd)} sent to #{email}, \
+the price was #{WTS::Dollars.new(price)}/BTC, the fee was #{(f * 100).round(2)}%"
     )
     settings.telepost.spam(
-      "😢 Out: **#{amount}** [exchanged](https://blog.zold.io/2018/12/09/btc-to-zld.html) to #{dollars(usd)} PayPal",
+      "😢 Out: **#{amount}** [exchanged](https://blog.zold.io/2018/12/09/btc-to-zld.html)",
+      "to #{WTS::Dollars.new(usd)} PayPal",
       "by #{title_md} from #{anon_ip}",
       "from the wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})",
       "with the remaining balance of #{user.wallet(&:balance)};",
-      "BTC price at the time of exchange was [#{dollars(price)}](https://blockchain.info/ticker);",
+      "BTC price at the time of exchange was [#{WTS::Dollars.new(price)}](https://blockchain.info/ticker);",
       "zolds were deposited to [#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id})",
       "of [#{boss.login}](https://github.com/#{boss.login}),",
       "the balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t);",
@@ -147,6 +149,6 @@ the price was #{dollars(price)}/BTC, the fee was #{(f * 100).round(2)}%"
   end
   flash(
     '/zld-to-paypal',
-    "We took #{amount} from your wallet and sent you #{dollars(usd)} PayPal, more details in the log"
+    "We took #{amount} from your wallet and sent you #{WTS::Dollars.new(usd)} PayPal, more details in the log"
   )
 end

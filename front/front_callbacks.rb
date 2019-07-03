@@ -135,7 +135,7 @@ end
 get '/payables' do
   haml :payables, layout: :layout, locals: merged(
     page_title: 'Payables',
-    rate: rate,
+    rate: WTS::Rate.new(settings.toggles).to_f,
     price: price,
     payables: settings.payables
   )

@@ -66,9 +66,9 @@ unless ENV['RACK_ENV'] == 'test'
         diff.positive? ? '📥' : '⚠️',
         " The balance at [#{address}](https://www.blockchain.com/btc/address/#{address})",
         "was #{diff.positive? ? 'increased' : 'decreased'} by #{diff}",
-        "(#{dollars(diff * price / 100_000_000)}), from #{before} to #{after} satoshi;",
+        "(#{WTS::Dollars.new(diff * price / 100_000_000)}), from #{before} to #{after} satoshi;",
         "our bitcoin assets have [#{assets.balance.round(4)} BTC](https://wts.zold.io/assets)",
-        "(#{dollars(price * assets.balance)})"
+        "(#{WTS::Dollars.new(price * assets.balance)})"
       )
     end
   end
@@ -90,6 +90,7 @@ unless ENV['RACK_ENV'] == 'test'
     seen = assets.monitor(seen, max: 16) do |address, hash, satoshi|
       bitcoin = (satoshi.to_f / 100_000_000).round(8)
       if assets.owned?(address)
+        rate = WTS::Rate.new(settings.toggles).to_f
         zld = Zold::Amount.new(zld: bitcoin / rate)
         bnf = user(assets.owner(address))
         boss = user(settings.config['exchange']['login'])
@@ -110,38 +111,38 @@ unless ENV['RACK_ENV'] == 'test'
         end
         ops(boss, log: settings.log).push
         settings.telepost.spam(
-          "👍 In: #{format('%.06f', bitcoin)} BTC (#{dollars(price * bitcoin)})",
+          "👍 In: #{format('%.06f', bitcoin)} BTC (#{WTS::Dollars.new(price * bitcoin)})",
           "[exchanged](https://blog.zold.io/2018/12/09/btc-to-zld.html) to **#{zld}**",
           "by #{title_md(bnf)}",
           "in [#{hash}](https://www.blockchain.com/btc/tx/#{hash.gsub(/:[0-9]+$/, '')})",
           "via [#{address}](https://www.blockchain.com/btc/address/#{address}),",
           "to the wallet [#{bnf.item.id}](http://www.zold.io/ledger.html?wallet=#{bnf.item.id})",
           "with the balance of #{bnf.wallet(&:balance)};",
-          "BTC price at the moment of exchange was [#{dollars(price)}](https://blockchain.info/ticker);",
+          "BTC price at the moment of exchange was [#{WTS::Dollars.new(price)}](https://blockchain.info/ticker);",
           "the payer is #{title_md(boss)} with the wallet",
           "[#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id}),",
           "the remaining balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t);",
           "our bitcoin assets still have [#{assets.balance.round(4)} BTC](https://wts.zold.io/assets)",
-          "(#{dollars(price * assets.balance)})"
+          "(#{WTS::Dollars.new(price * assets.balance)})"
         )
       elsif assets.cold?(address)
         settings.telepost.spam(
-          "👍 In: #{format('%.06f', bitcoin)} BTC (#{dollars(price * bitcoin)}) arrived to",
+          "👍 In: #{format('%.06f', bitcoin)} BTC (#{WTS::Dollars.new(price * bitcoin)}) arrived to",
           "[#{address}](https://www.blockchain.com/btc/address/#{address})",
           "which doesn't belong to anyone,",
           "tx hash was [#{hash}](https://www.blockchain.com/btc/tx/#{hash.gsub(/:[0-9]+$/, '')});",
           'deposited to our fund; many thanks to whoever it was;',
           "our bitcoin assets still have [#{assets.balance.round(4)} BTC](https://wts.zold.io/assets)",
-          "(#{dollars(price * assets.balance)})"
+          "(#{WTS::Dollars.new(price * assets.balance)})"
         )
       else
         settings.telepost.spam(
-          "📥 #{format('%.06f', bitcoin)} BTC (#{dollars(price * bitcoin)}) returned back to",
+          "📥 #{format('%.06f', bitcoin)} BTC (#{WTS::Dollars.new(price * bitcoin)}) returned back to",
           "[#{address}](https://www.blockchain.com/btc/address/#{address})",
           'as a change from the previous payment,',
           "tx hash is [#{hash}](https://www.blockchain.com/btc/tx/#{hash.gsub(/:[0-9]+$/, '')})",
           "our bitcoin assets still have [#{assets.balance.round(4)} BTC](https://wts.zold.io/assets)",
-          "(#{dollars(price * assets.balance)})"
+          "(#{WTS::Dollars.new(price * assets.balance)})"
         )
       end
       assets.see(address, hash)
@@ -176,26 +177,27 @@ unless ENV['RACK_ENV'] == 'test'
       tx = assets.pay(address, btc)
       settings.telepost.spam(
         '📤 Transfer: There were too many "hot" bitcoins in our assets',
-        "(#{format('%.04f', hot)} BTC, #{dollars(usd)}), that's why",
-        "we transferred #{format('%.04f', btc)} BTC (#{dollars(btc * price)}) to the cold address",
+        "(#{format('%.04f', hot)} BTC, #{WTS::Dollars.new(usd)}), that's why",
+        "we transferred #{format('%.04f', btc)} BTC (#{WTS::Dollars.new(btc * price)}) to the cold address",
         "[#{address}](https://www.blockchain.com/btc/address/#{address})",
         "tx hash is [#{tx}](https://www.blockchain.com/btc/tx/#{tx})"
       )
     else
-      settings.log.info("There are #{hot} BTC in hot addresses (#{dollars(usd)}), no need to transfer")
+      settings.log.info("There are #{hot} BTC in hot addresses (#{WTS::Dollars.new(usd)}), no need to transfer")
     end
   end
   settings.daemons.start('btc-rate-notify', 60 * 60) do
     before = settings.toggles.get('recent-zld-rate', '2.03').to_f
+    rate = WTS::Rate.new(settings.toggles).to_f
     after = rate * price
     diff = (before - after).abs
     if diff > before * 0.04 || diff > after * 0.04
       settings.toggles.set('recent-zld-rate', after.to_s)
       settings.telepost.spam(
         "#{after > before ? '📈' : '📉'} The rate of ZLD moved #{after > before ? 'UP' : 'DOWN'}",
-        "from #{dollars(before)} to #{dollars(after)},",
+        "from #{WTS::Dollars.new(before)} to #{WTS::Dollars.new(after)},",
         "which is #{after > before ? '+' : ''}#{format('%.02f', 100.0 * (after - before) / before)}%;",
-        "the [price](https://coinmarketcap.com/currencies/bitcoin/) of Bitcoin is #{dollars(price)};",
+        "the [price](https://coinmarketcap.com/currencies/bitcoin/) of Bitcoin is #{WTS::Dollars.new(price)};",
         'more details [here](https://wts.zold.io/rate);',
         'it is time to buy, [click here](https://wts.zold.io/quick)!'
       )
@@ -206,7 +208,7 @@ unless ENV['RACK_ENV'] == 'test'
     usd = (hot * price).round
     if usd < 1000
       settings.telepost.spam(
-        "⚠️ There are just #{format('%.04f', hot)} BTC (#{dollars(usd)}) left in",
+        "⚠️ There are just #{format('%.04f', hot)} BTC (#{WTS::Dollars.new(usd)}) left in",
         'our hot Bitcoin addresses; this may not be enough for our daily operations;',
         'consider transferring some cold [assets](https://wts.zold.io/assets) back to hot'
       )
@@ -224,9 +226,10 @@ get '/funded' do
   end
   boss = user(settings.config['exchange']['login'])
   btc = usd / price
+  rate = WTS::Rate.new(settings.toggles).to_f
   zld = Zold::Amount.new(zld: btc / rate)
   job(boss, exclusive: true) do |jid, log|
-    log.info("Buying bitcoins for #{dollars(usd)} at Coinbase...")
+    log.info("Buying bitcoins for #{WTS::Dollars.new(usd)} at Coinbase...")
     if settings.toggles.get('coinbase-buy', 'no') == 'yes'
       ops(boss, log: log).pull
       ops(zerocrat, log: log).pull
@@ -238,12 +241,13 @@ get '/funded' do
         "Purchased #{btc} BTC for #{usd} USD at Coinbase"
       )
       settings.telepost.spam(
-        "✌️ Buy: **#{btc.round(4)}** BTC were purchased for #{dollars(usd)} at [Coinbase](https://coinbase.com),",
+        "✌️ Buy: **#{btc.round(4)}** BTC were purchased",
+        "for #{WTS::Dollars.new(usd)} at [Coinbase](https://coinbase.com),",
         "#{zld} were deposited to the wallet",
         "[#{zerocrat.item.id}](http://www.zold.io/ledger.html?wallet=#{zerocrat.item.id})",
         "owned by [#{zerocrat.login}](https://github.com/#{zerocrat.login})",
         "with the remaining balance of #{zerocrat.wallet(&:balance)};",
-        "BTC price at the time of exchange was [#{dollars(price)}](https://blockchain.info/ticker);",
+        "BTC price at the time of exchange was [#{WTS::Dollars.new(price)}](https://blockchain.info/ticker);",
         "zolds were sent by [#{zerocrat.login}](https://github.com/#{zerocrat.login})",
         "from the wallet [#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id})",
         "with the remaining balance of #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t);",
@@ -254,7 +258,7 @@ get '/funded' do
       )
     else
       settings.telepost.spam(
-        "⚠️ Would be great to purchase **#{btc.round(4)}** BTC for #{dollars(usd)}",
+        "⚠️ Would be great to purchase **#{btc.round(4)}** BTC for #{WTS::Dollars.new(usd)}",
         'at [Coinbase](https://coinbase.com), but we aren\'t doing it,',
         'because the `coinbase-buy` toggle is turned OFF;',
         "our bitcoin assets still have [#{assets.balance.round(4)} BTC](https://wts.zold.io/assets)",
@@ -284,7 +288,8 @@ get '/btc-to-zld' do
   headers['X-Zold-BtcAddress'] = address
   haml :btc_to_zld, layout: :layout, locals: merged(
     page_title: title('buy'),
-    address: address
+    address: address,
+    rate: WTS::Rate.new(settings.toggles).to_f
   )
 end
 
@@ -293,7 +298,7 @@ get '/zld-to-btc' do
   haml :zld_to_btc, layout: :layout, locals: merged(
     page_title: title('sell'),
     user: confirmed_user,
-    rate: rate,
+    rate: WTS::Rate.new(settings.toggles).to_f,
     fee: fee,
     price: price,
     btc_fee: sibit.fees[:L] * 250.0 / 100_000_000,
@@ -346,6 +351,7 @@ while we allow one user to sell up to #{limits} (daily/weekly/monthly)"
     raise WTS::UserError, "E149: With #{amount} you are going over our limits, #{consumed} were sold by ALL \
 users of WTS, while our limits are #{limits} (daily/weekly/monthly), sorry about this :("
   end
+  rate = WTS::Rate.new(settings.toggles).to_f
   bitcoin = (amount.to_zld(8).to_f * rate).round(8)
   if bitcoin > assets.balance(hot_only: true)
     raise WTS::UserError, "E198: The amount #{amount} BTC is too big for us, \
@@ -378,7 +384,7 @@ try to contact us in our Telegram group and notify the admin"
     settings.payouts.add(
       user.login, user.item.id, amount,
       "#{bitcoin} BTC sent to #{address} in tx hash #{tx}; \
-the price was #{dollars(price)}/BTC; the fee was #{(f * 100).round(2)}%, \
+the price was #{WTS::Dollars.new(price)}/BTC; the fee was #{(f * 100).round(2)}%, \
 bitcoin assets still have #{assets.balance.round(4)} BTC"
     )
     settings.telepost.spam(
@@ -388,9 +394,9 @@ bitcoin assets still have #{assets.balance.round(4)} BTC"
       "with the remaining balance of #{user.wallet(&:balance)}",
       "to bitcoin address [#{address}](https://www.blockchain.com/btc/address/#{address});",
       "tx hash is [#{tx}](https://www.blockchain.com/btc/tx/#{tx});",
-      "BTC price at the time of exchange was [#{dollars(price)}](https://blockchain.info/ticker);",
+      "BTC price at the time of exchange was [#{WTS::Dollars.new(price)}](https://blockchain.info/ticker);",
       "our bitcoin assets still have [#{assets.balance.round(4)} BTC](https://wts.zold.io/assets)",
-      "(worth about #{dollars(assets.balance * price)});",
+      "(worth about #{WTS::Dollars.new(assets.balance * price)});",
       "zolds were deposited to [#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id})",
       "of [#{boss.login}](https://github.com/#{boss.login}),",
       "the balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t);",
@@ -431,13 +437,13 @@ post '/cold-to-hot' do
     )
     assets(log: log).set(address, 0)
     settings.telepost.spam(
-      "🛠 Transfer: #{format('%.04f', btc)} BTC (#{dollars(btc * price)}) transferred from a cold address",
+      "🛠 Transfer: #{format('%.04f', btc)} BTC (#{WTS::Dollars.new(btc * price)}) transferred from a cold address",
       "[#{address}](https://www.blockchain.com/btc/address/#{address});",
       "to the hot one [#{hot}](https://www.blockchain.com/btc/address/#{hot})",
       "by #{title_md} from #{anon_ip};",
       "tx hash is [#{tx}](https://www.blockchain.com/btc/tx/#{tx});",
       "our bitcoin assets still have [#{assets.balance.round(4)} BTC](https://wts.zold.io/assets)",
-      "(worth about #{dollars(assets.balance * price)});",
+      "(worth about #{WTS::Dollars.new(assets.balance * price)});",
       job_link(jid)
     )
   end
@@ -462,13 +468,13 @@ post '/cold-out' do
     )
     assets(log: log).set(address, 0)
     settings.telepost.spam(
-      "Out: #{format('%.04f', btc)} BTC (#{dollars(btc * price)}) was sent from a cold address",
+      "Out: #{format('%.04f', btc)} BTC (#{WTS::Dollars.new(btc * price)}) was sent from a cold address",
       "[#{address}](https://www.blockchain.com/btc/address/#{address})",
       "to a foreign one [#{target}](https://www.blockchain.com/btc/address/#{target})",
       "by #{title_md} from #{anon_ip};",
       "tx hash is [#{tx}](https://www.blockchain.com/btc/tx/#{tx});",
       "our bitcoin assets still have [#{assets.balance.round(4)} BTC](https://wts.zold.io/assets)",
-      "(worth about #{dollars(assets.balance * price)});",
+      "(worth about #{WTS::Dollars.new(assets.balance * price)});",
       job_link(jid)
     )
   end
@@ -527,10 +533,4 @@ def sibit(log: settings.log)
   else
     Sibit.new(log: log, attempts: 4)
   end
-end
-
-def dollars(usd)
-  txt = usd.round.to_s.reverse.gsub(/(\d{3})(?=\d)/, '\\1,').reverse
-  txt = format('%.02f', usd) if usd < 100
-  '$' + txt
 end

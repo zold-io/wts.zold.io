@@ -20,6 +20,7 @@
 
 require 'zold/log'
 require 'sibit'
+require 'glogin'
 require_relative 'wts'
 require_relative 'user_error'
 

@@ -56,6 +56,8 @@ require_relative 'objects/payouts'
 require_relative 'objects/tokens'
 require_relative 'objects/user'
 require_relative 'objects/wts'
+require_relative 'objects/dollars'
+require_relative 'objects/rate'
 require_relative 'version'
 
 if ENV['RACK_ENV'] != 'test'
@@ -190,7 +192,8 @@ end
 get '/' do
   redirect '/home' if @locals[:guser]
   haml :index, layout: :layout, locals: merged(
-    page_title: 'wts'
+    page_title: 'wts',
+    rate: WTS::Rate.new(settings.toggles).to_f
   )
 end
 
@@ -205,7 +208,7 @@ get '/home' do
   haml :home, layout: :layout, locals: merged(
     page_title: title,
     start: params[:start] ? Time.parse(params[:start]) : nil,
-    usd_rate: rate * price
+    usd_rate: WTS::Rate.new(settings.toggles).to_f * price
   )
 end
 
@@ -370,10 +373,6 @@ get '/remotes' do
   haml :remotes, layout: :layout, locals: merged(
     page_title: '/remotes'
   )
-end
-
-def rate
-  settings.toggles.get('rate', '0.00025').to_f
 end
 
 def fee

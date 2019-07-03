@@ -45,48 +45,25 @@ end
 
 settings.daemons.start('snapshot', 24 * 60 * 60) do
   next unless settings.ticks.exists?('Coverage')
-  coverage = settings.ticks.latest('Coverage') / 100_000_000
-  deficit = settings.ticks.latest('Deficit') / 100_000_000
-  distributed = Zold::Amount.new(
-    zents: (settings.ticks.latest('Emission') - settings.ticks.latest('Office')).to_i
-  )
-  active = settings.pgsql.exec(
-    'SELECT COUNT(*) FROM item WHERE touched > NOW() - INTERVAL \'30 DAYS\''
-  )[0]['count'].to_i
-  release = octokit.latest_release('zold-io/zold')
+  require_relative 'daily_summary'
   settings.telepost.spam(
-    [
-      "Today is #{Time.now.utc.strftime('%d-%b-%Y')} and we are doing great:\n",
-      "  Wallets: [#{settings.payables.total}](https://wts.zold.io/payables)",
-      "  Active wallets: #{active} (last 30 days)",
-      "  Transactions: [#{settings.payables.txns}](https://wts.zold.io/payables)",
-      "  Total emission: [#{settings.payables.balance}](https://wts.zold.io/payables)",
-      "  Distributed: [#{distributed}](https://wts.zold.io/rate)",
-      "  24-hours volume: [#{settings.gl.volume}](https://wts.zold.io/gl)",
-      "  24-hours txns count: [#{settings.gl.count}](https://wts.zold.io/gl)",
-      "  Bitcoin price: [#{dollars(price)}](https://coinmarketcap.com/currencies/bitcoin/)",
-      "  Bitcoin tx fee: [#{dollars(sibit.fees[:XL] * 250.0 * price / 100_000_000)}](https://bitcoinfees.info/)",
-      "  ZLD price: [#{format('%.08f', rate)}](https://wts.zold.io/rate) (#{dollars(price * rate)})",
-      "  Coverage: [#{(100 * coverage / rate).round}%](http://papers.zold.io/fin-model.pdf) \
-/ [#{format('%.08f', coverage)}](https://wts.zold.io/rate)",
-      "  The fund: [#{assets.balance.round(4)} BTC](https://wts.zold.io/rate) \
-(#{dollars(price * assets.balance)})",
-      "  Deficit: [#{deficit.round(2)} BTC](https://wts.zold.io/rate)",
-      '',
-      "  Zold version: [#{release['tag_name']}](https://github.com/zold-io/zold/releases/tag/#{release['tag_name']}) \
-/ #{((Time.now - Time.parse(release['created_at'])) / (24 * 60 * 60)).round} days ago",
-      "  Nodes: [#{settings.ticks.latest('Nodes').round}](https://wts.zold.io/remotes)",
-      "  [HoC](https://www.yegor256.com/2014/11/14/hits-of-code.html) \
-in #{repositories.count} repos: #{(hoc / 1000).round}K",
-      "  [GitHub](https://github.com/zold-io) stars/forks: #{stars} / #{forks}",
-      "\nThanks for keeping an eye on us!"
-    ].join("\n")
+    WTS::DailySummary.new(
+      ticks: settings.ticks,
+      pgsql: settings.pgsql,
+      payables: settings.payables,
+      gl: settings.gl,
+      config: settings.config,
+      log: settings.log,
+      sibit: sibit,
+      assets: settings.assets,
+      toggles: settings.toggles
+    ).markdown
   )
 end
 
 get '/usd_rate' do
   content_type 'text/plain'
-  format('%.04f', price * rate)
+  format('%.04f', price * WTS::Rate.new(settings.toggles).to_f)
 end
 
 get '/rate' do
@@ -105,9 +82,9 @@ get '/rate' do
         boss_wallet: boss.item.id
       }
       hash[:rate] = hash[:bank] / (hash[:root] - hash[:boss]).to_f
-      hash[:deficit] = (hash[:root] - hash[:boss]).to_f * rate - hash[:bank]
+      hash[:deficit] = (hash[:root] - hash[:boss]).to_f * WTS::Rate.new(settings.toggles).to_f - hash[:bank]
       hash[:price] = price
-      hash[:usd_rate] = hash[:price] * rate
+      hash[:usd_rate] = hash[:price] * WTS::Rate.new(settings.toggles).to_f
       settings.zache.put(:rate, hash, lifetime: 10 * 60)
       settings.zache.remove_by { |k| k.to_s.start_with?('http', '/') }
       unless settings.ticks.exists?('Fund')
@@ -115,7 +92,7 @@ get '/rate' do
           'Fund' => (hash[:bank] * 100_000_000).to_i, # in satoshi
           'Emission' => hash[:root].to_i, # in zents
           'Office' => hash[:boss].to_i, # in zents
-          'Rate' => (rate * 100_000_000).to_i, # satoshi per ZLD
+          'Rate' => (WTS::Rate.new(settings.toggles).to_f * 100_000_000).to_i, # satoshi per ZLD
           'Coverage' => (hash[:rate] * 100_000_000).to_i, # satoshi per ZLD
           'Deficit' => (hash[:deficit] * 100_000_000).to_i, # in satoshi
           'Price' => (hash[:price] * 100).to_i, # US cents per BTC
@@ -143,7 +120,7 @@ get '/rate.json' do
       boss: hash[:boss].to_i,
       root: hash[:root].to_i,
       rate: hash[:rate].round(8),
-      effective_rate: rate,
+      effective_rate: WTS::Rate.new(settings.toggles).to_f,
       deficit: hash[:deficit].round(2),
       price: hash[:price].round,
       usd_rate: hash[:usd_rate].round(4)
@@ -151,7 +128,7 @@ get '/rate.json' do
   else
     JSON.pretty_generate(
       valid: false,
-      effective_rate: rate,
+      effective_rate: WTS::Rate.new(settings.toggles).to_f,
       usd_rate: 1.0 # just for testing
     )
   end
@@ -171,43 +148,4 @@ get '/graph.svg' do
       title: params[:title] || ''
     )
   end
-end
-
-def octokit
-  Octokit::Client.new(
-    login: settings.config['github']['client_id'],
-    password: settings.config['github']['client_secret']
-  )
-end
-
-# Names of all our repos.
-def repositories
-  octokit.repositories('zold-io').map { |json| json['full_name'] }
-end
-
-# Total amount of hits-of-code in all Zold repositories
-def hoc
-  repositories.map do |r|
-    uri = "https://hitsofcode.com/github/#{r}/json"
-    res = Zold::Http.new(uri: uri).get(timeout: 32)
-    unless res.status == 200
-      settings.log.error("Can't retrieve HoC at #{uri} for #{r} (#{res.status}): #{res.body.inspect}")
-      return 0
-    end
-    res.body['count']
-  end.inject(&:+)
-end
-
-# Total amount of GitHub stars.
-def stars
-  repositories.map do |r|
-    octokit.repository(r)['stargazers_count']
-  end.inject(&:+)
-end
-
-# Total amount of GitHub forks.
-def forks
-  repositories.map do |r|
-    octokit.repository(r)['forks_count']
-  end.inject(&:+)
 end

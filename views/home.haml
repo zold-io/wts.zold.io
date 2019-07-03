@@ -13,7 +13,7 @@
       - if usd_rate && !w.balance.zero?
         = '/'
         approx.
-        = dollars(usd_rate * w.balance.to_f)
+        = WTS::Dollars.new(usd_rate * w.balance.to_f)
         %a{href: iri.cut('/rate')} Why?
       %br
       Transactions:
