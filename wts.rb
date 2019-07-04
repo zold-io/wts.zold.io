@@ -22,8 +22,8 @@ STDOUT.sync = true
 
 require 'backtrace'
 require 'concurrent'
-require 'geocoder'
 require 'get_process_mem'
+require 'geoplugin'
 require 'glogin'
 require 'haml'
 require 'iri'
@@ -78,6 +78,7 @@ configure do
   config = if ENV['RACK_ENV'] == 'test'
     {
       'pkey_secret' => 'fake',
+      'geoplugin_token' => '?',
       'rewards' => {
         'login' => 'zonuses',
         'keygap' => '?'
@@ -396,9 +397,11 @@ def anon_ip
   "`#{request.ip.to_s.gsub(/\.[0-9]+$/, '.xx')}` (#{country})"
 end
 
-def country
-  country = Geocoder.search(request.ip).first
-  country.nil? ? '??' : country.country.to_s
+def country(ip = request.ip)
+  settings.zache.get("ip_to_country:#{ip}") do
+    geo = Geoplugin.new(request.ip, ssl: true, key: settings.config['geoplugin_token'])
+    geo.nil? ? '??' : geo.countrycode
+  end
 end
 
 def flash(uri, msg, error: false)
