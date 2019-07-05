@@ -22,8 +22,8 @@ require 'minitest/autorun'
 require 'rack/test'
 require 'webmock/minitest'
 require 'zold/log'
-require_relative '../wts'
 require_relative 'test__helper'
+require_relative '../wts'
 
 module Rack
   module Test
@@ -227,6 +227,13 @@ class WTS::AppTest < Minitest::Test
     WebMock.allow_net_connect!
     login('yegor565')
     get('/wait-for?prefix=abcdefgh&regexp=.*&uri=http://localhost/')
+    assert_equal(200, last_response.status, last_response.body)
+  end
+
+  def test_login_as_sandbox
+    WebMock.allow_net_connect!
+    header('X-Zold-WTS', '0000000000000000-b416493aefae4ca487c4739050aaec15')
+    get('/id')
     assert_equal(200, last_response.status, last_response.body)
   end
 

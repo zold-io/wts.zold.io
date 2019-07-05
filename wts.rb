@@ -221,7 +221,8 @@ end
 
 get '/id' do
   content_type 'text/plain'
-  confirmed_user.item.id.to_s
+  return Zold::Id::ROOT.to_s if user.fake?
+  user.item.id.to_s
 end
 
 get '/balance' do

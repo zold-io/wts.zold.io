@@ -69,12 +69,12 @@ before '/*' do
   header = request.env['HTTP_X_ZOLD_WTS'] || cookies[:wts] || nil
   if header
     login, token = header.strip.split('-', 2)
-    unless user(login).item.exists?
-      settings.log.info("API login: User #{login} is absent")
+    unless user(login).fake? || user(login).item.exists?
+      settings.log.info("API: User #{login} is absent")
       return
     end
-    unless settings.tokens.get(login) == token && login != Zold::Id::ROOT.to_s
-      settings.log.info("Invalid token #{token.inspect} of #{login}")
+    unless user(login).fake? || settings.tokens.get(login) == token
+      settings.log.info("API: Invalid token #{token.inspect} of #{login}")
       return
     end
     @locals[:guser] = login.downcase
