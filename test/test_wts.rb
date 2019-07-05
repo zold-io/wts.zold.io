@@ -239,7 +239,6 @@ class WTS::AppTest < Minitest::Test
     assert_equal(200, last_response.status, last_response.body)
     get('/balance')
     assert_equal(200, last_response.status, last_response.body)
-    assert_equal('0', last_response.body)
     post('/do-pay?bnf=@yegor256&details=text&amount=16.0&keygap=1234567890&noredirect=1')
     assert_equal(200, last_response.status, last_response.body)
   end

@@ -62,7 +62,6 @@ class WTS::Ops
         Zold::Create.new(wallets: @wallets, remotes: @remotes, log: @log).run(
           ['create', id.to_s, '--public-key=' + f.path]
         )
-        File.write(f, pvt.to_pem)
         @wallets.acq(id) do |wallet|
           wallet.add(
             Zold::Txn.new(
