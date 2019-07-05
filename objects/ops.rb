@@ -53,6 +53,29 @@ class WTS::Ops
   end
 
   def pull(id = @item.id)
+    if @user.fake?
+      @log.info('It is a fake user, won\'t PULL from the network')
+      rsa = OpenSSL::PKey::RSA.new(2048)
+      pvt = Zold::Key.new(text: rsa.to_pem)
+      Tempfile.open do |f|
+        File.write(f, rsa.public_key.to_pem)
+        Zold::Create.new(wallets: @wallets, remotes: @remotes, log: @log).run(
+          ['create', id.to_s, '--public-key=' + f.path]
+        )
+        File.write(f, pvt.to_pem)
+        @wallets.acq(id) do |wallet|
+          wallet.add(
+            Zold::Txn.new(
+              1, Time.now, Zold::Amount.new(zld: 19.95), 'NOPREFIX', Zold::Id.new,
+              'To help a friend'
+            )
+          )
+          wallet.sub(Zold::Amount.new(zld: -9.90), "NOPREFIX@#{Zold::Id.new}", pvt, 'For pizza')
+          wallet.sub(Zold::Amount.new(zld: -10.05), "NOPREFIX@#{Zold::Id.new}", pvt, 'For another pizza')
+        end
+      end
+      return
+    end
     start = Time.now
     if @remotes.all.empty?
       return if ENV['RACK_ENV'] == 'test'
@@ -79,7 +102,7 @@ see this happening! #{e.message}"
 
   def push
     if @user.fake?
-      @log.info('It is a fake user, won\'t push to the network')
+      @log.info('It is a fake user, won\'t PUSH to the network')
       return
     end
     start = Time.now

@@ -27,6 +27,11 @@ get '/pay' do
   )
 end
 
+# Send a payment from the wallet to someone else. These POST arguments are expected:
+#  bnf: Beneficiary, either wallet ID or GitHub login or phone number
+#  details: The text to add to the transaction
+#  amount: In ZLD
+#  keygap: The keygap
 post '/do-pay' do
   features('pay')
   raise WTS::UserError, 'E109: Parameter "bnf" is not provided' if params[:bnf].nil?

@@ -230,10 +230,17 @@ class WTS::AppTest < Minitest::Test
     assert_equal(200, last_response.status, last_response.body)
   end
 
-  def test_login_as_sandbox
+  def test_ops_as_sandbox
     WebMock.allow_net_connect!
     header('X-Zold-WTS', '0000000000000000-b416493aefae4ca487c4739050aaec15')
     get('/id')
+    assert_equal(200, last_response.status, last_response.body)
+    get('/pull?noredirect=1')
+    assert_equal(200, last_response.status, last_response.body)
+    get('/balance')
+    assert_equal(200, last_response.status, last_response.body)
+    assert_equal('0', last_response.body)
+    post('/do-pay?bnf=@yegor256&details=text&amount=16.0&keygap=1234567890&noredirect=1')
     assert_equal(200, last_response.status, last_response.body)
   end
 

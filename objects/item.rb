@@ -91,6 +91,7 @@ keygap is '#{keygap[0, 2]}#{'.' * (keygap.length - 2)}'")
 
   # Return Wallet ID as Zold::Id
   def id
+    return Zold::Id::ROOT if login == Zold::Id::ROOT.to_s
     row = @pgsql.exec('SELECT id FROM item WHERE login = $1', [@login])[0]
     raise "User #{@login} is not yet registered" if row.nil?
     Zold::Id.new(row['id'])
