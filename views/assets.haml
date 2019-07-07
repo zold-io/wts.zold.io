@@ -32,7 +32,7 @@
       %fieldset
         = Rack::Csrf.tag(env)
         %label Send to this address:
-        %input{type: 'text', name: 'target', size: 35, autocomplete: 'off', tabindex: 9, required: true}
+        %input{type: 'text', name: 'target', size: 42, autocomplete: 'off', tabindex: 9, required: true}
         %label From this cold address:
         %select{name: 'address', tabindex: 10}
           - assets.reject { |a| a[:hot] }.each do |a|
