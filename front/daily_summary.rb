@@ -83,6 +83,7 @@ class WTS::DailySummary
       "  [HoC](https://www.yegor256.com/2014/11/14/hits-of-code.html) \
 in #{repositories.count} repos: #{(hoc / 1000).round}K",
       "  [GitHub](https://github.com/zold-io) stars/forks: #{stars} / #{forks}",
+      "  Open GitHub issues: #{issues}",
       "\nThanks for keeping an eye on us!"
     ].join("\n")
   end
@@ -116,6 +117,13 @@ in #{repositories.count} repos: #{(hoc / 1000).round}K",
   def stars
     repositories.map do |r|
       octokit.repository(r)['stargazers_count']
+    end.inject(&:+)
+  end
+
+  # Total amount of GitHub issues in all repos.
+  def issues
+    repositories.map do |r|
+      octokit.repository(r)['open_issues_count']
     end.inject(&:+)
   end
 
