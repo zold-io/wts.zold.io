@@ -55,7 +55,7 @@ settings.daemons.start('snapshot', 24 * 60 * 60) do
       config: settings.config,
       log: settings.log,
       sibit: sibit,
-      assets: settings.assets,
+      assets: assets,
       toggles: settings.toggles
     ).markdown
   )

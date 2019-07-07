@@ -69,8 +69,8 @@ class WTS::Ops
               'To help a friend'
             )
           )
-          wallet.sub(Zold::Amount.new(zld: -9.90), "NOPREFIX@#{Zold::Id.new}", pvt, 'For pizza')
-          wallet.sub(Zold::Amount.new(zld: -10.05), "NOPREFIX@#{Zold::Id.new}", pvt, 'For another pizza')
+          wallet.sub(Zold::Amount.new(zld: 9.90), "NOPREFIX@#{Zold::Id.new}", pvt, 'For pizza')
+          wallet.sub(Zold::Amount.new(zld: 10.05), "NOPREFIX@#{Zold::Id.new}", pvt, 'For another pizza')
         end
       end
       return
