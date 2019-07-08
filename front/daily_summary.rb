@@ -23,6 +23,7 @@ require 'json'
 require 'octokit'
 require 'zold/amount'
 require 'zold/http'
+require 'zold/log'
 require_relative '../objects/ticks'
 require_relative '../objects/gl'
 require_relative '../objects/payables'
@@ -34,6 +35,36 @@ require_relative '../objects/rate'
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 class WTS::DailySummary
+  # Adapter of hitsofcode.com
+  class HoC
+    def initialize(repo, log: Zold::Log::NULL)
+      @repo = repo
+      @log = log
+    end
+
+    def hoc
+      fetch('count')
+    end
+
+    def commits
+      fetch('commits')
+    end
+
+    private
+
+    def fetch(field)
+      uri = "https://hitsofcode.com/github/#{@repo}/json"
+      res = Zold::Http.new(uri: uri).get(timeout: 32)
+      unless res.status == 200
+        @log.error("Can't retrieve #{field} at #{uri} for #{@repo} (#{res.status}): #{res.body.inspect}")
+        return 0
+      end
+      total = JSON.parse(res.body)[field]
+      @log.debug("#{total} field found in #{@repo}")
+      total
+    end
+  end
+
   def initialize(ticks:, pgsql:, payables:, gl:, config:, log:, sibit:, toggles:, assets:)
     @ticks = ticks
     @pgsql = pgsql
@@ -80,8 +111,8 @@ class WTS::DailySummary
       "  Zold version: [#{release[:tag_name]}](https://github.com/zold-io/zold/releases/tag/#{release[:tag_name]}) \
 / #{((Time.now - release[:created_at]) / (24 * 60 * 60)).round} days ago",
       "  Nodes: [#{@ticks.latest('Nodes').round}](https://wts.zold.io/remotes)",
-      "  [HoC](https://www.yegor256.com/2014/11/14/hits-of-code.html) \
-in #{repositories.count} repos: #{(hoc / 1000).round}K",
+      "  [HoC](https://www.yegor256.com/2014/11/14/hits-of-code.html)/commits \
+in #{repositories.count} repos: #{(hoc / 1000).round}K / #{commits}",
       "  [GitHub](https://github.com/zold-io) stars/forks: #{stars} / #{forks}",
       "  Open GitHub issues: #{issues}",
       "\nThanks for keeping an eye on us!"
@@ -102,15 +133,12 @@ in #{repositories.count} repos: #{(hoc / 1000).round}K",
 
   # Total amount of hits-of-code in all Zold repositories
   def hoc
-    repositories.map do |r|
-      uri = "https://hitsofcode.com/github/#{r}/json"
-      res = Zold::Http.new(uri: uri).get(timeout: 32)
-      unless res.status == 200
-        @log.error("Can't retrieve HoC at #{uri} for #{r} (#{res.status}): #{res.body.inspect}")
-        return 0
-      end
-      JSON.parse(res.body)['count']
-    end.inject(&:+)
+    repositories.map { |r| HoC.new(r, log: @log).hoc }.inject(&:+)
+  end
+
+  # Total amount of commits in all Zold repositories
+  def commits
+    repositories.map { |r| HoC.new(r, log: @log).commits }.inject(&:+)
   end
 
   # Total amount of GitHub stars.

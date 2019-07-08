@@ -69,4 +69,10 @@ class WTS::DailySummaryTest < Minitest::Test
     ).markdown
     assert(md.include?('Deficit: '), md)
   end
+
+  def test_reads_hoc
+    WebMock.allow_net_connect!
+    assert(!WTS::DailySummary::HoC.new('zold-io/blog.zold.io', log: test_log).hoc.zero?)
+    assert(!WTS::DailySummary::HoC.new('zold-io/zold', log: test_log).commits.zero?)
+  end
 end
