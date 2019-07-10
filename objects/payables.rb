@@ -118,9 +118,18 @@ in #{Zold::Age.new(start)}: #{seen.join(', ')}")
   end
 
   def fetch(max: 50)
-    @pgsql.exec('SELECT * FROM payable ORDER BY ABS(balance) DESC LIMIT $1', [max]).map do |r|
+    items = @pgsql.exec(
+      [
+        'SELECT payable.*, item.login AS login FROM payable',
+        'LEFT JOIN item ON item.id = payable.id',
+        'ORDER BY ABS(balance) DESC LIMIT $1'
+      ].join(' '),
+      [max]
+    )
+    items.map do |r|
       {
         id: Zold::Id.new(r['id']),
+        login: r['login'],
         balance: Zold::Amount.new(zents: r['balance'].to_i),
         txns: r['txns'].to_i,
         updated: Time.parse(r['updated']),

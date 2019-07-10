@@ -12,6 +12,8 @@
   %table.compact
     %colgroup
       %col{style: 'width: 5em'}
+      - if defined?(guser) && vip?
+        %col{style: 'width: 6em'}
       %col{style: 'width: 6em'}
       %col{style: 'width: 3em'}
       %col{style: 'width: 3em'}
@@ -20,6 +22,9 @@
       %tr
         %th
           Wallet
+        - if defined?(guser) && vip?
+          %th
+            Login
         %th
           Balance
         %th
@@ -34,6 +39,10 @@
           %td
             %code
               %a{href: "http://www.zold.io/ledger.html?wallet=#{p[:id]}"}= p[:id]
+          - if defined?(guser) && vip?
+            %td
+              %code
+                = p[:login]
           %td.right{title: p[:balance].to_i.to_s}
             = p[:balance].to_zld
           %td.right{title: p[:txns].to_s, class: p[:txns] > 1000 ? 'red' : ''}
