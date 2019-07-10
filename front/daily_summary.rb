@@ -60,7 +60,7 @@ class WTS::DailySummary
         return 0
       end
       total = JSON.parse(res.body)[field]
-      @log.debug("#{total} field found in #{@repo}")
+      @log.debug("Field #{field.inspect} found in #{@repo}: #{total}")
       total
     end
   end

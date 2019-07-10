@@ -72,7 +72,11 @@ class WTS::DailySummaryTest < Minitest::Test
 
   def test_reads_hoc
     WebMock.allow_net_connect!
-    assert(!WTS::DailySummary::HoC.new('zold-io/blog.zold.io', log: test_log).hoc.zero?)
-    assert(!WTS::DailySummary::HoC.new('zold-io/zold', log: test_log).commits.zero?)
+    2.times do
+      ['papers', 'blog.zold.io', 'zold', 'wts.zold.io', 'zold-ruby-sdk'].each do |r|
+        assert(!WTS::DailySummary::HoC.new("zold-io/#{r}", log: test_log).hoc.zero?)
+        assert(!WTS::DailySummary::HoC.new("zold-io/#{r}", log: test_log).commits.zero?)
+      end
+    end
   end
 end
