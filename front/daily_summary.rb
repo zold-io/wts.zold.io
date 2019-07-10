@@ -54,9 +54,9 @@ class WTS::DailySummary
 
     def fetch(field)
       uri = "https://hitsofcode.com/github/#{@repo}/json"
-      res = Zold::Http.new(uri: uri).get(timeout: 32)
+      res = Zold::Http.new(uri: uri).get(timeout: 60)
       unless res.status == 200
-        @log.error("Can't retrieve #{field} at #{uri} for #{@repo} (#{res.status}): #{res.body.inspect}")
+        @log.error("Can't retrieve #{field.inspect} at #{uri} for #{@repo} (#{res.status}): #{res.body.inspect}")
         return 0
       end
       total = JSON.parse(res.body)[field]
