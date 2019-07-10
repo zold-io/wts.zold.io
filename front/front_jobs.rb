@@ -49,7 +49,8 @@ def job(u = user, exclusive: false)
       ),
       settings.jobs
     ),
-    log: log
+    log: log,
+    telepost: settings.telepost
   )
   job = WTS::ExclusiveJob.new(job, File.join(settings.root, 'exclusive-job'), log: log) if exclusive
   job = WTS::AsyncJob.new(job, settings.pool, latch(u.login)) unless ENV['RACK_ENV'] == 'test'
