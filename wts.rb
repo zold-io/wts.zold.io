@@ -77,6 +77,7 @@ configure do
   Haml::Options.defaults[:format] = :xhtml
   config = if ENV['RACK_ENV'] == 'test'
     {
+      'kyc' => [],
       'pkey_secret' => 'fake',
       'geoplugin_token' => '?',
       'rewards' => {
@@ -452,6 +453,7 @@ def known?(login = @locals[:guser])
   return true if ENV['RACK_ENV'] == 'test'
   return true if login == settings.config['rewards']['login']
   return true if login == settings.config['exchange']['login']
+  return true if settings.config['kyc'].include?(login)
   settings.zache.get("#{login}_known?", lifetime: 5 * 50) do
     Zold::Http.new(uri: 'https://www.0crat.com/known/' + login).get.code == 200
   end
@@ -463,6 +465,7 @@ def kyc?(login = @locals[:guser])
   return true if ENV['RACK_ENV'] == 'test'
   return true if login == settings.config['rewards']['login']
   return true if login == settings.config['exchange']['login']
+  return true if settings.config['kyc'].include?(login)
   settings.zache.get("#{login}_kyc?", lifetime: 5 * 50) do
     res = Zold::Http.new(uri: 'https://www.0crat.com/known/' + login).get
     res.code == 200 && Zold::JsonPage.new(res.body).to_hash['identified']
