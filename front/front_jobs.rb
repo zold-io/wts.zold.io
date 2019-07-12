@@ -28,7 +28,6 @@ require_relative '../objects/tee_log'
 require_relative '../objects/tracked_job'
 require_relative '../objects/update_job'
 require_relative '../objects/user_error'
-require_relative '../objects/versioned_job'
 
 set :pool, Concurrent::FixedThreadPool.new(4, max_queue: 1024, fallback_policy: :abort)
 set :jobs, WTS::Jobs.new(settings.pgsql, log: settings.log)
@@ -39,14 +38,19 @@ def job(u = user, exclusive: false)
   log = WTS::TeeLog.new(user_log(u.login), WTS::DbLog.new(settings.pgsql, jid))
   job = WTS::SafeJob.new(
     WTS::TrackedJob.new(
-      WTS::VersionedJob.new(
-        WTS::UpdateJob.new(
-          proc { yield(jid, log) },
-          settings.remotes,
-          log: log,
-          network: network
-        ),
-        log: log
+      WTS::UpdateJob.new(
+        proc do
+          log.info('---')
+          log.info("Zold gem version: #{Zold::VERSION}/#{Zold::PROTOCOL}")
+          log.info("WTS version: #{WTS::VERSION}")
+          log.info("Current time is: #{Time.now.utc.iso8601}")
+          log.info("Job ID: #{jid}")
+          log.info("Login: #{u.login}")
+          yield(jid, log)
+        end,
+        settings.remotes,
+        log: log,
+        network: network
       ),
       settings.jobs
     ),
