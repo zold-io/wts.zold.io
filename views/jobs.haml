@@ -8,12 +8,15 @@
   %table.compact
     %colgroup
       %col{style: 'width: 10em'}
+      %col{style: 'width: 6em'}
       %col{style: ''}
       %col{style: 'width: 4em'}
     %thead
       %tr
         %th
           Id
+        %th.right
+          Output
         %th
           Log
         %th
@@ -23,8 +26,9 @@
         %tr
           %td
             %a{href: iri.cut('/job').add(id: j[:id])}= j[:id][0..7]
-            %a{href: iri.cut('/output').add(id: j[:id])} Log
-          %td
+          %td.right
+            %a{href: iri.cut('/output').add(id: j[:id])}= j[:output].length
+          %td{class: j[:log] == 'OK' ? 'green' : ''}
             &= j[:log]
           %td
             = Zold::Age.new(j[:started])
@@ -33,3 +37,6 @@
       %a.item{href: iri.over(offset: offset - 25)} Previous
     - if jobs.count >= limit
       %a.item{href: iri.over(offset: offset + 25)} Next
+  %p
+    Total jobs in the database:
+    = total

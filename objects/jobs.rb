@@ -32,6 +32,11 @@ class WTS::Jobs
     @log = log
   end
 
+  # Count them all.
+  def count
+    @pgsql.exec('SELECT COUNT(*) FROM job')[0]['count'].to_i
+  end
+
   # Fetch them all.
   def fetch(offset: 0, limit: 25)
     @pgsql.exec('SELECT * FROM job ORDER BY started DESC OFFSET $1 LIMIT $2', [offset, limit]).map do |r|
@@ -48,12 +53,23 @@ class WTS::Jobs
     !@pgsql.exec('SELECT * FROM job WHERE id = $1', [id]).empty?
   end
 
+  # Collect garbage and close all jobs running for longer than X minutes. Also remove
+  # the jobs which are too old.
+  def gc(minutes = 60)
+    @pgsql.exec(
+      "UPDATE job SET log = $1 WHERE started < NOW() - INTERVAL \'#{minutes} MINUTES\' AND log = \'Running\'",
+      [
+        [
+          "We are sorry, but most probably the job is lost at #{Time.now.utc.iso8601},",
+          "since we don't see any output from it for more than #{minutes} minutes; try again..."
+        ].join(' ')
+      ]
+    )
+    @pgsql.exec("DELETE FROM job WHERE started < NOW() - INTERVAL \'180 DAYS\'")
+  end
+
   # Start a new job and return its ID
   def start(login)
-    @pgsql.exec(
-      'UPDATE job SET log = $1 WHERE started < NOW() - INTERVAL \'1 HOURS\' AND log = \'Running\'',
-      ["We are sorry, but most probably the job is lost (#{Time.now.utc.iso8601}); try again..."]
-    )
     uuid = SecureRandom.uuid
     @pgsql.exec('INSERT INTO job (id, log, login) VALUES ($1, $2, $3)', [uuid, 'Running', login])
     uuid
