@@ -54,7 +54,7 @@ class WTS::Ops
 
   def pull(id = @item.id)
     if @user.fake?
-      @log.info('It is a fake user, won\'t PULL from the network')
+      @log.info("It is a fake user with wallet ID #{id}, won't PULL from the network")
       remove
       rsa = OpenSSL::PKey::RSA.new(2048)
       pvt = Zold::Key.new(text: rsa.to_pem)

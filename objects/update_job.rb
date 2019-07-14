@@ -40,7 +40,6 @@ class WTS::UpdateJob
       cmd.run(args + ['masters'])
       cmd.run(args + ['reset']) if @remotes.all.empty?
       cmd.run(args + ['update', '--depth=3'])
-      cmd.run(%w[remote remove 127.0.0.1])
       cmd.run(args + ['select'])
     else
       cmd.run(args + ['clean'])
