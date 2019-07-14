@@ -51,6 +51,7 @@ def pay_hosting_bonuses(boss, jid, log)
   require 'zold/commands/remote'
   cmd = Zold::Remote.new(remotes: settings.remotes, log: log)
   cmd.run(%w[remote update --depth=5])
+  cmd.run(%w[remote remove 127.0.0.1])
   cmd.run(%w[remote show])
   winners = cmd.run(%w[remote elect --min-score=2 --max-winners=8 --ignore-masters])
   winners.each do |score|

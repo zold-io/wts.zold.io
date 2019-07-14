@@ -108,11 +108,11 @@ class WTS::DailySummary
 (#{WTS::Dollars.new(price * @assets.balance)})",
       "  Deficit: [#{deficit.round(2)} BTC](https://wts.zold.io/rate)",
       '',
-      "  Zold version: [#{release[:tag_name]}](https://github.com/zold-io/zold/releases/tag/#{release[:tag_name]}) \
+      "  Zold: [#{release[:tag_name]}](https://github.com/zold-io/zold/releases/tag/#{release[:tag_name]}) \
 / #{((Time.now - release[:created_at]) / (24 * 60 * 60)).round} days ago",
       "  Nodes: [#{@ticks.latest('Nodes').round}](https://wts.zold.io/remotes)",
-      "  [HoC](https://www.yegor256.com/2014/11/14/hits-of-code.html)/commits \
-in #{repositories.count} repos: #{(hoc / 1000).round}K / #{commits}",
+      "  [HoC](https://www.yegor256.com/2014/11/14/hits-of-code.html)/cmts \
+in #{repositories.count}: #{(hoc / 1000).round}K / #{commits}",
       "  [GitHub](https://github.com/zold-io) stars/forks: #{stars} / #{forks}",
       "  Open GitHub issues: #{issues}",
       "\nThanks for keeping an eye on us!"

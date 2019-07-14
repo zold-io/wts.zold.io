@@ -35,9 +35,9 @@ settings.daemons.start('ticks', 10 * 60) do
   boss = user(settings.config['rewards']['login'])
   job(boss) do
     unless settings.ticks.exists?('Nodes')
-      Zold::Remote.new(remotes: settings.remotes, log: settings.log).run(
-        ['remote', "--network=#{network}", 'update', '--depth=4']
-      )
+      cmd = Zold::Remote.new(remotes: settings.remotes, log: settings.log)
+      cmd.run(['remote', "--network=#{network}", 'update', '--depth=4'])
+      cmd.run(%w[remote remove 127.0.0.1])
       settings.ticks.add('Nodes' => settings.remotes.all.count)
     end
   end
