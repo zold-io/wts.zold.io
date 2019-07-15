@@ -22,6 +22,7 @@ require 'zold'
 require_relative '../objects/gl'
 require_relative '../objects/payables'
 require_relative '../objects/callbacks'
+require_relative '../objects/user_error'
 
 set :gl, WTS::Gl.new(settings.pgsql, log: settings.log)
 set :payables, WTS::Payables.new(settings.pgsql, settings.remotes, log: settings.log)
@@ -148,4 +149,6 @@ get '/gl' do
     query: (params[:query] || '').strip,
     since: params[:since] ? Zold::Txn.parse_time(params[:since]) : nil
   )
+rescue Zold::Txn::CantParseTime => e
+  raise WTS::UserError, e.message
 end
