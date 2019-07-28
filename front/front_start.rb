@@ -36,17 +36,18 @@ get '/create' do
       boss = user(settings.config['rewards']['login'])
       amount = Zold::Amount.new(zld: 0.256)
       job(boss) do |jid2, log2|
-        if boss.wallet(&:balance) < amount
+        if boss.wallet(&:balance).zero?
           settings.telepost.spam(
             "A sign-up bonus of #{amount} can't be sent",
             "to #{title_md} from #{anon_ip}",
             "to their wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})",
             "from our wallet [#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id})",
             "of [#{boss.login}](https://github.com/#{boss.login})",
-            "because there is not enough funds, only #{boss.wallet(&:balance)} left;",
+            "because there is zero funds, only #{boss.wallet(&:balance)} left;",
             job_link(jid2)
           )
         else
+          amount = [boss.wallet(&:balance).mul(0.5), amount].min
           ops(boss, log: log2).pull
           ops(boss, log: log2).pay(
             settings.config['rewards']['keygap'], user.item.id,
