@@ -171,7 +171,7 @@ configure do
         settings.telepost.post(
           cht,
           'This bot is not answering here.',
-          'All it does is posting news to this channel: @zold_wts.',
+          'All it does is posting news to this channel: [@zold_wts](https://t.me/zold_wts).',
           'Don\'t hesitate to subscribe and stay informed about everything that is going on',
           'in https://wts.zold.io.'
         )
