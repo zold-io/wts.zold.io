@@ -117,6 +117,8 @@ configure do
       c.release = WTS::VERSION
     end
   end
+  set :bind, '0.0.0.0'
+  set :server, :thin
   set :config, config
   set :logging, true
   set :show_exceptions, false
