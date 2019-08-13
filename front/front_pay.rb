@@ -87,7 +87,7 @@ see the White Paper, only a limited subset of characters is allowed: [a-zA-Z0-9@
     settings.jobs.result(jid, 'txn', txn.id.to_s)
     settings.jobs.result(jid, 'tid', "#{user.item.id}:#{txn.id}")
     ops(log: log).push
-    if txn.amount > Zold::Amount.new(zld: 16.0)
+    if (txn.amount * -1) > Zold::Amount.new(zld: 16.0)
       settings.telepost.spam(
         "🤝 #{txn.amount * -1}: A new payment sent by #{title_md}",
         "from [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})",
