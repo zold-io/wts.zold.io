@@ -34,7 +34,7 @@ gem 'geoplugin', '0.3.1'
 gem 'get_process_mem', '~>0.2'
 gem 'glogin', '0.5.1' # Can't upgrade, since 0.6.0 is using Base58 instead of Base64
 gem 'haml', '5.0.4'
-gem 'iri', '0.4.2'
+gem 'iri', '0.4.3'
 gem 'minitest', '5.11.3'
 gem 'minitest-reporters', '1.3.6', require: false
 gem 'octokit', '4.14.0'
@@ -45,7 +45,7 @@ gem 'rack-ssl', '1.4.1'
 gem 'rack-test', '1.1.0'
 gem 'rack_csrf', '2.6.0'
 gem 'rake', '12.3.2', require: false
-gem 'random-port', '0.3.1', require: false
+gem 'random-port', '0.4.1', require: false
 gem 'rerun', '0.13.0', require: false
 gem 'rubocop', '0.72.0', require: false
 gem 'rubocop-rspec', '1.33.0', require: false

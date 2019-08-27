@@ -159,8 +159,13 @@ class WTS::Assets
     while count < max
       json = @sibit.get_json("/rawblock/#{block}")
       unless json['main_chain']
-        @log.info("Orphan block found at #{block}, moving one step back...")
-        block = json['prev_block']
+        steps = 4
+        @log.info("Orphan block found at #{block}, moving #{steps} steps back...")
+        steps.times do
+          block = json['prev_block']
+          @log.info("Moved back to #{block}")
+          json = @sibit.get_json("/rawblock/#{block}")
+        end
         next
       end
       break if json['tx'].nil?
