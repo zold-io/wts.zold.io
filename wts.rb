@@ -185,7 +185,9 @@ configure do
     "[#{WTS::VERSION}](https://github.com/zold-io/wts.zold.io/releases/tag/#{WTS::VERSION})",
     'has been deployed and starts working;',
     "Zold version is [#{Zold::VERSION}](https://rubygems.org/gems/zold/versions/#{Zold::VERSION}),",
-    "the protocol is `#{Zold::PROTOCOL}`"
+    "the protocol is `#{Zold::PROTOCOL}`;",
+    "#{format('%.01f', Total::Mem.new.bytes.to_f / (1024 * 1024 * 1024))}Gb memory total;",
+    "#{Concurrent.physical_processor_count} CPUs"
   )
 end
 

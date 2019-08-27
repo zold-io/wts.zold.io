@@ -156,13 +156,16 @@ class WTS::Assets
     ours = Set.new(@pgsql.exec('SELECT address FROM asset').map { |r| r['address'] })
     block = seen
     count = 0
+    wrong = []
     while count < max
       json = @sibit.get_json("/rawblock/#{block}")
       unless json['main_chain']
         steps = 4
         @log.info("Orphan block found at #{block}, moving #{steps} steps back...")
+        wrong << block
         steps.times do
           block = json['prev_block']
+          wrong << block
           @log.info("Moved back to #{block}")
           json = @sibit.get_json("/rawblock/#{block}")
         end
@@ -185,6 +188,7 @@ class WTS::Assets
       end
       n = json['next_block']
       break if n.empty?
+      n.reject! { |b| wrong.include?(b) } if n.count > 1
       block = n.last
       count += 1
     end
