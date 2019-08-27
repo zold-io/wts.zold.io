@@ -81,7 +81,8 @@ unless ENV['RACK_ENV'] == 'test'
         "⚠️ Our Bitcoin Blockchain monitoring system is behind, for #{diff} blocks!",
         "The most recently seen block is [#{seen}](https://www.blockchain.com/btc/block/#{seen}),",
         "while the latest is [#{latest}](https://www.blockchain.com/btc/block/#{latest});",
-        'most probably there is something wrong with [Sibit](https://github.com/yegor256/sibit), please check'
+        'most probably there is something wrong with [Sibit](https://github.com/yegor256/sibit),',
+        'check server logs ASAP!'
       )
     end
   end
