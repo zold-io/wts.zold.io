@@ -79,6 +79,7 @@ see the White Paper, only a limited subset of characters is allowed: [a-zA-Z0-9@
     )
     raise WTS::UserError, 'E117: Your account is not allowed to send any payments at the moment, sorry'
   end
+  user.item.key(keygap) unless user.fake? # To check the validity of the keygap
   headers['X-Zold-Job'] = job do |jid, log|
     log.info("Sending #{amount} to #{bnf}...")
     ops(log: log).pull
