@@ -14,7 +14,7 @@
   at the current
   %a{href: 'https://blockchain.info/ticker'} market price
   %br
-  %span.small.gray
+  %span.smaller.gray
     This is how much we have in our bitcoin wallet in Coinbase.
 
 %p
@@ -22,7 +22,7 @@
   %code
     = formula[:root]
   %br
-  %span.small.gray
+  %span.smaller.gray
     This is the total negative balance in the
     %a{href: 'http://www.zold.io/ledger.html?wallet=' + Zold::Id::ROOT.to_s} root
     wallet.
@@ -32,7 +32,7 @@
   %code
     = formula[:boss]
   %br
-  %span.small.gray
+  %span.smaller.gray
     This is how much is
     %a{href: 'http://www.zold.io/ledger.html?wallet=' + formula[:boss_wallet]} still owned
     by Zerocracy out of the total emission.
@@ -44,7 +44,7 @@
   BTC per ZLD
   = format('(%d%% of the exchange rate)', formula[:rate] / rate * 100)
   %br
-  %span.small.gray
+  %span.smaller.gray
     It is equal to
     %em F / (E - Z)
 
@@ -57,7 +57,7 @@
   at the current
   %a{href: 'https://blockchain.info/ticker'} market price
   %br
-  %span.small.gray
+  %span.smaller.gray
     This rate is used in all
     %a{href: 'https://blog.zold.io/2018/12/09/btc-to-zld.html'} ZLD-to-BTC exchange
     operations.
@@ -71,19 +71,19 @@
     because you work in
     %a{href: 'https://www.zerocracy.com/team'} Zerocracy
   %br
-  %span.small.gray
+  %span.smaller.gray
     Only the seller pays it.
 
 - if formula[:deficit] > 0
   %p
     Fund
     = succeed ':' do
-      %span.red deficit
+      %span.firebrick deficit
     %code
       = format('%0.4f', formula[:deficit])
       BTC
     %br
-    %span.small.gray
+    %span.smaller.gray
       This is how much Zerocracy has to add to the fund in order to make the effective rate trustable.
 
 %p

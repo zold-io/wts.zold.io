@@ -34,7 +34,7 @@
     %label
       The amount to pay, ZLD:
     %input#zld{type: 'text', name: 'amount', maxlength: 32, size: 10, placeholder: 'e.g. "14.95"', autocomplete: 'off', required: true, tabindex: 3, oninput: "wts_recalc(#{rate.round(8)}, #{price.round(2)});"}
-    %label.gray.small#out
+    %label.gray.smaller#out
     %label
       Payment details:
     %input{type: 'text', name: 'details', maxlength: 512, style: 'width:100%', placeholder: 'e.g. "For services"', autocomplete: 'off', tabindex: 4}
@@ -42,7 +42,7 @@
 
 %p
   = succeed ':' do
-    %span{style: 'color: red'} ATTENTION
+    %span.firebrick ATTENTION
   This operation is not reversable.
   Once you send the payment, you will not be able to get it back, ever.
   Do this at your own risk.

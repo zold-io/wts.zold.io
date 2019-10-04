@@ -29,7 +29,7 @@
 %p
   - if available.zero?
     = succeed ':' do
-      %span.strong.red SORRY
+      %span.strong.firebrick SORRY
     We have no bitcoins left in our
     = succeed ',' do
       %a{href: iri.cut('/assets')} assets
@@ -59,7 +59,7 @@
         - else
           = ''
     %input#zld{type: 'text', name: 'amount', size: 12, maxlength: 8, autocomplete: 'off', tabindex: 2, oninput: "wts_rerate(#{rate.round(8)}, #{price.round(2)}, #{fee.round(4)});"}
-    %label.gray.small#out
+    %label.gray.smaller#out
     %label
       Bitcoin
       %a{href: 'https://en.bitcoin.it/wiki/Address'} address

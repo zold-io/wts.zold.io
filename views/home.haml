@@ -32,14 +32,14 @@
       %span{title: w.mtime.utc.iso8601}= "#{Zold::Age.new(w.mtime.utc.iso8601)} ago"
 
 - if u.wallet_exists? && u.wallet(&:txns).count > 1000
-  %p.red
+  %p.firebrick
     You have too many transactions in your wallet, which makes
     its processing too slow. It is recommended to
     %a{href: iri.cut('/migrate')} migrate
     to a new wallet.
 
 - if u.wallet_exists? && u.wallet(&:balance).negative?
-  %p.red
+  %p.firebrick
     Your balance is negative, which means that some of your
     transactions will be rolled back in the nearest future!
     Try to
@@ -100,7 +100,7 @@
                 - else
                   = '-'
               %td.right
-                %span{title: t.amount.to_i, style: 'color: ' + (t.amount.negative? ? 'darkred' : 'darkgreen')}
+                %span{title: t.amount.to_i, class: (t.amount.negative? ? 'firebrick' : 'seagreen')}
                   = t.amount.to_zld
               %td
                 %span{title: t.date.utc.iso8601}

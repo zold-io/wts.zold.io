@@ -8,6 +8,7 @@
     %meta{name: 'description', content: 'Zold Web Wallets: Experimental Non-Blockchain Cryptocurrency for Fast Micro-Payments'}
     %link{rel: 'shortcut icon', href: 'https://www.zold.io/images/logo-blue.png'}
     %link{href: 'https://cdn.jsdelivr.net/gh/yegor256/tacit@gh-pages/tacit-css.min.css', rel: 'stylesheet'}
+    %link{href: 'https://cdn.jsdelivr.net/gh/yegor256/drops@gh-pages/drops.min.css', rel: 'stylesheet'}
     %link{type: 'text/css', href: url('css/main.css'), rel: 'stylesheet'}
     %meta{name: 'twitter:creator', content: '@0crat'}
     %meta{name: 'twitter:site', content: '@0crat'}
@@ -36,7 +37,7 @@
         - if defined?(guser) && user.fake?
           %nav
             %ul
-              %li.strong.red
+              %li.bold.firebrick
                 It is a sandbox account!
         %nav
           %ul
@@ -120,7 +121,7 @@
                 - else
                   %a{href: iri.cut('/buy-sell')} Buy/Sell
               %li
-                %a{href: iri.cut('/log'), style: (File.exist?(latch) ? 'color:red' : '')} Log
+                %a{href: iri.cut('/log'), class: (File.exist?(latch) ? 'firebrick' : '')} Log
               %li
                 %a{href: iri.cut('/key')} Key
               %li
@@ -129,7 +130,7 @@
           - if File.exist?(latch)
             %nav
               %ul
-                %li{style: 'color:red'}
+                %li.firebrick
                   We are
                   %a{href: iri.cut('/log')} updating
                   your wallet right now.
@@ -143,7 +144,7 @@
 
       %article
         = yield
-      %footer.small.gray
+      %footer.smaller.gray
         - unless defined? header_off
           %nav
             %ul

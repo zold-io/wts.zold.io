@@ -94,7 +94,7 @@
         - unless c[:failure].nil?
           %tr
             %td
-            %td.gray.small{colspan: '6'}
+            %td.gray.smaller{colspan: '6'}
               = CGI.escapeHTML(c[:failure]).gsub(/([^ ]{16})/, '\1&shy;')
   %p
     If a callback is not matched within 24 hours, it will automatically be deleted

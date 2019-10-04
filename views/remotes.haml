@@ -26,14 +26,14 @@
         %tr
           %td
             %a{href: "http://#{r[:host]}:#{r[:port]}/"}
-              %span{style: (r[:master] ? 'font-weight:bold' : '')}
+              %span{class: (r[:master] ? 'bold' : '')}
                 = "#{r[:host]}:#{r[:port]}"
-          %td.right{style: 'color:' + (r[:score] < 4 ? 'red' : (r[:score] < 16 ? 'orange' : 'green'))}
+          %td.right{class: (r[:score] < 4 ? 'firebrick' : (r[:score] < 16 ? 'orange' : 'seagreen'))}
             = r[:score]
-          %td.right{style: 'color:' + (r[:errors] > 25 ? 'red' : 'inherit')}
+          %td.right{class: (r[:errors] > 25 ? 'firebrick' : '')}
             = r[:errors]
   - unless remotes.all.find { |r| r[:master] }
-    %p.red
+    %p.firebrick
       There is not a single master node in the list!
       Most likely all PUSH and PULL operations will fail.
       Something is wrong with Zold network or our software here.

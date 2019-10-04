@@ -2,7 +2,7 @@
   %span< Convert Your Bitcoins to Zolds and Make 4% Each Month, Guaranteed
   %sup *
 
-%div.small.gray.center{style: 'float:right;margin-left:1em;margin-bottom:1em;width:320px;'}
+%div.smaller.gray.center{style: 'float:right;margin-left:1em;margin-bottom:1em;width:320px;'}
   %a{href: '/rate'}
     %img{src: '/graph.svg?keys=Value&div=100&digits=2', style: 'width:320px;'}
   The graph demonstrates how the value of ZLD in US dollars
@@ -77,26 +77,26 @@
     %tr
       %td.right
         Zerocracy increment:
-      %td.right.green
+      %td.right.seagreen
         %span#zc_input
       %td
         %a{href: 'https://blog.zold.io/2019/01/16/make-me-rich.html'} Why?
     %tr
       %td.right
         Bitcoin rate growth:
-      %td.right.green
+      %td.right.seagreen
         %span#btc_growth
       %td
         = '~10%/month'
     %tr
       %td.right
         Gross return:
-      %td.right.green
+      %td.right.seagreen
         %span#gross
     %tr
       %td.right
         Exchange fee:
-      %td.right.red
+      %td.right.firebrick
         %span#fee
     %tr
       %td.right
@@ -104,7 +104,7 @@
       %td.right{style: 'border: 1px solid gray;'}
         %strong#net
 
-%p#step2{style: 'display: none'}
+%p#step2.invisible
   In order to create an account we have to identify you first.
   Zold is a fully anonymous system: we don't track your IP and don't keep any logs.
   All we need to know about you is your phone number, which will uniquely
@@ -114,11 +114,11 @@
   Your mobile phone:
   %input#phone{type: 'text', name: 'phone', pattern: "[0-9]+", size: 17, placeholder: 'e.g. 14085551234', required: true, tabindex: 4}
 
-%p#step3{style: 'display: none'}
+%p#step3.invisible
   4-digit authorization code you just received:
   %input#code{type: 'text', name: 'code', pattern: "[0-9]+", size: 5, autocomplete: 'off', tabindex: 5}
 
-%p#step4{style: 'display: none'}
+%p#step4.invisible
   This is your
   = succeed ':' do
     %a{href: 'https://blog.zold.io/2018/07/18/keygap.html'} keygap
@@ -128,7 +128,7 @@
   If you lose it, you will lose your Zold coins!
   We will not be able to restore this information!
 
-%p#step5{style: 'display: none'}
+%p#step5.invisible
   %img#qr{style: 'float:right;margin-left:.5em;margin-bottom:.5em;width:128px;height:128px;', src: ''}
   Send
   %strong
@@ -147,9 +147,9 @@
 %p#step6
   %input#button{type: 'submit', tabindex: 5, value: 'Start'}
 
-%p.small.gray#error
+%p.smaller.gray#error
 
-%p.small.gray
+%p.smaller.gray
   %sup *
   The information contained herein is not intended to be a source
   of advice or credit analysis with respect to the material

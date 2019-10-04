@@ -20,11 +20,11 @@
       %code= user.item.id
     - if total > 1000
       It is
-      %span.green highly recommended
+      %span.seagreen highly recommended
       to migrate!
     - else
       It is
-      %span.red not recommended
+      %span.firebrick not recommended
       to migrate yet, but you can, of course.
 
 %form{method: 'GET', action: iri.cut('/do-migrate')}

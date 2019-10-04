@@ -100,25 +100,25 @@
           %td
             - if a[:hot]
               - if a[:login].nil?
-                %span.green Change
+                %span.seagreen Change
               - else
-                %span.green Hot
+                %span.seagreen Hot
             - else
-              %span.red Cold
+              %span.firebrick Cold
   %p
     = succeed ':' do
-      %strong.red ATTENTION
+      %strong.firebrick ATTENTION
     Do not send your bitcoins to these addresses!
     Well, if you want to donate and increase our fund,
     which will bump the rate of ZLD, you can send a few
     bitcoins to any
-    %strong.red cold
+    %strong.firebrick cold
     address from the list above.
   %p
     The system can send you bitcoins only from
-    %span.green hot
+    %span.seagreen hot
     addresses, while
-    %span.red cold
+    %span.firebrick cold
     ones are owned by the management of Zerocracy.
     Their private keys are not kept in the database.
     This is done for the sake of security of these digital funds.

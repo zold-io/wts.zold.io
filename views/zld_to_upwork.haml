@@ -39,7 +39,7 @@
         - else
           = ''
     %input#zld{type: 'text', name: 'amount', size: 12, maxlength: 8, autocomplete: 'off', tabindex: 2, oninput: "wts_rerate(#{rate.round(8)}, #{price.round(2)}, #{fee.round(4)});"}
-    %label.small.gray#out
+    %label.smaller.gray#out
     %label
       The
       %a{href: 'https://www.upwork.com'} UpWork
