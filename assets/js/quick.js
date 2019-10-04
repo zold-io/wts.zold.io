@@ -24,7 +24,7 @@
 
 function wts_info(text) {
   'use strict';
-  $('#error').removeClass('red').text('INFO: ' + text);
+  $('#error').removeClass('firebrick').text('INFO: ' + text);
   $('#button').removeAttr('disabled');
 }
 
@@ -36,7 +36,7 @@ function wts_error(xhr) {
   } else {
     msg = xhr.getResponseHeader('X-Zold-Error');
   }
-  $('#error').addClass('red').html(
+  $('#error').addClass('firebrick').html(
     'ERROR: <strong>' + msg + '</strong>. If the description of the ' +
     'error doesn\'t help, most likely this ' +
     'is our internal problem. Try to reload this page and start from scratch. ' +
@@ -80,9 +80,9 @@ function wts_recalc() {
       var net = gross + fee - spend;
       $('#net').text('$' + net.toFixed(2));
       if (net > 0) {
-        $('#net').removeClass('red').addClass('green');
+        $('#net').removeClass('firebrick').addClass('seagreen');
       } else {
-        $('#net').addClass('red').removeClass('green');
+        $('#net').addClass('firebrick').removeClass('seagreen');
       }
       wts_info('The current rate of ' + json.effective_rate + 'BTC/ZLD and $' + json.usd_rate + '/ZLD loaded')
     },

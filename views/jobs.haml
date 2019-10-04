@@ -28,7 +28,7 @@
             %a{href: iri.cut('/job').add(id: j[:id])}= j[:id][0..7]
           %td.right
             %a{href: iri.cut('/output').add(id: j[:id])}= j[:output]&.length
-          %td{class: j[:log] == 'OK' ? 'green' : ''}
+          %td{class: j[:log] == 'OK' ? 'seagreen' : ''}
             &= j[:log]
           %td
             = Zold::Age.new(j[:started])

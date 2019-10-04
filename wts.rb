@@ -412,7 +412,7 @@ end
 
 def flash(uri, msg, error: false)
   cookies[:flash_msg] = msg
-  cookies[:flash_color] = error ? 'darkred' : 'darkgreen'
+  cookies[:flash_color] = error ? 'firebrick' : 'seagreen'
   redirect(uri, error ? 303 : 302) unless params[:noredirect]
   msg
 end

@@ -45,7 +45,7 @@
                 = p[:login]
           %td.right{title: p[:balance].to_i.to_s}
             = p[:balance].to_zld
-          %td.right{title: p[:txns].to_s, class: p[:txns] > 1000 ? 'red' : ''}
+          %td.right{title: p[:txns].to_s, class: p[:txns] > 1000 ? 'firebrick' : ''}
             = p[:txns]
           %td{title: p[:updated].utc.iso8601}
             = Zold::Age.new(p[:updated])

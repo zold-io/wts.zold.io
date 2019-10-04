@@ -82,7 +82,7 @@
                 %span{title: "We can run up to #{pool.length} concurrent jobs"}<
                   = pool.length
                 = '/'
-                %span{class: pool.queue_length > 16 ? 'red' : '', title: "There are #{pool.queue_length} jobs waiting in the queue"}<
+                %span{class: pool.queue_length > 16 ? 'firebrick' : '', title: "There are #{pool.queue_length} jobs waiting in the queue"}<
                   = pool.queue_length
               - if defined? guser
                 %li
