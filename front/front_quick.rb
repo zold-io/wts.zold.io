@@ -36,6 +36,7 @@ get '/quick' do
     body = IO.read(File.join(__dir__, '../views/quick_default.haml'))
     settings.log.debug("HAML template #{page} not found at #{uri}, using default of #{body.length} bytes")
   end
+  body.force_encoding('utf-8')
   html = Haml::Engine.new(body).render(self)
   haml :quick, layout: :layout, locals: merged(
     page_title: 'Zold: Quick Start',

@@ -86,8 +86,10 @@ end
 
 get '/pull' do
   headers['X-Zold-Job'] = job do |_jid, log|
-    log.info("Pulling wallet #{user.item.id} via /pull...")
-    if !user.wallet_exists? || params[:force]
+    if user.wallet_exists? && !params[:force]
+      log.info("We won't pull the wallet #{user.item.id} since it already exists")
+    else
+      log.info("Pulling wallet #{user.item.id} via /pull...")
       ops(log: log).remove
       ops(log: log).pull
     end
