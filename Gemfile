@@ -34,7 +34,7 @@ gem 'geoplugin', '0.3.1'
 gem 'get_process_mem', '~>0.2'
 gem 'glogin', '0.5.1' # Can't upgrade, since 0.6.0 is using Base58 instead of Base64
 gem 'haml', '5.0.4'
-gem 'iri', '0.4.3'
+gem 'iri', '0.5.0'
 gem 'minitest', '5.11.3'
 gem 'minitest-reporters', '1.3.6', require: false
 gem 'octokit', '4.14.0'

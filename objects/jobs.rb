@@ -56,16 +56,18 @@ class WTS::Jobs
   # Collect garbage and close all jobs running for longer than X minutes. Also remove
   # the jobs which are too old.
   def gc(minutes = 60)
-    @pgsql.exec(
-      "UPDATE job SET log = $1 WHERE started < NOW() - INTERVAL \'#{minutes} MINUTES\' AND log = \'Running\'",
-      [
+    @pgsql.transaction do |t|
+      t.exec(
+        "UPDATE job SET log = $1 WHERE started < NOW() - INTERVAL \'#{minutes} MINUTES\' AND log = \'Running\'",
         [
-          "We are sorry, but most probably the job is lost at #{Time.now.utc.iso8601},",
-          "since we don't see any output from it for more than #{minutes} minutes; try again..."
-        ].join(' ')
-      ]
-    )
-    @pgsql.exec("DELETE FROM job WHERE started < NOW() - INTERVAL \'180 DAYS\'")
+          [
+            "We are sorry, but most probably the job is lost at #{Time.now.utc.iso8601},",
+            "since we don't see any output from it for more than #{minutes} minutes; try again..."
+          ].join(' ')
+        ]
+      )
+      t.exec("DELETE FROM job WHERE started < NOW() - INTERVAL \'180 DAYS\'")
+    end
   end
 
   # Start a new job and return its ID
