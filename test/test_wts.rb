@@ -69,7 +69,8 @@ class WTS::AppTest < Minitest::Test
       '/assets',
       '/context',
       '/remotes',
-      '/quick'
+      '/quick',
+      '/quick?haml=pageisabsent'
     ].each do |p|
       get(p)
       assert(last_response.ok?, last_response.body)
