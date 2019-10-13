@@ -110,7 +110,7 @@
                   %code{title: 'prefix: ' + t.prefix}
                     = t.bnf
               %td
-                = CGI.escapeHTML(t.details).gsub(/([^ ]{16})/, '\1&shy;')
+                = largetext(t.details)
           - if @last && txns.count == max
             %tr
               %td.center{colspan: 5}

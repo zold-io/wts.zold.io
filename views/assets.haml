@@ -89,7 +89,8 @@
       - assets.each do |a|
         %tr
           %td
-            %a{href: "https://www.blockchain.com/btc/address/#{a[:address]}"}= a[:address].gsub(/([^ ]{4})/, '\1&shy;')
+            %a{href: "https://www.blockchain.com/btc/address/#{a[:address]}"}<
+              = largetext(a[:address])
           %td.right{title: a[:value]}
             - if a[:value].zero?
               = '&mdash;'

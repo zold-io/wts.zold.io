@@ -78,7 +78,7 @@
             %code
               %a{href: "http://www.zold.io/ledger.html?wallet=#{t[:target]}"}= t[:target]
           %td
-            = CGI.escapeHTML(t[:details]).gsub(/([^ ]{16})/, '\1&shy;')
+            = largetext(t[:details])
       - if @last && txns.count == max
         %tr
           %td.center{colspan: 6}

@@ -34,4 +34,4 @@
           - if t[:value].empty?
             = '&mdash;'
           - else
-            = t[:value].gsub(/([^ ]{4})/, '\1&shy;')
+            = largetext(t[:value])

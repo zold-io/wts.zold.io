@@ -536,6 +536,7 @@ def github_exists?(login)
   Zold::Http.new(uri: "https://api.github.com/users/#{login}").get.status == 200
 end
 
+require_relative 'front/helpers'
 require_relative 'front/front_bonuses'
 require_relative 'front/front_btc'
 require_relative 'front/front_callbacks'

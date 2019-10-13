@@ -60,7 +60,7 @@
           %td{title: p[:created].utc.iso8601}
             = Zold::Age.new(p[:created])
           %td
-            = CGI.escapeHTML(p[:details]).gsub(/([^ ]{16})/, '\1&shy;')
+            = largetext(p[:details])
 
 - if confirmed_user.login == 'yegor256'
   %p
@@ -98,4 +98,4 @@
           %td{title: p[:created].utc.iso8601}
             = Zold::Age.new(p[:created])
           %td
-            = CGI.escapeHTML(p[:details]).gsub(/([^ ]{16})/, '\1&shy;')
+            = largetext(p[:details])

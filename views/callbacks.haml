@@ -95,7 +95,7 @@
           %tr
             %td
             %td.gray.smaller{colspan: '6'}
-              = CGI.escapeHTML(c[:failure]).gsub(/([^ ]{16})/, '\1&shy;')
+              = largetext(c[:failure])
   %p
     If a callback is not matched within 24 hours, it will automatically be deleted
     (unless it has the

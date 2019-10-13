@@ -25,7 +25,7 @@
               - if v.nil?
                 = '&mdash;'
               - else
-                = CGI.escapeHTML(v).gsub(/([^ ]{4})/, '\1&shy;')
+                = largetext(v)
   - if result.count > max
     %p
       There are
