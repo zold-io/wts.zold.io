@@ -22,6 +22,6 @@ require 'cgi'
 
 helpers do
   def largetext(text)
-    '<span>' + CGI.escapeHTML(text).tr("\n", '↵').split(/([^ ]{4})/).join('</span> <span>') + '</span>'
+    '<span>' + CGI.escapeHTML(text).tr("\n", '↵').split(/([^ ]{4})/).join('</span><span>') + '</span>'
   end
 end
