@@ -171,7 +171,11 @@ class WTS::Assets
         end
         next
       end
-      break if json['tx'].nil?
+      if json['tx'].nil?
+        @log.info("The block #{hash} has no tx array, we terminate the search")
+        break
+      end
+      checked = 0
       json['tx'].each do |t|
         t['out'].each do |o|
           next if o['spent']
@@ -185,9 +189,14 @@ class WTS::Assets
           yield(address, hash, satoshi)
           @log.info("Bitcoin tx found at #{hash} for #{satoshi} sent to #{address}")
         end
+        checked += 1
       end
+      @log.info("We checked #{checked} transactions in block #{hash}")
       n = json['next_block']
-      break if n.empty?
+      if n.empty?
+        @log.info("The next_block is empty in block #{hash}, this is the end of Blockchain")
+        break
+      end
       n.reject! { |b| wrong.include?(b) } if n.count > 1
       block = n.last
       count += 1
