@@ -172,7 +172,7 @@ class WTS::Assets
         next
       end
       if json['tx'].nil?
-        @log.info("The block #{hash} has no tx array, we terminate the search")
+        @log.info("The block #{block} has no tx array, we terminate the search")
         break
       end
       checked = 0
@@ -191,10 +191,10 @@ class WTS::Assets
         end
         checked += 1
       end
-      @log.info("We checked #{checked} transactions in block #{hash}")
+      @log.info("We checked #{checked} transactions in block #{block}")
       n = json['next_block']
       if n.empty?
-        @log.info("The next_block is empty in block #{hash}, this is the end of Blockchain")
+        @log.info("The next_block is empty in block #{block}, this is the end of Blockchain")
         break
       end
       n.reject! { |b| wrong.include?(b) } if n.count > 1
