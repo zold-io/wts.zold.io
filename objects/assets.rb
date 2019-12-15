@@ -253,6 +253,10 @@ class WTS::Assets
         @log.info("The next_block is empty in block #{block}, this is the end of Blockchain")
         break
       end
+      if n == '0000000000000000000000000000000000000000000000000000000000000000'
+        @log.info("The next_block is pointing to the first block at #{block}, this is the end")
+        break
+      end
       block = n
       count += 1
     end
