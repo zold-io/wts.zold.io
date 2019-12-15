@@ -19,6 +19,11 @@
 # SOFTWARE.
 
 require 'sibit'
+require 'sibit/fake'
+require 'sibit/http'
+require 'sibit/blockchain'
+require 'sibit/btc'
+require 'sibit/json'
 require 'syncem'
 require 'glogin'
 require_relative '../objects/assets'
@@ -75,7 +80,7 @@ unless ENV['RACK_ENV'] == 'test'
   settings.daemons.start('blockchain-lags', 60 * 60) do
     seen = settings.toggles.get('latestblock', '')
     latest = sibit.latest
-    diff = sibit.get_json("/rawblock/#{latest}")['height'] - sibit.get_json("/rawblock/#{seen}")['height']
+    diff = block_height(latest) - block_height(seen)
     if diff > 10
       settings.telepost.spam(
         "⚠️ Our Bitcoin Blockchain monitoring system is behind, for #{diff} blocks!",
@@ -88,7 +93,7 @@ unless ENV['RACK_ENV'] == 'test'
   end
   settings.daemons.start('btc-monitor', 10 * 60) do
     seen = settings.toggles.get('latestblock', '')
-    seen = assets.monitor(seen, max: 16) do |address, hash, satoshi|
+    seen = assets.monitor_btc(seen, max: 16) do |address, hash, satoshi|
       bitcoin = (satoshi.to_f / 100_000_000).round(8)
       if assets.owned?(address)
         rate = WTS::Rate.new(settings.toggles).to_f
@@ -529,9 +534,19 @@ def register_referral(login)
 end
 
 def sibit(log: settings.log)
-  if ENV['RACK_ENV'] == 'test'
-    Sibit::Fake.new
-  else
-    Sibit.new(log: log, attempts: 4)
+  api = [Sibit::Fake.new]
+  if ENV['RACK_ENV'] != 'test'
+    http = Sibit::Http.new
+    api = [
+      Sibit::Btc.new(log: log, http: http),
+      Sibit::Blockchain.new(log: log, http: http)
+    ]
   end
+  Sibit.new(log: log, api: api)
+end
+
+def block_height(hash)
+  uri = URI("https://chain.api.btc.com/v3/block/#{hash}")
+  json = Sibit::Json.new(log: @log).get(uri)
+  json['data']['height']
 end

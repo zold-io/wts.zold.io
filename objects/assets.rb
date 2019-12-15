@@ -151,14 +151,16 @@ class WTS::Assets
   # Get the latest block from the blockchain, scan all transactions visible
   # there and find those, which we are waiting for. Then, yield them one
   # by one if they haven't been seen yet in UTXOs.
-  def monitor(seen, max: 1)
+  #
+  # This method uses Blockchain.info.
+  def monitor_blockchain(seen, max: 1)
     return seen if seen == @sibit.latest
     ours = Set.new(@pgsql.exec('SELECT address FROM asset').map { |r| r['address'] })
     block = seen
     count = 0
     wrong = []
     while count < max
-      json = @sibit.get_json("/rawblock/#{block}")
+      json = nil # This doesn't work!
       unless json['main_chain']
         steps = 4
         @log.info("Orphan block found at #{block}, moving #{steps} steps back...")
@@ -167,7 +169,7 @@ class WTS::Assets
           block = json['prev_block']
           wrong << block
           @log.info("Moved back to #{block}")
-          json = @sibit.get_json("/rawblock/#{block}")
+          json = nil # This doesn't work either
         end
         next
       end
@@ -194,6 +196,60 @@ class WTS::Assets
       @log.info("We checked #{checked} transactions in block #{block}")
       n = json['next_block']
       if n.empty?
+        @log.info("The next_block is empty in block #{block}, this is the end of Blockchain")
+        break
+      end
+      n.reject! { |b| wrong.include?(b) } if n.count > 1
+      block = n.last
+      count += 1
+    end
+    block
+  end
+
+  # Get the latest block from the blockchain, scan all transactions visible
+  # there and find those, which we are waiting for. Then, yield them one
+  # by one if they haven't been seen yet in UTXOs.
+  #
+  # This method uses BTC.com.
+  def monitor_btc(seen, max: 1)
+    return seen if seen == @sibit.latest
+    ours = Set.new(@pgsql.exec('SELECT address FROM asset').map { |r| r['address'] })
+    block = seen
+    count = 0
+    wrong = []
+    while count < max
+      json = block_json(block)
+      if json['is_orphan']
+        steps = 4
+        @log.info("Orphan block found at #{block}, moving #{steps} steps back...")
+        wrong << block
+        steps.times do
+          block = json['prev_block_hash']
+          wrong << block
+          @log.info("Moved back to #{block}")
+          json = block_json(block)
+        end
+        next
+      end
+      checked = 0
+      block_txns(block).each do |t|
+        t['outputs'].each_with_index do |o, i|
+          next if o['spent_by_tx']
+          address = o['addresses'][0]
+          next if address.empty?
+          next unless ours.include?(address)
+          hash = "#{t['hash']}:#{i}"
+          next if seen?(hash)
+          set(address, @sibit.balance(address))
+          satoshi = o['value']
+          yield(address, hash, satoshi)
+          @log.info("Bitcoin tx found at #{hash} for #{satoshi} sent to #{address}")
+        end
+        checked += 1
+      end
+      @log.info("We checked #{checked} transactions in block #{block}")
+      n = json['next_block_hash']
+      if n.nil?
         @log.info("The next_block is empty in block #{block}, this is the end of Blockchain")
         break
       end
@@ -235,5 +291,19 @@ total unspent was #{unspent}; tx hash is #{txn}")
       [address, hash]
     )
     @log.info("Bitcoin tx hash #{hash} recorded as seen at #{address}")
+  end
+
+  private
+
+  def block_json(hash)
+    uri = URI("https://chain.api.btc.com/v3/block/#{hash}")
+    hash = Sibit::Json.new(log: @log).get(uri)
+    hash['data']
+  end
+
+  def block_txns(hash)
+    uri = URI("https://chain.api.btc.com/v3/block/#{hash}/tx")
+    hash = Sibit::Json.new(log: @log).get(uri)
+    hash['data']['list']
   end
 end

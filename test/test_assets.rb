@@ -70,20 +70,24 @@ class WTS::AssetsTest < Minitest::Test
 
   def test_monitors_blockchain
     WebMock.disable_net_connect!
+    hash = '000000000000000000209d79fe981cfd16279f07db246d63f42ce1f11c68103b'
     stub_request(:get, 'https://blockchain.info/latestblock').to_return(
       body: '{"hash": "000000000000000000209d79fe981cfd16279f07db246d63f42ce1f11c68103f"}'
     )
     stub_request(
-      :get, 'https://blockchain.info/rawblock/000000000000000000209d79fe981cfd16279f07db246d63f42ce1f11c68103b'
-    ).to_return(body: '{"main_chain": true}')
+      :get, "https://chain.api.btc.com/v3/block/#{hash}"
+    ).to_return(body: '{"data": {}}')
+    stub_request(
+      :get, "https://chain.api.btc.com/v3/block/#{hash}/tx"
+    ).to_return(body: '{"data": {"list": []}}')
     assets = WTS::Assets.new(test_pgsql, log: test_log)
     login = "jeff#{rand(999)}"
     item = WTS::Item.new(login, test_pgsql, log: test_log)
     item.create(Zold::Id.new, Zold::Key.new(text: OpenSSL::PKey::RSA.new(2048).to_pem))
     assets.acquire(login)
-    assets.monitor('000000000000000000209d79fe981cfd16279f07db246d63f42ce1f11c68103b', max: 2) do |addr, hash, satoshi|
+    assets.monitor_btc(hash, max: 2) do |addr, hsh, satoshi|
       assert(!addr.nil?)
-      assert(!hash.nil?)
+      assert(!hsh.nil?)
       assert(!satoshi.nil?)
     end
   end
