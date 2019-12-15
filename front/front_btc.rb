@@ -547,6 +547,6 @@ end
 
 def block_height(hash)
   uri = URI("https://chain.api.btc.com/v3/block/#{hash}")
-  json = Sibit::Json.new(log: @log).get(uri)
+  json = Sibit::Json.new(log: settings.log).get(uri)
   json['data']['height']
 end
