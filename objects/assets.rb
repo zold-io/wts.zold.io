@@ -236,7 +236,7 @@ class WTS::Assets
         t['outputs'].each_with_index do |o, i|
           next if o['spent_by_tx']
           address = o['addresses'][0]
-          next if address.empty?
+          next if address.nil?
           next unless ours.include?(address)
           hash = "#{t['hash']}:#{i}"
           next if seen?(hash)
