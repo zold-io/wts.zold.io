@@ -253,8 +253,7 @@ class WTS::Assets
         @log.info("The next_block is empty in block #{block}, this is the end of Blockchain")
         break
       end
-      n.reject! { |b| wrong.include?(b) } if n.count > 1
-      block = n.last
+      block = n
       count += 1
     end
     block
