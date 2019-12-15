@@ -39,7 +39,10 @@ post '/do-pay' do
   amount = parsed_amount
   if user.wallet_exists?
     balance = user.wallet(&:balance)
-    raise WTS::UserError, "E197: Not enough funds to send #{amount} only #{balance} left" if balance < amount
+    debt = user.wallet { |w| Zold::Tax.new(w).debt }
+    if balance - debt < amount
+      raise WTS::UserError, "E197: Not enough funds to send #{amount} only #{balance} left (the debt is #{debt})"
+    end
   end
   raise WTS::UserError, 'E111: Parameter "details" is not provided' if params[:details].nil?
   details = params[:details]
