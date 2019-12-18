@@ -330,6 +330,7 @@ DEPENDENCIES
   rake (= 12.3.2)
   random-port (= 0.4.1)
   rerun (= 0.13.0)
+  retriable_proxy (= 1.0.2)
   rubocop (= 0.72.0)
   rubocop-rspec (= 1.33.0)
   sass (= 3.7.4)

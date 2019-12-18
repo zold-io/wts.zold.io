@@ -24,6 +24,7 @@ require 'sibit/http'
 require 'sibit/blockchain'
 require 'sibit/btc'
 require 'sibit/json'
+require 'retriable_proxy'
 require 'syncem'
 require 'glogin'
 require_relative '../objects/assets'
@@ -538,8 +539,8 @@ def sibit(log: settings.log)
   if ENV['RACK_ENV'] != 'test'
     http = Sibit::Http.new
     api = [
-      Sibit::Btc.new(log: log, http: http),
-      Sibit::Blockchain.new(log: log, http: http)
+      RetriableProxy.for_object(Sibit::Btc.new(log: log, http: http), on: Sibit::Error),
+      RetriableProxy.for_object(Sibit::Blockchain.new(log: log, http: http), on: Sibit::Error)
     ]
   end
   Sibit.new(log: log, api: api)

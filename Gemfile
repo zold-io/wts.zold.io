@@ -47,6 +47,7 @@ gem 'rack_csrf', '2.6.0'
 gem 'rake', '12.3.2', require: false
 gem 'random-port', '0.4.1', require: false
 gem 'rerun', '0.13.0', require: false
+gem 'retriable_proxy', '1.0.2'
 gem 'rubocop', '0.72.0', require: false
 gem 'rubocop-rspec', '1.33.0', require: false
 gem 'sass', '3.7.4'
