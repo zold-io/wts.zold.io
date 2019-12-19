@@ -21,6 +21,7 @@
 require 'zold/log'
 require 'sibit'
 require 'glogin'
+require 'retriable'
 require_relative 'wts'
 require_relative 'user_error'
 
@@ -299,14 +300,18 @@ total unspent was #{unspent}; tx hash is #{txn}")
   private
 
   def block_json(hash)
-    uri = URI("https://chain.api.btc.com/v3/block/#{hash}")
-    hash = Sibit::Json.new(log: @log).get(uri)
-    hash['data']
+    Retriable.retriable do
+      uri = URI("https://chain.api.btc.com/v3/block/#{hash}")
+      hash = Sibit::Json.new(log: @log).get(uri)
+      hash['data']
+    end
   end
 
   def block_txns(hash)
-    uri = URI("https://chain.api.btc.com/v3/block/#{hash}/tx")
-    hash = Sibit::Json.new(log: @log).get(uri)
-    hash['data']['list']
+    Retriable.retriable do
+      uri = URI("https://chain.api.btc.com/v3/block/#{hash}/tx")
+      hash = Sibit::Json.new(log: @log).get(uri)
+      hash['data']['list']
+    end
   end
 end

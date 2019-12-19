@@ -25,6 +25,7 @@ gem 'aws-sdk-s3', '1.43.0'
 gem 'aws-sdk-sns', '1.17.0'
 gem 'backports', '3.15.0'
 gem 'backtrace', '0.3.0'
+gem 'bitcoin-ruby', '0.0.19'
 gem 'codecov', '0.1.14'
 gem 'coinbase', '4.2.1'
 gem 'concurrent-ruby', '>=1.1'
@@ -47,6 +48,7 @@ gem 'rack_csrf', '2.6.0'
 gem 'rake', '12.3.2', require: false
 gem 'random-port', '0.4.1', require: false
 gem 'rerun', '0.13.0', require: false
+gem 'retriable', '3.1.1'
 gem 'retriable_proxy', '1.0.2'
 gem 'rubocop', '0.72.0', require: false
 gem 'rubocop-rspec', '1.33.0', require: false
