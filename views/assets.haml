@@ -72,7 +72,7 @@
       = "(#{WTS::Dollars.new(limit * price)})"
   %table.compact
     %colgroup
-      %col{style: 'width: 25em'}
+      %col{style: 'width: 28em'}
       %col{style: 'width: 4em'}
       %col{style: 'width: 4em'}
       %col{style: ''}
@@ -89,7 +89,7 @@
       - assets.each do |a|
         %tr
           %td
-            %a{href: "https://www.blockchain.com/btc/address/#{a[:address]}"}<
+            %a.monospace{href: "https://www.blockchain.com/btc/address/#{a[:address]}"}<
               = largetext(a[:address])
           %td.right{title: a[:value]}
             - if a[:value].zero?
