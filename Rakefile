@@ -1,4 +1,4 @@
-# Copyright (c) 2018-2019 Zerocracy, Inc.
+# Copyright (c) 2018-2020 Zerocracy, Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the 'Software'), to deal
@@ -20,13 +20,14 @@
 
 STDOUT.sync = true
 
-require 'rubygems'
-require 'rake'
-require 'yaml'
-require 'shellwords'
-require 'rdoc'
-require 'rake/clean'
+require 'date'
 require 'English'
+require 'rake'
+require 'rake/clean'
+require 'rdoc'
+require 'rubygems'
+require 'shellwords'
+require 'yaml'
 
 ENV['RACK_ENV'] = 'test'
 
@@ -83,7 +84,7 @@ task(run: %i[pgsql liquibase]) do
 end
 
 task(:copyright) do
-  sh "grep -q -r '#{Date.today.strftime('%Y')}' \
+  sh "grep -q -r '2018-#{Date.today.strftime('%Y')}' \
     --include '*.rb' \
     --include '*.txt' \
     --include 'Rakefile' \

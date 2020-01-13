@@ -91,7 +91,7 @@
           %td
             %a.monospace{href: "https://www.blockchain.com/btc/address/#{a[:address]}"}<
               = largetext(a[:address])
-          %td.right{title: a[:value]}
+          %td.right.monospace{title: a[:value]}
             - if a[:value].zero?
               = '&mdash;'
             - else
