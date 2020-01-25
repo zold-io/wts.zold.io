@@ -21,7 +21,7 @@
       %br
       = succeed ':' do
         %a{href: 'https://blog.zold.io/2019/01/15/taxes-explained.html'} Taxes
-      = "#{Zold::Tax.new(w).paid} paid, the debt is #{Zold::Tax.new(w).debt}"
+      = "#{Zold::Tax.new(w).paid.to_zld} ZLD paid, the debt is #{Zold::Tax.new(w).debt.to_zld} ZLD"
       %br
       File size:
       = "#{Zold::Size.new(w.size)}"
@@ -96,9 +96,11 @@
             %tr
               %td
                 - if t.amount.negative?
-                  = '#' + t.id.to_s
+                  %a{href: iri.cut('/receipt').add(txn: t.id)}
+                    = '#' + t.id.to_s
                 - else
-                  = '-'
+                  %span{title: t.id}
+                    = '-'
               %td.right
                 %span{title: t.amount.to_i, class: (t.amount.negative? ? 'firebrick' : 'seagreen')}
                   = t.amount.to_zld

@@ -28,7 +28,7 @@
       });
   %body
     %section
-      %header
+      %header.unprintable
         %nav
           %ul
             %li
@@ -144,7 +144,7 @@
 
       %article
         = yield
-      %footer.smaller.gray
+      %footer.smaller.gray.unprintable
         - unless defined? header_off
           %nav
             %ul

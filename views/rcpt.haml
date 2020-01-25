@@ -1,0 +1,30 @@
+%h2
+  Receipt
+  = "##{hash}"
+
+%p
+  The receipt is provided for the transaction
+  made through the WTS system by one of its users
+  online. The information here is strictly confidential
+  and is supposed to be visible only the designated
+  reader.
+
+%div{style: 'float: right'}
+  %img{src: Iri.new('https://api.qrserver.com/v1/create-qr-code/').add(size: '150x150', data: iri.to_s, format: 'svg')}
+
+%p.monospace{style: "white-space: pre-wrap"}
+  = details
+
+%p
+  The system is operated by
+  %a{href: 'https://www.zerocracy.com'} Zerocracy Inc.
+  (Delaware, USA).
+
+%p
+  Ste 470, 555 Bryant Str.
+  %br
+  Palo Alto, CA 94301
+  %br
+  +1.408.692.4742
+  %br
+  %a{href: 'mailto:receipts@zold.io'} receipts@zold.io

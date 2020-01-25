@@ -12,17 +12,23 @@
 #
 # THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFINGEMENT. IN NO EVENT SHALL THE
 # AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'cgi'
+require 'minitest/autorun'
+require 'webmock/minitest'
+require_relative 'test__helper'
+require_relative '../objects/receipts'
 
-helpers do
-  def largetext(text)
-    span = "<span style='display:inline-block;'>"
-    span + CGI.escapeHTML(text).tr("\n", '↵').split(/([^ ]{4})/).join('</span>' + span) + '</span>'
+class WTS::ReceiptsTest < Minitest::Test
+  def test_add_and_fetch
+    WebMock.allow_net_connect!
+    receipts = WTS::Receipts.new(test_pgsql, log: test_log)
+    hash = 'abcdef'
+    receipts.create('tester', hash, 'test')
+    assert_equal('test', receipts.details(hash))
   end
 end

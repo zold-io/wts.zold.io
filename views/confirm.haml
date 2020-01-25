@@ -16,8 +16,8 @@
     %a{href: 'https://blog.zold.io/2018/07/18/keygap.html', title: 'Read more about Keygap'} keygap
 
 %p
-  %span.firebrick.monospace{style: 'font-size:4em;'}
-    = '<span>' + user.keygap.split(/(.{4})/).join('</span> <span>') + '</span>'
+  %span.firebrick.monospace{style: 'font-size:4em;line-height:1em;'}
+    = largetext(user.keygap)
 
 %p
   You have to save it right now, together with your wallet ID

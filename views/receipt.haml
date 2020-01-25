@@ -1,0 +1,30 @@
+%h2
+  Create Receipt
+
+%p
+  Create the receipt for the transaction in your wallet:
+
+%form{method: 'POST', action: iri.cut('/do-receipt')}
+  %fieldset
+    = Rack::Csrf.tag(env)
+    %span
+      %label Txn:
+      %input{type: 'text', name: 'txn', size: 5, readonly: true, value: txn}
+      %label Amount:
+      %input{type: 'text', name: 'zld', size: 7, readonly: true, value: zld.to_zld}
+      %label ZLD, which is equal to
+      %input{type: 'text', name: 'usd', size: 7, readonly: true, value: usd.round(2)}
+      %label USD
+    %label Payer:
+    %input{type: 'text', name: 'payer', size: 30, autocomplete: 'off', required: true, tabindex: 1, autofocus: true}
+    %label Recipient:
+    %input{type: 'text', name: 'recipient', size: 35, autocomplete: 'off', required: true, tabindex: 2}
+    %label Details:
+    %input{type: 'text', name: 'details', size: 45, autocomplete: 'off', required: true, tabindex: 3}
+    %input{type: 'submit', tabindex: 4, value: 'Create'}
+
+%p
+  = succeed ':' do
+    %strong.firebrick ATTENTION
+  You won't be able to modify it later. Receipts are immutable
+  and this operation is not reversable.

@@ -41,7 +41,8 @@ post '/do-pay' do
     balance = user.wallet(&:balance)
     debt = user.wallet { |w| Zold::Tax.new(w).debt }
     if balance - debt < amount
-      raise WTS::UserError, "E197: Not enough funds to send #{amount} only #{balance} left (the debt is #{debt})"
+      raise WTS::UserError, "E197: Not enough funds to send #{amount.to_zld} \
+only #{balance.to_zld} left (the debt is #{debt.to_zld})"
     end
   end
   raise WTS::UserError, 'E111: Parameter "details" is not provided' if params[:details].nil?
@@ -103,7 +104,7 @@ see the White Paper, only a limited subset of characters is allowed: [a-zA-Z0-9@
       )
     end
   end
-  flash('/', "Payment has been sent to #{bnf} for #{amount}")
+  flash('/', "Payment has been sent to #{bnf} for #{amount.to_zld}")
 end
 
 def parsed_amount
