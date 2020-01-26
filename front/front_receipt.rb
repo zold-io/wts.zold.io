@@ -27,13 +27,13 @@ get '/receipt' do
   id = params[:txn].to_i
   txn = user.wallet(&:txns).find { |t| t.id == id }
   raise WTS::UserError, "E223: There is no transaction ##{id} in your wallet" if txn.nil?
-  raise WTS::UserError, 'E224: Only negative transactions may have receipts' if txn.amount.positive?
+  raise WTS::UserError, 'E224: Only negative transactions may have receipts' if txn.amount.positive? && !user.fake?
   haml :receipt, layout: :layout, locals: merged(
     page_title: title('receipt'),
     wallet: user.item.id,
     txn: txn.id,
-    zld: txn.amount.mul(-1),
-    usd: WTS::Rate.new(settings.toggles).to_f * price * txn.amount.mul(-1).to_f
+    zld: txn.amount * -1,
+    usd: WTS::Rate.new(settings.toggles).to_f * price * txn.amount.to_f * -1
   )
 end
 
@@ -50,7 +50,7 @@ post '/do-receipt' do
     '',
     "Payment details: #{params[:details]}"
   ].join("\n")
-  hash = SecureRandom.hex[0..8].upcase
+  hash = (params[:hash] || SecureRandom.hex).gsub(/[^a-f0-9A-F]/, '')[0..8].upcase
   id = settings.receipts.create(user.login, hash, details)
   flash("/rcpt/#{hash}", "The receipt ##{id} has been generated with #{hash.inspect} hash")
 end
@@ -59,7 +59,7 @@ get '/rcpt/{hash}' do
   hash = params[:hash]
   details = settings.receipts.details(hash)
   haml :rcpt, layout: :layout, locals: merged(
-    page_title: title(hash),
+    page_title: hash,
     hash: hash,
     details: details
   )

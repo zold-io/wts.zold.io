@@ -246,6 +246,19 @@ class WTS::AppTest < Minitest::Test
     assert_equal(200, last_response.status, last_response.body)
   end
 
+  def test_create_and_render_receipt
+    WebMock.allow_net_connect!
+    header('X-Zold-WTS', '0000000000000000-b416493aefae4ca487c4739050aaec15')
+    get('/receipt?txn=1')
+    assert_equal(200, last_response.status, last_response.body)
+    hash = SecureRandom.hex[0..8].upcase
+    post("/do-receipt?txn=1&usd=10&zld=5=payer=Jeff&recipient=John&details=test&hash=#{hash}")
+    assert_equal(302, last_response.status, last_response.body)
+    header('X-Zold-WTS', '')
+    get("/rcpt/#{hash}")
+    assert_equal(200, last_response.status, last_response.body)
+  end
+
   private
 
   def form(params)

@@ -69,6 +69,10 @@ before '/*' do
   header = request.env['HTTP_X_ZOLD_WTS'] || cookies[:wts] || nil
   if header
     login, token = header.strip.split('-', 2)
+    if login.nil? || token.nil?
+      settings.log.info('The auth token is broken')
+      return
+    end
     unless user(login).fake? || user(login).item.exists?
       settings.log.info("API: User #{login} is absent")
       return
