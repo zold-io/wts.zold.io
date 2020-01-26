@@ -40,16 +40,16 @@ require 'minitest/autorun'
 require 'pgtk/pool'
 module Minitest
   class Test
-    def test_log
+    def t_log
       require 'zold/log'
-      @test_log ||= ENV['TEST_QUIET_LOG'] ? Zold::Log::NULL : Zold::Log::VERBOSE
+      @t_log ||= ENV['TEST_QUIET_LOG'] ? Zold::Log::NULL : Zold::Log::VERBOSE
     end
 
-    def test_pgsql
+    def t_pgsql
       # rubocop:disable Style/ClassVars
-      @@test_pgsql ||= Pgtk::Pool.new(
+      @@t_pgsql ||= Pgtk::Pool.new(
         Pgtk::Wire::Yaml.new(File.join(__dir__, '../target/pgsql-config.yml')),
-        log: test_log
+        log: t_log
       ).start
       # rubocop:enable Style/ClassVars
     end

@@ -39,7 +39,7 @@ class WTS::AppTest < Minitest::Test
   include Rack::Test::Methods
 
   def app
-    Sinatra::Application.set(:log, test_log)
+    Sinatra::Application.set(:log, t_log)
     Sinatra::Application.set(:pool, Concurrent::FixedThreadPool.new(1, max_queue: 0, fallback_policy: :caller_runs))
     Sinatra::Application
   end
@@ -99,8 +99,8 @@ class WTS::AppTest < Minitest::Test
     name = 'bill'
     login(name)
     user = WTS::User.new(
-      name, WTS::Item.new(name, test_pgsql, log: test_log),
-      Sinatra::Application.settings.wallets, log: test_log
+      name, WTS::Item.new(name, t_pgsql, log: t_log),
+      Sinatra::Application.settings.wallets, log: t_log
     )
     user.create
     keygap = user.keygap
@@ -153,13 +153,13 @@ class WTS::AppTest < Minitest::Test
     name = 'jeff079'
     login(name)
     boss = WTS::User.new(
-      '0crat', WTS::Item.new('0crat', test_pgsql, log: test_log),
-      Sinatra::Application.settings.wallets, log: test_log
+      '0crat', WTS::Item.new('0crat', t_pgsql, log: t_log),
+      Sinatra::Application.settings.wallets, log: t_log
     )
     boss.create
     user = WTS::User.new(
-      name, WTS::Item.new(name, test_pgsql, log: test_log),
-      Sinatra::Application.settings.wallets, log: test_log
+      name, WTS::Item.new(name, t_pgsql, log: t_log),
+      Sinatra::Application.settings.wallets, log: t_log
     )
     user.create
     keygap = user.keygap
@@ -174,7 +174,7 @@ class WTS::AppTest < Minitest::Test
         )
       )
     end
-    assets = WTS::Assets.new(test_pgsql, log: test_log)
+    assets = WTS::Assets.new(t_pgsql, log: t_log)
     address = assets.acquire(user.login)
     assets.set(address, 10_000_000)
     get('/zld-to-btc')

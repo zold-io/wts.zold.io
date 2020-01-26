@@ -32,7 +32,7 @@ class WTS::AsyncJobTest < Minitest::Test
     Dir.mktmpdir 'test' do |dir|
       job = proc { latch.count_down }
       lock = File.join(dir, 'lock')
-      async = WTS::AsyncJob.new(WTS::SafeJob.new(job), pool, lock, log: test_log)
+      async = WTS::AsyncJob.new(WTS::SafeJob.new(job), pool, lock, log: t_log)
       async.call(1)
       latch.wait
       pool.shutdown

@@ -36,7 +36,7 @@ class WTS::UpworkTest < Minitest::Test
         'access_secret' => '...'
       },
       'team_id',
-      log: test_log
+      log: t_log
     )
     key = upwork.pay('123456789', 1.28, 'Just a test')
     assert(!key.nil?)

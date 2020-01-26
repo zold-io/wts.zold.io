@@ -26,7 +26,7 @@ require_relative '../objects/mcodes'
 class WTS::McodesTest < Minitest::Test
   def test_saves_and_gets
     WebMock.allow_net_connect!
-    mcodes = WTS::Mcodes.new(test_pgsql, log: test_log)
+    mcodes = WTS::Mcodes.new(t_pgsql, log: t_log)
     phone = 1_234_567_890
     assert(!mcodes.exists?(phone))
     mcodes.set(phone, 1234)

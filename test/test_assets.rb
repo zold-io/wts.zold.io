@@ -31,9 +31,9 @@ class WTS::AssetsTest < Minitest::Test
   def test_acquire_address
     WebMock.allow_net_connect!
     login = "jeff#{rand(999)}"
-    item = WTS::Item.new(login, test_pgsql, log: test_log)
+    item = WTS::Item.new(login, t_pgsql, log: t_log)
     item.create(Zold::Id.new, Zold::Key.new(text: OpenSSL::PKey::RSA.new(2048).to_pem))
-    assets = WTS::Assets.new(test_pgsql, log: test_log)
+    assets = WTS::Assets.new(t_pgsql, log: t_log)
     address = assets.acquire(login)
     assert(!address.nil?)
     assert_equal(address, assets.acquire(login))
@@ -43,7 +43,7 @@ class WTS::AssetsTest < Minitest::Test
 
   def test_orphan_address
     WebMock.allow_net_connect!
-    assets = WTS::Assets.new(test_pgsql, log: test_log)
+    assets = WTS::Assets.new(t_pgsql, log: t_log)
     addresses = Set.new
     200.times { addresses << assets.acquire }
     assert_equal(8, addresses.count)
@@ -51,7 +51,7 @@ class WTS::AssetsTest < Minitest::Test
 
   def test_add_cold_asset
     WebMock.allow_net_connect!
-    assets = WTS::Assets.new(test_pgsql, log: test_log, sibit: Sibit::Fake.new)
+    assets = WTS::Assets.new(t_pgsql, log: t_log, sibit: Sibit::Fake.new)
     address = "1JvCsJtLmCxEk7ddZFnVkGXpr9uhxZP#{rand(999)}"
     assets.add_cold(address)
     assert(assets.cold?(address))
@@ -59,7 +59,7 @@ class WTS::AssetsTest < Minitest::Test
 
   def test_sets_value
     WebMock.allow_net_connect!
-    assets = WTS::Assets.new(test_pgsql, log: test_log)
+    assets = WTS::Assets.new(t_pgsql, log: t_log)
     address = assets.acquire
     assets.set(address, 50_000_000)
     assets.set(address, 100_000_000)
@@ -80,9 +80,9 @@ class WTS::AssetsTest < Minitest::Test
     stub_request(
       :get, "https://chain.api.btc.com/v3/block/#{hash}/tx"
     ).to_return(body: '{"data": {"list": []}}')
-    assets = WTS::Assets.new(test_pgsql, log: test_log)
+    assets = WTS::Assets.new(t_pgsql, log: t_log)
     login = "jeff#{rand(999)}"
-    item = WTS::Item.new(login, test_pgsql, log: test_log)
+    item = WTS::Item.new(login, t_pgsql, log: t_log)
     item.create(Zold::Id.new, Zold::Key.new(text: OpenSSL::PKey::RSA.new(2048).to_pem))
     assets.acquire(login)
     assets.monitor_btc(hash, max: 2) do |addr, hsh, satoshi|
@@ -95,13 +95,13 @@ class WTS::AssetsTest < Minitest::Test
   def test_pays
     WebMock.allow_net_connect!
     assets = WTS::Assets.new(
-      test_pgsql,
-      log: test_log,
+      t_pgsql,
+      log: t_log,
       sibit: Sibit::Fake.new,
       codec: GLogin::Codec.new('some secret')
     )
     ["jeff#{rand(999)}", "johnny#{rand(999)}"].each do |login|
-      item = WTS::Item.new(login, test_pgsql, log: test_log)
+      item = WTS::Item.new(login, t_pgsql, log: t_log)
       item.create(Zold::Id.new, Zold::Key.new(text: OpenSSL::PKey::RSA.new(2048).to_pem))
       assets.set(assets.acquire(login), 70)
     end
@@ -111,7 +111,7 @@ class WTS::AssetsTest < Minitest::Test
 
   def test_saves_hash_and_loads
     WebMock.allow_net_connect!
-    assets = WTS::Assets.new(test_pgsql, log: test_log)
+    assets = WTS::Assets.new(t_pgsql, log: t_log)
     address = "1JvCsJtLmCxEk7ddZFnVkGXpr9uhxZP#{rand(999)}"
     hash = "5de641d3867eb8fec3eb1a5ef2b44df39b54e0b3bb664ab520f2ae26a5b18#{rand(999)}"
     assert(!assets.seen?(hash))

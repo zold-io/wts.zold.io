@@ -27,7 +27,7 @@ require_relative '../objects/payouts'
 class WTS::PayoutsTest < Minitest::Test
   def test_register_and_check
     WebMock.allow_net_connect!
-    payouts = WTS::Payouts.new(test_pgsql, log: test_log)
+    payouts = WTS::Payouts.new(t_pgsql, log: t_log)
     login = 'yegor256'
     payouts.add(login, Zold::Id::ROOT.to_s, Zold::Amount.new(zld: 16.0), 'just for fun')
     assert_equal(1, payouts.fetch(login).count)

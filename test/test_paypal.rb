@@ -38,7 +38,7 @@ class WTS::PayPalTest < Minitest::Test
         signature: '...',
         appid: 'APP-...'
       },
-      log: test_log
+      log: t_log
     )
     key = pp.pay('yegor256@gmail.com', 1.28, 'Just a test')
     assert(key.start_with?('AP-'), key)

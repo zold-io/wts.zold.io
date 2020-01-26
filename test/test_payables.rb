@@ -52,7 +52,7 @@ class WTS::PayablesTest < Minitest::Test
           )
         end
       end
-      payables = WTS::Payables.new(test_pgsql, remotes, log: test_log)
+      payables = WTS::Payables.new(t_pgsql, remotes, log: t_log)
       payables.discover
       assert_equal(wallets.count, payables.fetch.count)
       payables.update(max: wallets.count)

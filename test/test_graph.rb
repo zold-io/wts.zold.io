@@ -27,14 +27,14 @@ require_relative '../objects/graph'
 class WTS::GraphTest < Minitest::Test
   def test_renders_svg
     WebMock.allow_net_connect!
-    ticks = WTS::Ticks.new(test_pgsql, log: test_log)
+    ticks = WTS::Ticks.new(t_pgsql, log: t_log)
     ticks.add('Price' => 1, 'time' => tme(-1))
     ticks.add('Price' => 3, 'time' => tme(-2))
     ticks.add('Price' => 2, 'time' => tme(-10))
     ticks.add('Price' => 1.5, 'time' => tme(-14))
     ticks.add('Price' => 1.2, 'time' => tme(-50))
     FileUtils.mkdir_p('target')
-    IO.write('target/graph.svg', WTS::Graph.new(ticks, log: test_log).svg(['Price'], 1, 0))
+    IO.write('target/graph.svg', WTS::Graph.new(ticks, log: t_log).svg(['Price'], 1, 0))
   end
 
   private

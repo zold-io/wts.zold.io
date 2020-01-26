@@ -27,7 +27,7 @@ require_relative '../objects/referrals'
 class WTS::ReferralsTest < Minitest::Test
   def test_register_and_fetch
     WebMock.disable_net_connect!
-    referrals = WTS::Referrals.new(test_pgsql, log: test_log)
+    referrals = WTS::Referrals.new(t_pgsql, log: t_log)
     login = 'yegor256'
     referrals.register(login, 'friend', source: nil)
     assert(referrals.exists?(login))

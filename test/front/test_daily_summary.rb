@@ -53,19 +53,19 @@ class WTS::DailySummaryTest < Minitest::Test
           123
         end
       end.new,
-      pgsql: test_pgsql,
-      payables: WTS::Payables.new(test_pgsql, nil, log: test_log),
-      gl: WTS::Gl.new(test_pgsql),
+      pgsql: t_pgsql,
+      payables: WTS::Payables.new(t_pgsql, nil, log: t_log),
+      gl: WTS::Gl.new(t_pgsql),
       config: {
         'github' => {
           'client_id' => '',
           'client_secret' => ''
         }
       },
-      log: test_log,
+      log: t_log,
       sibit: Sibit::Fake.new,
-      toggles: WTS::Toggles.new(test_pgsql),
-      assets: WTS::Assets.new(test_pgsql)
+      toggles: WTS::Toggles.new(t_pgsql),
+      assets: WTS::Assets.new(t_pgsql)
     ).markdown
     assert(md.include?('Deficit: '), md)
   end
@@ -78,8 +78,8 @@ class WTS::DailySummaryTest < Minitest::Test
     WebMock.allow_net_connect!
     2.times do
       ['papers', 'blog.zold.io', 'zold', 'wts.zold.io', 'zold-ruby-sdk'].each do |r|
-        assert(!WTS::DailySummary::HoC.new("zold-io/#{r}", log: test_log).hoc.zero?)
-        assert(!WTS::DailySummary::HoC.new("zold-io/#{r}", log: test_log).commits.zero?)
+        assert(!WTS::DailySummary::HoC.new("zold-io/#{r}", log: t_log).hoc.zero?)
+        assert(!WTS::DailySummary::HoC.new("zold-io/#{r}", log: t_log).commits.zero?)
       end
     end
   end

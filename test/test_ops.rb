@@ -37,19 +37,19 @@ class WTS::OpsTest < Minitest::Test
       remotes = Zold::Remotes.new(file: File.join(dir, 'remotes.csv'))
       remotes.clean
       login = 'jeff01'
-      item = WTS::Item.new(login, test_pgsql, log: test_log)
-      user = WTS::User.new(login, item, wallets, log: test_log)
+      item = WTS::Item.new(login, t_pgsql, log: t_log)
+      user = WTS::User.new(login, item, wallets, log: t_log)
       user.create
       keygap = user.keygap
       user.confirm(keygap)
       friend = WTS::User.new(
         'friend',
-        WTS::Item.new('friend', test_pgsql, log: test_log),
-        wallets, log: test_log
+        WTS::Item.new('friend', t_pgsql, log: t_log),
+        wallets, log: t_log
       )
       friend.create
       # copies = File.join(dir, 'copies')
-      # WTS::Ops.new(item, user, wallets, remotes, copies, log: test_log).pay(
+      # WTS::Ops.new(item, user, wallets, remotes, copies, log: t_log).pay(
       #   keygap, friend.item.id, Zold::Amount.new(zld: 19.99), 'for fun'
       # )
     end
