@@ -67,7 +67,7 @@
         %tr
           %td
             = t[:id]
-          %td.right{title: t[:amount].to_i}
+          %td.right.monospace{title: t[:amount].to_i}
             = t[:amount].to_zld
           %td{title: t[:date].utc.iso8601}
             = Zold::Age.new(t[:date])

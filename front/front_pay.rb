@@ -18,6 +18,11 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+get '/exists/{user}' do
+  content_type 'text/plain'
+  github_exists?(params[:user]) ? 'yes' : 'no'
+end
+
 get '/pay' do
   features('pay')
   haml :pay, layout: :layout, locals: merged(

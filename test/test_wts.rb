@@ -67,6 +67,7 @@ class WTS::AppTest < Minitest::Test
       '/terms',
       '/payables',
       '/assets',
+      '/exists/yegor256',
       '/context',
       '/remotes',
       '/quick',
