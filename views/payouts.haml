@@ -41,7 +41,7 @@
           ID
         %th
           Wallet
-        %th
+        %th.right
           ZLD
         %th
           Created
@@ -55,7 +55,7 @@
           %td
             %code
               %a{href: "http://www.zold.io/ledger.html?wallet=#{p[:wallet]}"}= p[:wallet]
-          %td.right
+          %td.right.monospace
             = p[:amount].to_zld
           %td{title: p[:created].utc.iso8601}
             = Zold::Age.new(p[:created])
@@ -79,7 +79,7 @@
           Login
         %th
           Wallet
-        %th
+        %th.right
           ZLD
         %th
           Created
@@ -93,7 +93,7 @@
           %td
             %code
               %a{href: "http://www.zold.io/ledger.html?wallet=#{p[:wallet]}"}= p[:wallet]
-          %td.right
+          %td.right.monospace
             = p[:amount].to_zld
           %td{title: p[:created].utc.iso8601}
             = Zold::Age.new(p[:created])
