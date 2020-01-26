@@ -458,7 +458,7 @@ def known?(login = @locals[:guser])
   return true if login == settings.config['rewards']['login']
   return true if login == settings.config['exchange']['login']
   return true if settings.config['kyc'].include?(login)
-  settings.zache.get("#{login}_known?", lifetime: 5 * 50) do
+  settings.zache.get("#{login}_known?", lifetime: 5 * 60) do
     Zold::Http.new(uri: 'https://www.0crat.com/known/' + login).get(timeout: 16).code == 200
   end
 end
@@ -470,7 +470,7 @@ def kyc?(login = @locals[:guser])
   return true if login == settings.config['rewards']['login']
   return true if login == settings.config['exchange']['login']
   return true if settings.config['kyc'].include?(login)
-  settings.zache.get("#{login}_kyc?", lifetime: 5 * 50) do
+  settings.zache.get("#{login}_kyc?", lifetime: 5 * 60) do
     res = Zold::Http.new(uri: 'https://www.0crat.com/known/' + login).get(timeout: 16)
     res.code == 200 && Zold::JsonPage.new(res.body).to_hash['identified']
   end
@@ -533,7 +533,9 @@ def job_link(jid)
 end
 
 def github_exists?(login)
-  Zold::Http.new(uri: "https://api.github.com/users/#{login}").get.status == 200
+  settings.zache.get("#{login}_github_exists") do
+    Zold::Http.new(uri: "https://api.github.com/users/#{login}").get.status == 200
+  end
 end
 
 require_relative 'front/helpers'
