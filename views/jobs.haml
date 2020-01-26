@@ -13,19 +13,6 @@
     %label Show:
     %input{type: 'text', name: 'id', maxlength: 64, size: 35, placeholder: 'The ID of the job to see', autocomplete: 'off', tabindex: 1, required: true}
     %input{type: 'submit', tabindex: 2, value: 'Output'}
-  %form{method: 'POST', action: iri.cut('/cold-to-hot')}
-    %fieldset
-      = Rack::Csrf.tag(env)
-      %label Transfer from this cold address to a random hot one (pick the smallest one):
-      %select{name: 'address', tabindex: 5}
-        - assets.reject { |a| a[:hot] }.each do |a|
-          %option{value: a[:address]}
-            = "#{a[:address]} / #{format('%.02f', a[:value].to_f / 100_000_000)}"
-      %label Private key of the cold address (64 hex digits):
-      %input{type: 'password', name: 'pkey', size: 35, placeholder: 'Bitcoin private key', autocomplete: 'off', tabindex: 6, required: true}
-      %label The amount to transfer:
-      %input{type: 'text', name: 'amount', size: 8, placeholder: 'BTC', autocomplete: 'off', tabindex: 7, required: true}
-      %input{type: 'submit', tabindex: 8, value: 'Send', onclick: "return confirm('Are you sure?')"}
   %table.compact
     %colgroup
       %col{style: 'width: 10em'}
