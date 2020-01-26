@@ -2,6 +2,9 @@
   Receipt
   = "##{hash}"
 
+%div{style: 'float: right'}
+  %img{src: 'https://www.zold.io/images/logo-blue.svg', alt: 'Zold logo', style: 'width: 128px; height: 128px;'}
+
 %p
   The receipt is provided for the transaction
   made through the WTS system by one of its users
@@ -9,11 +12,11 @@
   and is supposed to be visible only the designated
   reader.
 
-%div{style: 'float: right'}
-  %img{src: Iri.new('https://api.qrserver.com/v1/create-qr-code/').add(size: '150x150', data: iri.to_s, format: 'svg')}
-
 %p.monospace{style: "white-space: pre-wrap"}
   = details
+
+%div{style: 'float: right'}
+  %img{src: Iri.new('https://api.qrserver.com/v1/create-qr-code/').add(size: '128x128', data: iri.to_s, format: 'svg')}
 
 %p
   The system is operated by

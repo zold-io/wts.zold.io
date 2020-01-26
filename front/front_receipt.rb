@@ -32,8 +32,8 @@ get '/receipt' do
     page_title: title('receipt'),
     wallet: user.item.id,
     txn: txn.id,
-    zld: txn.amount,
-    usd: WTS::Rate.new(settings.toggles).to_f * price * txn.amount.to_f
+    zld: txn.amount.mul(-1),
+    usd: WTS::Rate.new(settings.toggles).to_f * price * txn.amount.mul(-1).to_f
   )
 end
 
