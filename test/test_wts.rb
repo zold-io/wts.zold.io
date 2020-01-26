@@ -249,6 +249,8 @@ class WTS::AppTest < Minitest::Test
   def test_create_and_render_receipt
     WebMock.allow_net_connect!
     header('X-Zold-WTS', '0000000000000000-b416493aefae4ca487c4739050aaec15')
+    get('/pull?noredirect=1')
+    assert_equal(200, last_response.status, last_response.body)
     get('/receipt?txn=1')
     assert_equal(200, last_response.status, last_response.body)
     hash = SecureRandom.hex[0..8].upcase

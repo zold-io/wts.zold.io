@@ -97,7 +97,7 @@ class WTS::User
   def wallet
     id = @item.id
     @wallets.acq(id) do |wallet|
-      raise WTS::UserError, "E100: You have to pull the wallet #{id} first" unless wallet.exists?
+      raise WTS::UserError, "E100: You have to pull the wallet #{id} first (#{@login})" unless wallet.exists?
       @item.touch
       yield wallet
     end
