@@ -68,6 +68,7 @@ class WTS::AppTest < Minitest::Test
       '/payables',
       '/assets',
       '/exists/yegor256',
+      '/exists/user-doesnt-exist-in-github',
       '/context',
       '/remotes',
       '/quick',
