@@ -20,7 +20,9 @@
 
 get '/exists/{user}' do
   content_type 'text/plain'
-  github_exists?(params[:user]) ? 'yes' : 'no'
+  github_ping(params[:user]).to_s
+rescue WTS::UserError => e
+  e.message
 end
 
 get '/pay' do
@@ -69,7 +71,6 @@ see the White Paper, only a limited subset of characters is allowed: [a-zA-Z0-9@
     login = bnf.downcase.gsub(/^@/, '')
     raise WTS::UserError, "E115: Invalid GitHub user name: #{bnf.inspect}" unless login =~ /^[a-z0-9-]{3,32}$/
     raise WTS::UserError, 'E116: You can\'t pay yourself' if login == user.login
-    raise WTS::UserError, "E189: GitHub user #{login.inspect} doesn't exist" unless github_exists?(login)
     friend = user(login)
     unless friend.item.exists?
       friend.create(settings.remotes)
