@@ -532,14 +532,6 @@ def job_link(jid)
   "the full log is [here](https://wts.zold.io/output?id=#{jid})"
 end
 
-def github_ping(login)
-  settings.zache.get("#{login}_github_ping") do
-    res = Zold::Http.new(uri: "https://api.github.com/users/#{login}").get
-    raise WTS::UserError, "E189: GitHub user #{login.inspect} doesn't exist (#{res.status})" unless res.status == 200
-    res.status
-  end
-end
-
 require_relative 'front/helpers'
 require_relative 'front/front_bonuses'
 require_relative 'front/front_btc'
