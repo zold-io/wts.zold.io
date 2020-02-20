@@ -459,7 +459,7 @@ def known?(login = @locals[:guser])
   return true if login == settings.config['exchange']['login']
   return true if settings.config['kyc'].include?(login)
   settings.zache.get("#{login}_known?", lifetime: 5 * 60) do
-    Zold::Http.new(uri: 'https://www.0crat.com/known/' + login).get(timeout: 16).code == 200
+    Zold::Http.new(uri: 'https://www.0crat.com/known/' + login.downcase).get(timeout: 16).code == 200
   end
 end
 
@@ -471,7 +471,7 @@ def kyc?(login = @locals[:guser])
   return true if login == settings.config['exchange']['login']
   return true if settings.config['kyc'].include?(login)
   settings.zache.get("#{login}_kyc?", lifetime: 5 * 60) do
-    res = Zold::Http.new(uri: 'https://www.0crat.com/known/' + login).get(timeout: 16)
+    res = Zold::Http.new(uri: 'https://www.0crat.com/known/' + login.downcase).get(timeout: 16)
     res.code == 200 && Zold::JsonPage.new(res.body).to_hash['identified']
   end
 end
