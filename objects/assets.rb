@@ -233,7 +233,7 @@ class WTS::Assets
         next
       end
       checked = 0
-      block_txns(block).each do |t|
+      block_json(block, '/tx')['list'].each do |t|
         t['outputs'].each_with_index do |o, i|
           next if o['spent_by_tx']
           address = o['addresses'][0]
@@ -299,23 +299,14 @@ total unspent was #{unspent}; tx hash is #{txn}")
 
   private
 
-  def block_json(hash)
+  def block_json(hash, suffix = '')
     Retriable.retriable do
-      uri = URI("https://chain.api.btc.com/v3/block/#{hash}")
-      hash = Sibit::Json.new(log: @log).get(uri)
-      data = hash['data']
+      uri = URI("https://chain.api.btc.com/v3/block/#{hash}#{suffix}")
+      json = Sibit::Json.new(log: @log).get(uri)
+      raise "Error in #{hash}: #{json['err_msg']}" if json['err_msg']
+      data = json['data']
       raise "Can't find 'data' inside JSON of #{hash} block" if data.nil?
       data
-    end
-  end
-
-  def block_txns(hash)
-    Retriable.retriable do
-      uri = URI("https://chain.api.btc.com/v3/block/#{hash}/tx")
-      hash = Sibit::Json.new(log: @log).get(uri)
-      data = hash['data']
-      raise "Can't find 'data' inside JSON of #{hash} block" if data.nil?
-      data['list']
     end
   end
 end
