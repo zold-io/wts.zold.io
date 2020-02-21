@@ -303,7 +303,9 @@ total unspent was #{unspent}; tx hash is #{txn}")
     Retriable.retriable do
       uri = URI("https://chain.api.btc.com/v3/block/#{hash}")
       hash = Sibit::Json.new(log: @log).get(uri)
-      hash['data']
+      data = hash['data']
+      raise "Can't find 'data' inside JSON of #{hash} block" if data.nil?
+      data
     end
   end
 
@@ -311,7 +313,9 @@ total unspent was #{unspent}; tx hash is #{txn}")
     Retriable.retriable do
       uri = URI("https://chain.api.btc.com/v3/block/#{hash}/tx")
       hash = Sibit::Json.new(log: @log).get(uri)
-      hash['data']['list']
+      data = hash['data']
+      raise "Can't find 'data' inside JSON of #{hash} block" if data.nil?
+      data['list']
     end
   end
 end
