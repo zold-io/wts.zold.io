@@ -89,6 +89,7 @@ before '/*' do
   cookies[:utm_campaign] = params[:utm_campaign] if params[:utm_campaign]
   request.env['rack.request.query_hash'].each do |k, v|
     raise WTS::UserError, "E101: The param #{k.inspect} can't be empty" if v.nil?
+    next unless v.is_a?(String)
     raise WTS::UserError, "E102: Invalid encoding of #{k.inspect} param" unless v.valid_encoding?
   end
 end
