@@ -234,9 +234,8 @@ class WTS::Assets
       end
       checked = 0
       checked_outputs = 0
-      page = 0
+      page = 1
       loop do
-        break if page * 50 > json['tx_count']
         block_json(block, "/tx?page=#{page}")['list'].each do |t|
           t['outputs'].each_with_index do |o, i|
             next if o['spent_by_tx']
@@ -256,6 +255,7 @@ class WTS::Assets
           end
           checked += 1
         end
+        break if page * 50 > json['tx_count']
         page += 1
       end
       @log.info(
