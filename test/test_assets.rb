@@ -76,9 +76,9 @@ class WTS::AssetsTest < Minitest::Test
     )
     stub_request(
       :get, "https://chain.api.btc.com/v3/block/#{hash}"
-    ).to_return(body: '{"data": {}}')
+    ).to_return(body: '{"data": {"tx_count": 25}}')
     stub_request(
-      :get, "https://chain.api.btc.com/v3/block/#{hash}/tx"
+      :get, "https://chain.api.btc.com/v3/block/#{hash}/tx?page=0"
     ).to_return(body: '{"data": {"list": []}}')
     assets = WTS::Assets.new(t_pgsql, log: t_log)
     login = "jeff#{rand(999)}"

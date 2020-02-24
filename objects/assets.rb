@@ -234,28 +234,33 @@ class WTS::Assets
       end
       checked = 0
       checked_outputs = 0
-      block_json(block, '/tx')['list'].each do |t|
-        t['outputs'].each_with_index do |o, i|
-          next if o['spent_by_tx']
-          address = o['addresses'][0]
-          next if address.nil?
-          checked_outputs += 1
-          next unless ours.include?(address)
-          hash = "#{t['hash']}:#{i}"
-          if seen?(hash)
-            @log.info("Hash #{hash} has already been seen, ignoring now...")
-            next
+      page = 0
+      loop do
+        break if page * 50 > json['tx_count']
+        block_json(block, "/tx?page=#{page}")['list'].each do |t|
+          t['outputs'].each_with_index do |o, i|
+            next if o['spent_by_tx']
+            address = o['addresses'][0]
+            next if address.nil?
+            checked_outputs += 1
+            next unless ours.include?(address)
+            hash = "#{t['hash']}:#{i}"
+            if seen?(hash)
+              @log.info("Hash #{hash} has already been seen, ignoring now...")
+              next
+            end
+            set(address, @sibit.balance(address))
+            satoshi = o['value']
+            yield(address, hash, satoshi)
+            @log.info("Bitcoin tx found at #{hash} for #{satoshi} sent to #{address}")
           end
-          set(address, @sibit.balance(address))
-          satoshi = o['value']
-          yield(address, hash, satoshi)
-          @log.info("Bitcoin tx found at #{hash} for #{satoshi} sent to #{address}")
+          checked += 1
         end
-        checked += 1
+        page += 1
       end
       @log.info(
-        "We checked #{checked} transactions and #{checked_outputs} outputs in block #{block};
-#{ours.count} addresses monitored"
+        "We checked #{checked} transactions and #{checked_outputs} outputs in block #{block}; \
+#{ours.count} addresses monitored; #{page} pages in the block"
       )
       n = json['next_block_hash']
       if n.nil?
