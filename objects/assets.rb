@@ -242,7 +242,10 @@ class WTS::Assets
           checked_outputs += 1
           next unless ours.include?(address)
           hash = "#{t['hash']}:#{i}"
-          next if seen?(hash)
+          if seen?(hash)
+            @log.info("Hash #{hash} has already been seen, ignoring now...")
+            next
+          end
           set(address, @sibit.balance(address))
           satoshi = o['value']
           yield(address, hash, satoshi)
@@ -250,7 +253,10 @@ class WTS::Assets
         end
         checked += 1
       end
-      @log.info("We checked #{checked} transactions and #{checked_outputs} outputs in block #{block}")
+      @log.info(
+        "We checked #{checked} transactions and #{checked_outputs} outputs in block #{block};
+#{ours.count} addresses monitored"
+      )
       n = json['next_block_hash']
       if n.nil?
         @log.info("The next_block is empty in block #{block}, this is the end of Blockchain")
