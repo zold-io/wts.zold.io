@@ -233,11 +233,13 @@ class WTS::Assets
         next
       end
       checked = 0
+      checked_outputs = 0
       block_json(block, '/tx')['list'].each do |t|
         t['outputs'].each_with_index do |o, i|
           next if o['spent_by_tx']
           address = o['addresses'][0]
           next if address.nil?
+          checked_outputs += 1
           next unless ours.include?(address)
           hash = "#{t['hash']}:#{i}"
           next if seen?(hash)
@@ -248,7 +250,7 @@ class WTS::Assets
         end
         checked += 1
       end
-      @log.info("We checked #{checked} transactions in block #{block}")
+      @log.info("We checked #{checked} transactions and #{checked_outputs} outputs in block #{block}")
       n = json['next_block_hash']
       if n.nil?
         @log.info("The next_block is empty in block #{block}, this is the end of Blockchain")
