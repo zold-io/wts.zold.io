@@ -25,9 +25,8 @@ set :receipts, WTS::Receipts.new(settings.pgsql, log: settings.log)
 
 get '/receipt' do
   id = params[:txn].to_i
-  txn = user.wallet(&:txns).find { |t| t.id == id }
+  txn = user.wallet(&:txns).find { |t| t.id == id && (t.amount.negative? || user.fake?) }
   raise WTS::UserError, "E223: There is no transaction ##{id} in your wallet" if txn.nil?
-  raise WTS::UserError, 'E224: Only negative transactions may have receipts' if txn.amount.positive? && !user.fake?
   haml :receipt, layout: :layout, locals: merged(
     page_title: title('receipt'),
     wallet: user.item.id,
