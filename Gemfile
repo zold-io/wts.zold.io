@@ -45,7 +45,7 @@ gem 'rack', '2.0.7'
 gem 'rack-ssl', '1.4.1'
 gem 'rack-test', '1.1.0'
 gem 'rack_csrf', '2.6.0'
-gem 'rake', '12.3.2', require: false
+gem 'rake', '12.3.3', require: false
 gem 'random-port', '0.4.1', require: false
 gem 'rerun', '0.13.0', require: false
 gem 'retriable', '3.1.1'
