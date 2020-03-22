@@ -273,6 +273,10 @@ class WTS::Assets
       end
       block = n
       count += 1
+      if page > 100
+        @log.info("Too many pages (#{page}) in one go, let's get back to it next time")
+        break
+      end
     end
     block
   end
