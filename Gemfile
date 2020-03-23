@@ -41,7 +41,7 @@ gem 'minitest-reporters', '1.3.6', require: false
 gem 'octokit', '4.14.0'
 gem 'paypal-sdk-rest', '1.7.3'
 gem 'pgtk', '0.7.5'
-gem 'rack', '2.0.7'
+gem 'rack', '2.0.8'
 gem 'rack-ssl', '1.4.1'
 gem 'rack-test', '1.1.0'
 gem 'rack_csrf', '2.6.0'

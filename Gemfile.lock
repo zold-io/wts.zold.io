@@ -155,7 +155,7 @@ GEM
       random-port (~> 0.3)
     plist (3.1.0)
     public_suffix (4.0.3)
-    rack (2.0.7)
+    rack (2.0.8)
     rack-protection (2.0.5)
       rack
     rack-ssl (1.4.1)
@@ -325,7 +325,7 @@ DEPENDENCIES
   octokit (= 4.14.0)
   paypal-sdk-rest (= 1.7.3)
   pgtk (= 0.7.5)
-  rack (= 2.0.7)
+  rack (= 2.0.8)
   rack-ssl (= 1.4.1)
   rack-test (= 1.1.0)
   rack_csrf (= 2.6.0)
