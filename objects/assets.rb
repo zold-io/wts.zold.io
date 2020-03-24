@@ -152,133 +152,18 @@ class WTS::Assets
   # Get the latest block from the blockchain, scan all transactions visible
   # there and find those, which we are waiting for. Then, yield them one
   # by one if they haven't been seen yet in UTXOs.
-  #
-  # This method uses Blockchain.info.
-  def monitor_blockchain(seen, max: 1)
+  def monitor(seen, max: 1)
     return seen if seen == @sibit.latest
     ours = Set.new(@pgsql.exec('SELECT address FROM asset').map { |r| r['address'] })
-    block = seen
-    count = 0
-    wrong = []
-    while count < max
-      json = nil # This doesn't work!
-      unless json['main_chain']
-        steps = 4
-        @log.info("Orphan block found at #{block}, moving #{steps} steps back...")
-        wrong << block
-        steps.times do
-          block = json['prev_block']
-          wrong << block
-          @log.info("Moved back to #{block}")
-          json = nil # This doesn't work either
-        end
+    @sibit.scan(seen, max: max) do |receiver, hash, satoshi|
+      next unless ours.include?(receiver)
+      if seen?(hash)
+        @log.info("Hash #{hash} has already been seen, ignoring now...")
         next
       end
-      if json['tx'].nil?
-        @log.info("The block #{block} has no tx array, we terminate the search")
-        break
-      end
-      checked = 0
-      json['tx'].each do |t|
-        t['out'].each do |o|
-          next if o['spent']
-          address = o['addr']
-          next if address.nil?
-          next unless ours.include?(address)
-          hash = "#{t['hash']}:#{o['n']}"
-          next if seen?(hash)
-          set(address, @sibit.balance(address))
-          satoshi = o['value']
-          yield(address, hash, satoshi)
-          @log.info("Bitcoin tx found at #{hash} for #{satoshi} sent to #{address}")
-        end
-        checked += 1
-      end
-      @log.info("We checked #{checked} transactions in block #{block}")
-      n = json['next_block']
-      if n.empty?
-        @log.info("The next_block is empty in block #{block}, this is the end of Blockchain")
-        break
-      end
-      n.reject! { |b| wrong.include?(b) } if n.count > 1
-      block = n.last
-      count += 1
+      set(receiver, @sibit.balance(receiver))
+      yield(receiver, hash, satoshi)
     end
-    block
-  end
-
-  # Get the latest block from the blockchain, scan all transactions visible
-  # there and find those, which we are waiting for. Then, yield them one
-  # by one if they haven't been seen yet in UTXOs.
-  #
-  # This method uses BTC.com.
-  def monitor_btc(seen, max: 1)
-    return seen if seen == @sibit.latest
-    ours = Set.new(@pgsql.exec('SELECT address FROM asset').map { |r| r['address'] })
-    block = seen
-    count = 0
-    wrong = []
-    while count < max
-      json = block_json(block)
-      if json['is_orphan']
-        steps = 4
-        @log.info("Orphan block found at #{block}, moving #{steps} steps back...")
-        wrong << block
-        steps.times do
-          block = json['prev_block_hash']
-          wrong << block
-          @log.info("Moved back to #{block}")
-          json = block_json(block)
-        end
-        next
-      end
-      checked = 0
-      checked_outputs = 0
-      page = 1
-      loop do
-        block_json(block, "/tx?page=#{page}")['list'].each do |t|
-          t['outputs'].each_with_index do |o, i|
-            next if o['spent_by_tx']
-            address = o['addresses'][0]
-            next if address.nil?
-            checked_outputs += 1
-            next unless ours.include?(address)
-            hash = "#{t['hash']}:#{i}"
-            if seen?(hash)
-              @log.info("Hash #{hash} has already been seen, ignoring now...")
-              next
-            end
-            set(address, @sibit.balance(address))
-            satoshi = o['value']
-            yield(address, hash, satoshi)
-            @log.info("Bitcoin tx found at #{hash} for #{satoshi} sent to #{address}")
-          end
-          checked += 1
-        end
-        break if page * 50 > json['tx_count']
-        page += 1
-      end
-      @log.info(
-        "We checked #{checked} transactions and #{checked_outputs} outputs in block #{block}; \
-#{ours.count} addresses monitored; #{page} pages in the block"
-      )
-      n = json['next_block_hash']
-      if n.nil?
-        @log.info("The next_block is empty in block #{block}, this is the end of Blockchain")
-        break
-      end
-      if n == '0000000000000000000000000000000000000000000000000000000000000000'
-        @log.info("The next_block is pointing to the first block at #{block}, this is the end")
-        break
-      end
-      block = n
-      count += 1
-      if page > 100
-        @log.info("Too many pages (#{page}) in one go, let's get back to it next time")
-        break
-      end
-    end
-    block
   end
 
   # Send a payment to the address.
@@ -312,18 +197,5 @@ total unspent was #{unspent}; tx hash is #{txn}")
       [address, hash]
     )
     @log.info("Bitcoin tx hash #{hash} recorded as seen at #{address}")
-  end
-
-  private
-
-  def block_json(hash, suffix = '')
-    Retriable.retriable do
-      uri = URI("https://chain.api.btc.com/v3/block/#{hash}#{suffix}")
-      json = Sibit::Json.new(log: @log).get(uri)
-      raise "Error in #{hash}: #{json['err_msg']}" if json['err_msg']
-      data = json['data']
-      raise "Can't find 'data' inside JSON of #{hash} block" if data.nil?
-      data
-    end
   end
 end

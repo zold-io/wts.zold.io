@@ -69,27 +69,51 @@ class WTS::AssetsTest < Minitest::Test
   end
 
   def test_monitors_blockchain
-    WebMock.disable_net_connect!
-    hash = '000000000000000000209d79fe981cfd16279f07db246d63f42ce1f11c68103b'
-    stub_request(:get, 'https://blockchain.info/latestblock').to_return(
-      body: '{"hash": "000000000000000000209d79fe981cfd16279f07db246d63f42ce1f11c68103f"}'
-    )
-    stub_request(
-      :get, "https://chain.api.btc.com/v3/block/#{hash}"
-    ).to_return(body: '{"data": {"tx_count": 25}}')
-    stub_request(
-      :get, "https://chain.api.btc.com/v3/block/#{hash}/tx?page=1"
-    ).to_return(body: '{"data": {"list": []}}')
-    assets = WTS::Assets.new(t_pgsql, log: t_log)
     login = "jeff#{rand(999)}"
     item = WTS::Item.new(login, t_pgsql, log: t_log)
     item.create(Zold::Id.new, Zold::Key.new(text: OpenSSL::PKey::RSA.new(2048).to_pem))
-    assets.acquire(login)
-    assets.monitor_btc(hash, max: 2) do |addr, hsh, satoshi|
-      assert(!addr.nil?)
+    api = Object.new
+    def api.acquired(a)
+      @addr = a
+    end
+    assets = WTS::Assets.new(t_pgsql, log: t_log, sibit: Sibit.new(api: api))
+    addr = assets.acquire(login)
+    api.acquired(addr)
+    def api.latest
+      'x1'
+    end
+
+    def api.balance(_)
+      500
+    end
+
+    def api.block(_)
+      {
+        hash: 'x',
+        orphan: false,
+        next: 'x',
+        previous: 'x',
+        txns: [
+          {
+            hash: 'x',
+            outputs: [
+              {
+                address: @addr,
+                value: 1000
+              }
+            ]
+          }
+        ]
+      }
+    end
+    found = false
+    assets.monitor('before', max: 2) do |a, hsh, satoshi|
+      assert(!a.nil?)
       assert(!hsh.nil?)
       assert(!satoshi.nil?)
+      found = true
     end
+    assert(found)
   end
 
   def test_pays
