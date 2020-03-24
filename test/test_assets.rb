@@ -121,7 +121,7 @@ class WTS::AssetsTest < Minitest::Test
     assets = WTS::Assets.new(
       t_pgsql,
       log: t_log,
-      sibit: Sibit::Fake.new,
+      sibit: Sibit.new(api: Sibit::Fake.new),
       codec: GLogin::Codec.new('some secret')
     )
     ["jeff#{rand(999)}", "johnny#{rand(999)}"].each do |login|
@@ -129,8 +129,10 @@ class WTS::AssetsTest < Minitest::Test
       item.create(Zold::Id.new, Zold::Key.new(text: OpenSSL::PKey::RSA.new(2048).to_pem))
       assets.set(assets.acquire(login), 70)
     end
-    tx = assets.pay("1JvCsJtLmCxEk7ddZFnVkGXpr9uhxZP#{rand(999)}", 100)
-    assert(!tx.nil?)
+    ex = assert_raises(Sibit::Error) do
+      assets.pay("1JvCsJtLmCxEk7ddZFnVkGXpr9uhxZP#{rand(999)}", 100)
+    end
+    assert(ex.message.include?('Not enough funds'))
   end
 
   def test_saves_hash_and_loads
