@@ -163,6 +163,7 @@ class WTS::Assets
       end
       set(receiver, @sibit.balance(receiver))
       yield(receiver, hash, satoshi)
+      true
     end
   end
 
