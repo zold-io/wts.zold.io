@@ -23,6 +23,7 @@ require 'sibit/fake'
 require 'sibit/http'
 require 'sibit/blockchain'
 require 'sibit/bitcoinchain'
+require 'sibit/cryptoapis'
 require 'sibit/btc'
 require 'sibit/earn'
 require 'sibit/json'
@@ -542,6 +543,10 @@ def sibit(log: settings.log)
     http = Sibit::Http.new
     api = [
       RetriableProxy.for_object(Sibit::Earn.new(log: log, http: http), on: Sibit::Error),
+      RetriableProxy.for_object(
+        Sibit::Cryptoapis.new(settings.config['cryptoapis_key'], log: log, http: http),
+        on: Sibit::Error
+      ),
       RetriableProxy.for_object(Sibit::Bitcoinchain.new(log: log, http: http), on: Sibit::Error),
       RetriableProxy.for_object(Sibit::Btc.new(log: log, http: http), on: Sibit::Error),
       RetriableProxy.for_object(Sibit::Blockchain.new(log: log, http: http), on: Sibit::Error)
