@@ -542,17 +542,25 @@ def sibit(log: settings.log)
   api = [Sibit::Fake.new]
   if ENV['RACK_ENV'] != 'test'
     http = Sibit::Http.new
-    api = [
-      RetriableProxy.for_object(Sibit::Earn.new(log: log, http: http), on: Sibit::Error),
-      RetriableProxy.for_object(
-        Sibit::Cryptoapis.new(settings.config['cryptoapis_key'], log: log, http: http),
-        on: Sibit::Error
-      ),
-      RetriableProxy.for_object(Sibit::Blockchair.new(log: log, http: http), on: Sibit::Error),
-      # RetriableProxy.for_object(Sibit::Bitcoinchain.new(log: log, http: http), on: Sibit::Error),
-      RetriableProxy.for_object(Sibit::Btc.new(log: log, http: http), on: Sibit::Error),
-      RetriableProxy.for_object(Sibit::Blockchain.new(log: log, http: http), on: Sibit::Error)
-    ]
+    api = settings.toggles.get('sibit:api', 'blockchain').split(',').map do |a|
+      case a
+      when 'earn'
+        Sibit::Earn.new(log: log, http: http)
+      when 'cryptoapis'
+        Sibit::Cryptoapis.new(settings.config['cryptoapis_key'], log: log, http: http)
+      when 'blockchair'
+        Sibit::Blockchair.new(key: settings.config['blockchair_key'], log: log, http: http)
+      when 'bitcoinchain'
+        Sibit::Bitcoinchain.new(log: log, http: http)
+      when 'btc'
+        Sibit::Btc.new(log: log, http: http)
+      when 'blockchain'
+        Sibit::Blockchain.new(log: log, http: http)
+      else
+        raise "Unknown API #{a}"
+      end
+    end
+    api = api.map { |a| RetriableProxy.for_object(a, on: Sibit::Error) }
   end
   Sibit.new(log: log, api: api)
 end
