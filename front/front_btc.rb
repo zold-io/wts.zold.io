@@ -85,7 +85,7 @@ unless ENV['RACK_ENV'] == 'test'
   settings.daemons.start('blockchain-lags', 60 * 60) do
     seen = settings.toggles.get('latestblock', '')
     latest = sibit.latest
-    diff = block_height(latest) - block_height(seen)
+    diff = sibit.height(latest) - sibit.height(seen)
     if diff > 10
       settings.telepost.spam(
         "⚠️ Our Bitcoin Blockchain monitoring system is behind, for #{diff} blocks!",
@@ -577,10 +577,4 @@ def sibit(log: settings.log)
     api = api.map { |a| RetriableProxy.for_object(a, on: Sibit::Error) }
   end
   Sibit.new(log: log, api: api)
-end
-
-def block_height(hash)
-  uri = URI("https://chain.api.btc.com/v3/block/#{hash}")
-  json = Sibit::Json.new(log: settings.log).get(uri)
-  json['data']['height']
 end
