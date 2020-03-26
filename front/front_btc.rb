@@ -167,7 +167,7 @@ unless ENV['RACK_ENV'] == 'test'
     if hot > max
       diff = hot - max
       cold = assets.all.shuffle.find { |a| !a[:hot] }[:address]
-      assets.pay(cold, diff * 100_000_000)
+      assets.pay(cold, (diff * 100_000_000).to_i)
       settings.telepost.spam(
         "⚔️ We transferred #{format('%.04f', diff)} BTC from our hot addresses to the cold one",
         "[#{cold}](https://www.blockchain.com/btc/address/#{cold})",
