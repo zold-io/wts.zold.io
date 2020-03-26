@@ -161,6 +161,20 @@ unless ENV['RACK_ENV'] == 'test'
     settings.toggles.set('latestblock', seen)
     settings.log.info("We've scanned the entire Blockchain, the latest block is #{seen}")
   end
+  settings.daemons.start('btc-cool-off', 60 * 60) do
+    hot = assets.balance(hot_only: true)
+    max = 0.2
+    if hot > max
+      diff = hot - max
+      cold = assets.all.find { |a| !a[:hot] }
+      assets.pay(cold, diff * 100_000_000)
+      settings.telepost.spam(
+        "⚔️ We transferred #{format('%.04f', diff)} BTC from our hot addresses to the cold one",
+        "[#{cold}](https://www.blockchain.com/btc/address/#{cold})",
+        "in order to protect them from accidental loss (there were #{format('%.04f', hot)} BTC)"
+      )
+    end
+  end
   settings.daemons.start('btc-from-coinbase', 60 * 60) do
     btc = coinbase.balance
     if btc > 0.01

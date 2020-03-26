@@ -94,7 +94,7 @@ class WTS::Assets
     end
   end
 
-  # Get total BTC balance, in BTC.
+  # Get total BTC balance, in BTC (as float).
   def balance(hot_only: false)
     @pgsql.exec(
       'SELECT SUM(value) FROM asset' + (hot_only ? ' WHERE pvt IS NOT NULL' : '')
