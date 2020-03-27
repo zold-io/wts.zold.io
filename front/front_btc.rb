@@ -24,6 +24,7 @@ require 'sibit/http'
 require 'sibit/blockchain'
 require 'sibit/bitcoinchain'
 require 'sibit/cryptoapis'
+require 'sibit/cex'
 require 'sibit/blockchair'
 require 'sibit/btc'
 require 'sibit/earn'
@@ -96,7 +97,7 @@ unless ENV['RACK_ENV'] == 'test'
       )
     end
   end
-  settings.daemons.start('btc-monitor', 10 * 60) do
+  settings.daemons.start('btc-monitor', 1 * 60) do
     seen = settings.toggles.get('latestblock', '')
     seen = assets.monitor(seen, max: 16) do |address, hash, satoshi|
       bitcoin = (satoshi.to_f / 100_000_000).round(8)
@@ -568,6 +569,8 @@ def sibit(log: settings.log)
         Sibit::Bitcoinchain.new(log: log, http: http)
       when 'btc'
         Sibit::Btc.new(log: log, http: http)
+      when 'cex'
+        Sibit::Cex.new(log: log, http: http)
       when 'blockchain'
         Sibit::Blockchain.new(log: log, http: http)
       else
