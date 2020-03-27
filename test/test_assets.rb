@@ -87,6 +87,10 @@ class WTS::AssetsTest < Minitest::Test
       500
     end
 
+    def api.next_of(_)
+      'x'
+    end
+
     def api.block(_)
       {
         hash: 'x',

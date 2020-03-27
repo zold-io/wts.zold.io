@@ -153,9 +153,10 @@ class WTS::Assets
   # there and find those, which we are waiting for. Then, yield them one
   # by one if they haven't been seen yet in UTXOs.
   def monitor(seen, max: 1)
-    return seen if seen == @sibit.latest
+    nxt = @sibit.next_of(seen)
+    return seen if nxt.nil?
     ours = Set.new(@pgsql.exec('SELECT address FROM asset').map { |r| r['address'] })
-    @sibit.scan(seen, max: max) do |receiver, hash, satoshi|
+    @sibit.scan(nxt, max: max) do |receiver, hash, satoshi|
       next unless ours.include?(receiver)
       if seen?(hash)
         @log.info("Hash #{hash} has already been seen, ignoring now...")
