@@ -459,7 +459,14 @@ def known?(login = @locals[:guser])
   return true if login == settings.config['exchange']['login']
   return true if settings.config['kyc'].include?(login)
   settings.zache.get("#{login}_known?", lifetime: 5 * 60) do
-    Zold::Http.new(uri: 'https://www.0crat.com/known/' + login.downcase).get(timeout: 16).code == 200
+    code = Zold::Http.new(uri: 'https://www.0crat.com/known/' + login.downcase).get(timeout: 16).code
+    if code == 200
+      true
+    elsif code == 404
+      false
+    else
+      raise WTS::UserError, "E226: Something is wrong with 0crat.com, HTTP code is #{code}"
+    end
   end
 end
 
