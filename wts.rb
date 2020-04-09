@@ -125,7 +125,7 @@ configure do
   set :raise_errors, false
   set :dump_errors, false
   set :server_settings, timeout: 25
-  set :log, ENV['RACK_ENV'] == 'test' ? Zold::Log::VERBOSE.dup : Zold::Log::REGULAR.du
+  set :log, ENV['RACK_ENV'] == 'test' ? Zold::Log::VERBOSE.dup : Zold::Log::REGULAR.dup
   set :log, Zold::Log::NULL if ENV['TEST_QUIET_LOG']
   set :glogin, GLogin::Auth.new(
     config['github']['client_id'],
