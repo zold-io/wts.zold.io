@@ -104,6 +104,8 @@
                 - else
                   %a{href: iri.cut('/pull').add(force: true), onclick: "return confirm('Are you sure? This will take about a minute.')"} Pull
               %li
+                %a{href: iri.cut('/push')} Push
+              %li
                 - if user.wallet_exists?
                   %a{href: iri.cut('/invoice')} Invoice
                 - else
