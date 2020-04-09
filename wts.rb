@@ -125,7 +125,8 @@ configure do
   set :raise_errors, false
   set :dump_errors, false
   set :server_settings, timeout: 25
-  set :log, ENV['RACK_ENV'] == 'test' ? Zold::Log::VERBOSE.dup : Zold::Log::REGULAR.dup
+  set :log, ENV['RACK_ENV'] == 'test' ? Zold::Log::VERBOSE.dup : Zold::Log::REGULAR.du
+  set :log, Zold::Log::NULL if ENV['TEST_QUIET_LOG']
   set :glogin, GLogin::Auth.new(
     config['github']['client_id'],
     config['github']['client_secret'],
@@ -539,7 +540,7 @@ def job_link(jid)
   "the full log is [here](https://wts.zold.io/output?id=#{jid})"
 end
 
-require_relative 'front/helpers'
+require_relative 'front/front_auto_pull'
 require_relative 'front/front_bonuses'
 require_relative 'front/front_btc'
 require_relative 'front/front_callbacks'
@@ -550,10 +551,11 @@ require_relative 'front/front_migrate'
 require_relative 'front/front_misc'
 require_relative 'front/front_pay'
 require_relative 'front/front_paypal'
-require_relative 'front/front_upwork'
+require_relative 'front/front_push'
 require_relative 'front/front_quick'
 require_relative 'front/front_rate'
+require_relative 'front/front_receipt'
 require_relative 'front/front_start'
 require_relative 'front/front_toggles'
-require_relative 'front/front_auto_pull'
-require_relative 'front/front_receipt'
+require_relative 'front/front_upwork'
+require_relative 'front/helpers'

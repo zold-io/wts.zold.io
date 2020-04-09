@@ -1,0 +1,15 @@
+%h2
+  Push
+
+%form{method: 'GET', action: '/do-push'}
+  = Rack::Csrf.tag(env)
+  %label Keygap:
+  %input{type: 'text', name: 'keygap', placeholder: 'Your keygap...', autocomplete: 'off', tabindex: 1, autofocus: true}
+  %input{type: 'submit', value: 'Push'}
+
+%p
+  If your wallet is lost in the network, you can push
+  it there once again, provided you remember the
+  = succeed '.' do
+    %a{href: 'https://blog.zold.io/2018/07/18/keygap.html'} keygap
+  It's a harmless operation, you can do it as often as you like.

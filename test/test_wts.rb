@@ -110,6 +110,7 @@ class WTS::AppTest < Minitest::Test
       '/balance',
       '/restart',
       '/log',
+      '/push',
       '/head.json',
       '/txns.json',
       '/referrals',
@@ -221,6 +222,13 @@ class WTS::AppTest < Minitest::Test
     WebMock.allow_net_connect!
     keygap = login('yegor565')
     get("/do-migrate?keygap=#{keygap}")
+    assert_equal(302, last_response.status, last_response.body)
+  end
+
+  def test_push
+    WebMock.allow_net_connect!
+    keygap = login('yegor565')
+    get("/do-push?keygap=#{keygap}")
     assert_equal(302, last_response.status, last_response.body)
   end
 
