@@ -13,3 +13,11 @@
   = succeed '.' do
     %a{href: 'https://blog.zold.io/2018/07/18/keygap.html'} keygap
   It's a harmless operation, you can do it as often as you like.
+
+%p
+  The wallet
+  %code= user.item.id
+  - if user.wallet_exists?
+    is here.
+  - else
+    is absent.
