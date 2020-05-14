@@ -99,6 +99,12 @@ get '/callbacks' do
   )
 end
 
+get '/callback-restart' do
+  features('api')
+  settings.callbacks.restart(params[:id].to_i)
+  flash('/callbacks', 'The callback was cleaned, will be matched again soon')
+end
+
 get '/null' do
   content_type 'text/plain'
   'OK'

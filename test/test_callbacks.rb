@@ -31,7 +31,8 @@ class WTS::CallbacksTest < Minitest::Test
     callbacks = WTS::Callbacks.new(t_pgsql, log: t_log)
     id = Zold::Id.new
     login = 'yegor256'
-    callbacks.add(login, id.to_s, 'NOPREFIX', /pizza/, 'http://localhost:888/')
+    cid = callbacks.add(login, id.to_s, 'NOPREFIX', /pizza/, 'http://localhost:888/')
+    callbacks.restart(cid)
     assert_equal(1, callbacks.fetch(login).count)
     assert(callbacks.fetch(login)[0][:matched].nil?)
     tid = "#{id}:1"

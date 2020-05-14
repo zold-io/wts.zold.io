@@ -84,6 +84,7 @@
             - if c[:matched]
               %span{title: c[:matched].utc.iso8601}
                 = Zold::Age.new(c[:matched])
+              %a{href: iri.cut('/callback-restart').add(id: c[:id])} clean
             - else
               = '&mdash;'
           %td

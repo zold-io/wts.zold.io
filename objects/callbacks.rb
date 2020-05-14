@@ -58,6 +58,10 @@ prefix \"#{prefix}\", regexp #{regexp}, and URI: #{uri}")
     cid
   end
 
+  def restart(id)
+    @pgsql.exec('DELETE FROM match WHERE callback=$1', [id])
+  end
+
   # Returns the list of IDs of matches found
   def match(tid, wallet, prefix, details)
     found = []
