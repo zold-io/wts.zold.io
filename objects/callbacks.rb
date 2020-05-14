@@ -59,7 +59,7 @@ prefix \"#{prefix}\", regexp #{regexp}, and URI: #{uri}")
   end
 
   def restart(id)
-    @pgsql.exec('DELETE FROM match WHERE callback=$1', [id])
+    @pgsql.exec('UPDATE match SET failure = NULL WHERE callback=$1', [id])
   end
 
   # Returns the list of IDs of matches found
@@ -96,7 +96,8 @@ prefix \"#{prefix}\", regexp #{regexp}, and URI: #{uri}")
   def ping
     q = [
       'SELECT callback.*, match.id AS mid',
-      'FROM callback JOIN match ON callback.id = match.callback'
+      'FROM callback',
+      'JOIN match ON callback.id = match.callback'
     ].join(' ')
     @pgsql.exec(q).each do |r|
       login = r['login']
@@ -118,10 +119,12 @@ prefix \"#{prefix}\", regexp #{regexp}, and URI: #{uri}")
         }
         uri = r['uri'] + '?' + args.map { |k, v| "#{k}=#{CGI.escape(v.to_s)}" }.join('&')
         res = Zold::Http.new(uri: uri).get
+        f = failure(res, uri)
         @pgsql.exec(
           'UPDATE match SET failure = $1 WHERE id = $2',
-          [failure(res, uri), r['mid'].to_i]
+          [f, r['mid'].to_i]
         )
+        @log.info("Callback ##{cid} pinged: #{f.inspect}")
       end
     end
   end
