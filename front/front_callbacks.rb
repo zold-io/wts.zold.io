@@ -51,7 +51,7 @@ settings.daemons.start('payables', 10 * 60) do
   settings.payables.remove_banned
 end
 
-settings.daemons.start('callbacks') do
+settings.daemons.start('callbacks-ping') do
   settings.callbacks.ping do |login, id, pfx, regexp|
     ops(user(login)).pull(id)
     settings.wallets.acq(id) do |wallet|
@@ -60,6 +60,9 @@ settings.daemons.start('callbacks') do
       end
     end
   end
+end
+
+settings.daemons.start('callbacks-clean') do
   settings.callbacks.repeat_succeeded do |c|
     settings.telepost.spam(
       "The callback no.#{c[:id]} owned by #{title_md(user(c[:login]))} was repeated, since it was delivered;",

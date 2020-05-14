@@ -200,7 +200,7 @@ unless ENV['RACK_ENV'] == 'test'
     if usd > 2000
       btc = 500.0 / price
       address = assets.all.reject { |a| a[:hot] }.sample[:address]
-      tx = assets.pay(address, btc * 100_000_000)
+      tx = assets.pay(address, (btc * 100_000_000).to_i)
       settings.telepost.spam(
         '📤 Transfer: There were too many "hot" bitcoins in our assets',
         "(#{format('%.04f', hot)} BTC, #{WTS::Dollars.new(usd)}), that's why",
