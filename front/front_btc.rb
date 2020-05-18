@@ -71,11 +71,12 @@ end
 
 unless ENV['RACK_ENV'] == 'test'
   settings.daemons.start('btc-reconcile', 60 * 60) do
-    assets.reconcile do |address, before, after|
+    assets.reconcile do |address, before, after, hot|
       diff = after - before
       settings.telepost.spam(
         diff.positive? ? '📥' : '⚠️',
-        " The balance at [#{address}](https://www.blockchain.com/btc/address/#{address})",
+        "The balance at #{hot ? 'hot' : 'cold'}",
+        "[#{address}](https://www.blockchain.com/btc/address/#{address})",
         "was #{diff.positive? ? 'increased' : 'decreased'} by #{diff}",
         "(#{WTS::Dollars.new(diff * price / 100_000_000)}), from #{before} to #{after} satoshi;",
         "our bitcoin assets have [#{assets.balance.round(4)} BTC](https://wts.zold.io/assets)",
@@ -197,7 +198,7 @@ unless ENV['RACK_ENV'] == 'test'
   settings.daemons.start('btc-transfer-to-cold', 12 * 60 * 60) do
     hot = assets.all.select { |a| a[:hot] }.map { |a| a[:value] }.inject(&:+).to_f / 100_000_000
     usd = (hot * price).round
-    if usd > 2000
+    if usd > settings.toggles.get('btc:hot-threshold', '2000').to_i
       btc = 500.0 / price
       address = assets.all.reject { |a| a[:hot] }.sample[:address]
       tx = assets.pay(address, (btc * 100_000_000).to_i)
@@ -232,7 +233,7 @@ unless ENV['RACK_ENV'] == 'test'
   settings.daemons.start('btc-hot-deficit-notify', 12 * 60 * 60) do
     hot = assets.all.select { |a| a[:hot] }.map { |a| a[:value] }.inject(&:+).to_f / 100_000_000
     usd = (hot * price).round
-    if usd < 1000
+    if usd < settings.toggles.get('btc:deficit-threshold', '1000').to_i
       settings.telepost.spam(
         "⚠️ There are just #{format('%.04f', hot)} BTC (#{WTS::Dollars.new(usd)}) left in",
         'our hot Bitcoin addresses; this may not be enough for our daily operations;',

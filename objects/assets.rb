@@ -89,7 +89,7 @@ class WTS::Assets
       after = @sibit.balance(a[:address])
       if after != a[:value]
         set(a[:address], after)
-        yield(a[:address], a[:value], after)
+        yield(a[:address], a[:value], after, a[:hot])
       end
     end
   end
