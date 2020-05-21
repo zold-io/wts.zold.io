@@ -44,7 +44,7 @@ class WTS::Daemons
           yield
         rescue WTS::UserError => e
           @log.error(Backtrace.new(e))
-        rescue StandardError => e
+        rescue Exception => e
           Raven.capture_exception(e)
           @log.error(Backtrace.new(e))
         end

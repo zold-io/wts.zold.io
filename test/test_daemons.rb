@@ -34,4 +34,16 @@ class WTS::DaemonsTest < Minitest::Test
     sleep 0.1
     assert(started)
   end
+
+  def test_start_and_run_a_broken_thread
+    WebMock.allow_net_connect!
+    daemons = WTS::Daemons.new(t_pgsql, log: t_log)
+    stepped = 0
+    daemons.start('test-errors', 0, pause: 0) do
+      stepped += 1
+      raise Exception, 'Intended'
+    end
+    sleep 0.1
+    assert(stepped > 1)
+  end
 end
