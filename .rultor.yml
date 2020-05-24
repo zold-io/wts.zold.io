@@ -8,18 +8,12 @@ install: |-
   export PATH=$PATH:/usr/lib/postgresql/10/bin
   sudo apt-get -y update
   sudo apt-get -y install libpq-dev
-  sudo rvm install ruby-2.6.0
-  rvm use 2.6.0
-  export GEM_HOME=~/.ruby
-  export GEM_PATH=$GEM_HOME:$GEM_PATH
-  sudo gem install pdd -v 0.20.5
+  pdd -f /dev/null
+  sudo bundle install --no-color "--gemfile=$(pwd)/Gemfile"
 release:
   sensitive:
     - config.yml
   script: |-
-    pdd -f /dev/null
-    bundle install --no-color
-    ruby -v
     bundle exec rake
     git remote add dokku dokku@dokku.zold.io:wts
     rm -rf ~/.ssh
@@ -37,18 +31,11 @@ release:
     git push -f dokku $(git symbolic-ref --short HEAD):master
     git reset HEAD~1
     rm -rf target/pgsql-config.yml
-    LC_ALL=en_US.UTF-8 bundle exec rake liquibase
+    bundle exec rake liquibase
     rm -rf config.yml
     curl -f --connect-timeout 15 --retry 5 --retry-delay 30 https://wts.zold.io > /dev/null
-  commanders:
-  - yegor256
-architect:
-- yegor256
 merge:
-  commanders: []
   script: |-
-    pdd -f /dev/null
-    bundle install --no-color
     bundle exec rake
 deploy:
   script: |-
