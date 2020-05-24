@@ -54,7 +54,7 @@ class WTS::Daemons
         # rubocop:enable Lint/HandleExceptions
         # If we reach this point, we must not even try to
         # do anything. Here we must quietly ignore everything
-        # and let the daemon go to the next cycle
+        # and let the daemon go to the next cycle.
       end
     end
   end
