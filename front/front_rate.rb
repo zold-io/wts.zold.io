@@ -129,7 +129,7 @@ get '/rate.json' do
     JSON.pretty_generate(
       valid: false,
       effective_rate: WTS::Rate.new(settings.toggles).to_f,
-      usd_rate: 1.0 # just for testing
+      usd_rate: 0.00001 # just for testing
     )
   end
 end
