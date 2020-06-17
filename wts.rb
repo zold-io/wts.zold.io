@@ -408,6 +408,8 @@ def country(ip = request.ip)
   settings.zache.get("ip_to_country:#{ip}") do
     geo = Geoplugin.new(request.ip, ssl: true, key: settings.config['geoplugin_token'])
     geo.nil? ? '??' : geo.countrycode
+  rescue StandardError
+    '??'
   end
 end
 

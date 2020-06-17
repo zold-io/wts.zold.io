@@ -29,6 +29,7 @@ require 'sibit/blockchair'
 require 'sibit/btc'
 require 'sibit/earn'
 require 'sibit/json'
+require 'sibit/bestof'
 require 'retriable_proxy'
 require 'syncem'
 require 'glogin'
@@ -580,5 +581,5 @@ def sibit(log: settings.log)
     end
     api = api.map { |a| RetriableProxy.for_object(a, on: Sibit::Error) }
   end
-  Sibit.new(log: log, api: api)
+  Sibit.new(log: log, api: Sibit::BestOf.new(api, log: log))
 end
