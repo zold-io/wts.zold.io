@@ -79,7 +79,9 @@ get '/create' do
 end
 
 get '/keygap' do
-  raise WTS::UserError, 'E108: We don\'t have it in the database anymore' if user.item.wiped?
+  if user.item.wiped?
+    raise WTS::UserError, "E108: We don\'t have the keygap for wallet ##{user.item.id} in the database anymore"
+  end
   content_type 'text/plain'
   user.item.keygap
 end

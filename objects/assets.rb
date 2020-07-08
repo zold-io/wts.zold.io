@@ -87,10 +87,8 @@ class WTS::Assets
   def reconcile
     all(show_empty: true).each do |a|
       after = @sibit.balance(a[:address])
-      if after != a[:value]
-        set(a[:address], after)
-        yield(a[:address], a[:value], after, a[:hot])
-      end
+      set(a[:address], after)
+      yield(a[:address], a[:value], after, a[:hot]) if after != a[:value]
     end
   end
 
