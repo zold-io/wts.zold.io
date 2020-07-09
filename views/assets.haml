@@ -106,6 +106,10 @@
                 %span.seagreen Hot
             - else
               %span.firebrick Cold
+  - if defined?(guser) && vip?
+    %p
+      Total:
+      = assets.size
   %p
     = succeed ':' do
       %strong.firebrick ATTENTION
