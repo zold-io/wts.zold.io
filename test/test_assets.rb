@@ -88,7 +88,7 @@ class WTS::AssetsTest < Minitest::Test
     end
 
     def api.next_of(_)
-      'x'
+      '0000000000000000000c41262afa6c0e82c47c89dd5fe8c692f33788077ec5b8'
     end
 
     def api.block(_)
