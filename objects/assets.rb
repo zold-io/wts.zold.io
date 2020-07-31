@@ -153,7 +153,7 @@ class WTS::Assets
   def monitor(seen, max: 1)
     nxt = @sibit.next_of(seen)
     return seen if nxt.nil?
-    return seen unless nxt.start_with?('0000000000000000000')
+    return seen unless nxt.start_with?('00000000')
     ours = Set.new(@pgsql.exec('SELECT address FROM asset').map { |r| r['address'] })
     @sibit.scan(nxt, max: max) do |receiver, hash, satoshi|
       next unless ours.include?(receiver)
