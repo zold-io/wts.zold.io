@@ -381,9 +381,11 @@ users of WTS, while our limits are #{limits} (daily/weekly/monthly), sorry about
   end
   rate = WTS::Rate.new(settings.toggles).to_f
   bitcoin = (amount.to_zld(8).to_f * rate).round(8)
-  if bitcoin > assets.balance(hot_only: true)
+  fee = sibit(log: settings.log).fees[:XL] * 180.0 / 100_000_000
+  if bitcoin + fee > assets.balance(hot_only: true)
     raise WTS::UserError, "E198: The amount #{amount} BTC is too big for us, \
 we've got only #{format('%.04f', assets.balance(hot_only: true))} left in hot addresses; \
+we will also have to pay around #{format('%.04f', fee)} in transaction fees; \
 try to contact us in our Telegram group and notify the admin"
   end
   boss = user(settings.config['exchange']['login'])
