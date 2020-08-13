@@ -43,7 +43,6 @@ end
 
 before '/*' do
   @locals = {
-    ver: WTS::VERSION,
     http_start: Time.now,
     iri: Iri.new(request.url),
     sentry: settings.config['sentry'],

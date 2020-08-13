@@ -20,4 +20,5 @@
 
 module WTS
   VERSION = '0.0.0'.freeze
+  RELEASE = '000000'.freeze
 end
