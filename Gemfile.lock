@@ -7,7 +7,7 @@ GEM
       mocha (>= 0.10.0)
       money (>= 3.6.0)
       multi_json (>= 1.0.0)
-    activemerchant (1.111.0)
+    activemerchant (1.112.0)
       activesupport (>= 4.2)
       builder (>= 2.1.2, < 4.0.0)
       i18n (>= 0.6.9)
@@ -23,8 +23,8 @@ GEM
     ansi (1.5.0)
     ast (2.4.1)
     aws-eventstream (1.1.0)
-    aws-partitions (1.355.0)
-    aws-sdk-core (3.104.3)
+    aws-partitions (1.358.0)
+    aws-sdk-core (3.104.4)
       aws-eventstream (~> 1, >= 1.0.2)
       aws-partitions (~> 1, >= 1.239.0)
       aws-sigv4 (~> 1.1)
@@ -54,10 +54,9 @@ GEM
       ffi
       scrypt
     builder (3.2.4)
-    codecov (0.1.14)
+    codecov (0.2.8)
       json
       simplecov
-      url
     coercible (1.0.0)
       descendants_tracker (~> 0.0.1)
     coinbase (4.2.1)
@@ -207,7 +206,7 @@ GEM
       json (~> 2)
       retriable_proxy (= 1.0.2)
       slop (~> 4.6)
-    simplecov (0.18.5)
+    simplecov (0.19.0)
       docile (~> 1.1)
       simplecov-html (~> 0.11)
     simplecov-html (0.12.2)
@@ -252,7 +251,6 @@ GEM
     unicode-display_width (1.6.1)
     upwork-api (1.3.2)
       oauth (>= 0.4.7)
-    url (0.3.2)
     usagewatch (0.0.7)
     usagewatch_ext (0.2.1)
       usagewatch (~> 0.0.6)
@@ -311,7 +309,7 @@ DEPENDENCIES
   backports (= 3.15.0)
   backtrace (= 0.3.0)
   bitcoin-ruby (= 0.0.19)
-  codecov (= 0.1.14)
+  codecov (= 0.2.8)
   coinbase (= 4.2.1)
   concurrent-ruby (>= 1.1)
   eslintrb (= 2.1.0)
