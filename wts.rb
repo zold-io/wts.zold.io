@@ -383,7 +383,7 @@ get '/remotes' do
   )
 end
 
-def fee
+def exfee
   known? ? 0.02 : 0.08
 end
 

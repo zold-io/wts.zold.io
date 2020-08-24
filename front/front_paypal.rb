@@ -46,7 +46,7 @@ get '/zld-to-paypal' do
     page_title: title('paypal'),
     rate: WTS::Rate.new(settings.toggles).to_f,
     price: price,
-    fee: fee,
+    fee: exfee,
     user: confirmed_user
   )
 end
@@ -103,7 +103,7 @@ users of WTS, while our limits are #{limits} (daily/weekly/monthly), sorry about
   rewards = user(settings.config['rewards']['login'])
   job(exclusive: true) do |jid, log|
     log.info("Sending #{WTS::Dollars.new(usd)} via PayPal to #{email}...")
-    f = fee
+    f = exfee
     ops(log: log).pull
     ops(rewards, log: log).pull
     ops(boss, log: log).pull

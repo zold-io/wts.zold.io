@@ -327,7 +327,7 @@ get '/zld-to-btc' do
     page_title: title('sell'),
     user: confirmed_user,
     rate: WTS::Rate.new(settings.toggles).to_f,
-    fee: fee,
+    fee: exfee,
     price: price,
     btc_fee: sibit.fees[:L] * 250.0 / 100_000_000,
     available: assets.balance
@@ -392,7 +392,7 @@ try to contact us in our Telegram group and notify the admin"
   rewards = user(settings.config['rewards']['login'])
   job(exclusive: true) do |jid, log|
     log.info("Sending #{bitcoin} bitcoins to #{address}...")
-    f = fee
+    f = exfee
     ops(log: log).pull
     ops(rewards, log: log).pull
     ops(boss, log: log).pull
