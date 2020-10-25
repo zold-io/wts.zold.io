@@ -9,10 +9,11 @@
   %code
     = format('%0.4f', formula[:bank])
     BTC
-  = '/'
-  = WTS::Dollars.new(formula[:bank] * formula[:price])
-  at the current
-  %a{href: 'https://blockchain.info/ticker'} market price
+  - if defined? guser
+    = '/'
+    = WTS::Dollars.new(formula[:bank] * formula[:price])
+    at the current
+    %a{href: 'https://blockchain.info/ticker'} market price
   %br
   %span.smaller.gray
     This is how much we have in our bitcoin wallet in Coinbase.
@@ -52,10 +53,11 @@
   Exchange Rate:
   %code
     = format('%0.8f', rate)
-  = '/'
-  = WTS::Dollars.new(rate * formula[:price])
-  at the current
-  %a{href: 'https://blockchain.info/ticker'} market price
+  - if defined? guser
+    = '/'
+    = WTS::Dollars.new(rate * formula[:price])
+    at the current
+    %a{href: 'https://blockchain.info/ticker'} market price
   %br
   %span.smaller.gray
     This rate is used in all
