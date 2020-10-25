@@ -60,15 +60,17 @@
   %p
     The total balance is
     %strong= format('%.04f', balance)
-    BTC /
-    approx.
-    %a{href: 'https://coinmarketcap.com/currencies/bitcoin/'}
-      = WTS::Dollars.new(price * balance)
+    BTC
+    - if defined? guser
+      /
+      approx.
+      %a{href: 'https://coinmarketcap.com/currencies/bitcoin/'}
+        = WTS::Dollars.new(price * balance)
   %p
     The biggest Bitcoin payout we can send at the moment is
     = format('%.04f', limit)
     BTC
-    = succeed ':' do
+    - if defined? guser
       = "(#{WTS::Dollars.new(limit * price)})"
   %table.compact
     %colgroup
