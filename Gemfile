@@ -33,7 +33,7 @@ gem 'eslintrb', '2.1.0'
 gem 'futex', '0.8.6'
 gem 'geoplugin', '0.3.1'
 gem 'get_process_mem', '~>0.2'
-gem 'glogin', '0.5.1' # Can't upgrade, since 0.6.0 is using Base58 instead of Base64
+gem 'glogin', '0.7.0' # Can't upgrade, since 0.6.0 is using Base58 instead of Base64
 gem 'haml', '5.0.4'
 gem 'iri', '0.5.0'
 gem 'minitest', '5.11.3'
