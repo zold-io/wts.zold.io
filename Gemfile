@@ -53,7 +53,7 @@ gem 'retriable_proxy', '1.0.2'
 gem 'rubocop', '0.72.0', require: false
 gem 'rubocop-rspec', '1.33.0', require: false
 gem 'sass', '3.7.4'
-gem 'sentry-raven', '2.9.0'
+gem 'sentry-raven', '3.1.1'
 gem 'sibit', '0.21.3'
 gem 'sinatra', '2.0.5'
 gem 'sinatra-contrib', '2.0.5'
