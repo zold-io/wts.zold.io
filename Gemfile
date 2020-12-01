@@ -50,7 +50,7 @@ gem 'random-port', '0.4.1', require: false
 gem 'rerun', '0.13.0', require: false
 gem 'retriable', '3.1.1'
 gem 'retriable_proxy', '1.0.2'
-gem 'rubocop', '0.72.0', require: false
+gem 'rubocop', '1.5.0', require: false
 gem 'rubocop-rspec', '1.33.0', require: false
 gem 'sass', '3.7.4'
 gem 'sentry-raven', '2.9.0'
