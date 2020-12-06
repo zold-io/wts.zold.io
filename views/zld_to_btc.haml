@@ -37,7 +37,10 @@
   - else
     We can send up to
     = format('%.04f', available)
-    BTC now.
+    BTC now (Not enough?
+    = succeed ').' do
+      %a{href: 'https://t.me/zold_io'}
+      Ping us!
 
 %form{method: 'POST', action: iri.cut('/do-zld-to-btc')}
   %fieldset
