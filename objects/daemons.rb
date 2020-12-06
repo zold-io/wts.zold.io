@@ -49,9 +49,7 @@ class WTS::Daemons
           @log.error(Backtrace.new(e))
         end
         @pgsql.exec('INSERT INTO daemon (id) VALUES ($1) ON CONFLICT (id) DO UPDATE SET executed = NOW()', [id])
-        # rubocop:disable Lint/HandleExceptions
       rescue Exception
-        # rubocop:enable Lint/HandleExceptions
         # If we reach this point, we must not even try to
         # do anything. Here we must quietly ignore everything
         # and let the daemon go to the next cycle.

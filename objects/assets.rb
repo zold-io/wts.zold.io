@@ -181,7 +181,7 @@ class WTS::Assets
       raise "Not enough funds to send #{satoshi}, only #{unspent} left in #{batch.count} Bitcoin addresses"
     end
     txn = @sibit.pay(satoshi, '-L', batch, address, acquire)
-    batch.keys.each { |a| set(a, 0) }
+    batch.each_key { |a| set(a, 0) }
     @log.info("Sent #{satoshi} to #{address} from #{batch.count} addresses: #{batch.keys.join(', ')}; \
 total unspent was #{unspent}; tx hash is #{txn}")
     txn

@@ -42,15 +42,15 @@ gem 'octokit', '4.14.0'
 gem 'paypal-sdk-rest', '1.7.3'
 gem 'pgtk', '0.7.5'
 gem 'rack', '2.2.3'
+gem 'rack_csrf', '2.6.0'
 gem 'rack-ssl', '1.4.1'
 gem 'rack-test', '1.1.0'
-gem 'rack_csrf', '2.6.0'
 gem 'rake', '12.3.3', require: false
 gem 'random-port', '0.4.1', require: false
 gem 'rerun', '0.13.0', require: false
 gem 'retriable', '3.1.2'
 gem 'retriable_proxy', '1.0.2'
-gem 'rubocop', '0.72.0', require: false
+gem 'rubocop', '1.5.0', require: false
 gem 'rubocop-rspec', '1.33.0', require: false
 gem 'sass', '3.7.4'
 gem 'sentry-raven', '2.9.0'

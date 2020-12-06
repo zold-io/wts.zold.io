@@ -142,7 +142,7 @@ get '/graph.svg' do
   settings.zache.clean
   settings.zache.get(request.url, lifetime: 10 * 60) do
     WTS::Graph.new(settings.ticks).svg(
-      params[:keys].split(' '),
+      params[:keys].split,
       params[:div].to_i,
       params[:digits].to_i,
       title: params[:title] || ''

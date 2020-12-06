@@ -2,12 +2,13 @@ AllCops:
   Exclude:
     - 'bin/**/*'
     - 'assets/**/*'
+  NewCops: enable
   DisplayCopNames: true
   TargetRubyVersion: 2.6.0
 
 Style/ClassAndModuleChildren:
   Enabled: false
-Naming/UncommunicativeMethodParamName:
+Naming/MethodParameterName:
   MinNameLength: 1
 Style/CommandLiteral:
   Enabled: false
@@ -35,9 +36,13 @@ Metrics/CyclomaticComplexity:
   Max: 15
 Metrics/PerceivedComplexity:
   Max: 15
-Metrics/LineLength:
+Layout/LineLength:
   Max: 120
 Metrics/ParameterLists:
   Max: 10
 Layout/EmptyLineAfterGuardClause:
+  Enabled: false
+Style/StringConcatenation:
+  Enabled: false
+Style/CaseLikeIf:
   Enabled: false

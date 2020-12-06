@@ -57,7 +57,7 @@ class WTS::Referrals
 
     def decode(text)
       pos = text[0..1].to_i
-      text[2..-1].tr(ENCODINGS[pos], ALPHABET)
+      text[2..].tr(ENCODINGS[pos], ALPHABET)
     end
   end
 

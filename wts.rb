@@ -18,7 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-STDOUT.sync = true
+$stdout.sync = true
 
 require 'backtrace'
 require 'concurrent'
@@ -368,13 +368,14 @@ end
 
 get '/log' do
   content_type 'text/plain', charset: 'utf-8'
-  user_log.content + "\n\n\n" + [
+  msg = [
     'If you see any errors here, which you don\'t understand,',
     'please submit an issue to our GitHub repository here and copy the entire log over there:',
     'https://github.com/zold-io/wts.zold.io/issues;',
     'we need your feedback in order to make our system better;',
     'you can also discuss it in our Telegram group: https://t.me/zold_io.'
   ].join(' ')
+  "#{user_log.content}\n\n\n#{msg}"
 end
 
 get '/remotes' do
@@ -462,10 +463,13 @@ def known?(login = @locals[:guser])
   return true if login == settings.config['exchange']['login']
   return true if settings.config['kyc'].include?(login)
   settings.zache.get("#{login}_known?", lifetime: 5 * 60) do
-    code = Zold::Http.new(uri: 'https://www.0crat.com/known/' + login.downcase).get(timeout: 16).code
-    if code == 200
+    code = Zold::Http.new(
+      uri: Iri.new('https://www.0crat.com/known/').append(login.downcase).to_s
+    ).get(timeout: 16).code
+    case code
+    when 200
       true
-    elsif code == 404
+    when 404
       false
     else
       raise WTS::UserError, "E226: Something is wrong with 0crat.com, HTTP code is #{code}"
@@ -481,7 +485,9 @@ def kyc?(login = @locals[:guser])
   return true if login == settings.config['exchange']['login']
   return true if settings.config['kyc'].include?(login)
   settings.zache.get("#{login}_kyc?", lifetime: 5 * 60) do
-    res = Zold::Http.new(uri: 'https://www.0crat.com/known/' + login.downcase).get(timeout: 16)
+    res = Zold::Http.new(
+      uri: Iri.new('https://www.0crat.com/known/').append(login.downcase).to_s
+    ).get(timeout: 16)
     res.code == 200 && Zold::JsonPage.new(res.body).to_hash['identified']
   end
 end
