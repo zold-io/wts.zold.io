@@ -41,7 +41,7 @@ class WTS::DaemonsTest < Minitest::Test
     stepped = 0
     daemons.start('test-errors', 0, pause: 0) do
       stepped += 1
-      raise StandardException, 'Intended'
+      raise StandardError, 'Intended'
     end
     sleep 0.1
     assert(stepped > 1)
