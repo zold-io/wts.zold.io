@@ -161,6 +161,7 @@ unless ENV['RACK_ENV'] == 'test'
       end
       assets.see(address, hash)
     end
+    raise Error, "Invalid block hash #{seen.inspect}" unless /^[0-9a-f]{64}$/.match?(seen)
     settings.toggles.set('latestblock', seen)
     settings.log.info("We've scanned the entire Blockchain, the latest block is #{seen}")
   end
