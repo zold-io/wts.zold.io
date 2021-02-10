@@ -112,7 +112,7 @@ class WTS::AssetsTest < Minitest::Test
     end
     found = false
     before = '0000000000000000000c41262afa6c0e82c47c89dd5fe8c692f33788077ec5b8'
-    assets.monitor('before', max: 2) do |a, hsh, satoshi|
+    assets.monitor(before, max: 2) do |a, hsh, satoshi|
       assert(!a.nil?)
       assert(!hsh.nil?)
       assert(!satoshi.nil?)
