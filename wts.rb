@@ -385,7 +385,7 @@ get '/remotes' do
 end
 
 def exfee
-  known? ? 0.02 : 0.08
+  settings.toggles.get(known? ? 'exfee-small' : 'exfee', '0.08').to_f
 end
 
 def title(suffix = '')
