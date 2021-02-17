@@ -461,7 +461,7 @@ post '/cold-to-hot' do
     hot = assets(log: log).acquire
     tx = sibit(log: log).pay(
       (btc * 100_000_000).round,
-      '-L',
+      '-XL',
       { address => params[:pkey].strip },
       hot,
       address
