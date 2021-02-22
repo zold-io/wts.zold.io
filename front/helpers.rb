@@ -28,6 +28,6 @@ helpers do
       .split(/(.{4})/)
       .map { |i| i.gsub(' ', '&#x2423;') }
       .join('</span>' + span)
-      .chars.map { |c| c.ord > 0x1f ? "<span class='firebrick'>\\x#{format('%x', c.ord)}</span>" : c }.join + '</span>'
+      .chars.map { |c| c.ord > 0x7f ? "<span class='firebrick'>\\x#{format('%x', c.ord)}</span>" : c }.join + '</span>'
   end
 end
