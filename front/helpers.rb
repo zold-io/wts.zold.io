@@ -24,10 +24,11 @@ helpers do
   def largetext(text)
     span = "<span style='display:inline-block;'>"
     span + CGI.escapeHTML(text)
-      .chars.map { |c| if c.ord > 0x1f "\\x#{format('%x', c.ord)}" else c }.join
       .tr("\n", '↵')
       .split(/(.{4})/)
       .map { |i| i.gsub(' ', '&#x2423;') }
-      .join('</span>' + span) + '</span>'
+      .join('</span>' + span)
+      .chars.map { |c| c.ord > 0x1f ? "<span class='firebrick'>\\x#{format('%x', c.ord)}</span>" : c }.join
+    + '</span>'
   end
 end
