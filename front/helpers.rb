@@ -26,7 +26,7 @@ helpers do
     span + CGI.escapeHTML(text)
       .tr("\n", '↵')
       .split(/(.{4})/)
-      .map { |i| i.gsub(' ', '&#20;') }
+      .map { |i| i.gsub(' ', '&#x2423;') }
       .join('</span>' + span) + '</span>'
   end
 end
