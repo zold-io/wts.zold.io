@@ -99,9 +99,9 @@ unless ENV['RACK_ENV'] == 'test'
       )
     end
   end
-  settings.daemons.start('btc-monitor', 15 * 60) do
+  settings.daemons.start('btc-monitor', 5 * 60) do
     seen = settings.toggles.get('latestblock', '')
-    seen = assets.monitor(seen, max: 4) do |address, hash, satoshi|
+    seen = assets.monitor(seen, max: 8) do |address, hash, satoshi|
       bitcoin = (satoshi.to_f / 100_000_000).round(8)
       if assets.owned?(address)
         rate = WTS::Rate.new(settings.toggles).to_f
