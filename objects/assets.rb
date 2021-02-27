@@ -86,13 +86,19 @@ class WTS::Assets
   # Recheck the blockchain and update balances.
   def reconcile
     done = 0
+    errors = 0
     all(show_empty: true).each do |a|
       after = @sibit.balance(a[:address])
-      set(a[:address], after)
-      yield(a[:address], a[:value], after, a[:hot]) if after != a[:value]
+      unless after == a[:value]
+        set(a[:address], after)
+        yield(a[:address], a[:value], after, a[:hot])
+      end
       done += 1
+    rescue Sibit::Error => e
+      @log.info("Failed to reconcile #{a[:address]} Bitcoin address: #{e.message}")
+      errors += 1
     end
-    @log.info("Reconciled #{done} Bitcoin addresses")
+    @log.info("Reconciled #{done} Bitcoin addresses (#{errors} errors)")
   end
 
   # Get total BTC balance, in BTC (as float).
