@@ -71,7 +71,7 @@ def referrals(log: settings.log)
 end
 
 unless ENV['RACK_ENV'] == 'test'
-  settings.daemons.start('btc-reconcile', 60 * 60) do
+  settings.daemons.start('btc-reconcile', 12 * 60 * 60) do
     assets.reconcile do |address, before, after, hot|
       diff = after - before
       settings.telepost.spam(
