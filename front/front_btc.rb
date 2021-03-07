@@ -600,5 +600,5 @@ def sibit(log: settings.log)
     end
     api = api.map { |a| RetriableProxy.for_object(a, on: Sibit::Error) }
   end
-  Obk.new(Sibit.new(log: log, api: Sibit::BestOf.new(api, log: log)), pause: 15 * 1000)
+  Obk.new(Sibit.new(log: log, api: Sibit::BestOf.new(api, log: log)), pause: 30 * 1000)
 end
