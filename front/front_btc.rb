@@ -346,12 +346,14 @@ post '/do-zld-to-btc' do
   address = params[:btc].strip
   raise WTS::UserError, "E144: Bitcoin address is not valid: #{address.inspect}" unless address =~ /^[a-zA-Z0-9]+$/
   raise WTS::UserError, 'E145: Bitcoin address must start with 1, 3 or bc1' unless address =~ /^(1|3|bc1)/
-  raise WTS::UserError, "E146: You don't have enough to send #{amount}" if confirmed_user.wallet(&:balance) < amount
+  balance = confirmed_user.wallet(&:balance)
+  raise WTS::UserError, "E146: You don't have enough to send #{amount}" if balance < amount
+  raise WTS::UserError, "E146: To avoid problems, better send less than #{balance * 0.9}" if balance * 0.9 < amount
   if settings.toggles.get('ban:do-sell').split(',').include?(user.login)
     settings.telepost.spam(
       "⚠️ The user #{title_md} from #{anon_ip} is trying to sell #{amount},",
       'while their account is banned via "ban:do-sell";',
-      "the balance of the user is #{user.wallet(&:balance)}",
+      "the balance of the user is #{balance}",
       "at the wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})"
     )
     raise WTS::UserError, 'E147: Your account is not allowed to sell any ZLD at the moment, email us'
@@ -362,7 +364,7 @@ post '/do-zld-to-btc' do
     settings.telepost.spam(
       "⚠️ The user #{title_md} from #{anon_ip} with #{amount} payment just attempted to go",
       "over their account limits: \"#{consumed}\", while allowed thresholds are \"#{limits}\";",
-      "the balance of the user is #{user.wallet(&:balance)}",
+      "the balance of the user is #{balance}",
       "at the wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})"
     )
     raise WTS::UserError, "E148: With #{amount} you are going over your limits, #{consumed} were sold already, \
@@ -374,7 +376,7 @@ while we allow one user to sell up to #{limits} (daily/weekly/monthly)"
     settings.telepost.spam(
       "⚠️ The user #{title_md} from #{anon_ip} with #{amount} payment just attempted to go",
       "over our limits: \"#{consumed}\", while allowed thresholds are \"#{limits}\";",
-      "the balance of the user is #{user.wallet(&:balance)}",
+      "the balance of the user is #{balance}",
       "at the wallet [#{user.item.id}](http://www.zold.io/ledger.html?wallet=#{user.item.id})"
     )
     raise WTS::UserError, "E149: With #{amount} you are going over our limits, #{consumed} were sold by ALL \
