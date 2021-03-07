@@ -109,37 +109,49 @@ unless ENV['RACK_ENV'] == 'test'
         zld = Zold::Amount.new(zld: bitcoin / rate)
         bnf = user(assets.owner(address))
         boss = user(settings.config['exchange']['login'])
-        settings.log.info("Accepting #{bitcoin} bitcoins from #{address}...")
+        settings.log.info("Accepting #{bitcoin} bitcoins from #{address} for #{bnf.item.id}...")
         ops(boss, log: settings.log).pull
-        ops(boss, log: settings.log).pay(
-          settings.config['exchange']['keygap'],
-          bnf.item.id, zld,
-          "BTC exchange of #{bitcoin} at #{hash}, rate is #{rate}"
-        )
-        if referrals.exists?(bnf.login)
-          fee = settings.toggles.get('referral-fee', '0.04').to_f
+        begin
+          ops(bnf, log: settings.log).pull
           ops(boss, log: settings.log).pay(
             settings.config['exchange']['keygap'],
-            user(referrals.ref(bnf.login)).item.id,
-            zld * fee, "#{(fee * 100).round(2)} referral fee for BTC exchange"
+            bnf.item.id, zld,
+            "BTC exchange of #{bitcoin} at #{hash}, rate is #{rate}"
+          )
+          if referrals.exists?(bnf.login)
+            fee = settings.toggles.get('referral-fee', '0.04').to_f
+            ops(boss, log: settings.log).pay(
+              settings.config['exchange']['keygap'],
+              user(referrals.ref(bnf.login)).item.id,
+              zld * fee, "#{(fee * 100).round(2)} referral fee for BTC exchange"
+            )
+          end
+          ops(boss, log: settings.log).push
+          settings.telepost.spam(
+            "👍 In: #{format('%.06f', bitcoin)} BTC (#{WTS::Dollars.new(price * bitcoin)})",
+            "[exchanged](https://blog.zold.io/2018/12/09/btc-to-zld.html) to **#{zld}**",
+            "by #{title_md(bnf)}",
+            "in [#{hash}](https://www.blockchain.com/btc/tx/#{hash.gsub(/:[0-9]+$/, '')})",
+            "via [#{address}](https://www.blockchain.com/btc/address/#{address}),",
+            "to the wallet [#{bnf.item.id}](http://www.zold.io/ledger.html?wallet=#{bnf.item.id})",
+            "with the balance of #{bnf.wallet(&:balance)};",
+            "BTC price at the moment of exchange was [#{WTS::Dollars.new(price)}](https://blockchain.info/ticker);",
+            "the payer is #{title_md(boss)} with the wallet",
+            "[#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id}),",
+            "the remaining balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t);",
+            "our bitcoin assets still have [#{assets.balance.round(4)} BTC](https://wts.zold.io/assets)",
+            "(#{WTS::Dollars.new(price * assets.balance)})"
+          )
+        rescue Zold::Fetch::NotFound => e
+          settings.telepost.spam(
+            "👍 Oops: #{format('%.06f', bitcoin)} BTC (#{WTS::Dollars.new(price * bitcoin)})",
+            "arrived for #{title_md(bnf)}",
+            "in [#{hash}](https://www.blockchain.com/btc/tx/#{hash.gsub(/:[0-9]+$/, '')})",
+            "via [#{address}](https://www.blockchain.com/btc/address/#{address}),",
+            "to the wallet [#{bnf.item.id}](http://www.zold.io/ledger.html?wallet=#{bnf.item.id})",
+            "but the wallet is gone: #{e.message}"
           )
         end
-        ops(boss, log: settings.log).push
-        settings.telepost.spam(
-          "👍 In: #{format('%.06f', bitcoin)} BTC (#{WTS::Dollars.new(price * bitcoin)})",
-          "[exchanged](https://blog.zold.io/2018/12/09/btc-to-zld.html) to **#{zld}**",
-          "by #{title_md(bnf)}",
-          "in [#{hash}](https://www.blockchain.com/btc/tx/#{hash.gsub(/:[0-9]+$/, '')})",
-          "via [#{address}](https://www.blockchain.com/btc/address/#{address}),",
-          "to the wallet [#{bnf.item.id}](http://www.zold.io/ledger.html?wallet=#{bnf.item.id})",
-          "with the balance of #{bnf.wallet(&:balance)};",
-          "BTC price at the moment of exchange was [#{WTS::Dollars.new(price)}](https://blockchain.info/ticker);",
-          "the payer is #{title_md(boss)} with the wallet",
-          "[#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id}),",
-          "the remaining balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t);",
-          "our bitcoin assets still have [#{assets.balance.round(4)} BTC](https://wts.zold.io/assets)",
-          "(#{WTS::Dollars.new(price * assets.balance)})"
-        )
       elsif assets.cold?(address)
         settings.telepost.spam(
           "👍 In: #{format('%.06f', bitcoin)} BTC (#{WTS::Dollars.new(price * bitcoin)}) arrived to",
