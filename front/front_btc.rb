@@ -18,21 +18,22 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require 'glogin'
+require 'obk'
+require 'retriable_proxy'
 require 'sibit'
-require 'sibit/fake'
-require 'sibit/http'
-require 'sibit/blockchain'
+require 'sibit/bestof'
 require 'sibit/bitcoinchain'
-require 'sibit/cryptoapis'
-require 'sibit/cex'
+require 'sibit/blockchain'
 require 'sibit/blockchair'
 require 'sibit/btc'
+require 'sibit/cex'
+require 'sibit/cryptoapis'
 require 'sibit/earn'
+require 'sibit/fake'
+require 'sibit/http'
 require 'sibit/json'
-require 'sibit/bestof'
-require 'retriable_proxy'
 require 'syncem'
-require 'glogin'
 require_relative '../objects/assets'
 require_relative '../objects/coinbase'
 require_relative '../objects/referrals'
@@ -348,7 +349,8 @@ post '/do-zld-to-btc' do
   raise WTS::UserError, 'E145: Bitcoin address must start with 1, 3 or bc1' unless address =~ /^(1|3|bc1)/
   balance = confirmed_user.wallet(&:balance)
   raise WTS::UserError, "E146: You don't have enough to send #{amount}" if balance < amount
-  raise WTS::UserError, "E146: To avoid problems, better send less than #{balance * 0.9}" if balance * 0.9 < amount
+  maxout = settings.toggles.get('maxout', '1.0').to_f
+  raise WTS::UserError, "E146: For your safety, send less than #{balance * maxout}" if balance * maxout < amount
   if settings.toggles.get('ban:do-sell').split(',').include?(user.login)
     settings.telepost.spam(
       "⚠️ The user #{title_md} from #{anon_ip} is trying to sell #{amount},",
@@ -586,5 +588,5 @@ def sibit(log: settings.log)
     end
     api = api.map { |a| RetriableProxy.for_object(a, on: Sibit::Error) }
   end
-  Sibit.new(log: log, api: Sibit::BestOf.new(api, log: log))
+  Obk.new(Sibit.new(log: log, api: Sibit::BestOf.new(api, log: log)), pause: 15 * 1000)
 end

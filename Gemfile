@@ -38,6 +38,7 @@ gem 'haml', '5.0.4'
 gem 'iri', '0.5.0'
 gem 'minitest', '5.11.3'
 gem 'minitest-reporters', '1.3.6', require: false
+gem 'obk', '0.1.0'
 gem 'octokit', '4.14.0'
 gem 'paypal-sdk-rest', '1.7.3'
 gem 'pgtk', '0.7.5'
@@ -51,6 +52,8 @@ gem 'rerun', '0.13.0', require: false
 gem 'retriable', '3.1.2'
 gem 'retriable_proxy', '1.0.2'
 gem 'rubocop', '1.5.0', require: false
+gem 'rubocop-minitest', '0.10.3'
+gem 'rubocop-rake', '0.5.1'
 gem 'rubocop-rspec', '1.33.0', require: false
 gem 'sass', '3.7.4'
 gem 'sentry-raven', '2.9.0'
