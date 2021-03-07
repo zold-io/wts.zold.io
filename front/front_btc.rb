@@ -142,7 +142,8 @@ unless ENV['RACK_ENV'] == 'test'
             "our bitcoin assets still have [#{assets.balance.round(4)} BTC](https://wts.zold.io/assets)",
             "(#{WTS::Dollars.new(price * assets.balance)})"
           )
-        rescue Zold::Fetch::NotFound => e
+        rescue WTS::UserError => e
+          raise e unless e.message.start_with?('E186:')
           settings.telepost.spam(
             "👍 Oops: #{format('%.06f', bitcoin)} BTC (#{WTS::Dollars.new(price * bitcoin)})",
             "arrived for #{title_md(bnf)}",
