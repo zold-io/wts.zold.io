@@ -75,15 +75,17 @@ unless ENV['RACK_ENV'] == 'test'
   settings.daemons.start('btc-reconcile', 12 * 60 * 60) do
     assets.reconcile do |address, before, after, hot|
       diff = after - before
-      settings.telepost.spam(
-        diff.positive? ? '📥' : '⚠️',
-        "The balance at #{hot ? 'hot' : 'cold'}",
-        "[#{address}](https://www.blockchain.com/btc/address/#{address})",
-        "was #{diff.positive? ? 'increased' : 'decreased'} by #{diff}",
-        "(#{WTS::Dollars.new(diff * price / 100_000_000)}), from #{before} to #{after} satoshi;",
-        "our bitcoin assets have [#{assets.balance.round(4)} BTC](https://wts.zold.io/assets)",
-        "(#{WTS::Dollars.new(price * assets.balance)})"
-      )
+      if diff.abs > 10 # smaller changes we just ignore
+        settings.telepost.spam(
+          diff.positive? ? '📥' : '⚠️',
+          "The balance at #{hot ? 'hot' : 'cold'}",
+          "[#{address}](https://www.blockchain.com/btc/address/#{address})",
+          "was #{diff.positive? ? 'increased' : 'decreased'} by #{diff.abs}",
+          "(#{WTS::Dollars.new(diff * price / 100_000_000)}), from #{before} to #{after} satoshi;",
+          "our bitcoin assets have [#{assets.balance.round(4)} BTC](https://wts.zold.io/assets)",
+          "(#{WTS::Dollars.new(price * assets.balance)})"
+        )
+      end
     end
   end
   settings.daemons.start('blockchain-lags', 60 * 60) do
