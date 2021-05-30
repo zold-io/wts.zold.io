@@ -26,7 +26,7 @@ helpers do
     span + CGI.escapeHTML(text)
       .tr("\n", '↵')
       .split(/(.{4})/)
-      .map { |i| i.gsub(' ', '&#x2423;') }
+      .map { |i| i.gsub(' ', "<span class='lightgray'>&#x2423;</span>") }
       .join('</span>' + span)
       .chars.map { |c| c.ord > 0x7f ? "<span class='firebrick'>\\x#{format('%x', c.ord)}</span>" : c }.join + '</span>'
   end
