@@ -8,8 +8,9 @@ assets:
   id_rsa.pub: yegor256/home#assets/heroku-key.pub
 install: |-
   export PATH=$PATH:/usr/lib/postgresql/12/bin
-  # sudo apt-get -y update
+  sudo apt-get -y update
   sudo apt-get -y install libpq-dev
+  sudo apt install -y libssl1.0-dev
   pdd -f /dev/null
   sudo bundle install --no-color "--gemfile=$(pwd)/Gemfile"
 release:
