@@ -55,6 +55,8 @@ def pay_hosting_bonuses(boss, jid, log)
   winners = cmd.run(%w[remote elect --min-score=2 --max-winners=8 --ignore-masters])
   winners.each do |score|
     ops(boss, log: log).pull
+    ops(boss, log: log).pay_taxes(settings.config['rewards']['keygap'])
+    ops(boss, log: log).push
     ops(boss, log: log).pay(
       settings.config['rewards']['keygap'],
       score.invoice,
