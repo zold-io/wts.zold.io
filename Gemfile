@@ -18,14 +18,13 @@
 # SOFTWARE.
 
 source 'https://rubygems.org'
-ruby '2.6.0'
 
 gem 'active_paypal_adaptive_payment', '0.3.16'
 gem 'aws-sdk-s3', '1.43.0'
 gem 'aws-sdk-sns', '1.17.0'
 gem 'backports', '3.15.0'
 gem 'backtrace', '0.3.0'
-gem 'bitcoin-ruby', '0.0.19'
+gem 'bitcoin-ruby', '~>0.0.19'
 gem 'codecov', '0.2.8'
 gem 'coinbase', '4.2.1'
 gem 'concurrent-ruby', '>=1.1'
@@ -57,7 +56,7 @@ gem 'rubocop-rake', '0.5.1'
 gem 'rubocop-rspec', '1.33.0', require: false
 gem 'sass', '3.7.4'
 gem 'sentry-raven', '2.9.0'
-gem 'sibit', '0.21.8'
+gem 'sibit', '0.22.0'
 gem 'sinatra', '2.0.5'
 gem 'sinatra-contrib', '2.0.5'
 gem 'svg-graph', '2.1.3'
