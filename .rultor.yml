@@ -1,3 +1,6 @@
+architect:
+  - yegor256
+  - davvd
 docker:
   image: yegor256/rultor-image:1.5.2
 readers:
@@ -42,7 +45,3 @@ release:
 merge:
   script: |-
     bundle exec rake
-deploy:
-  script: |-
-    echo "It's not deployable, use 'release'"
-    exit -1
