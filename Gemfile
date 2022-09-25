@@ -1,4 +1,4 @@
-# Copyright (c) 2018-2021 Zold
+# Copyright (c) 2018-2022 Zold
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the 'Software'), to deal
@@ -34,7 +34,7 @@ gem 'geoplugin', '0.3.1'
 gem 'get_process_mem', '~>0.2'
 gem 'glogin', '0.5.1' # Can't upgrade, since 0.6.0 is using Base58 instead of Base64
 gem 'haml', '5.0.4'
-gem 'iri', '0.5.0'
+gem 'iri', '0.5.1'
 gem 'minitest', '5.11.3'
 gem 'minitest-reporters', '1.3.6', require: false
 gem 'obk', '0.1.0'
@@ -67,6 +67,6 @@ gem 'thin', '1.7.2'
 gem 'total', '>=0.2.0'
 gem 'upwork-api', '1.3.2'
 gem 'webmock', '3.6.0'
-gem 'xcop', '0.6'
+gem 'xcop', '0.7.1'
 gem 'zache', '>=0.12.0'
-gem 'zold', '0.29.33'
+gem 'zold', '0.29.34'
