@@ -2,7 +2,7 @@ architect:
   - yegor256
   - davvd
 docker:
-  image: yegor256/rultor-image:1.5.2
+  image: yegor256/rultor-image:1.13.0
 readers:
   - "urn:github:526301"
 assets:
@@ -13,7 +13,6 @@ install: |-
   export PATH=$PATH:/usr/lib/postgresql/12/bin
   sudo apt-get -y update
   sudo apt-get -y install libpq-dev
-  sudo apt install -y libssl1.0-dev
   pdd -f /dev/null
   sudo bundle install --no-color "--gemfile=$(pwd)/Gemfile"
 release:
