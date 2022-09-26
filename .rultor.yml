@@ -19,7 +19,7 @@ release:
   sensitive:
     - config.yml
   script: |-
-    bundle exec rake
+    bundle exec rake --quiet
     git remote add dokku dokku@dokku.zold.io:wts
     rm -rf ~/.ssh
     mkdir ~/.ssh
@@ -43,4 +43,4 @@ release:
     curl -f --connect-timeout 15 --retry 5 --retry-delay 30 https://wts.zold.io > /dev/null
 merge:
   script: |-
-    bundle exec rake
+    bundle exec rake --quiet
