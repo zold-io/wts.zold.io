@@ -303,7 +303,7 @@ get '/download' do
   response.headers['Content-Type'] = 'application/octet-stream'
   response.headers['Content-Disposition'] = "attachment; filename=#{confirmed_user.item.id}#{Zold::Wallet::EXT}"
   confirmed_user.wallet do |w|
-    IO.read(w.path)
+    File.read(w.path)
   end
 end
 

@@ -182,10 +182,10 @@ class WTS::AppTest < Minitest::Test
     post(
       '/do-zld-to-btc',
       form(
-        'amount': '1',
-        'btc': '1N1R2HP9JD4LvAtp7rTkpRqF19GH7PH2ZF',
-        'keygap': keygap,
-        '_csrf': csrf
+        amount: '1',
+        btc: '1N1R2HP9JD4LvAtp7rTkpRqF19GH7PH2ZF',
+        keygap: keygap,
+        _csrf: csrf
       )
     )
     assert_equal(302, last_response.status, last_response.body)
@@ -201,11 +201,11 @@ class WTS::AppTest < Minitest::Test
     post(
       '/do-pay',
       form(
-        'keygap': keygap,
-        'bnf': '1111222233334444',
-        'amount': 100,
-        'details': 'for pizza',
-        '_csrf': csrf
+        keygap: keygap,
+        bnf: '1111222233334444',
+        amount: 100,
+        details: 'for pizza',
+        _csrf: csrf
       )
     )
     assert_equal(302, last_response.status, last_response.body)

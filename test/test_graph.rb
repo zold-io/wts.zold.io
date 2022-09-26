@@ -34,12 +34,12 @@ class WTS::GraphTest < Minitest::Test
     ticks.add('Price' => 1.5, 'time' => tme(-14))
     ticks.add('Price' => 1.2, 'time' => tme(-50))
     FileUtils.mkdir_p('target')
-    IO.write('target/graph.svg', WTS::Graph.new(ticks, log: t_log).svg(['Price'], 1, 0))
+    File.write('target/graph.svg', WTS::Graph.new(ticks, log: t_log).svg(['Price'], 1, 0))
   end
 
   private
 
   def tme(days)
-    ((Time.now.to_f + days * 24 * 60 * 60) * 1000).to_i
+    ((Time.now.to_f + (days * 24 * 60 * 60)) * 1000).to_i
   end
 end

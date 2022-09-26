@@ -33,7 +33,7 @@ get '/quick' do
     body = http.body
     settings.log.debug("HAML template #{page} found at #{uri}: #{body.length} bytes")
   else
-    body = IO.read(File.join(__dir__, '../views/quick_default.haml'))
+    body = File.read(File.join(__dir__, '../views/quick_default.haml'))
     settings.log.debug("HAML template #{page} not found at #{uri}, using default of #{body.length} bytes")
   end
   body.force_encoding('utf-8')

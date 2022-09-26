@@ -33,9 +33,9 @@ def pay_hosting_bonuses(boss, jid, log)
   ops(boss, log: log).remove
   ops(boss, log: log).pull
   latest = boss.wallet(&:txns).reverse.find { |t| t.amount.negative? }
-  return if !latest.nil? && latest.date > Time.now - 60 * 60
+  return if !latest.nil? && latest.date > Time.now - (60 * 60)
   if boss.wallet(&:balance) < bonus
-    if !latest.nil? && latest.date > Time.now - 60 * 60
+    if !latest.nil? && latest.date > Time.now - (60 * 60)
       settings.telepost.spam(
         'The hosting bonuses paying wallet',
         "[#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id})",

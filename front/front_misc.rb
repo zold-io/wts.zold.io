@@ -51,5 +51,5 @@ get '/js/*.js' do
   file = File.join('assets/js', params[:splat].first) + '.js'
   error(404, "File not found: #{file}") unless File.exist?(file)
   content_type 'application/javascript'
-  IO.read(file)
+  File.read(file)
 end

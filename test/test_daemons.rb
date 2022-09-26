@@ -43,7 +43,7 @@ class WTS::DaemonsTest < Minitest::Test
       stepped += 1
       raise StandardError, 'Intended' if stepped == 1
     end
-    sleep 0.01
+    sleep 0.1
     assert(stepped > 1)
   end
 end

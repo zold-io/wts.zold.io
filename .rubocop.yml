@@ -5,6 +5,7 @@ AllCops:
   NewCops: enable
   DisplayCopNames: true
   TargetRubyVersion: 2.6.0
+  SuggestExtensions: false
 
 Style/ClassAndModuleChildren:
   Enabled: false

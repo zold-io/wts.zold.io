@@ -81,7 +81,7 @@ get '/rate' do
         boss_wallet: boss.item.id
       }
       hash[:rate] = hash[:bank] / (hash[:root] - hash[:boss]).to_f
-      hash[:deficit] = (hash[:root] - hash[:boss]).to_f * WTS::Rate.new(settings.toggles).to_f - hash[:bank]
+      hash[:deficit] = ((hash[:root] - hash[:boss]).to_f * WTS::Rate.new(settings.toggles).to_f) - hash[:bank]
       hash[:price] = price
       hash[:usd_rate] = hash[:price] * WTS::Rate.new(settings.toggles).to_f
       settings.zache.put(:rate, hash, lifetime: 10 * 60)

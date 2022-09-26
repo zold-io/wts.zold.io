@@ -106,9 +106,9 @@ class WTS::Jobs
 
   # Get all job results.
   def results(id)
-    @pgsql.exec('SELECT key, value FROM result WHERE job = $1', [id]).map do |r|
+    @pgsql.exec('SELECT key, value FROM result WHERE job = $1', [id]).to_h do |r|
       [r['key'], r['value']]
-    end.to_h
+    end
   end
 
   # Read the Job full output

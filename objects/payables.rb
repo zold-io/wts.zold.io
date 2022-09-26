@@ -47,7 +47,7 @@ class WTS::Payables
       seen << r.to_s
       res = r.http('/wallets').get(timeout: 60)
       r.assert_code(200, res)
-      ids = res.body.strip.split("\n").compact.select { |i| /^[a-f0-9]{16}$/.match?(i) }
+      ids = res.body.strip.split("\n").compact.grep(/^[a-f0-9]{16}$/)
       ids.each do |id|
         @pgsql.exec(
           'INSERT INTO payable (id, node) VALUES ($1, $2) ON CONFLICT (id) DO NOTHING',

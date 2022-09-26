@@ -34,7 +34,7 @@ get '/do-push' do
     unless user.wallet_exists?
       key = user.item.key(keygap)
       Tempfile.open do |f|
-        IO.write(f, OpenSSL::PKey::RSA.new(key.to_s).public_key.to_pem)
+        File.write(f, OpenSSL::PKey::RSA.new(key.to_s).public_key.to_pem)
         Zold::Create.new(wallets: settings.wallets, remotes: settings.remotes, log: settings.log).run(
           ['create', user.item.id.to_s, "--network=#{network}", "--public-key=#{f.path}"]
         )
