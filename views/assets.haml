@@ -10,6 +10,13 @@
       %label Add cold asset:
       %input{type: 'text', name: 'address', maxlength: 64, size: 35, placeholder: 'Bitcoin address', autocomplete: 'off', tabindex: 1, required: true}
       %input{type: 'submit', tabindex: 2, value: 'Add'}
+    %form{method: 'POST', action: iri.cut('/rename-item')}
+      = Rack::Csrf.tag(env)
+      %label Rename
+      %input{type: 'text', name: 'from', maxlength: 64, size: 20, placeholder: 'Login', autocomplete: 'off', tabindex: 1, required: true}
+      %label to:
+      %input{type: 'text', name: 'to', maxlength: 64, size: 20, placeholder: 'New Login', autocomplete: 'off', tabindex: 1, required: true}
+      %input{type: 'submit', tabindex: 2, value: 'Rename'}
     %form{method: 'POST', action: iri.cut('/decrypt-pkey')}
       = Rack::Csrf.tag(env)
       %label Decrypt:

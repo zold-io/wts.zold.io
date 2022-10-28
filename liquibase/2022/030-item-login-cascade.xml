@@ -23,12 +23,38 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 -->
 <databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-2.0.xsd">
-  <changeSet id="022" author="yegor256">
+  <changeSet id="030" author="davvd">
     <sql>
-      ALTER TABLE payable ADD COLUMN txns INTEGER DEFAULT 0 NOT NULL;
+      ALTER TABLE token
+      DROP CONSTRAINT token_login_fkey,
+      ADD CONSTRAINT token_login_fkey
+        FOREIGN KEY(login)
+        REFERENCES item(login)
+        ON UPDATE CASCADE;
     </sql>
     <sql>
-      CREATE INDEX idx_payable3 ON payable (txns);
+      ALTER TABLE keygap
+      DROP CONSTRAINT keygap_login_fkey,
+      ADD CONSTRAINT keygap_login_fkey
+        FOREIGN KEY(login)
+        REFERENCES item(login)
+        ON UPDATE CASCADE;
+    </sql>
+    <sql>
+      ALTER TABLE tag
+      DROP CONSTRAINT tag_login_fkey,
+      ADD CONSTRAINT tag_login_fkey
+        FOREIGN KEY(login)
+        REFERENCES item(login)
+        ON UPDATE CASCADE;
+    </sql>
+    <sql>
+      ALTER TABLE asset
+      DROP CONSTRAINT asset_login_fkey,
+      ADD CONSTRAINT asset_login_fkey
+        FOREIGN KEY(login)
+        REFERENCES item(login)
+        ON UPDATE CASCADE;
     </sql>
   </changeSet>
 </databaseChangeLog>

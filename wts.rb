@@ -551,6 +551,7 @@ end
 require_relative 'front/front_auto_pull'
 require_relative 'front/front_bonuses'
 require_relative 'front/front_btc'
+require_relative 'front/front_admin'
 require_relative 'front/front_callbacks'
 require_relative 'front/front_errors'
 require_relative 'front/front_jobs'

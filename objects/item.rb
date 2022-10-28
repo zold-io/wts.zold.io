@@ -126,4 +126,11 @@ keygap is '#{keygap[0, 2]}#{'.' * (keygap.length - 2)}'")
   def touch
     @pgsql.exec('UPDATE item SET touched = NOW() WHERE login = $1', [@login])
   end
+
+  # Rename this item, changing its login.
+  # +to+:: New login
+  def rename(to)
+    @pgsql.exec('UPDATE item SET login = $1 WHERE login = $2', [to, @login])
+    @login = to
+  end
 end
