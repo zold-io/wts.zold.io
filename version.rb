@@ -19,6 +19,6 @@
 # SOFTWARE.
 
 module WTS
-  VERSION = '0.0.0'.freeze
-  RELEASE = '000000'.freeze
+  VERSION = '0.41.2'.freeze
+  RELEASE = '4fbf3c5'.freeze
 end
