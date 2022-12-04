@@ -144,7 +144,14 @@ most probably you just have to RESTART your wallet"
       File.write(f, @item.key(keygap))
       @log.info("Paying taxes for #{id}...")
       Zold::Taxes.new(wallets: @wallets, remotes: @remotes, log: @log).run(
-        ['taxes', 'pay', "--network=#{@network}", '--private-key=' + f.path, id.to_s]
+        [
+          'taxes',
+          'pay',
+          "--network=#{@network}",
+          'ignore-score-weakness',
+          '--private-key=' + f.path,
+          id.to_s
+        ]
       )
     end
     @log.info("Taxes paid for #{id} in #{Zold::Age.new(start)}")
