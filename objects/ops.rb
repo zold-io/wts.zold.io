@@ -148,7 +148,7 @@ most probably you just have to RESTART your wallet"
           'taxes',
           'pay',
           "--network=#{@network}",
-          'ignore-score-weakness',
+          '--ignore-score-weakness',
           '--private-key=' + f.path,
           id.to_s
         ]
