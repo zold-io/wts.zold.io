@@ -118,11 +118,11 @@ GEM
     i18n (1.12.0)
       concurrent-ruby (~> 1.0)
     ice_nine (0.11.2)
-    ipaddr (1.2.4)
+    ipaddr (1.2.5)
     ipaddress (0.8.3)
     iri (0.5.1)
     jmespath (1.6.2)
-    json (2.6.2)
+    json (2.6.3)
     listen (3.7.1)
       rb-fsevent (~> 0.10, >= 0.10.3)
       rb-inotify (~> 0.9, >= 0.9.10)
@@ -180,7 +180,7 @@ GEM
       random-port (~> 0.3)
     plist (3.1.0)
     public_suffix (5.0.0)
-    racc (1.6.0)
+    racc (1.6.1)
     rack (2.2.3)
     rack-protection (2.2.2)
       rack
@@ -312,7 +312,7 @@ GEM
     xml-simple (1.1.9)
       rexml
     zache (0.12.0)
-    zold (0.31.1)
+    zold (0.31.2)
       backtrace (>= 0.3)
       concurrent-ruby (~> 1.1)
       diffy (~> 3.3)
@@ -395,7 +395,7 @@ DEPENDENCIES
   webmock (= 3.18.1)
   xcop (= 0.7.1)
   zache (>= 0.12.0)
-  zold (= 0.31.1)
+  zold (= 0.31.2)
 
 BUNDLED WITH
    2.3.17
