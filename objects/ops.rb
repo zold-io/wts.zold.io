@@ -180,6 +180,7 @@ most probably you just have to RESTART your wallet"
           'pay',
           "--network=#{@network}",
           '--ignore-score-weakness',
+          '--ignore-score-size',
           '--private-key=' + f.path,
           id.to_s,
           bnf.to_s,

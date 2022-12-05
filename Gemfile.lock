@@ -312,7 +312,7 @@ GEM
     xml-simple (1.1.9)
       rexml
     zache (0.12.0)
-    zold (0.31.2)
+    zold (0.31.3)
       backtrace (>= 0.3)
       concurrent-ruby (~> 1.1)
       diffy (~> 3.3)
@@ -395,7 +395,7 @@ DEPENDENCIES
   webmock (= 3.18.1)
   xcop (= 0.7.1)
   zache (>= 0.12.0)
-  zold (= 0.31.2)
+  zold (= 0.31.3)
 
 BUNDLED WITH
    2.3.17

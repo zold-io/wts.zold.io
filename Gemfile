@@ -69,4 +69,4 @@ gem 'upwork-api', '1.3.5'
 gem 'webmock', '3.18.1', require: false
 gem 'xcop', '0.7.1'
 gem 'zache', '>=0.12.0'
-gem 'zold', '0.31.2'
+gem 'zold', '0.31.3'
