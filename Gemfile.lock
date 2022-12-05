@@ -181,7 +181,7 @@ GEM
     plist (3.1.0)
     public_suffix (5.0.0)
     racc (1.6.1)
-    rack (2.2.3)
+    rack (2.2.3.1)
     rack-protection (2.2.2)
       rack
     rack-ssl (1.4.1)
@@ -367,7 +367,7 @@ DEPENDENCIES
   octokit (= 5.6.1)
   paypal-sdk-rest (= 1.7.3)
   pgtk (= 0.7.5)
-  rack (= 2.2.3)
+  rack (= 2.2.3.1)
   rack-ssl (= 1.4.1)
   rack-test (= 2.0.2)
   rack_csrf (= 2.7.0)
