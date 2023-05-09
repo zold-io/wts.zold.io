@@ -11,5 +11,6 @@ git add Gemfile.lock
 git add .gitignore
 git commit -m 'config.yml for dokku'
 trap 'git reset HEAD~1 && rm config.yml && git checkout -- .gitignore' EXIT
+git remote add dokku dokku@wts.zold.io:wts || echo 'already here'
 git push dokku master -f
 

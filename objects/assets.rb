@@ -160,6 +160,7 @@ class WTS::Assets
   # there and find those, which we are waiting for. Then, yield them one
   # by one if they haven't been seen yet in UTXOs.
   def monitor(seen, max: 1)
+    raise "Wrong BTC address '#{seen}'" unless seen.length == 64
     nxt = @sibit.next_of(seen)
     return seen if nxt.nil?
     return seen unless nxt.start_with?('00000000')
