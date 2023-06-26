@@ -23,7 +23,7 @@ gem 'active_paypal_adaptive_payment', '0.3.16'
 gem 'aws-sdk-s3', '1.114.0'
 gem 'aws-sdk-sns', '1.55.0'
 gem 'backports', '3.23.0'
-gem 'backtrace', '0.3.0'
+gem 'backtrace', '0.4.0'
 gem 'bitcoin-ruby', '~>0.0.19'
 gem 'codecov', '0.6.0', require: false
 gem 'coinbase', '4.2.2'
