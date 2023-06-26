@@ -149,6 +149,8 @@ most probably you just have to RESTART your wallet"
           'pay',
           "--network=#{@network}",
           '--ignore-score-weakness',
+          '--ignore-nodes-absence',
+          '--ignore-score-size',
           '--private-key=' + f.path,
           id.to_s
         ]
@@ -180,6 +182,7 @@ most probably you just have to RESTART your wallet"
           'pay',
           "--network=#{@network}",
           '--ignore-score-weakness',
+          '--ignore-nodes-absence',
           '--ignore-score-size',
           '--private-key=' + f.path,
           id.to_s,
