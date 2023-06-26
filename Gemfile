@@ -63,7 +63,7 @@ gem 'svg-graph', '2.1.3'
 gem 'syncem', '0.1.2'
 gem 'telebot', '0.1.2'
 gem 'telepost', '>=0.3.1'
-gem 'thin', '1.8.1'
+gem 'thin', '1.8.2'
 gem 'total', '>=0.2.0'
 gem 'upwork-api', '1.3.5'
 gem 'webmock', '3.18.1', require: false
