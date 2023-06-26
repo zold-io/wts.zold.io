@@ -175,7 +175,7 @@ GEM
       multi_json (~> 1.0)
       xml-simple
     pg (1.5.3)
-    pgtk (0.7.5)
+    pgtk (0.8.0)
       backtrace (~> 0.3)
       loog (~> 0.2)
       pg (~> 1.1)
@@ -368,7 +368,7 @@ DEPENDENCIES
   obk (= 0.3.0)
   octokit (= 5.6.1)
   paypal-sdk-rest (= 1.7.4)
-  pgtk (= 0.7.5)
+  pgtk (= 0.8.0)
   rack (= 2.2.7)
   rack-ssl (= 1.4.1)
   rack-test (= 2.0.2)
