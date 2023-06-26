@@ -46,7 +46,7 @@ GEM
       ice_nine (~> 0.11.0)
       thread_safe (~> 0.3, >= 0.3.1)
     backports (3.23.0)
-    backtrace (0.3.0)
+    backtrace (0.4.0)
     bitcoin-ruby (0.0.20)
       eventmachine
       ffi
@@ -351,7 +351,7 @@ DEPENDENCIES
   aws-sdk-s3 (= 1.114.0)
   aws-sdk-sns (= 1.55.0)
   backports (= 3.23.0)
-  backtrace (= 0.3.0)
+  backtrace (= 0.4.0)
   bitcoin-ruby (~> 0.0.19)
   codecov (= 0.6.0)
   coinbase (= 4.2.2)
