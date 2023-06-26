@@ -45,7 +45,7 @@ GEM
       descendants_tracker (~> 0.0.4)
       ice_nine (~> 0.11.0)
       thread_safe (~> 0.3, >= 0.3.1)
-    backports (3.23.0)
+    backports (3.24.1)
     backtrace (0.3.0)
     bitcoin-ruby (0.0.20)
       eventmachine
@@ -350,7 +350,7 @@ DEPENDENCIES
   active_paypal_adaptive_payment (= 0.3.16)
   aws-sdk-s3 (= 1.114.0)
   aws-sdk-sns (= 1.55.0)
-  backports (= 3.23.0)
+  backports (= 3.24.1)
   backtrace (= 0.3.0)
   bitcoin-ruby (~> 0.0.19)
   codecov (= 0.6.0)
