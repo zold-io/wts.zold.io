@@ -216,8 +216,9 @@ unless ENV['RACK_ENV'] == 'test'
   settings.daemons.start('btc-transfer-to-cold', 12 * 60 * 60) do
     hot = assets.all.select { |a| a[:hot] }.map { |a| a[:value] }.inject(&:+).to_f / 100_000_000
     usd = (hot * price).round
-    if usd > settings.toggles.get('btc:hot-threshold', '2000').to_i
-      btc = 500.0 / price
+    threshold = settings.toggles.get('btc:hot-threshold', '2000').to_i
+    if usd > threshold
+      btc = (usd - threshold + 1) / price
       address = assets.all.reject { |a| a[:hot] }.sample[:address]
       tx = assets.pay(address, (btc * 100_000_000).to_i)
       settings.telepost.spam(
