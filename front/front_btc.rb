@@ -207,7 +207,7 @@ unless ENV['RACK_ENV'] == 'test'
       settings.log.info("There are #{hot} BTC in hot addresses (#{WTS::Dollars.new(usd)}), no need to transfer")
     else
       over = usd - threshold + 1
-      if over < 500
+      if over < threshold * 0.2
         settings.log.info("There are #{WTS::Dollars.new(over)} extra in hot addresses, too small to transfer")
       else
         btc = over / price
