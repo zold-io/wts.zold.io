@@ -203,19 +203,24 @@ unless ENV['RACK_ENV'] == 'test'
     hot = assets.all.select { |a| a[:hot] }.map { |a| a[:value] }.inject(&:+).to_f / 100_000_000
     usd = (hot * price).round
     threshold = settings.toggles.get('btc:hot-threshold', '2000').to_i
-    if usd > threshold
-      btc = (usd - threshold + 1) / price
-      address = assets.all.reject { |a| a[:hot] }.sample[:address]
-      tx = assets.pay(address, (btc * 100_000_000).to_i)
-      settings.telepost.spam(
-        '📤 Transfer: There were too many "hot" bitcoins in our assets',
-        "(#{format('%.04f', hot)} BTC, #{WTS::Dollars.new(usd)}), that's why",
-        "we transferred #{format('%.04f', btc)} BTC (#{WTS::Dollars.new(btc * price)}) to the cold address",
-        "[#{address}](https://www.blockchain.com/btc/address/#{address})",
-        "tx hash is [#{tx}](https://www.blockchain.com/btc/tx/#{tx})"
-      )
-    else
+    if usd <= threshold
       settings.log.info("There are #{hot} BTC in hot addresses (#{WTS::Dollars.new(usd)}), no need to transfer")
+    else
+      over = usd - threshold + 1
+      if over < 500
+        settings.log.info("There are #{WTS::Dollars.new(over)} extra in hot addresses, too small to transfer")
+      else
+        btc = over / price
+        address = assets.all.reject { |a| a[:hot] }.sample[:address]
+        tx = assets.pay(address, (btc * 100_000_000).to_i)
+        settings.telepost.spam(
+          '📤 Transfer: There were too many "hot" bitcoins in our assets',
+          "(#{format('%.04f', hot)} BTC, #{WTS::Dollars.new(usd)}), that's why",
+          "we transferred #{format('%.04f', btc)} BTC (#{WTS::Dollars.new(btc * price)}) to the cold address",
+          "[#{address}](https://www.blockchain.com/btc/address/#{address})",
+          "tx hash is [#{tx}](https://www.blockchain.com/btc/tx/#{tx})"
+        )
+      end
     end
   end
   settings.daemons.start('btc-rate-notify', 60 * 60) do
