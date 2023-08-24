@@ -465,7 +465,6 @@ post '/cold-to-hot' do
   raise WTS::UserError, 'E129: You are not allowed to use this, only yegor256' unless user.login == 'yegor256'
   btc = params[:amount].to_f
   raise WTS::UserError, "E219: The amount #{btc} BTC is too small" if btc < 0.01
-  raise WTS::UserError, "E220: The amount #{btc} BTC is too large" if btc > 0.2
   address = params[:address].strip
   job(exclusive: true) do |jid, log|
     log.info("Sending cold #{btc} BTC from #{address} to a random hot one...")
