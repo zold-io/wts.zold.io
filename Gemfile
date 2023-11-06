@@ -36,7 +36,7 @@ gem 'glogin', '0.5.1' # Can't upgrade, since 0.6.0 is using Base58 instead of Ba
 gem 'haml', '5.2.2'
 gem 'iri', '0.6.0'
 gem 'minitest', '5.19.0'
-gem 'minitest-reporters', '1.3.6', require: false
+gem 'minitest-reporters', '1.6.1', require: false
 gem 'obk', '0.3.0'
 gem 'octokit', '6.1.1'
 gem 'paypal-sdk-rest', '1.7.4'
