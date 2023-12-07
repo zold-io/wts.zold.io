@@ -34,7 +34,7 @@ gem 'geoplugin', '0.3.1'
 gem 'get_process_mem', '~>0.2'
 gem 'glogin', '0.13.0'
 gem 'haml', '5.2.2'
-gem 'iri', '0.6.0'
+gem 'iri', '0.7.0'
 gem 'minitest', '5.20.0'
 gem 'minitest-reporters', '1.6.1', require: false
 gem 'obk', '0.3.0'
