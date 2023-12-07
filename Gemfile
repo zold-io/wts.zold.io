@@ -18,6 +18,7 @@
 # SOFTWARE.
 
 source 'https://rubygems.org'
+ruby '~>2.6'
 
 gem 'active_paypal_adaptive_payment', '0.3.16'
 gem 'aws-sdk-s3', '1.126.0'
