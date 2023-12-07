@@ -53,20 +53,22 @@ class WTS::Item
   # +length+:: Length of keygap to use (don't change it without a necessity)
   def create(id, key, length: 16)
     pem, keygap = WTS::Keygap.new.extract(key.to_s, length)
-    @pgsql.exec(
-      [
-        'INSERT INTO item (login, id, pem) VALUES ($1, $2, $3)',
-        'ON CONFLICT (login) DO UPDATE SET id = $2, pem = $3'
-      ].join(' '),
-      [@login, id.to_s, pem]
-    )
-    @pgsql.exec(
-      [
-        'INSERT INTO keygap (login, keygap) VALUES ($1, $2)',
-        'ON CONFLICT (login) DO UPDATE SET keygap = $2'
-      ].join(' '),
-      [@login, keygap]
-    )
+    @pgsql.transaction do |t|
+      t.exec(
+        [
+          'INSERT INTO item (login, id, pem) VALUES ($1, $2, $3)',
+          'ON CONFLICT (login) DO UPDATE SET id = $2, pem = $3'
+        ].join(' '),
+        [@login, id.to_s, pem]
+      )
+      t.exec(
+        [
+          'INSERT INTO keygap (login, keygap) VALUES ($1, $2)',
+          'ON CONFLICT (login) DO UPDATE SET keygap = $2'
+        ].join(' '),
+        [@login, keygap]
+      )
+    end
     @log.info("New user #{@login} created, wallet ID is #{id}, \
 keygap is '#{keygap[0, 2]}#{'.' * (keygap.length - 2)}'")
     keygap

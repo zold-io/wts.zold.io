@@ -48,7 +48,7 @@ class WTS::User
     /^[0-9]+$/.match?(@login)
   end
 
-  # Create it, if it's absent (returns TRUE if it was created just now)
+  # Create user's wallet, if it's absent (returns TRUE if it was created just now)
   def create(remotes = Zold::Remotes::Empty.new)
     rsa = OpenSSL::PKey::RSA.new(2048)
     pvt = Zold::Key.new(text: rsa.to_pem)

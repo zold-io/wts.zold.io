@@ -158,7 +158,7 @@ configure do
   set :copies, File.join(settings.root, '.zold-wts/copies')
   set :payouts, WTS::Payouts.new(settings.pgsql, log: settings.log)
   set :daemons, WTS::Daemons.new(settings.pgsql, log: settings.log)
-  set :codec, GLogin::Codec.new(config['api_secret'])
+  set :codec, GLogin::Codec.new(config['api_secret'], base64: true)
   set :zache, Zache.new(dirty: true)
   if settings.config['telegram']['token'].empty?
     set :telepost, Telepost::Fake.new

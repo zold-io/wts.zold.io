@@ -39,7 +39,7 @@ require_relative '../objects/coinbase'
 require_relative '../objects/referrals'
 require_relative '../objects/user_error'
 
-set :codec, GLogin::Codec.new(settings.config['pkey_secret'])
+set :codec, GLogin::Codec.new(settings.config['pkey_secret'], base64: true)
 
 def assets(log: settings.log)
   SyncEm.new(

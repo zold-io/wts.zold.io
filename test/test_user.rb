@@ -34,7 +34,7 @@ class WTS::UserTest < Minitest::Test
     WebMock.allow_net_connect!
     Dir.mktmpdir 'test' do |dir|
       wallets = Zold::Wallets.new(File.join(dir, 'wallets'))
-      login = 'jeffrey'
+      login = 'jeffrey08'
       user = WTS::User.new(
         login, WTS::Item.new(login, t_pgsql, log: t_log),
         wallets, log: t_log
