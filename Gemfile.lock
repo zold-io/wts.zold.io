@@ -183,7 +183,7 @@ GEM
     parser (3.2.2.4)
       ast (~> 2.4.1)
       racc
-    paypal-sdk-rest (1.7.4)
+    paypal-sdk-rest (1.7.5)
       multi_json (~> 1.0)
       xml-simple
     pg (1.5.4)
@@ -379,7 +379,7 @@ DEPENDENCIES
   minitest-reporters (= 1.6.1)
   obk (= 0.3.0)
   octokit (= 6.1.1)
-  paypal-sdk-rest (= 1.7.4)
+  paypal-sdk-rest (= 1.7.5)
   pgtk (= 0.8.1)
   rack (= 2.2.7)
   rack-ssl (= 1.4.1)
