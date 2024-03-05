@@ -36,7 +36,7 @@ gem 'haml', '5.2.2'
 gem 'iri', '0.7.0'
 gem 'minitest', '5.20.0'
 gem 'minitest-reporters', '1.6.1', require: false
-gem 'obk', '0.3.0'
+gem 'obk', '0.3.1'
 gem 'octokit', '6.1.1'
 gem 'paypal-sdk-rest', '1.7.5'
 gem 'pgtk', '0.8.1'
