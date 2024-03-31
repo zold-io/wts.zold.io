@@ -211,15 +211,18 @@ unless ENV['RACK_ENV'] == 'test'
         settings.log.info("There are #{WTS::Dollars.new(over)} extra in hot addresses, too small to transfer")
       else
         btc = over / price
-        address = assets.all.reject { |a| a[:hot] }.sample[:address]
-        tx = assets.pay(address, (btc * 100_000_000).to_i)
-        settings.telepost.spam(
-          '📤 Transfer: There were too many "hot" bitcoins in our assets',
-          "(#{format('%.04f', hot)} BTC, #{WTS::Dollars.new(usd)}), that's why",
-          "we transferred #{format('%.04f', btc)} BTC (#{WTS::Dollars.new(btc * price)}) to the cold address",
-          "[#{address}](https://www.blockchain.com/btc/address/#{address})",
-          "tx hash is [#{tx}](https://www.blockchain.com/btc/tx/#{tx})"
-        )
+        colds = assets.all.reject { |a| a[:hot] }
+        unless colds.empty?
+          address = colds.sample[:address]
+          tx = assets.pay(address, (btc * 100_000_000).to_i)
+          settings.telepost.spam(
+            '📤 Transfer: There were too many "hot" bitcoins in our assets',
+            "(#{format('%.04f', hot)} BTC, #{WTS::Dollars.new(usd)}), that's why",
+            "we transferred #{format('%.04f', btc)} BTC (#{WTS::Dollars.new(btc * price)}) to the cold address",
+            "[#{address}](https://www.blockchain.com/btc/address/#{address})",
+            "tx hash is [#{tx}](https://www.blockchain.com/btc/tx/#{tx})"
+          )
+        end
       end
     end
   end
