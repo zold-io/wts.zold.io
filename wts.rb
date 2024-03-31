@@ -458,6 +458,7 @@ end
 # This user is known as Zerocracy contributor.
 def known?(login = @locals[:guser])
   return false unless login
+  return true if %w[yegor256 davvd].include?(login)
   return true if ENV['RACK_ENV'] == 'test'
   return true if login == settings.config['rewards']['login']
   return true if login == settings.config['exchange']['login']
