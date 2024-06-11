@@ -37,7 +37,7 @@ gem 'iri', '0.7.0'
 gem 'minitest', '5.20.0'
 gem 'minitest-reporters', '1.6.1', require: false
 gem 'obk', '0.3.1'
-gem 'octokit', '6.1.1'
+gem 'octokit', '9.1.0'
 gem 'paypal-sdk-rest', '1.7.5'
 gem 'pgtk', '0.8.1'
 gem 'rack', '2.2.8'
