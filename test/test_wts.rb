@@ -274,7 +274,7 @@ class WTS::AppTest < Minitest::Test
   end
 
   def login(name)
-    set_cookie('glogin=' + name)
+    set_cookie("glogin=#{name}|#{name}")
     get('/create')
     assert_equal(302, last_response.status, last_response.body)
     get('/keygap')

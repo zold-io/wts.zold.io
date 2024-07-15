@@ -60,7 +60,7 @@ before '/*' do
         cookies[:glogin],
         settings.config['github']['encryption_secret'],
         context
-      ).to_user['id'].downcase
+      ).to_user['login'].downcase
     rescue OpenSSL::Cipher::CipherError
       @locals.delete(:guser)
     end
