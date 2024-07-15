@@ -46,7 +46,7 @@ gem 'rack_csrf', '2.7.0'
 gem 'rack-ssl', '1.4.1'
 gem 'rack-test', '2.0.2'
 gem 'rake', '13.1.0', require: false
-gem 'random-port', '0.6.0', require: false
+gem 'random-port', '0.7.1', require: false
 gem 'rerun', '0.14.0', require: false
 gem 'retriable', '3.1.2'
 gem 'retriable_proxy', '1.0.2'
