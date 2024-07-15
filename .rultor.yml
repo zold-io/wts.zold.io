@@ -45,7 +45,11 @@ release:
     mkdir ~/.ssh
     mv ../id_rsa ../id_rsa.pub ~/.ssh
     chmod -R 600 ~/.ssh/*
-    echo -e "Host *\n  StrictHostKeyChecking no\n  UserKnownHostsFile=/dev/null" > ~/.ssh/config
+    cat <<EOF
+    Host *
+      StrictHostKeyChecking no
+      UserKnownHostsFile=/dev/null
+    EOF > ~/.ssh/config
     git fetch
     sed -i "s/0\.0\.0/${tag}/g" ./version.rb
     release=$(git rev-parse --short HEAD)
@@ -60,7 +64,9 @@ release:
     rm -rf target/pgsql-config.yml
     bundle exec rake liquibase
     rm -rf config.yml
-    curl -f --connect-timeout 15 --retry 5 --retry-delay 30 https://wts.zold.io > /dev/null
+    curl -f --connect-timeout 15 \
+      --retry 5 --retry-delay 30 \
+      https://wts.zold.io > /dev/null
 merge:
   script: |-
     bundle exec rake --quiet
