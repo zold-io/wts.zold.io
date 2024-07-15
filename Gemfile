@@ -32,7 +32,7 @@ gem 'futex', '~>0'
 gem 'geoplugin', '0.3.1'
 gem 'get_process_mem', '~>0.2'
 gem 'glogin', '~>0'
-gem 'haml', '5.2.2'
+gem 'haml', '6.3.0'
 gem 'iri', '~>0'
 gem 'minitest', '~>5.24', require: false
 gem 'minitest-reporters', '~>1.6', require: false
