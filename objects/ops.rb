@@ -79,7 +79,7 @@ class WTS::Ops
     start = Time.now
     if @remotes.all.empty?
       return if ENV['RACK_ENV'] == 'test'
-      raise WTS::UserError, "E185: There are no visible remote nodes, can\'t PULL #{id}"
+      raise WTS::UserError, "E185: There are no visible remote nodes, can't PULL #{id}"
     end
     begin
       @log.info("Pulling #{id} from the network...")
@@ -109,7 +109,7 @@ see this happening! #{e.message}"
     id = @item.id
     if @remotes.all.empty?
       return if ENV['RACK_ENV'] == 'test'
-      raise WTS::UserError, "E187: There are no visible remote nodes, can\'t PUSH #{id}"
+      raise WTS::UserError, "E187: There are no visible remote nodes, can't PUSH #{id}"
     end
     unless @wallets.acq(id, &:exists?)
       raise WTS::UserError, "EThe wallet #{id} of #{@user.login} is absent, can't PUSH; \

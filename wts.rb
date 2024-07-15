@@ -499,7 +499,7 @@ def keygap
   begin
     confirmed_user.item.key(gap).to_s
   rescue StandardError => e
-    raise WTS::UserError, "E176: This doesn\'t seem to be a valid keygap: '#{'*' * gap.length}' (#{e.class.name})"
+    raise WTS::UserError, "E176: This doesn't seem to be a valid keygap: '#{'*' * gap.length}' (#{e.class.name})"
   end
   gap
 end

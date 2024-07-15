@@ -40,7 +40,7 @@ def pay_hosting_bonuses(boss, jid, log)
         'The hosting bonuses paying wallet',
         "[#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id})",
         "is almost empty, the balance is just #{boss.wallet(&:balance)};",
-        "we can\'t pay #{bonus} of bonuses now;",
+        "we can't pay #{bonus} of bonuses now;",
         'we should wait until the next BTC/ZLD',
         '[exchange](https://blog.zold.io/2018/12/09/btc-to-zld.html) happens;',
         job_link(jid)

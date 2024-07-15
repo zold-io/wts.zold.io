@@ -33,7 +33,7 @@ class WTS::Ticks
   # Already exists for the current time?
   def exists?(key, seconds = 6 * 60 * 60)
     !@pgsql.exec(
-      "SELECT FROM tick WHERE key = $1 AND created > NOW() - INTERVAL \'#{seconds} SECONDS\'",
+      "SELECT FROM tick WHERE key = $1 AND created > NOW() - INTERVAL '#{seconds} SECONDS'",
       [key]
     ).empty?
   end

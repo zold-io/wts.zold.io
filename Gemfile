@@ -49,17 +49,17 @@ gem 'random-port', '0.6.0', require: false
 gem 'rerun', '0.14.0', require: false
 gem 'retriable', '3.1.2'
 gem 'retriable_proxy', '1.0.2'
-gem 'rubocop', '1.36.0', require: false
-gem 'rubocop-minitest', '0.22.1'
-gem 'rubocop-rake', '0.6.0'
-gem 'rubocop-rspec', '2.13.2', require: false
+gem 'rubocop', '1.65.0', require: false
+gem 'rubocop-minitest', '0.35.1', require: false
+gem 'rubocop-rake', '0.6.0', require: false
+gem 'rubocop-rspec', '3.0.3', require: false
 gem 'sass', '3.7.4'
 gem 'sentry-raven', '3.1.2'
 gem 'sibit', '0.25.1'
 gem 'simplecov', '0.22.0', require: false
 gem 'sinatra', '~>3.0'
 gem 'sinatra-contrib', '~>3.0'
-gem 'svg-graph', '~>2.2'
+gem 'svg-graph', '2.1.3'
 gem 'syncem', '~>0'
 gem 'telebot', '~>0'
 gem 'telepost', '>=0.3.1'

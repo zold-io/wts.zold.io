@@ -58,7 +58,7 @@ class WTS::Jobs
   def gc(minutes = 60)
     @pgsql.transaction do |t|
       t.exec(
-        "UPDATE job SET log = $1 WHERE started < NOW() - INTERVAL \'#{minutes} MINUTES\' AND log = \'Running\'",
+        "UPDATE job SET log = $1 WHERE started < NOW() - INTERVAL '#{minutes} MINUTES' AND log = 'Running'",
         [
           [
             "We are sorry, but most probably the job is lost at #{Time.now.utc.iso8601},",
@@ -66,7 +66,7 @@ class WTS::Jobs
           ].join(' ')
         ]
       )
-      t.exec("DELETE FROM job WHERE started < NOW() - INTERVAL \'180 DAYS\'")
+      t.exec("DELETE FROM job WHERE started < NOW() - INTERVAL '180 DAYS'")
     end
   end
 

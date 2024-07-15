@@ -38,7 +38,7 @@ class WTS::Daemons
     @threads[id] = Thread.new do
       sleep(pause) # to let the main script load all Ruby methods
       loop do
-        sleep([[seconds - age(id), 0].max, 5 * 60].min)
+        sleep((seconds - age(id)).clamp(0, 5 * 60))
         next if age(id) < seconds
         begin
           yield
