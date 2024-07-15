@@ -66,7 +66,7 @@ gem 'telepost', '>=0.3.1'
 gem 'thin', '1.8.2'
 gem 'total', '~>0'
 gem 'upwork-api', '1.3.5'
-gem 'webmock', '3.18.1', require: false
+gem 'webmock', '~>3.23', require: false
 gem 'xcop', '~>0'
 gem 'zache', '~>0'
 gem 'zold', '0.31.8'
