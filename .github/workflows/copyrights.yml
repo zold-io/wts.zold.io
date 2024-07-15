@@ -18,12 +18,13 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 ---
-errors:
-  - yegor256@gmail.com
-# alerts:
-#   github:
-#     - yegor256
-
-tags:
-  - pdd
-  - bug
+name: copyrights
+'on':
+  push:
+  pull_request:
+jobs:
+  copyrights:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: yegor256/copyrights-action@0.0.4
