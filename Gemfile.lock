@@ -120,7 +120,7 @@ GEM
       json
     get_process_mem (0.2.7)
       ffi (~> 1.0)
-    glogin (0.16.3)
+    glogin (0.16.4)
       base58 (>= 0.2)
       openssl (>= 2.0)
     haml (5.2.2)
