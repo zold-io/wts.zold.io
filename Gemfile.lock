@@ -334,7 +334,7 @@ GEM
       slop (~> 4.4)
     xml-simple (1.1.9)
       rexml
-    zache (0.13.1)
+    zache (0.13.2)
     zold (0.31.8)
       backtrace (~> 0.3)
       concurrent-ruby (~> 1.1)
