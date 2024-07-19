@@ -61,7 +61,7 @@ before '/*' do
         settings.config['github']['encryption_secret'],
         context
       ).to_user['login'].downcase
-    rescue OpenSSL::Cipher::CipherError
+    rescue GLogin::Codec::DecodingError
       @locals.delete(:guser)
     end
   end
