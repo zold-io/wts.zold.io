@@ -20,9 +20,10 @@
 # SOFTWARE.
 
 set -e
+set -x
 
 cd $(dirname $0)
-bundle update
+# bundle up
 # rake
 sed -i -s 's|Gemfile.lock||g' .gitignore
 cp /code/home/assets/zold/wts-config.yml config.yml
