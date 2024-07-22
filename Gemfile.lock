@@ -41,7 +41,7 @@ GEM
       aws-sdk-core (~> 3, >= 3.201.0)
       aws-sdk-kms (~> 1)
       aws-sigv4 (~> 1.5)
-    aws-sdk-sns (1.81.0)
+    aws-sdk-sns (1.82.0)
       aws-sdk-core (~> 3, >= 3.201.0)
       aws-sigv4 (~> 1.5)
     aws-sigv4 (1.8.0)
@@ -370,7 +370,7 @@ PLATFORMS
 DEPENDENCIES
   active_paypal_adaptive_payment (= 0.3.16)
   aws-sdk-s3 (= 1.156.0)
-  aws-sdk-sns (= 1.81.0)
+  aws-sdk-sns (= 1.82.0)
   backports (~> 3.25)
   backtrace (~> 0)
   bitcoin-ruby (~> 0.0.19)
