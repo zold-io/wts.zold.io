@@ -182,7 +182,7 @@ GEM
     openssl (2.2.3)
       ipaddr
     parallel (1.25.1)
-    parser (3.3.4.0)
+    parser (3.3.4.2)
       ast (~> 2.4.1)
       racc
     paypal-sdk-rest (1.7.5)
@@ -196,7 +196,7 @@ GEM
       random-port (~> 0.3)
     plist (3.1.0)
     public_suffix (6.0.0)
-    racc (1.8.0)
+    racc (1.8.1)
     rack (2.2.8)
     rack-protection (3.2.0)
       base64 (>= 0.1.0)
@@ -221,7 +221,7 @@ GEM
       retriable (>= 2.0, < 4.0)
     rexml (3.2.9)
       strscan
-    rubocop (1.65.0)
+    rubocop (1.65.1)
       json (~> 2.3)
       language_server-protocol (>= 3.17.0)
       parallel (~> 1.10)
@@ -398,7 +398,7 @@ DEPENDENCIES
   rerun (= 0.14.0)
   retriable (= 3.1.2)
   retriable_proxy (= 1.0.2)
-  rubocop (= 1.65.0)
+  rubocop (= 1.65.1)
   rubocop-minitest (= 0.35.1)
   rubocop-rake (= 0.6.0)
   rubocop-rspec (= 3.0.3)
