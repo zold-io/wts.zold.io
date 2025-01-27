@@ -206,4 +206,3 @@ $(function() {
   wts_recalc();
   $('#button').on('click', wts_step1);
 });
-
