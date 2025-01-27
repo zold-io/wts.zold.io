@@ -58,7 +58,7 @@ gem 'sass', '3.7.4'
 gem 'sentry-raven', '3.1.2'
 gem 'sibit', '0.25.1'
 gem 'simplecov', '0.22.0', require: false
-gem 'sinatra', '~>3.0'
+gem 'sinatra', '~>4.0'
 gem 'sinatra-contrib', '~>3.0'
 gem 'svg-graph', '2.1.3'
 gem 'syncem', '~>0'
