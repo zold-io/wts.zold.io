@@ -69,5 +69,5 @@ Style/StringConcatenation:
   Enabled: false
 Style/CaseLikeIf:
   Enabled: false
-required:
+require:
   - rubocop-performance
