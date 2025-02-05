@@ -27,7 +27,6 @@ AllCops:
   DisplayCopNames: true
   TargetRubyVersion: 2.6.0
   SuggestExtensions: false
-
 Style/ClassAndModuleChildren:
   Enabled: false
 Naming/MethodParameterName:
@@ -70,3 +69,5 @@ Style/StringConcatenation:
   Enabled: false
 Style/CaseLikeIf:
   Enabled: false
+required:
+  - rubocop-performance
