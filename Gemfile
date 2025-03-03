@@ -45,7 +45,7 @@ gem 'sibit', '0.25.1'
 gem 'simplecov', '0.22.0', require: false
 gem 'sinatra', '~>3.0'
 gem 'sinatra-contrib', '~>3.0'
-gem 'svg-graph', '2.1.3'
+gem 'svg-graph', '2.2.2'
 gem 'syncem', '~>0'
 gem 'telebot', '~>0'
 gem 'telepost', '>=0.3.1'
