@@ -6,7 +6,7 @@ ruby '>3.2'
 
 gem 'active_paypal_adaptive_payment', '0.3.16'
 gem 'aws-sdk-s3', '1.156.0'
-gem 'aws-sdk-sns', '1.81.0'
+gem 'aws-sdk-sns', '1.97.0'
 gem 'backports', '~>3.25'
 gem 'backtrace', '~>0'
 gem 'bitcoin-ruby', '~>0.0.19'
