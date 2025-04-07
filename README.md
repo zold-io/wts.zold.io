@@ -1,11 +1,11 @@
 <img src="https://www.zold.io/logo.svg" width="92px" height="92px"/>
 
 [![EO principles respected here](https://www.elegantobjects.org/badge.svg)](https://www.elegantobjects.org)
-[![DevOps By Rultor.com](http://www.rultor.com/b/zold-io/wts.zold.io)](http://www.rultor.com/p/zold-io/wts.zold.io)
+[![DevOps By Rultor.com](https://www.rultor.com/b/zold-io/wts.zold.io)](https://www.rultor.com/p/zold-io/wts.zold.io)
 [![We recommend RubyMine](https://www.elegantobjects.org/rubymine.svg)](https://www.jetbrains.com/ruby/)
 
 [![rake](https://github.com/zold-io/wts.zold.io/actions/workflows/rake.yml/badge.svg)](https://github.com/zold-io/wts.zold.io/actions/workflows/rake.yml)
-[![PDD status](http://www.0pdd.com/svg?name=zold-io/wts.zold.io)](http://www.0pdd.com/p?name=zold-io/wts.zold.io)
+[![PDD status](https://www.0pdd.com/svg?name=zold-io/wts.zold.io)](https://www.0pdd.com/p?name=zold-io/wts.zold.io)
 [![Test Coverage](https://img.shields.io/codecov/c/github/zold-io/wts.zold.io.svg)](https://codecov.io/github/zold-io/wts.zold.io?branch=master)
 [![Maintainability](https://api.codeclimate.com/v1/badges/25b798dc13147f13bb59/maintainability)](https://codeclimate.com/github/zold-io/wts.zold.io/maintainability)
 [![Hits-of-Code](https://hitsofcode.com/github/zold-io/wts.zold.io)](https://hitsofcode.com/view/github/zold-io/wts.zold.io)
