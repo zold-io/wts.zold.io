@@ -43,7 +43,7 @@ gem 'sass', '~>3.7'
 gem 'sentry-raven', '~>3.1'
 gem 'sibit', '~>0.25'
 gem 'simplecov', '~>0.22', require: false
-gem 'sinatra', '~>3.0'
+gem 'sinatra', '~>4.0'
 gem 'sinatra-contrib', '~>3.0'
 gem 'svg-graph', '~>2.1'
 gem 'syncem', '~>0'
