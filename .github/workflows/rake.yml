@@ -22,11 +22,6 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
-      - run: |
-          sudo apt-get update --yes --fix-missing
-          sudo apt-get install --yes postgresql-14
-          sudo ln -s /usr/lib/postgresql/14/bin/initdb /bin/initdb
-          sudo ln -s /usr/lib/postgresql/14/bin/postgres /bin/postgres
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby }}
