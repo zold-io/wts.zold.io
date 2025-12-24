@@ -1,11 +1,12 @@
+*.gem
 .bundle/
+.claude/
 .DS_Store
 .idea/
 .sass-cache/
 .yardoc/
 .zold-wts/
 .zoldata/
-*.gem
 coverage/
 doc/
 farm
