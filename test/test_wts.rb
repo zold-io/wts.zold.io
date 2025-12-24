@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MIT
 
 require 'loog'
+require 'nokogiri'
 require_relative 'test__helper'
 require_relative '../wts'
 
