@@ -3,7 +3,7 @@
 
 require 'tempfile'
 require 'openssl'
-require 'zold/log'
+require 'loog'
 require 'zold/age'
 require 'zold/commands/pull'
 require 'zold/commands/remove'
@@ -18,7 +18,7 @@ require_relative 'user_error'
 # Operations with a user.
 #
 class WTS::Ops
-  def initialize(item, user, wallets, remotes, copies, log: Zold::Log::NULL, network: 'test')
+  def initialize(item, user, wallets, remotes, copies, log: Loog::NULL, network: 'test')
     @user = user
     @item = item
     @wallets = wallets

@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2025 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require 'zold/log'
+require 'loog'
 require_relative 'user_error'
 
 # Receipts.
@@ -9,7 +9,7 @@ require_relative 'user_error'
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 class WTS::Receipts
-  def initialize(pgsql, log: Zold::Log::NULL)
+  def initialize(pgsql, log: Loog::NULL)
     @pgsql = pgsql
     @log = log
   end

@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MIT
 
 require 'backtrace'
-require 'zold/log'
+require 'loog'
 require 'coinbase/wallet'
 require_relative 'wts'
 require_relative 'user_error'
@@ -29,7 +29,7 @@ class WTS::Coinbase
     end
   end
 
-  def initialize(key, secret, account, log: Zold::Log::NULL)
+  def initialize(key, secret, account, log: Loog::NULL)
     @key = key
     @secret = secret
     @account = account

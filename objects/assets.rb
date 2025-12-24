@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2025 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require 'zold/log'
+require 'loog'
 require 'sibit'
 require 'glogin'
 require 'retriable'
@@ -13,7 +13,7 @@ require_relative 'user_error'
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 class WTS::Assets
-  def initialize(pgsql, log: Zold::Log::NULL, sibit: Sibit.new(log: @log), codec: GLogin::Codec.new)
+  def initialize(pgsql, log: Loog::NULL, sibit: Sibit.new(log: @log), codec: GLogin::Codec.new)
     @pgsql = pgsql
     @log = log
     @sibit = sibit

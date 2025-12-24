@@ -1,14 +1,14 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2025 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require 'zold/log'
+require 'loog'
 
 # Payouts.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 class WTS::Payouts
-  def initialize(pgsql, log: Zold::Log::NULL)
+  def initialize(pgsql, log: Loog::NULL)
     @pgsql = pgsql
     @log = log
   end

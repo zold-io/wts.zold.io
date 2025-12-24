@@ -19,7 +19,7 @@ gem 'get_process_mem', '~>0.2'
 gem 'glogin', '~>0'
 gem 'haml', '~>5.2'
 gem 'iri', '~>0'
-gem 'minitest', '~>5.24', require: false
+gem 'minitest', '~>6.0', require: false
 gem 'minitest-reporters', '~>1.6', require: false
 gem 'obk', '~>0'
 gem 'octokit', '~>9.1'
@@ -43,6 +43,7 @@ gem 'sass', '~>3.7'
 gem 'sentry-raven', '~>3.1'
 gem 'sibit', '~>0.25'
 gem 'simplecov', '~>0.22', require: false
+gem 'simplecov-cobertura', '~>3.0', require: false
 gem 'sinatra', '~>3.0'
 gem 'sinatra-contrib', '~>3.0'
 gem 'svg-graph', '~>2.1'

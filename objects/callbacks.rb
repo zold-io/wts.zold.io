@@ -14,7 +14,7 @@ class WTS::Callbacks
   # How many per one user
   MAX = 1024
 
-  def initialize(pgsql, log: Zold::Log::NULL)
+  def initialize(pgsql, log: Loog::NULL)
     @pgsql = pgsql
     @log = log
   end

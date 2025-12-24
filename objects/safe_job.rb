@@ -3,14 +3,14 @@
 
 require 'raven'
 require 'backtrace'
-require 'zold/log'
+require 'loog'
 require_relative 'user_error'
 
 #
 # Job that log exceptions.
 #
 class WTS::SafeJob
-  def initialize(job, log: Zold::Log::NULL, telepost: Telepost::Fake.new)
+  def initialize(job, log: Loog::NULL, telepost: Telepost::Fake.new)
     @log = log
     @job = job
     @telepost = telepost

@@ -6,31 +6,55 @@ $stdout.sync = true
 ENV['RACK_ENV'] = 'test'
 
 require 'simplecov'
-SimpleCov.start
+require 'simplecov-cobertura'
+unless SimpleCov.running || ENV['PICKS']
+  SimpleCov.command_name('test')
+  SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter.new(
+    [
+      SimpleCov::Formatter::HTMLFormatter,
+      SimpleCov::Formatter::CoberturaFormatter
+    ]
+  )
+  SimpleCov.minimum_coverage 85
+  SimpleCov.minimum_coverage_by_file 50
+  SimpleCov.start do
+    add_filter 'test/'
+    add_filter 'vendor/'
+    add_filter 'target/'
+    track_files 'lib/**/*.rb'
+    track_files '*.rb'
+  end
+end
 
 require 'zold/hands'
 Zold::Hands.start
 
+require 'minitest/autorun'
 require 'minitest/reporters'
+require 'rack/test'
 Minitest::Reporters.use! [Minitest::Reporters::SpecReporter.new]
 Minitest.load :minitest_reporter
 
 require 'yaml'
-require 'minitest/autorun'
 require 'pgtk/pool'
 module Minitest
   class Test
     def t_log
-      require 'zold/log'
-      @t_log ||= ENV['TEST_QUIET_LOG'] ? Zold::Log::NULL : Zold::Log::VERBOSE
+      require 'loog'
+      @t_log ||= ENV['TEST_QUIET_LOG'] == 'true' ? Loog::NULL : Loog::VERBOSE
     end
 
     def t_pgsql
       # rubocop:disable Style/ClassVars
-      @@t_pgsql ||= Pgtk::Pool.new(
-        Pgtk::Wire::Yaml.new(File.join(__dir__, '../target/pgsql-config.yml')),
-        log: t_log
-      ).start
+      @@t_pgsql ||=
+        begin
+          x = Pgtk::Pool.new(
+            Pgtk::Wire::Yaml.new(File.join(__dir__, '../target/pgsql-config.yml')),
+            log: t_log
+          )
+          x.start!
+          x
+        end
       # rubocop:enable Style/ClassVars
     end
   end

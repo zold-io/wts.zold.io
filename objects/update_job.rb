@@ -1,14 +1,14 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2025 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require 'zold/log'
+require 'loog'
 require 'zold/commands/remote'
 
 #
 # Job that updates remotes before letting the original Job do the work.
 #
 class WTS::UpdateJob
-  def initialize(job, remotes, log: Zold::Log::NULL, network: 'test')
+  def initialize(job, remotes, log: Loog::NULL, network: 'test')
     @job = job
     @remotes = remotes
     @log = log

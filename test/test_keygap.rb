@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2025 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require 'minitest/autorun'
 require 'openssl'
 require 'zold/key'
 require_relative 'test__helper'

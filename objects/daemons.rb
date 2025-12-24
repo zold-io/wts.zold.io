@@ -3,7 +3,7 @@
 
 require 'raven'
 require 'backtrace'
-require 'zold/log'
+require 'loog'
 require_relative 'wts'
 require_relative 'user_error'
 
@@ -11,7 +11,7 @@ require_relative 'user_error'
 # Daemons.
 #
 class WTS::Daemons
-  def initialize(pgsql, log: Zold::Log::NULL)
+  def initialize(pgsql, log: Loog::NULL)
     @pgsql = pgsql
     @log = log
     @threads = {}

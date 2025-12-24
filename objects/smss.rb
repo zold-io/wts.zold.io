@@ -16,7 +16,7 @@ class WTS::Smss
     end
   end
 
-  def initialize(pgsql, sns, log: Zold::Log::NULL)
+  def initialize(pgsql, sns, log: Loog::NULL)
     @pgsql = pgsql
     @sns = sns
     @log = log

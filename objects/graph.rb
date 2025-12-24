@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2025 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require 'zold/log'
+require 'loog'
 require 'SVG/Graph/Line'
 require_relative 'wts'
 require_relative 'user_error'
@@ -16,7 +16,7 @@ class WTS::Graph
   STEPS = 12
   private_constant :STEPS
 
-  def initialize(ticks, log: Zold::Log::NULL)
+  def initialize(ticks, log: Loog::NULL)
     @ticks = ticks
     @log = log
   end

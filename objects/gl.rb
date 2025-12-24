@@ -12,7 +12,7 @@ require 'zold/json_page'
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 class WTS::Gl
-  def initialize(pgsql, log: Zold::Log::NULL)
+  def initialize(pgsql, log: Loog::NULL)
     @pgsql = pgsql
     @log = log
   end

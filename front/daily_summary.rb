@@ -6,7 +6,7 @@ require 'json'
 require 'octokit'
 require 'zold/amount'
 require 'zold/http'
-require 'zold/log'
+require 'loog'
 require_relative '../objects/ticks'
 require_relative '../objects/gl'
 require_relative '../objects/payables'
@@ -20,7 +20,7 @@ require_relative '../objects/rate'
 class WTS::DailySummary
   # Adapter of hitsofcode.com
   class HoC
-    def initialize(repo, log: Zold::Log::NULL)
+    def initialize(repo, log: Loog::NULL)
       @repo = repo
       @log = log
     end

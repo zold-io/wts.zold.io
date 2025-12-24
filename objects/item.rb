@@ -3,7 +3,7 @@
 
 require 'zold/key'
 require 'zold/id'
-require 'zold/log'
+require 'loog'
 require_relative 'wts'
 require_relative 'keygap'
 require_relative 'tags'
@@ -15,7 +15,7 @@ require_relative 'user_error'
 class WTS::Item
   attr_reader :login
 
-  def initialize(login, pgsql, log: Zold::Log::NULL)
+  def initialize(login, pgsql, log: Loog::NULL)
     @login = login.downcase
     @pgsql = pgsql
     @log = log

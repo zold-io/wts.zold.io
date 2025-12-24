@@ -1,8 +1,6 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2025 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require 'minitest/autorun'
-require 'webmock/minitest'
 require 'zold'
 require 'glogin'
 require_relative 'test__helper'

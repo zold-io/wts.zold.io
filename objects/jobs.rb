@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2025 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require 'zold/log'
+require 'loog'
 require 'securerandom'
 require_relative 'wts'
 require_relative 'user_error'
@@ -10,7 +10,7 @@ require_relative 'user_error'
 # Background jobs.
 #
 class WTS::Jobs
-  def initialize(pgsql, log: Zold::Log::NULL)
+  def initialize(pgsql, log: Loog::NULL)
     @pgsql = pgsql
     @log = log
   end

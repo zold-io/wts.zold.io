@@ -44,7 +44,7 @@ class WTS::Referrals
     end
   end
 
-  def initialize(pgsql, log: Zold::Log::NULL)
+  def initialize(pgsql, log: Loog::NULL)
     @pgsql = pgsql
     @log = log
   end

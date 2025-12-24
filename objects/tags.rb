@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2025 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require 'zold/log'
+require 'loog'
 require_relative 'wts'
 require_relative 'user_error'
 
@@ -9,7 +9,7 @@ require_relative 'user_error'
 # Tags of a user.
 #
 class WTS::Tags
-  def initialize(login, pgsql, log: Zold::Log::NULL)
+  def initialize(login, pgsql, log: Loog::NULL)
     @login = login
     @pgsql = pgsql
     @log = log

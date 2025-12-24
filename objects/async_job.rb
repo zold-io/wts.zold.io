@@ -4,7 +4,7 @@
 require 'futex'
 require 'fileutils'
 require 'backtrace'
-require 'zold/log'
+require 'loog'
 require 'zold/age'
 require_relative 'user_error'
 
@@ -12,7 +12,7 @@ require_relative 'user_error'
 # Job async.
 #
 class WTS::AsyncJob
-  def initialize(job, pool, lock, log: Zold::Log::NULL)
+  def initialize(job, pool, lock, log: Loog::NULL)
     @job = job
     @pool = pool
     @lock = lock

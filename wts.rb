@@ -29,7 +29,7 @@ require 'zold/amount'
 require 'zold/cached_wallets'
 require 'zold/hands'
 require 'zold/json_page'
-require 'zold/log'
+require 'loog'
 require 'zold/remotes'
 require 'zold/sync_wallets'
 require_relative 'objects/daemons'
@@ -108,8 +108,8 @@ configure do
   set :raise_errors, false
   set :dump_errors, false
   set :server_settings, timeout: 25
-  set :log, ENV['RACK_ENV'] == 'test' ? Zold::Log::VERBOSE.dup : Zold::Log::REGULAR.dup
-  set :log, Zold::Log::NULL if ENV['TEST_QUIET_LOG']
+  set :log, ENV['RACK_ENV'] == 'test' ? Loog::VERBOSE : Loog::REGULAR
+  set :log, Loog::NULL if ENV['TEST_QUIET_LOG']
   set :glogin, GLogin::Auth.new(
     config['github']['client_id'],
     config['github']['client_secret'],
@@ -129,15 +129,15 @@ configure do
   if File.exist?('target/pgsql-config.yml')
     set :pgsql, Pgtk::Pool.new(
       Pgtk::Wire::Yaml.new(File.join(__dir__, 'target/pgsql-config.yml')),
-      log: settings.log
+      max: 4, log: settings.log
     )
   else
     set :pgsql, Pgtk::Pool.new(
       Pgtk::Wire::Env.new('DATABASE_URL'),
-      log: settings.log
+      max: 4, log: settings.log
     )
   end
-  settings.pgsql.start(4)
+  settings.pgsql.start!
   set :copies, File.join(settings.root, '.zold-wts/copies')
   set :payouts, WTS::Payouts.new(settings.pgsql, log: settings.log)
   set :daemons, WTS::Daemons.new(settings.pgsql, log: settings.log)

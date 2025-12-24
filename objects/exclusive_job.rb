@@ -7,7 +7,7 @@ require 'futex'
 # Exclusive job.
 #
 class WTS::ExclusiveJob
-  def initialize(job, lock, log: Zold::Log::NULL)
+  def initialize(job, lock, log: Loog::NULL)
     @job = job
     @lock = lock
     @log = log

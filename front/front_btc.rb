@@ -12,7 +12,6 @@ require 'sibit/blockchair'
 require 'sibit/btc'
 require 'sibit/cex'
 require 'sibit/cryptoapis'
-require 'sibit/earn'
 require 'sibit/fake'
 require 'sibit/http'
 require 'sibit/json'
@@ -560,8 +559,6 @@ def sibit(log: settings.log)
     http = Sibit::Http.new
     api = settings.toggles.get('sibit:api', 'blockchain').split(',').map do |a|
       case a
-      when 'earn'
-        Sibit::Earn.new(log: log, http: http)
       when 'cryptoapis'
         Sibit::Cryptoapis.new(settings.config['cryptoapis_key'], log: log, http: http)
       when 'blockchair'

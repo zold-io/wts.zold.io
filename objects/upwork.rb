@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MIT
 
 require 'backtrace'
-require 'zold/log'
+require 'loog'
 require 'upwork/api'
 require 'upwork/api/routers/payments'
 require_relative 'wts'
@@ -12,7 +12,7 @@ require_relative 'user_error'
 # UpWork sending out gateway.
 #
 class WTS::Upwork
-  def initialize(config, team, log: Zold::Log::NULL)
+  def initialize(config, team, log: Loog::NULL)
     @config = config
     @team = team
     @log = log

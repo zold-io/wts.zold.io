@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MIT
 
 require 'backtrace'
-require 'zold/log'
+require 'loog'
 require 'paypal-sdk-rest'
 require 'active_paypal_adaptive_payment'
 require_relative 'wts'
@@ -12,7 +12,7 @@ require_relative 'user_error'
 # PayPal sending out gateway.
 #
 class WTS::PayPal
-  def initialize(config, log: Zold::Log::NULL)
+  def initialize(config, log: Loog::NULL)
     @config = config
     @log = log
   end
