@@ -39,9 +39,9 @@ class WTS::PayablesTest < Minitest::Test
       payables.update(max: wallets.count)
       payables.remove_banned
       assert_equal(Zold::Amount.new(zents: 1_234_567), payables.fetch[0][:balance])
-      assert(payables.total >= wallets.count)
-      assert(payables.balance > Zold::Amount::ZERO)
-      assert(payables.txns >= wallets.count)
+      assert_operator(payables.total, :>=, wallets.count)
+      assert_operator(payables.balance, :>, Zold::Amount::ZERO)
+      assert_operator(payables.txns, :>=, wallets.count)
     end
   end
 end

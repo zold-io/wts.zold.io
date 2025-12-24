@@ -20,6 +20,6 @@ class WTS::UpworkTest < Minitest::Test
       log: t_log
     )
     key = upwork.pay('123456789', 1.28, 'Just a test')
-    assert(!key.nil?)
+    refute_nil(key)
   end
 end

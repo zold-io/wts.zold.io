@@ -25,7 +25,7 @@ class WTS::CoinbaseTest < Minitest::Test
       body: '{"balance": {"amount": "1.0", "currency": "BTC"}}'
     )
     bank = WTS::Coinbase.new('key', 'secret', 'account', log: t_log)
-    assert_equal(1.0, bank.balance)
+    assert_in_delta(1.0, bank.balance)
   end
 
   def test_sends_real_bitcoins

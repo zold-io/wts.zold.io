@@ -10,6 +10,16 @@ AllCops:
   DisplayCopNames: true
   TargetRubyVersion: 2.6.0
   SuggestExtensions: false
+plugins:
+  - rubocop-performance
+  - rubocop-minitest
+  - rubocop-rake
+Minitest/EmptyLineBeforeAssertionMethods:
+  Enabled: false
+Minitest/MultipleAssertions:
+  Enabled: false
+Minitest/SkipWithoutReason:
+  Enabled: false
 Style/ClassAndModuleChildren:
   Enabled: false
 Naming/MethodParameterName:
@@ -52,5 +62,3 @@ Style/StringConcatenation:
   Enabled: false
 Style/CaseLikeIf:
   Enabled: false
-require:
-  - rubocop-performance

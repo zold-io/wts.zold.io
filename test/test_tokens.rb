@@ -12,10 +12,10 @@ class WTS::TokensTest < Minitest::Test
     item = WTS::Item.new(login, t_pgsql, log: t_log)
     item.create(Zold::Id.new, Zold::Key.new(text: OpenSSL::PKey::RSA.new(2048).to_pem))
     before = tokens.get(login)
-    assert(!before.nil?)
+    refute_nil(before)
     assert_equal(before, tokens.get(login))
     after = tokens.reset(login)
-    assert(before != after)
-    assert(tokens.reset(login) != after)
+    refute_equal(before, after)
+    refute_equal(tokens.reset(login), after)
   end
 end

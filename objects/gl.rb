@@ -12,6 +12,14 @@ require 'zold/json_page'
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 class WTS::Gl
+  INSERT = [
+    'INSERT INTO txn (id, source, date, amount, target, prefix, details)',
+    'VALUES ($1, $2, $3, $4, $5, $6, $7)',
+    'ON CONFLICT DO NOTHING',
+    'RETURNING *'
+  ].join(' ').freeze
+  private_constant :INSERT
+
   def initialize(pgsql, log: Loog::NULL)
     @pgsql = pgsql
     @log = log
@@ -24,12 +32,7 @@ class WTS::Gl
       r.assert_code(200, res)
       Zold::JsonPage.new(res.body, uri).to_hash.each do |t|
         row = @pgsql.exec(
-          [
-            'INSERT INTO txn (id, source, date, amount, target, prefix, details)',
-            'VALUES ($1, $2, $3, $4, $5, $6, $7)',
-            'ON CONFLICT DO NOTHING',
-            'RETURNING *'
-          ].join(' '),
+          INSERT,
           [
             t['id'],
             Zold::Id.new(t['source']).to_s,

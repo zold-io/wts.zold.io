@@ -16,10 +16,10 @@ class WTS::AssetsTest < Minitest::Test
     item.create(Zold::Id.new, Zold::Key.new(text: OpenSSL::PKey::RSA.new(2048).to_pem))
     assets = WTS::Assets.new(t_pgsql, log: t_log)
     address = assets.acquire(login)
-    assert(!address.nil?)
+    refute_nil(address)
     assert_equal(address, assets.acquire(login))
     assert_equal(login, assets.owner(address))
-    assert(!assets.disclose.empty?)
+    refute_empty(assets.disclose)
   end
 
   def test_orphan_address
@@ -44,9 +44,9 @@ class WTS::AssetsTest < Minitest::Test
     address = assets.acquire
     assets.set(address, 50_000_000)
     assets.set(address, 100_000_000)
-    assert(!assets.cold?(address))
-    assert_equal(100_000_000, assets.all.select { |a| a[:address] == address }[0][:value])
-    assert(assets.balance >= 1, assets.balance)
+    refute(assets.cold?(address))
+    assert_equal(100_000_000, assets.all.find { |a| a[:address] == address }[:value])
+    assert_operator(assets.balance, :>=, 1, assets.balance)
   end
 
   def test_monitors_blockchain
@@ -94,9 +94,9 @@ class WTS::AssetsTest < Minitest::Test
     found = false
     before = '0000000000000000000c41262afa6c0e82c47c89dd5fe8c692f33788077ec5b8'
     assets.monitor(before, max: 2) do |a, hsh, satoshi|
-      assert(!a.nil?)
-      assert(!hsh.nil?)
-      assert(!satoshi.nil?)
+      refute_nil(a)
+      refute_nil(hsh)
+      refute_nil(satoshi)
       found = true
     end
     assert(found)
@@ -118,7 +118,7 @@ class WTS::AssetsTest < Minitest::Test
     ex = assert_raises(Sibit::Error) do
       assets.pay("1JvCsJtLmCxEk7ddZFnVkGXpr9uhxZP#{rand(999)}", 100)
     end
-    assert(ex.message.include?('Not enough funds'))
+    assert_includes(ex.message, 'Not enough funds')
   end
 
   def test_saves_hash_and_loads
@@ -126,7 +126,7 @@ class WTS::AssetsTest < Minitest::Test
     assets = WTS::Assets.new(t_pgsql, log: t_log)
     address = "1JvCsJtLmCxEk7ddZFnVkGXpr9uhxZP#{rand(999)}"
     hash = "5de641d3867eb8fec3eb1a5ef2b44df39b54e0b3bb664ab520f2ae26a5b18#{rand(999)}"
-    assert(!assets.seen?(hash))
+    refute(assets.seen?(hash))
     assets.see(address, hash)
     assets.see(address, hash)
     assert(assets.seen?(hash))

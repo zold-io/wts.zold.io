@@ -13,7 +13,7 @@ class WTS::KeygapTest < Minitest::Test
       pem, keygap = WTS::Keygap.new.extract(Zold::Key.new(text: pvt.to_pem), length)
       assert_equal(length, keygap.length)
       key = WTS::Keygap.new.merge(pem, keygap)
-      assert(!key.nil?)
+      refute_nil(key)
     end
   end
 end

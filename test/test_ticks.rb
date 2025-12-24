@@ -9,7 +9,7 @@ class WTS::TicksTest < Minitest::Test
     WebMock.allow_net_connect!
     ticks = WTS::Ticks.new(t_pgsql, log: t_log)
     ticks.add('foo' => 124)
-    assert(ticks.fetch('foo').count >= 1)
+    assert_operator(ticks.fetch('foo').count, :>=, 1)
     assert(ticks.exists?('foo'))
   end
 end

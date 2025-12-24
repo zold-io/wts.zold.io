@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MIT
 
 source 'https://rubygems.org'
-ruby '>3.2'
 
 gem 'active_paypal_adaptive_payment', '~>0.3'
 gem 'aws-sdk-s3', '~>1.209'
@@ -26,9 +25,9 @@ gem 'octokit', '~>9.2'
 gem 'paypal-sdk-rest', '~>1.7'
 gem 'pgtk', '~>0.29'
 gem 'rack', '~>2.2'
+gem 'rack_csrf', '~>2.7'
 gem 'rack-ssl', '~>1.4'
 gem 'rack-test', '~>2.2'
-gem 'rack_csrf', '~>2.7'
 gem 'rake', '~>13.3', require: false
 gem 'random-port', '~>0.7', require: false
 gem 'rerun', '~>0.14', require: false
@@ -38,7 +37,6 @@ gem 'rubocop', '~>1.82', require: false
 gem 'rubocop-minitest', '~>0.38', require: false
 gem 'rubocop-performance', '~>1.26', require: false
 gem 'rubocop-rake', '~>0.7', require: false
-gem 'rubocop-rspec', '~>3.8', require: false
 gem 'sass', '~>3.7'
 gem 'sentry-raven', '~>3.1'
 gem 'sibit', '~>0.27'

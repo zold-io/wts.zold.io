@@ -3,6 +3,7 @@
 
 require 'loog'
 require 'SVG/Graph/Line'
+require 'SVG/Graph/DataPoint'
 require_relative 'wts'
 require_relative 'user_error'
 
@@ -45,7 +46,7 @@ class WTS::Graph
       step_include_first_x_label: false,
       stagger_x_labels: true,
       number_format: "%.#{digits}f",
-      fields: (0..STEPS - 1).map { |i| (min + (i * step)).strftime('%m/%d') }
+      fields: (0..(STEPS - 1)).map { |i| (min + (i * step)).strftime('%m/%d') }
     }
     unless title.empty?
       params[:y_title] = title.gsub(/[^a-zA-Z0-9 ]/, ' ')

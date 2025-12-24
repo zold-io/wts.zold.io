@@ -25,6 +25,6 @@ class WTS::DaemonsTest < Minitest::Test
       raise StandardError, 'Intended' if stepped == 1
     end
     sleep 0.1
-    assert(stepped > 1)
+    assert_operator(stepped, :>, 1)
   end
 end

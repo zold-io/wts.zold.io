@@ -32,6 +32,7 @@ class WTS::User
   end
 
   # Create user's wallet, if it's absent (returns TRUE if it was created just now)
+  # rubocop:disable Naming/PredicateMethod
   def create(remotes = Zold::Remotes::Empty.new)
     rsa = OpenSSL::PKey::RSA.new(2048)
     pvt = Zold::Key.new(text: rsa.to_pem)
@@ -46,6 +47,7 @@ class WTS::User
     @log.info("Wallet #{wallet} created successfully\n")
     true
   end
+  # rubocop:enable Naming/PredicateMethod
 
   def invoice
     require 'zold/commands/invoice'

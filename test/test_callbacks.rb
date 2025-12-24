@@ -15,11 +15,11 @@ class WTS::CallbacksTest < Minitest::Test
     cid = callbacks.add(login, id.to_s, 'NOPREFIX', /pizza/, 'http://localhost:888/')
     callbacks.restart(cid)
     assert_equal(1, callbacks.fetch(login).count)
-    assert(callbacks.fetch(login)[0][:matched].nil?)
+    assert_nil(callbacks.fetch(login)[0][:matched])
     tid = "#{id}:1"
-    assert(!callbacks.match(tid, id.to_s, 'NOPREFIX', 'for pizza').empty?)
-    assert(!callbacks.fetch(login)[0][:matched].nil?)
-    assert(callbacks.match(tid, id.to_s, 'NOPREFIX', 'for pizza').empty?)
+    refute_empty(callbacks.match(tid, id.to_s, 'NOPREFIX', 'for pizza'))
+    refute_nil(callbacks.fetch(login)[0][:matched])
+    assert_empty(callbacks.match(tid, id.to_s, 'NOPREFIX', 'for pizza'))
     get = stub_request(:get, /localhost:888/).to_return(body: 'OK')
     callbacks.ping do
       [

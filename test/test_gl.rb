@@ -42,12 +42,12 @@ class WTS::GlTest < Minitest::Test
         assert_equal(id, t[:id], t)
         assert_equal("#{t[:source]}:#{t[:id]}", t[:tid], t)
       end
-      assert(gl.fetch(query: '0000111122223333').count.positive?)
+      assert_predicate(gl.fetch(query: '0000111122223333'), :any?)
       row = gl.fetch[0]
       assert_equal(id, row[:id], row)
       assert_equal('0000111122223333', row[:source].to_s, row)
       assert_equal('ffffeeeeddddcccc', row[:target].to_s, row)
-      assert(row[:date] > Time.now - 60, row)
+      assert_operator(row[:date], :>, Time.now - 60, row)
       assert_equal(9_999_999_999_999, row[:amount].to_i, row)
       assert_equal('for pizza', row[:details], row)
     end
@@ -55,6 +55,6 @@ class WTS::GlTest < Minitest::Test
 
   def test_calc_volume
     gl = WTS::Gl.new(t_pgsql, log: t_log)
-    assert(!gl.volume(4).nil?)
+    refute_nil(gl.volume(4))
   end
 end

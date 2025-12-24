@@ -48,7 +48,7 @@ class WTS::DailySummaryTest < Minitest::Test
       toggles: WTS::Toggles.new(t_pgsql),
       assets: WTS::Assets.new(t_pgsql)
     ).markdown
-    assert(md.include?('Deficit: '), md)
+    assert_includes(md, 'Deficit: ', md)
   end
 
   # @todo #283:30min The test is skipped because it fails time to time.
@@ -59,8 +59,8 @@ class WTS::DailySummaryTest < Minitest::Test
     WebMock.allow_net_connect!
     2.times do
       ['papers', 'blog.zold.io', 'zold', 'wts.zold.io', 'zold-ruby-sdk'].each do |r|
-        assert(!WTS::DailySummary::HoC.new("zold-io/#{r}", log: t_log).hoc.zero?)
-        assert(!WTS::DailySummary::HoC.new("zold-io/#{r}", log: t_log).commits.zero?)
+        refute_predicate(WTS::DailySummary::HoC.new("zold-io/#{r}", log: t_log).hoc, :zero?)
+        refute_predicate(WTS::DailySummary::HoC.new("zold-io/#{r}", log: t_log).commits, :zero?)
       end
     end
   end

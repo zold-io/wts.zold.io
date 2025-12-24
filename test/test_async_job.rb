@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2025 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require 'minitest/autorun'
 require 'concurrent'
 require 'tmpdir'
 require_relative 'test__helper'
@@ -20,7 +19,7 @@ class WTS::AsyncJobTest < Minitest::Test
       latch.wait
       pool.shutdown
       pool.wait_for_termination
-      assert(!File.exist?(lock))
+      refute_path_exists(lock)
     end
   end
 end

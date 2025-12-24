@@ -12,11 +12,11 @@ class WTS::ItemTest < Minitest::Test
   def test_create_and_read
     WebMock.allow_net_connect!
     item = WTS::Item.new("jeff13#{rand(999)}", t_pgsql, log: t_log)
-    assert(!item.exists?)
+    refute_predicate(item, :exists?)
     pvt = OpenSSL::PKey::RSA.new(2048)
     id = Zold::Id.new
     item.create(id, Zold::Key.new(text: pvt.to_pem))
-    assert(item.exists?)
+    assert_predicate(item, :exists?)
     assert_equal(id, item.id)
   end
 
@@ -25,7 +25,7 @@ class WTS::ItemTest < Minitest::Test
     item = WTS::Item.new("jeff32#{rand(999)}", t_pgsql, log: t_log)
     item.create(Zold::Id.new, Zold::Key.new(text: OpenSSL::PKey::RSA.new(2048).to_pem))
     tag = 'hey-you'
-    assert(!item.tags.exists?(tag))
+    refute(item.tags.exists?(tag))
     item.tags.attach(tag)
     assert(item.tags.exists?(tag))
   end
@@ -40,9 +40,9 @@ class WTS::ItemTest < Minitest::Test
     keygap = item.create(id, key)
     assert_equal(key, item.key(keygap))
     assert_equal(id, item.id)
-    assert(!item.wiped?)
+    refute_predicate(item, :wiped?)
     item.wipe(keygap)
-    assert(item.wiped?)
+    assert_predicate(item, :wiped?)
     assert_equal(key, item.key(keygap))
   end
 
@@ -55,6 +55,6 @@ class WTS::ItemTest < Minitest::Test
     after = "peter#{rand(999)}"
     item.rename(after)
     assert_equal(after, item.login)
-    assert(item.exists?)
+    assert_predicate(item, :exists?)
   end
 end

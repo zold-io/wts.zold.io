@@ -54,7 +54,7 @@ class WTS::AppTest < Minitest::Test
       '/quick?haml=pageisabsent'
     ].each do |p|
       get(p)
-      assert(last_response.ok?, last_response.body)
+      assert_predicate(last_response, :ok?, last_response.body)
     end
   end
 

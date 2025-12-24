@@ -182,7 +182,7 @@ unless ENV['RACK_ENV'] == 'test'
     settings.log.debug("Can't send #{btc} BTC from Coinbase, will try later: #{e.message}")
   end
   settings.daemons.start('btc-transfer-to-cold', 60 * 60) do
-    hot = assets.all.select { |a| a[:hot] }.map { |a| a[:value] }.inject(&:+).to_f / 100_000_000
+    hot = assets.all.select { |a| a[:hot] }.sum { |a| a[:value] }.to_f / 100_000_000
     usd = (hot * price).round
     threshold = settings.toggles.get('btc:hot-threshold', '2000').to_i
     if usd <= threshold
@@ -218,7 +218,7 @@ unless ENV['RACK_ENV'] == 'test'
       settings.telepost.spam(
         "#{after > before ? '📈' : '📉'} The rate of ZLD moved #{after > before ? 'UP' : 'DOWN'}",
         "from #{WTS::Dollars.new(before)} to #{WTS::Dollars.new(after)},",
-        "which is #{after > before ? '+' : ''}#{format('%.02f', 100.0 * (after - before) / before)}%;",
+        "which is #{'+' if after > before}#{format('%.02f', 100.0 * (after - before) / before)}%;",
         "the [price](https://coinmarketcap.com/currencies/bitcoin/) of Bitcoin is #{WTS::Dollars.new(price)};",
         'more details [here](https://wts.zold.io/rate);',
         'it is time to buy, [click here](https://wts.zold.io/quick)!'
@@ -226,7 +226,7 @@ unless ENV['RACK_ENV'] == 'test'
     end
   end
   settings.daemons.start('btc-hot-deficit-notify', 12 * 60 * 60) do
-    hot = assets.all.select { |a| a[:hot] }.map { |a| a[:value] }.inject(&:+).to_f / 100_000_000
+    hot = assets.all.select { |a| a[:hot] }.sum { |a| a[:value] }.to_f / 100_000_000
     usd = (hot * price).round
     if usd < settings.toggles.get('btc:deficit-threshold', '1000').to_i
       settings.telepost.spam(
@@ -337,8 +337,8 @@ post '/do-zld-to-btc' do
   min = Zold::Amount.new(zld: settings.toggles.get('min-out-btc', '0').to_f)
   raise WTS::UserError, "E195: The amount #{amount} is too small, smaller than #{min}" if amount < min
   address = params[:btc].strip
-  raise WTS::UserError, "E144: Bitcoin address is not valid: #{address.inspect}" unless address =~ /^[a-zA-Z0-9]+$/
-  raise WTS::UserError, 'E145: Bitcoin address must start with 1, 3 or bc1' unless address =~ /^(1|3|bc1)/
+  raise WTS::UserError, "E144: Bitcoin address is not valid: #{address.inspect}" unless /^[a-zA-Z0-9]+$/.match?(address)
+  raise WTS::UserError, 'E145: Bitcoin address must start with 1, 3 or bc1' unless /^(1|3|bc1)/.match?(address)
   balance = confirmed_user.wallet(&:balance)
   raise WTS::UserError, "E146: You don't have enough to send #{amount}" if balance < amount
   maxout = settings.toggles.get('maxout', '1.0').to_f

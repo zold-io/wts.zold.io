@@ -9,7 +9,7 @@ class WTS::McodesTest < Minitest::Test
     WebMock.allow_net_connect!
     mcodes = WTS::Mcodes.new(t_pgsql, log: t_log)
     phone = 1_234_567_890
-    assert(!mcodes.exists?(phone))
+    refute(mcodes.exists?(phone))
     mcodes.set(phone, 1234)
     assert(mcodes.exists?(phone))
     assert_equal(1234, mcodes.get(phone))

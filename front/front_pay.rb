@@ -43,9 +43,9 @@ see the White Paper, only a limited subset of characters is allowed: [a-zA-Z0-9@
     friend = user(bnf[0..32].to_i.to_s)
     raise WTS::UserError, 'E114: The user with this mobile phone is not registered yet' unless friend.item.exists?
     bnf = friend.item.id
-  elsif /^@[a-zA-Z0-9\-]+$/.match?(bnf)
+  elsif /^@[a-zA-Z0-9-]+$/.match?(bnf)
     login = bnf.downcase.gsub(/^@/, '')
-    raise WTS::UserError, "E115: Invalid GitHub user name: #{bnf.inspect}" unless login =~ /^[a-z0-9-]{3,32}$/
+    raise WTS::UserError, "E115: Invalid GitHub user name: #{bnf.inspect}" unless /^[a-z0-9-]{3,32}$/.match?(login)
     raise WTS::UserError, 'E116: You can\'t pay yourself' if login == user.login
     friend = user(login)
     unless friend.item.exists?

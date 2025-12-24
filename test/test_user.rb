@@ -21,10 +21,10 @@ class WTS::UserTest < Minitest::Test
         wallets, log: t_log
       )
       user.create
-      assert(!user.confirmed?)
+      refute_predicate(user, :confirmed?)
       keygap = user.keygap
       user.confirm(keygap)
-      assert(user.confirmed?)
+      assert_predicate(user, :confirmed?)
     end
   end
 end

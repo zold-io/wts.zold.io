@@ -116,32 +116,32 @@ in #{repositories.count}: #{(hoc / 1000).round}K / #{commits}",
 
   # Total amount of hits-of-code in all Zold repositories
   def hoc
-    repositories.map { |r| HoC.new(r, log: @log).hoc }.inject(&:+)
+    repositories.sum { |r| HoC.new(r, log: @log).hoc.to_i }
   end
 
   # Total amount of commits in all Zold repositories
   def commits
-    repositories.map { |r| HoC.new(r, log: @log).commits }.inject(&:+)
+    repositories.sum { |r| HoC.new(r, log: @log).commits.to_i }
   end
 
   # Total amount of GitHub stars.
   def stars
-    repositories.map do |r|
-      octokit.repository(r)['stargazers_count']
-    end.inject(&:+)
+    repositories.sum do |r|
+      octokit.repository(r)['stargazers_count'].to_i
+    end
   end
 
   # Total amount of GitHub issues in all repos.
   def issues
-    repositories.map do |r|
-      octokit.repository(r)['open_issues_count']
-    end.inject(&:+)
+    repositories.sum do |r|
+      octokit.repository(r)['open_issues_count'].to_i
+    end
   end
 
   # Total amount of GitHub forks.
   def forks
-    repositories.map do |r|
-      octokit.repository(r)['forks_count']
-    end.inject(&:+)
+    repositories.sum do |r|
+      octokit.repository(r)['forks_count'].to_i
+    end
   end
 end
