@@ -12,14 +12,13 @@
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/zold-io/wts.zold.io/blob/master/LICENSE.txt)
 [![Availability at SixNines](https://www.sixnines.io/b/2e391)](https://www.sixnines.io/h/2e391)
 
-Here is the [White Paper](https://papers.zold.io//wp.pdf).
+Here is the [White Paper](https://papers.zold.io/wp.pdf).
 
 Join our [Telegram group](https://t.me/zold_io) to discuss it all live.
 
 Zold Web WalleTS (hence the _WTS_ name) is a simple web front to the Zold
 network. In order to use all the features of Zold cryptocurrency, you will need
-a command like client, which you can get
-[here](https://github.com/zold-io/zold).
+a [command-line client](https://github.com/zold-io/zold).
 However, most of us are too lazy to learn the command line interface, that's
 why we created this web interface. Via WTS you can create a wallet, push
 it to the network, pull it from there, and make payments to other users.
@@ -32,15 +31,15 @@ you may find this blog post interesting:
 It explains how you can utilize WTS in order to manage zolds that belong
 to your users/customers.
 
-There is Ruby SDK for the WTS platform:
+There is a Ruby SDK for the WTS platform:
 [zold-io/zold-ruby-sdk](https://github.com/zold-io/zold-ruby-sdk).
 
 ## HTTP API
 
 First, you should get your API token from the [API](https://wts.zold.io/api)
 tab of your account.
-To create an account you just need to login with your mobile phone. There
-is no special sign-up form or procedure. Once you login, your account _and_
+To create an account, you just need to log in with your mobile phone. There
+is no special sign-up form or procedure. Once you log in, your account _and_
 your Zold wallet are created automatically.
 
 Then, say, you want to send some zolds to `@yegor256`, your token is
@@ -73,7 +72,7 @@ curl https://wts.zold.io/do-pay?noredirect=1 \
   --data "keygap=84Hjsow9"
 ```
 
-You will get `200` response if the payment processing has been started.
+You will get a `200` response if the payment processing has been started.
 Pay attention, this response doesn't mean that the payment has been
 successfully sent. The request processing is asynchronous!
 The `X-Zold-Job` header of the response will
@@ -91,14 +90,14 @@ when something goes wrong.
 You can also send zolds to the wallet ID or the mobile phone. Just use
 them instead of the GitHub user name in the `bnf` parameter.
 
-There are more entry points. Here is a list of synchronouse ones,
+There are more entry points. Here is a list of synchronous ones,
 which return the result immediately:
 
 * `GET /id`: returns your wallet ID in plain text.
 
 * `GET /balance`: returns the current balance of the wallet in "zents"
-  (1 ZLD equals to 2^32 zents).
-  If the wallet is absent on the server, there will be non-200 response code
+  (1 ZLD equals 2^32 zents).
+  If the wallet is absent on the server, there will be a non-200 response code
   and maybe you need to call `/pull`. It's impossible to check the balance
   of the wallet, if the server doesn't have a copy of the wallet. The WTS
   server has to pull your wallet from the network first.
@@ -151,7 +150,7 @@ which return the result immediately:
 }
 ```
 
-* `GET /id_rsa`: returns private RSA key of the user, expecting the
+* `GET /id_rsa`: returns the private RSA key of the user, expecting the
   [keygap](https://blog.zold.io/2018/07/18/keygap.html) as an argument.
 
 * `GET /keygap`: returns the
@@ -169,26 +168,26 @@ which return the result immediately:
 
 * `GET /confirmed`: returns `yes` or `no`,
   depending on the status of the user---whether
-  he has already confirmed his
+  they have already confirmed their
   [keygap](https://blog.zold.io/2018/07/18/keygap.html)
   or not.
 
-* `GET /rate.json`: returns JSON document with all the data you can
-  find [here](https://wts.zold.io/rate). If the data is not ready yet,
-  you will still get a JSON document, but it will have `valid`
+* `GET /rate.json`: returns a JSON document with all
+  the [data](https://wts.zold.io/rate). If the data is not ready yet,
+  you will still get a JSON document, but it will have the `valid`
   attribute set to `false`. The only valid attribute there will be
   `effective_rate`. Here is a live [example](https://wts.zold.io/rate.json).
 
-* `GET /usd_rate`: returns current rate of ZLD in USD.
+* `GET /usd_rate`: returns the current rate of ZLD in USD.
 
-* `GET /txn.json`: retrieves a single transaction details in JSON,
+* `GET /txn.json`: retrieves the details of a single transaction in JSON,
   expecting `tid` as a single query parameter
   (wallet ID + `:` + transaction ID).
   However, this information is not secure enough. This is just the data
   from the "general ledger," don't rely on it.
 
 These entry points, just like the `/do-pay` explained above, are asynchronous.
-In each of them you should expect `200` response with the `X-Zold-Job`
+In each of them you should expect a `200` response with the `X-Zold-Job`
 header inside. Using that job ID you can check the status of the job
 as explained above in `/job.json`.
 
@@ -224,8 +223,8 @@ send a `GET` request to `/wait-for` and specify:
 right after it's matched
 * `forever`: set to `true` if you want it to never expire
 
-If your callback is registered, you will receive `200`
-response of time `text/plain`
+If your callback is registered, you will receive a `200`
+response of type `text/plain`
 with the ID of the callback in the body.
 
 Once the payment arrives, your URI will receive a `GET` request from us
@@ -250,7 +249,7 @@ keep doing that for 24 hours. Then it will give up, and will be deleted.
 If your callback is never matched, it will be removed from the system
 in 24 hours (unless you set `forever` to `true`).
 
-You may register up to a certain amount of callbacks in one account
+You may register up to a certain number of callbacks in one account
 (check for the actual limit in the [Callbacks](https://wts.zold.io/callbacks)
 tab in your account). The full list
 of your registered callbacks and already matched ones you can find in the
@@ -273,7 +272,7 @@ access points (the phone should be in
 * `GET /mobile/token?phone=15551234567&code=6666&noredirect=1`:
   returns `200` and the API access token in the body.
   The `code` is the code from the SMS.
-  If something is wrong, a non-200 code will be returned
+  If something is wrong, a non-200 code will be returned.
 
 Then, you have to use `/do-confirm` and `/keygap` (see above) to confirm
 the account of the user. Then, when you have the API token,
@@ -283,7 +282,7 @@ using the `X-Zold-Wts` HTTP header (see above).
 ## Sandbox
 
 You may want to experiment with the API in a sandbox mode. Just
-login using this URL: https://wts.zold.io/sandbox. You
+login using [this URL](https://wts.zold.io/sandbox). You
 won't be able to send any payments out or do any manipulations with
 the real network, but you can play with all available features. It is
 perfectly safe, you won't damage anything.
