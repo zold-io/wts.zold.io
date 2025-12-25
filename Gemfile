@@ -11,6 +11,7 @@ gem 'backtrace', '~>0.4'
 gem 'bitcoin-ruby', '~>0.0'
 gem 'coinbase', '~>4.2'
 gem 'concurrent-ruby', '~>1.3'
+gem 'csv', '~>3.3'
 gem 'eslintrb', '~>2.1'
 gem 'futex', '~>0.8'
 gem 'geoplugin', '~>0.3'
@@ -22,6 +23,7 @@ gem 'minitest', '~>6.0', require: false
 gem 'minitest-reporters', '~>1.7', require: false
 gem 'obk', '~>0.3'
 gem 'octokit', '~>9.2'
+gem 'ostruct', '~>0.6'
 gem 'paypal-sdk-rest', '~>1.7'
 gem 'pgtk', '~>0.29'
 gem 'rack', '~>2.2'
@@ -30,6 +32,7 @@ gem 'rack-ssl', '~>1.4'
 gem 'rack-test', '~>2.2'
 gem 'rake', '~>13.3', require: false
 gem 'random-port', '~>0.7', require: false
+gem 'rdoc', '~>6.10', require: false
 gem 'rerun', '~>0.14', require: false
 gem 'retriable', '~>3.1'
 gem 'retriable_proxy', '~>1.0'
