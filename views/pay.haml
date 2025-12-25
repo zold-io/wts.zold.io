@@ -41,11 +41,11 @@
     %label
       Payment details:
     %input{type: 'text', name: 'details', maxlength: 512, style: 'width:100%', placeholder: 'e.g. "For services"', autocomplete: 'off', tabindex: 4}
-    %input{type: 'submit', onclick: "return confirm('Are you sure? This operation is not reversable!')", tabindex: 5, value: 'Pay'}
+    %input{type: 'submit', onclick: "return confirm('Are you sure? This operation is not reversible!')", tabindex: 5, value: 'Pay'}
 
 %p
   = succeed ':' do
     %span.firebrick ATTENTION
-  This operation is not reversable.
+  This operation is not reversible.
   Once you send the payment, you will not be able to get it back, ever.
   Do this at your own risk.
