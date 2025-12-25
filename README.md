@@ -1,24 +1,24 @@
 # Zold Web Front
 
-[![EO principles respected here](https://www.elegantobjects.org/badge.svg)](https://www.elegantobjects.org)
-[![DevOps By Rultor.com](https://www.rultor.com/b/zold-io/wts.zold.io)](https://www.rultor.com/p/zold-io/wts.zold.io)
-[![We recommend RubyMine](https://www.elegantobjects.org/rubymine.svg)](https://www.jetbrains.com/ruby/)
+[![EO principles respected here][eo-badge]][eo]
+[![DevOps By Rultor.com][rultor-badge]][rultor]
+[![We recommend RubyMine][rubymine-badge]][rubymine]
 
-[![rake](https://github.com/zold-io/wts.zold.io/actions/workflows/rake.yml/badge.svg)](https://github.com/zold-io/wts.zold.io/actions/workflows/rake.yml)
-[![PDD status](https://www.0pdd.com/svg?name=zold-io/wts.zold.io)](https://www.0pdd.com/p?name=zold-io/wts.zold.io)
-[![Test Coverage](https://img.shields.io/codecov/c/github/zold-io/wts.zold.io.svg)](https://codecov.io/github/zold-io/wts.zold.io?branch=master)
-[![Maintainability](https://api.codeclimate.com/v1/badges/25b798dc13147f13bb59/maintainability)](https://codeclimate.com/github/zold-io/wts.zold.io/maintainability)
-[![Hits-of-Code](https://hitsofcode.com/github/zold-io/wts.zold.io)](https://hitsofcode.com/view/github/zold-io/wts.zold.io)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/zold-io/wts.zold.io/blob/master/LICENSE.txt)
-[![Availability at SixNines](https://www.sixnines.io/b/2e391)](https://www.sixnines.io/h/2e391)
+[![rake][rake-badge]][rake]
+[![PDD status][pdd-badge]][pdd]
+[![Test Coverage][codecov-badge]][codecov]
+[![Maintainability][codeclimate-badge]][codeclimate]
+[![Hits-of-Code][hoc-badge]][hoc]
+[![License][license-badge]][license]
+[![Availability at SixNines][sixnines-badge]][sixnines]
 
-Here is the [White Paper](https://papers.zold.io/wp.pdf).
+Here is the [White Paper][wp].
 
-Join our [Telegram group](https://t.me/zold_io) to discuss it all live.
+Join our [Telegram group][telegram] to discuss it all live.
 
 Zold Web WalleTS (hence the _WTS_ name) is a simple web front to the Zold
 network. In order to use all the features of Zold cryptocurrency, you will need
-a [command-line client](https://github.com/zold-io/zold).
+a [command-line client][zold-cli].
 However, most of us are too lazy to learn the command line interface, that's
 why we created this web interface. Via WTS you can create a wallet, push
 it to the network, pull it from there, and make payments to other users.
@@ -27,24 +27,23 @@ and many other tools to monitor the network and to manage your wallet.
 
 If you are a crypto-exchange, an online shop, or a developer of a mobile wallet,
 you may find this blog post interesting:
-[How to Integrate](https://blog.zold.io/2019/03/11/how-to-integrate.html).
+[How to Integrate][how-to-integrate].
 It explains how you can utilize WTS in order to manage zolds that belong
 to your users/customers.
 
 There is a Ruby SDK for the WTS platform:
-[zold-io/zold-ruby-sdk](https://github.com/zold-io/zold-ruby-sdk).
+[zold-io/zold-ruby-sdk][ruby-sdk].
 
 ## HTTP API
 
-First, you should get your API token from the [API](https://wts.zold.io/api)
+First, you should get your API token from the [API][api-tab]
 tab of your account.
 To create an account, you just need to log in with your mobile phone. There
 is no special sign-up form or procedure. Once you log in, your account _and_
 your Zold wallet are created automatically.
 
 Then, say, you want to send some zolds to `@yegor256`, your token is
-`user-111222333444`, and your
-[keygap](https://blog.zold.io/2018/07/18/keygap.html) is `84Hjsow9`.
+`user-111222333444`, and your [keygap] is `84Hjsow9`.
 You do the following POST HTTP request:
 
 ```text
@@ -58,8 +57,7 @@ bnf=yegor256&amount=19.99&details=For+the+pizza&keygap=84Hjsow9
 If you want to send zents, add `z` to the end of the amount, for example:
 `8900000z`.
 
-You can do the same from the command line, using
-[curl](https://en.wikipedia.org/wiki/CURL):
+You can do the same from the command line, using [curl]:
 
 ```bash
 curl https://wts.zold.io/do-pay?noredirect=1 \
@@ -84,7 +82,7 @@ If you get a non-200 response, check the `X-Zold-Error` response HTTP header,
 it will explain the problem with a more or less human-readable error message.
 The response body will contain a full Ruby stacktrace, which you may report
 to us if it doesn't explain the problem completely. Don't hesitate to
-[submit a ticket](https://github.com/zold-io/wts.zold.io/issues)
+[submit a ticket][issues]
 when something goes wrong.
 
 You can also send zolds to the wallet ID or the mobile phone. Just use
@@ -110,7 +108,7 @@ which return the result immediately:
   (they both are regular expressions):
   `/find?bnf=012345670.%2B&details=Hello!`.
   You can match by all transaction fields
-  (see the [White Paper](https://papers.zold.io/wp.pdf)).
+  (see the [White Paper][wp]).
   The result is a plain text list of transactions (not JSON).
 
 * `GET /txns.json`: returns a full list of transactions in the wallet, in JSON.
@@ -151,17 +149,17 @@ which return the result immediately:
 ```
 
 * `GET /id_rsa`: returns the private RSA key of the user, expecting the
-  [keygap](https://blog.zold.io/2018/07/18/keygap.html) as an argument.
+  [keygap] as an argument.
 
 * `GET /keygap`: returns the
-  [keygap](https://blog.zold.io/2018/07/18/keygap.html)
+  [keygap]
   of the user, if it's still not confirmed (as plain text).
   You have to show it to the client and make
   sure the client confirms that the keygap is safely stored, if you are
   managing the account of the user on their behalf.
 
 * `GET /do-confirm`: removes the
-  [keygap](https://blog.zold.io/2018/07/18/keygap.html)
+  [keygap]
   from the database and returns `200` if everything is OK. If the user
   has already confirmed the keygap, this request
   will return a non-`200` response.
@@ -169,14 +167,14 @@ which return the result immediately:
 * `GET /confirmed`: returns `yes` or `no`,
   depending on the status of the user---whether
   they have already confirmed their
-  [keygap](https://blog.zold.io/2018/07/18/keygap.html)
+  [keygap]
   or not.
 
 * `GET /rate.json`: returns a JSON document with all
-  the [data](https://wts.zold.io/rate). If the data is not ready yet,
+  the [data][rate]. If the data is not ready yet,
   you will still get a JSON document, but it will have the `valid`
   attribute set to `false`. The only valid attribute there will be
-  `effective_rate`. Here is a live [example](https://wts.zold.io/rate.json).
+  `effective_rate`. Here is a live [example][rate-json].
 
 * `GET /usd_rate`: returns the current rate of ZLD in USD.
 
@@ -250,19 +248,19 @@ If your callback is never matched, it will be removed from the system
 in 24 hours (unless you set `forever` to `true`).
 
 You may register up to a certain number of callbacks in one account
-(check for the actual limit in the [Callbacks](https://wts.zold.io/callbacks)
+(check for the actual limit in the [Callbacks][callbacks-tab]
 tab in your account). The full list
 of your registered callbacks and already matched ones you can find in the
-[Callback](https://wts.zold.io/callbacks) tab of your account.
+[Callback][callbacks-tab] tab of your account.
 
 A more detailed explanation you may find in this blog post:
-[How to Integrate](https://blog.zold.io/2019/03/11/how-to-integrate.html).
+[How to Integrate][how-to-integrate].
 
 ## Mobile API
 
 If you want to create a mobile client, you may use our mobile API with a few
 access points (the phone should be in
-[E.164](https://en.wikipedia.org/wiki/E.164) format, numbers only):
+[E.164][e164] format, numbers only):
 
 * `GET /mobile/send?phone=15551234567&noredirect=1`:
   returns `200` if the SMS has been sent to the user with the
@@ -282,7 +280,7 @@ using the `X-Zold-Wts` HTTP header (see above).
 ## Sandbox
 
 You may want to experiment with the API in a sandbox mode. Just
-login using [this URL](https://wts.zold.io/sandbox). You
+login using [this URL][sandbox]. You
 won't be able to send any payments out or do any manipulations with
 the real network, but you can play with all available features. It is
 perfectly safe, you won't damage anything.
@@ -290,12 +288,12 @@ perfectly safe, you won't damage anything.
 ## How to Contribute
 
 First, install
-[Java 8+](https://java.com/en/download/),
-[Maven 3.2+](https://maven.apache.org/),
-[Ruby 2.3+](https://www.ruby-lang.org/en/documentation/installation/),
-[Rubygems](https://rubygems.org/pages/download),
+[Java 8+][java],
+[Maven 3.2+][maven],
+[Ruby 2.3+][ruby],
+[Rubygems][rubygems],
 and
-[Bundler](https://bundler.io/).
+[Bundler][bundler].
 Then:
 
 ```bash
@@ -304,10 +302,10 @@ bundle exec rake --quiet
 ```
 
 The build has to be clean. If it's not,
-[submit an issue](https://github.com/zold-io/out/issues).
+[submit an issue][out-issues].
 
 Then, make your changes, make sure the build is still clean,
-and [submit a pull request](https://www.yegor256.com/2014/04/15/github-guidelines.html).
+and [submit a pull request][pr-guidelines].
 
 In order to run a single test:
 
@@ -325,3 +323,45 @@ Then, if you want to test the UI, open `http://localhost:4567` in your browser,
 and login, if necessary, by adding `?glogin=tester` to the URL.
 
 Should work.
+
+[eo-badge]: https://www.elegantobjects.org/badge.svg
+[eo]: https://www.elegantobjects.org
+[rultor-badge]: https://www.rultor.com/b/zold-io/wts.zold.io
+[rultor]: https://www.rultor.com/p/zold-io/wts.zold.io
+[rubymine-badge]: https://www.elegantobjects.org/rubymine.svg
+[rubymine]: https://www.jetbrains.com/ruby/
+[rake-badge]: https://github.com/zold-io/wts.zold.io/actions/workflows/rake.yml/badge.svg
+[rake]: https://github.com/zold-io/wts.zold.io/actions/workflows/rake.yml
+[pdd-badge]: https://www.0pdd.com/svg?name=zold-io/wts.zold.io
+[pdd]: https://www.0pdd.com/p?name=zold-io/wts.zold.io
+[codecov-badge]: https://img.shields.io/codecov/c/github/zold-io/wts.zold.io.svg
+[codecov]: https://codecov.io/github/zold-io/wts.zold.io?branch=master
+[codeclimate-badge]: https://api.codeclimate.com/v1/badges/25b798dc13147f13bb59/maintainability
+[codeclimate]: https://codeclimate.com/github/zold-io/wts.zold.io/maintainability
+[hoc-badge]: https://hitsofcode.com/github/zold-io/wts.zold.io
+[hoc]: https://hitsofcode.com/view/github/zold-io/wts.zold.io
+[license-badge]: https://img.shields.io/badge/license-MIT-green.svg
+[license]: https://github.com/zold-io/wts.zold.io/blob/master/LICENSE.txt
+[sixnines-badge]: https://www.sixnines.io/b/2e391
+[sixnines]: https://www.sixnines.io/h/2e391
+[wp]: https://papers.zold.io/wp.pdf
+[telegram]: https://t.me/zold_io
+[zold-cli]: https://github.com/zold-io/zold
+[how-to-integrate]: https://blog.zold.io/2019/03/11/how-to-integrate.html
+[ruby-sdk]: https://github.com/zold-io/zold-ruby-sdk
+[api-tab]: https://wts.zold.io/api
+[keygap]: https://blog.zold.io/2018/07/18/keygap.html
+[curl]: https://en.wikipedia.org/wiki/CURL
+[issues]: https://github.com/zold-io/wts.zold.io/issues
+[rate]: https://wts.zold.io/rate
+[rate-json]: https://wts.zold.io/rate.json
+[callbacks-tab]: https://wts.zold.io/callbacks
+[e164]: https://en.wikipedia.org/wiki/E.164
+[sandbox]: https://wts.zold.io/sandbox
+[java]: https://java.com/en/download/
+[maven]: https://maven.apache.org/
+[ruby]: https://www.ruby-lang.org/en/documentation/installation/
+[rubygems]: https://rubygems.org/pages/download
+[bundler]: https://bundler.io/
+[out-issues]: https://github.com/zold-io/out/issues
+[pr-guidelines]: https://www.yegor256.com/2014/04/15/github-guidelines.html
