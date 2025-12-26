@@ -8,7 +8,7 @@ require_relative 'user_error'
 # Copyright:: Copyright (c) 2018 Yegor Bugayenko
 # License:: MIT
 class WTS::Referrals
-  # To encryp and decrypt aliases.
+  # To encrypt and decrypt aliases.
   class Crypt
     ALPHABET = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-'.freeze
     ENCODINGS = [

@@ -473,7 +473,7 @@ post '/cold-to-hot' do
       job_link(jid)
     )
   end
-  flash('/assets', 'Cold bitcoins will be trasferred to a hot address soon')
+  flash('/assets', 'Cold bitcoins will be transferred to a hot address soon')
 end
 
 post '/cold-out' do
@@ -504,7 +504,7 @@ post '/cold-out' do
       job_link(jid)
     )
   end
-  flash('/assets', 'Cold bitcoins will be trasferred soon')
+  flash('/assets', 'Cold bitcoins will be transferred soon')
 end
 
 get '/assets' do
