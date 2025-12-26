@@ -7,7 +7,6 @@
 [![rake][rake-badge]][rake]
 [![PDD status][pdd-badge]][pdd]
 [![Test Coverage][codecov-badge]][codecov]
-[![Maintainability][codeclimate-badge]][codeclimate]
 [![Hits-of-Code][hoc-badge]][hoc]
 [![License][license-badge]][license]
 [![Availability at SixNines][sixnines-badge]][sixnines]
@@ -336,8 +335,6 @@ Should work.
 [pdd]: https://www.0pdd.com/p?name=zold-io/wts.zold.io
 [codecov-badge]: https://img.shields.io/codecov/c/github/zold-io/wts.zold.io.svg
 [codecov]: https://codecov.io/github/zold-io/wts.zold.io?branch=master
-[codeclimate-badge]: https://api.codeclimate.com/v1/badges/25b798dc13147f13bb59/maintainability
-[codeclimate]: https://codeclimate.com/github/zold-io/wts.zold.io/maintainability
 [hoc-badge]: https://hitsofcode.com/github/zold-io/wts.zold.io
 [hoc]: https://hitsofcode.com/view/github/zold-io/wts.zold.io
 [license-badge]: https://img.shields.io/badge/license-MIT-green.svg
