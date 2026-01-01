@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2018-2025 Zerocracy
+# SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
 settings.daemons.start('hosting-bonuses', 10 * 60) do
