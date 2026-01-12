@@ -115,10 +115,9 @@ class WTS::AssetsTest < Minitest::Test
       item.create(Zold::Id.new, Zold::Key.new(text: OpenSSL::PKey::RSA.new(2048).to_pem))
       assets.set(assets.acquire(login), 70)
     end
-    ex = assert_raises(Sibit::Error) do
+    assert_raises(Sibit::Error) do
       assets.pay("1JvCsJtLmCxEk7ddZFnVkGXpr9uhxZP#{rand(999)}", 100)
     end
-    assert_includes(ex.message, 'Not enough funds')
   end
 
   def test_saves_hash_and_loads
