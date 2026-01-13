@@ -17,7 +17,7 @@ gem 'futex', '~>0.8'
 gem 'geoplugin', '~>0.3'
 gem 'get_process_mem', '~>0.2'
 gem 'glogin', '~>0.17'
-gem 'haml', '~>5.2'
+gem 'haml', '~>7.0'
 gem 'iri', '~>0.11'
 gem 'minitest', '~>6.0', require: false
 gem 'minitest-reporters', '~>1.7', require: false
