@@ -20,10 +20,8 @@ class WTS::GraphTest < Minitest::Test
   end
 
   def test_rejects_negative_digits
-    ticks = WTS::Ticks.new(t_pgsql, log: t_log)
-    ticks.add('Price' => 1, 'time' => msec(-1))
     assert_raises(WTS::UserError) do
-      WTS::Graph.new(ticks, log: t_log).svg(['Price'], 1, -1)
+      WTS::Graph.new(nil, log: t_log).svg(['Price'], 1, -1)
     end
   end
 
