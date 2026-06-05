@@ -4,6 +4,7 @@
 require_relative 'test__helper'
 require_relative '../objects/ticks'
 require_relative '../objects/graph'
+require_relative '../objects/user_error'
 
 class WTS::GraphTest < Minitest::Test
   def test_renders_svg
@@ -16,6 +17,14 @@ class WTS::GraphTest < Minitest::Test
     ticks.add('Price' => 1.2, 'time' => msec(-50))
     FileUtils.mkdir_p('target')
     File.write('target/graph.svg', WTS::Graph.new(ticks, log: t_log).svg(['Price'], 1, 0))
+  end
+
+  def test_rejects_negative_digits
+    ticks = WTS::Ticks.new(t_pgsql, log: t_log)
+    ticks.add('Price' => 1, 'time' => msec(-1))
+    assert_raises(WTS::UserError) do
+      WTS::Graph.new(ticks, log: t_log).svg(['Price'], 1, -1)
+    end
   end
 
   private

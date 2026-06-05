@@ -23,6 +23,7 @@ class WTS::Graph
   end
 
   def svg(keys, div, digits, title: '')
+    raise WTS::UserError, "E223: Digits must be non-negative, got #{digits}" if digits.negative?
     sets = {}
     min = Time.now
     max = Time.now + (STEPS * 24 * 60 * 60)
