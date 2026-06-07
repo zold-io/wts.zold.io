@@ -40,6 +40,7 @@ gem 'rubocop', '~>1.82', require: false
 gem 'rubocop-minitest', '~>0.38', require: false
 gem 'rubocop-performance', '~>1.26', require: false
 gem 'rubocop-rake', '~>0.7', require: false
+gem 'rubyzip', '~>2.4'
 gem 'sass', '~>3.7'
 gem 'sentry-raven', '~>3.1'
 gem 'sibit', '~>0.27'
