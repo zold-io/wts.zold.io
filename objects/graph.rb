@@ -67,6 +67,6 @@ class WTS::Graph
   private
 
   def validate_digits(digits)
-    raise WTS::UserError, "E223: Digits must be non-negative, got #{digits}" if digits.negative?
+    raise WTS::UserError, "E224: Digits must be non-negative, got #{digits}" if digits.negative?
   end
 end
