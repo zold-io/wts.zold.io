@@ -3,6 +3,8 @@
 
 require 'loog'
 require 'nokogiri'
+require 'stringio'
+require 'zip'
 require_relative 'test__helper'
 require_relative '../wts'
 
@@ -110,6 +112,35 @@ class WTS::AppTest < Minitest::Test
       get(p)
       assert_equal(200, last_response.status, "#{p} fails: #{last_response.body}")
     end
+  end
+
+  def test_download_returns_zip_with_wallet_and_key
+    WebMock.allow_net_connect!
+    name = 'zip_dl'
+    login(name)
+    user = WTS::User.new(
+      name, WTS::Item.new(name, t_pgsql, log: t_log),
+      Sinatra::Application.settings.wallets, log: t_log
+    )
+    user.create
+    keygap = user.keygap
+    user.confirm(keygap)
+    get("/download?keygap=#{keygap}")
+    assert_equal(200, last_response.status, last_response.body)
+    assert_equal('application/zip', last_response.headers['Content-Type'])
+    assert_match(/\.zip\z/, last_response.headers['Content-Disposition'])
+    entries = []
+    Zip::InputStream.open(StringIO.new(last_response.body)) do |zis|
+      while (entry = zis.get_next_entry)
+        entries << [entry.name, zis.read]
+      end
+    end
+    assert_equal(2, entries.size)
+    names = entries.map(&:first)
+    assert(names.any? { |n| n.end_with?(Zold::Wallet::EXT) }, "wallet entry missing: #{names}")
+    assert_includes(names, 'id_rsa')
+    pem = entries.find { |n, _| n == 'id_rsa' }[1]
+    assert_includes(pem, 'BEGIN RSA PRIVATE KEY')
   end
 
   def test_302_user_pages

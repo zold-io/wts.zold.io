@@ -24,6 +24,7 @@ require 'tempfile'
 require 'total'
 require 'uri'
 require 'yaml'
+require 'zip'
 require 'zold'
 require 'zold/amount'
 require 'zold/cached_wallets'
@@ -283,11 +284,19 @@ get '/id_rsa' do
 end
 
 get '/download' do
-  response.headers['Content-Type'] = 'application/octet-stream'
-  response.headers['Content-Disposition'] = "attachment; filename=#{confirmed_user.item.id}#{Zold::Wallet::EXT}"
-  confirmed_user.wallet do |w|
-    File.read(w.path)
+  wid = confirmed_user.item.id
+  pem = confirmed_user.item.key(keygap).to_s
+  zip = Zip::OutputStream.write_buffer do |zos|
+    confirmed_user.wallet do |w|
+      zos.put_next_entry("#{wid}#{Zold::Wallet::EXT}")
+      zos.write(File.read(w.path))
+    end
+    zos.put_next_entry('id_rsa')
+    zos.write(pem)
   end
+  response.headers['Content-Type'] = 'application/zip'
+  response.headers['Content-Disposition'] = "attachment; filename=#{wid}.zip"
+  zip.string
 end
 
 get '/api' do
