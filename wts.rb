@@ -258,6 +258,11 @@ get '/txns.json' do
   confirmed_user.wallet do |wallet|
     list = wallet.txns
     list.reverse! if params[:sort] && params[:sort] == 'desc'
+    if params[:limit]
+      limit = params[:limit].to_i
+      raise WTS::UserError, "E207: The 'limit' parameter must be a positive integer" if limit <= 0
+      list = list.first(limit)
+    end
     JSON.pretty_generate(
       list.map do |t|
         t.to_json.merge(tid: t.amount.negative? ? "#{wallet.id}:#{t.id}" : "#{t.bnf}:#{t.id}")
