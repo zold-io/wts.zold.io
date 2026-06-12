@@ -28,7 +28,7 @@ GEM
       uri (>= 0.13.1)
     addressable (2.9.0)
       public_suffix (>= 2.0.2, < 8.0)
-    ansi (1.5.0)
+    ansi (1.6.0)
     ast (2.4.3)
     aws-eventstream (1.4.0)
     aws-partitions (1.1202.0)
@@ -174,10 +174,10 @@ GEM
     minitest (6.0.6)
       drb (~> 2.0)
       prism (~> 1.5)
-    minitest-reporters (1.7.1)
+    minitest-reporters (1.8.0)
       ansi
       builder
-      minitest (>= 5.0)
+      minitest (>= 5.0, < 7)
       ruby-progressbar
     mocha (3.0.1)
       ruby2_keywords (>= 0.0.5)
@@ -233,7 +233,7 @@ GEM
       tago (~> 0.1)
       waitutil (~> 0.2)
     plist (3.1.0)
-    prism (1.7.0)
+    prism (1.9.0)
     psych (5.3.1)
       date
       stringio
