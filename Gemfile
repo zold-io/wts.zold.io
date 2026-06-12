@@ -22,7 +22,7 @@ gem 'iri', '~>0.11'
 gem 'minitest', '~>6.0', require: false
 gem 'minitest-reporters', '~>1.7', require: false
 gem 'obk', '~>0.3'
-gem 'octokit', '~>9.2'
+gem 'octokit', '~>10.0'
 gem 'ostruct', '~>0.6'
 gem 'paypal-sdk-rest', '~>1.7'
 gem 'pgtk', '~>0.29'
