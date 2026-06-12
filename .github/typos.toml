@@ -3,3 +3,6 @@
 
 [default.extend-words]
 Iy = "Iy"
+
+[files]
+extend-exclude = ["objects/referrals.rb"]
