@@ -255,7 +255,7 @@ GEM
     rack_csrf (2.7.0)
       rack (>= 1.1.0)
     rainbow (3.1.1)
-    rake (13.3.1)
+    rake (13.4.2)
     random-port (0.7.6)
       tago (~> 0.0)
     rb-fsevent (0.11.2)
