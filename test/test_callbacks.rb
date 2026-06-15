@@ -32,9 +32,38 @@ class WTS::CallbacksTest < Minitest::Test
       ]
     end
     callbacks.delete_succeeded
-    callbacks.repeat_succeeded
+    repeated = []
+    callbacks.repeat_succeeded { |c| repeated << c }
     callbacks.delete_failed
     callbacks.delete_expired
     assert_requested(get, times: 1)
+    assert_empty(repeated)
+  end
+
+  def test_repeat_succeeded_yields_callback
+    WebMock.allow_net_connect!
+    callbacks = WTS::Callbacks.new(t_pgsql, log: t_log)
+    id = Zold::Id.new
+    login = 'yegor256'
+    cid = callbacks.add(login, id.to_s, 'NOPREFIX', /pizza/, 'http://localhost:889/', repeat: true)
+    callbacks.restart(cid)
+    tid = "#{id}:1"
+    refute_empty(callbacks.match(tid, id.to_s, 'NOPREFIX', 'for pizza'))
+    stub_request(:get, /localhost:889/).to_return(body: 'OK')
+    callbacks.ping do
+      [
+        Zold::Txn.new(
+          1, Time.now,
+          Zold::Amount.new(zld: 1.99),
+          'NOPREFIX',
+          Zold::Id.new, '-'
+        )
+      ]
+    end
+    yielded = []
+    callbacks.repeat_succeeded { |c| yielded << c }
+    assert_equal(1, yielded.count)
+    assert_equal(cid, yielded.first[:id])
+    assert_equal(login, yielded.first[:login])
   end
 end

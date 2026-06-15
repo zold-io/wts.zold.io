@@ -115,12 +115,13 @@ prefix \"#{prefix}\", regexp #{regexp}, and URI: #{uri}")
   # Repeat all succeeded callbacks.
   def repeat_succeeded
     q = [
-      'SELECT match.id FROM callback',
+      'SELECT callback.*, match.id AS mid FROM callback',
       'JOIN match ON match.callback = callback.id',
       'WHERE match.failure = \'\' AND repeat = true'
     ].join(' ')
     @pgsql.exec(q).each do |r|
-      @pgsql.exec('DELETE FROM match WHERE id = $1', [r['id'].to_i])
+      c = map(r)
+      @pgsql.exec('DELETE FROM match WHERE id = $1', [r['mid'].to_i])
       yield c if block_given?
     end
   end
