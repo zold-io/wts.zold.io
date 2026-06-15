@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
+require 'securerandom'
 require 'zold/amount'
 require 'telepost'
 require_relative 'test__helper'
@@ -44,7 +45,7 @@ class WTS::CallbacksTest < Minitest::Test
     WebMock.allow_net_connect!
     callbacks = WTS::Callbacks.new(t_pgsql, log: t_log)
     id = Zold::Id.new
-    login = 'yegor256'
+    login = "repeat_#{SecureRandom.hex(4)}"
     cid = callbacks.add(login, id.to_s, 'NOPREFIX', /pizza/, 'http://localhost:889/', repeat: true)
     callbacks.restart(cid)
     tid = "#{id}:1"
