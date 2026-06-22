@@ -1,9 +1,11 @@
+# frozen_string_literal: true
+
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require_relative 'test__helper'
-require_relative '../objects/jobs'
 require_relative '../objects/db_log'
+require_relative '../objects/jobs'
+require_relative 'test__helper'
 
 class WTS::DbLogTest < Minitest::Test
   def test_updates_log

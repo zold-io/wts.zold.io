@@ -1,8 +1,10 @@
+# frozen_string_literal: true
+
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require_relative 'test__helper'
 require_relative '../objects/ticks'
+require_relative 'test__helper'
 
 class WTS::TicksTest < Minitest::Test
   def test_create_and_read

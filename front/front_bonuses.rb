@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
@@ -31,7 +33,7 @@ def pay_hosting_bonuses(boss, jid, log)
     end
     return
   end
-  require 'zold/commands/remote'
+  require('zold/commands/remote')
   cmd = Zold::Remote.new(remotes: settings.remotes, log: log)
   cmd.run(%w[remote update --depth=5])
   cmd.run(%w[remote show])
@@ -66,7 +68,7 @@ def pay_hosting_bonuses(boss, jid, log)
     "among #{settings.remotes.all.count} [others](http://www.zold.io/health.html):",
     winners.map do |s|
       "[#{s.host}:#{s.port}](http://www.zold.io/ledger.html?wallet=#{s.invoice.split('@')[1]})/#{s.value}"
-    end.join(', ') + ';',
+    end.join(', ').concat(';'),
     "the payer is #{title_md(boss)} with the wallet",
     "[#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id}),",
     "the remaining balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t);",

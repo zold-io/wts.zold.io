@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
@@ -5,8 +7,8 @@ require 'loog'
 require 'nokogiri'
 require 'stringio'
 require 'zip'
-require_relative 'test__helper'
 require_relative '../wts'
+require_relative 'test__helper'
 
 module Rack
   module Test
@@ -27,7 +29,6 @@ class WTS::AppTest < Minitest::Test
     Sinatra::Application
   end
 
-  # Fake BTC
   class FakeBtc
     def initialize(addr)
       @addr = addr
@@ -139,8 +140,7 @@ class WTS::AppTest < Minitest::Test
     names = entries.map(&:first)
     assert(names.any? { |n| n.end_with?(Zold::Wallet::EXT) }, "wallet entry missing: #{names}")
     assert_includes(names, 'id_rsa')
-    pem = entries.find { |n, _| n == 'id_rsa' }[1]
-    assert_includes(pem, 'BEGIN RSA PRIVATE KEY')
+    assert_predicate(OpenSSL::PKey::RSA.new(entries.find { |n, _| n == 'id_rsa' }[1]), :private?)
   end
 
   def test_302_user_pages
@@ -163,11 +163,10 @@ class WTS::AppTest < Minitest::Test
     WebMock.allow_net_connect!
     name = 'jeff079'
     login(name)
-    boss = WTS::User.new(
+    WTS::User.new(
       '0crat', WTS::Item.new('0crat', t_pgsql, log: t_log),
       Sinatra::Application.settings.wallets, log: t_log
-    )
-    boss.create
+    ).create
     user = WTS::User.new(
       name, WTS::Item.new(name, t_pgsql, log: t_log),
       Sinatra::Application.settings.wallets, log: t_log
@@ -176,28 +175,19 @@ class WTS::AppTest < Minitest::Test
     keygap = user.keygap
     user.confirm(keygap)
     Sinatra::Application.settings.wallets.acq(user.item.id) do |w|
-      w.add(
-        Zold::Txn.new(
-          1,
-          Time.now,
-          Zold::Amount.new(zld: 1.0),
-          'NOPREFIX', Zold::Id.new, '-'
-        )
-      )
+      w.add(Zold::Txn.new(1, Time.now, Zold::Amount.new(zld: 1.0), 'NOPREFIX', Zold::Id.new, '-'))
     end
     assets = WTS::Assets.new(t_pgsql, log: t_log)
-    address = assets.acquire(user.login)
-    assets.set(address, 10_000_000)
+    assets.set(assets.acquire(user.login), 10_000_000)
     get('/zld-to-btc')
     assert_equal(200, last_response.status, last_response.body)
-    csrf = Nokogiri.HTML(last_response.body).xpath('//input[@name="_csrf"]/@value')
     post(
       '/do-zld-to-btc',
       form(
         amount: '1',
         btc: '1N1R2HP9JD4LvAtp7rTkpRqF19GH7PH2ZF',
         keygap: keygap,
-        _csrf: csrf
+        _csrf: Nokogiri.HTML(last_response.body).xpath('//input[@name="_csrf"]/@value')
       )
     )
     assert_equal(302, last_response.status, last_response.body)
@@ -206,18 +196,13 @@ class WTS::AppTest < Minitest::Test
   def test_pay_for_pizza
     skip
     WebMock.allow_net_connect!
-    keygap = login('yegor1')
     get('/pay')
     assert_equal(200, last_response.status, last_response.body)
-    csrf = Nokogiri.HTML(last_response.body).xpath('//input[@name="_csrf"]/@value')
     post(
       '/do-pay',
       form(
-        keygap: keygap,
-        bnf: '1111222233334444',
-        amount: 100,
-        details: 'for pizza',
-        _csrf: csrf
+        keygap: login('yegor1'), bnf: '1111222233334444', amount: 100, details: 'for pizza',
+        _csrf: Nokogiri.HTML(last_response.body).xpath('//input[@name="_csrf"]/@value')
       )
     )
     assert_equal(302, last_response.status, last_response.body)
@@ -232,15 +217,13 @@ class WTS::AppTest < Minitest::Test
 
   def test_migrate
     WebMock.allow_net_connect!
-    keygap = login('yegor565')
-    get("/do-migrate?keygap=#{keygap}")
+    get("/do-migrate?keygap=#{login('yegor565')}")
     assert_equal(302, last_response.status, last_response.body)
   end
 
   def test_push
     WebMock.allow_net_connect!
-    keygap = login('yegor565')
-    get("/do-push?keygap=#{keygap}")
+    get("/do-push?keygap=#{login('yegor565')}")
     assert_equal(302, last_response.status, last_response.body)
   end
 
@@ -292,8 +275,9 @@ class WTS::AppTest < Minitest::Test
     get('/keygap')
     assert_equal(200, last_response.status, last_response.body)
     keygap = last_response.body
-    csrf = Nokogiri.HTML(last_response.body).xpath('//input[@name="_csrf"]/@value')
-    get('/do-confirm?keygap=' + keygap + "&_csrf=#{csrf}")
+    get(
+      "/do-confirm?keygap=#{keygap}&_csrf=#{Nokogiri.HTML(last_response.body).xpath('//input[@name="_csrf"]/@value')}"
+    )
     assert_equal(302, last_response.status, last_response.body)
     get('/id')
     assert_equal(200, last_response.status, last_response.body)

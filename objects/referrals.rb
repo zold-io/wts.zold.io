@@ -1,18 +1,14 @@
+# frozen_string_literal: true
+
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
 require_relative 'user_error'
 
-# Referrals.
-# Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018 Yegor Bugayenko
-# License:: MIT
 class WTS::Referrals
-  # To encrypt and decrypt aliases.
-  class Crypt
-    ALPHABET = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-'.freeze
+  class WTS::Referrals::Crypt
+    ALPHABET = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-'
     ENCODINGS = [
-      # Generated with ALPHABET.split('').shuffle.join
       'MOhqm0PnycUZeLdK8Yv\-DCgNfb7FJtiHT52BrxoAkas9RWlXpEujSGI64VzQ31w',
       'xJCVNc0nRd7sDozhlw5aMW2q4A1SKr\-6FG8jk9YUyILEbvQHZ3tuTBOpmgXiePf',
       'HWk3BKjXzTbr5YD87GqpiwUISfvlLZg2uV6nQ4R9aNOy0txe1EF\-hPomCJcdMAs',
@@ -39,8 +35,7 @@ class WTS::Referrals
     end
 
     def decode(text)
-      pos = text[0..1].to_i
-      text[2..].tr(ENCODINGS[pos], ALPHABET)
+      text[2..].tr(ENCODINGS[text[0..1].to_i], ALPHABET)
     end
   end
 
@@ -49,7 +44,6 @@ class WTS::Referrals
     @log = log
   end
 
-  # Fetch them all, who were referred by me.
   def fetch(login)
     @pgsql.exec('SELECT * FROM referral WHERE ref = $1', [login]).map do |r|
       {
@@ -62,7 +56,6 @@ class WTS::Referrals
     end
   end
 
-  # Register it, if doesn't exist yet.
   def register(login, ref, source: '', medium: '', campaign: '')
     @pgsql.exec(
       [
@@ -75,7 +68,6 @@ class WTS::Referrals
     @log.info("New referral registered at #{login} by #{ref}")
   end
 
-  # Was this guy referred to us by someone and this ref is not expired?
   def exists?(login)
     !@pgsql.exec(
       'SELECT ref FROM referral WHERE login = $1 AND created > NOW() - INTERVAL \'32 DAYS\'',
@@ -83,13 +75,12 @@ class WTS::Referrals
     ).empty?
   end
 
-  # Get referral.
   def ref(login)
     row = @pgsql.exec(
       'SELECT ref FROM referral WHERE login = $1 OR login = $2 LIMIT 1',
       [login, Crypt.new.decode(login)]
     )
-    raise WTS::UserError, "E184: No referral for #{login}" if row.empty?
+    raise(WTS::UserError, "E184: No referral for #{login}") if row.empty?
     row[0]['ref']
   end
 end

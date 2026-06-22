@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
@@ -40,9 +42,5 @@ end
 get '/rcpt/{hash}' do
   hash = params[:hash]
   details = settings.receipts.details(hash)
-  haml :rcpt, layout: :layout, locals: merged(
-    page_title: hash,
-    hash: hash,
-    details: details
-  )
+  haml :rcpt, layout: :layout, locals: merged(page_title: hash, hash: hash, details: details)
 end

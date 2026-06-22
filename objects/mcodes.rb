@@ -1,12 +1,11 @@
+# frozen_string_literal: true
+
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
 require 'loog'
 require_relative 'user_error'
 
-#
-# Mobile codes.
-#
 class WTS::Mcodes
   def initialize(pgsql, log: Loog::NULL)
     @pgsql = pgsql
@@ -18,14 +17,14 @@ class WTS::Mcodes
   end
 
   def set(phone, code)
-    raise "Code must be over 1000: #{code}" if code < 1000
-    raise "Code must be less than 10000: #{code}" if code > 9999
+    raise(RuntimeError, "Code must be over 1000: #{code}") if code < 1000
+    raise(RuntimeError, "Code must be less than 10000: #{code}") if code > 9999
     @pgsql.exec('INSERT INTO mcode (phone, code) VALUES ($1, $2)', [phone, code])
   end
 
   def get(phone)
     r = @pgsql.exec('SELECT code FROM mcode WHERE phone = $1', [phone])[0]
-    raise WTS::UserError, "EThere is not the code associated with #{phone}" if r.nil?
+    raise(WTS::UserError, "EThere is not the code associated with #{phone}") if r.nil?
     r['code'].to_i
   end
 

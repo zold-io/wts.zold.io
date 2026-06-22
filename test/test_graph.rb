@@ -1,10 +1,12 @@
+# frozen_string_literal: true
+
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require_relative 'test__helper'
-require_relative '../objects/ticks'
 require_relative '../objects/graph'
+require_relative '../objects/ticks'
 require_relative '../objects/user_error'
+require_relative 'test__helper'
 
 class WTS::GraphTest < Minitest::Test
   def test_renders_svg

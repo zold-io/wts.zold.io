@@ -1,15 +1,17 @@
+# frozen_string_literal: true
+
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require 'zold/remotes'
 require 'zold/amount'
-require_relative 'test__helper'
+require 'zold/remotes'
 require_relative '../objects/payables'
+require_relative 'test__helper'
 
 class WTS::PayablesTest < Minitest::Test
   def test_add_and_fetch
     WebMock.disable_net_connect!
-    Dir.mktmpdir 'test' do |dir|
+    Dir.mktmpdir('test') do |dir|
       remotes = Zold::Remotes.new(file: File.join(dir, 'remotes.csv'))
       remotes.clean
       remotes.masters

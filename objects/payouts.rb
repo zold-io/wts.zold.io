@@ -1,19 +1,16 @@
+# frozen_string_literal: true
+
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
 require 'loog'
 
-# Payouts.
-# Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018 Yegor Bugayenko
-# License:: MIT
 class WTS::Payouts
   def initialize(pgsql, log: Loog::NULL)
     @pgsql = pgsql
     @log = log
   end
 
-  # Add a new one, which just happened.
   def add(login, id, amount, details)
     pid = @pgsql.exec(
       [
@@ -23,12 +20,14 @@ class WTS::Payouts
       ].join(' '),
       [login, id.to_s, amount.to_i, details]
     )[0]['id'].to_i
-    @log.debug("New payout ##{pid} registered by #{login} for wallet #{id}, \
-amount #{amount}, and details: \"#{details}\"")
+    @log.debug(
+      "New payout ##{pid} registered by #{login} for wallet #{id}, " \
+      "amount #{amount}, and details: \"#{details}\""
+    )
     pid
   end
 
-  def fetch_all(limit: 50)
+  def all(limit: 50)
     @pgsql.exec('SELECT * FROM payout ORDER BY created DESC LIMIT $1', [limit]).map { |r| map(r) }
   end
 
@@ -40,104 +39,49 @@ amount #{amount}, and details: \"#{details}\"")
   end
 
   def consumed(login)
-    daily = Zold::Amount.new(
-      zents: @pgsql.exec(
-        'SELECT SUM(zents) FROM payout WHERE login = $1 AND created > NOW() - INTERVAL \'24 HOURS\'',
-        [login]
-      )[0]['sum'].to_i
-    )
-    weekly = Zold::Amount.new(
-      zents: @pgsql.exec(
-        'SELECT SUM(zents) FROM payout WHERE login = $1 AND created > NOW() - INTERVAL \'7 DAYS\'',
-        [login]
-      )[0]['sum'].to_i
-    )
-    monthly = Zold::Amount.new(
-      zents: @pgsql.exec(
-        'SELECT SUM(zents) FROM payout WHERE login = $1 AND created > NOW() - INTERVAL \'31 DAYS\'',
-        [login]
-      )[0]['sum'].to_i
-    )
-    "#{daily.to_zld(0)}/#{weekly.to_zld(0)}/#{monthly.to_zld(0)}"
+    [summed('24 HOURS', login), summed('7 DAYS', login), summed('31 DAYS', login)].map { |a| a.to_zld(0) }.join('/')
   end
 
-  # Still allowed to send a payout for this amount to this user?
   def allowed?(login, amount, limits = '64/128/256')
     daily_limit, weekly_limit, monthly_limit = limits.split('/')
     daily_limit = Zold::Amount.new(zld: daily_limit.to_f)
     weekly_limit = Zold::Amount.new(zld: weekly_limit.to_f)
     monthly_limit = Zold::Amount.new(zld: monthly_limit.to_f)
-    daily = Zold::Amount.new(
-      zents: @pgsql.exec(
-        'SELECT SUM(zents) FROM payout WHERE login = $1 AND created > NOW() - INTERVAL \'24 HOURS\'',
-        [login]
-      )[0]['sum'].to_i
-    )
-    return false if daily + amount > daily_limit
-    weekly = Zold::Amount.new(
-      zents: @pgsql.exec(
-        'SELECT SUM(zents) FROM payout WHERE login = $1 AND created > NOW() - INTERVAL \'7 DAYS\'',
-        [login]
-      )[0]['sum'].to_i
-    )
-    return false if weekly + amount > weekly_limit
-    monthly = Zold::Amount.new(
-      zents: @pgsql.exec(
-        'SELECT SUM(zents) FROM payout WHERE login = $1 AND created > NOW() - INTERVAL \'31 DAYS\'',
-        [login]
-      )[0]['sum'].to_i
-    )
-    return false if monthly + amount > monthly_limit
+    return false if summed('24 HOURS', login) + amount > daily_limit
+    return false if summed('7 DAYS', login) + amount > weekly_limit
+    return false if summed('31 DAYS', login) + amount > monthly_limit
     true
   end
 
   def system_consumed
-    daily = Zold::Amount.new(
-      zents: @pgsql.exec(
-        'SELECT SUM(zents) FROM payout WHERE created > NOW() - INTERVAL \'24 HOURS\''
-      )[0]['sum'].to_i
-    )
-    weekly = Zold::Amount.new(
-      zents: @pgsql.exec(
-        'SELECT SUM(zents) FROM payout WHERE created > NOW() - INTERVAL \'7 DAYS\''
-      )[0]['sum'].to_i
-    )
-    monthly = Zold::Amount.new(
-      zents: @pgsql.exec(
-        'SELECT SUM(zents) FROM payout WHERE created > NOW() - INTERVAL \'31 DAYS\''
-      )[0]['sum'].to_i
-    )
-    "#{daily.to_zld(0)}/#{weekly.to_zld(0)}/#{monthly.to_zld(0)}"
+    [summed('24 HOURS'), summed('7 DAYS'), summed('31 DAYS')].map { |a| a.to_zld(0) }.join('/')
   end
 
-  # Is it safe to send that money now?
   def safe?(amount, limits = '64/128/256')
     daily_limit, weekly_limit, monthly_limit = limits.split('/')
     daily_limit = Zold::Amount.new(zld: daily_limit.to_f)
     weekly_limit = Zold::Amount.new(zld: weekly_limit.to_f)
     monthly_limit = Zold::Amount.new(zld: monthly_limit.to_f)
-    daily = Zold::Amount.new(
-      zents: @pgsql.exec(
-        'SELECT SUM(zents) FROM payout WHERE created > NOW() - INTERVAL \'24 HOURS\''
-      )[0]['sum'].to_i
-    )
-    return false if daily + amount > daily_limit
-    weekly = Zold::Amount.new(
-      zents: @pgsql.exec(
-        'SELECT SUM(zents) FROM payout WHERE created > NOW() - INTERVAL \'7 DAYS\''
-      )[0]['sum'].to_i
-    )
-    return false if weekly + amount > weekly_limit
-    monthly = Zold::Amount.new(
-      zents: @pgsql.exec(
-        'SELECT SUM(zents) FROM payout WHERE created > NOW() - INTERVAL \'31 DAYS\''
-      )[0]['sum'].to_i
-    )
-    return false if monthly + amount > monthly_limit
+    return false if summed('24 HOURS') + amount > daily_limit
+    return false if summed('7 DAYS') + amount > weekly_limit
+    return false if summed('31 DAYS') + amount > monthly_limit
     true
   end
 
   private
+
+  def summed(interval, login = nil)
+    Zold::Amount.new(
+      zents: @pgsql.exec(
+        format(
+          "SELECT SUM(zents) FROM payout WHERE %<cond>screated > NOW() - INTERVAL '%<interval>s'",
+          cond: login.nil? ? '' : 'login = $1 AND ',
+          interval: interval
+        ),
+        [login].compact
+      )[0]['sum'].to_i
+    )
+  end
 
   def map(r)
     {

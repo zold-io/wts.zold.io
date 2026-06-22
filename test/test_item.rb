@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
@@ -13,9 +15,8 @@ class WTS::ItemTest < Minitest::Test
     WebMock.allow_net_connect!
     item = WTS::Item.new("jeff13#{rand(999)}", t_pgsql, log: t_log)
     refute_predicate(item, :exists?)
-    pvt = OpenSSL::PKey::RSA.new(2048)
     id = Zold::Id.new
-    item.create(id, Zold::Key.new(text: pvt.to_pem))
+    item.create(id, Zold::Key.new(text: OpenSSL::PKey::RSA.new(2048).to_pem))
     assert_predicate(item, :exists?)
     assert_equal(id, item.id)
   end
@@ -33,10 +34,8 @@ class WTS::ItemTest < Minitest::Test
   def test_wipes_keygap
     WebMock.allow_net_connect!
     item = WTS::Item.new("jeff095#{rand(999)}", t_pgsql, log: t_log)
-    pvt = OpenSSL::PKey::RSA.new(2048)
     id = Zold::Id.new
-    pem = pvt.to_pem
-    key = Zold::Key.new(text: pem)
+    key = Zold::Key.new(text: OpenSSL::PKey::RSA.new(2048).to_pem)
     keygap = item.create(id, key)
     assert_equal(key, item.key(keygap))
     assert_equal(id, item.id)
@@ -48,8 +47,7 @@ class WTS::ItemTest < Minitest::Test
 
   def test_rename_change_login
     WebMock.allow_net_connect!
-    before = "jeff#{rand(999)}"
-    item = WTS::Item.new(before, t_pgsql, log: t_log)
+    item = WTS::Item.new("jeff#{rand(999)}", t_pgsql, log: t_log)
     item.create(Zold::Id.new, Zold::Key.new(text: OpenSSL::PKey::RSA.new(2048).to_pem))
     item.tags.attach('some-tag')
     after = "peter#{rand(999)}"

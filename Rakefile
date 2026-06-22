@@ -1,10 +1,12 @@
+# frozen_string_literal: true
+
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
 $stdout.sync = true
 
-require 'date'
 require 'English'
+require 'date'
 require 'rake'
 require 'rake/clean'
 require 'rdoc'

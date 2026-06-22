@@ -1,10 +1,10 @@
+# frozen_string_literal: true
+
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
 get '/terms' do
-  haml :terms, layout: :layout, locals: merged(
-    page_title: 'Terms of Use'
-  )
+  haml :terms, layout: :layout, locals: merged(page_title: 'Terms of Use')
 end
 
 get '/robots.txt' do
@@ -24,14 +24,14 @@ end
 
 get '/css/*.css' do
   name = params[:splat].first
-  file = File.join('assets/sass', name) + '.sass'
+  file = "#{File.join('assets/sass', name)}.sass"
   error(404, "File not found: #{file}") unless File.exist?(file)
   content_type 'text/css', charset: 'utf-8'
   sass name.to_sym, views: "#{settings.root}/assets/sass"
 end
 
 get '/js/*.js' do
-  file = File.join('assets/js', params[:splat].first) + '.js'
+  file = "#{File.join('assets/js', params[:splat].first)}.js"
   error(404, "File not found: #{file}") unless File.exist?(file)
   content_type 'application/javascript'
   File.read(file)

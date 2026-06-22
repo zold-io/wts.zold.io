@@ -1,16 +1,14 @@
+# frozen_string_literal: true
+
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
 require 'time'
-require 'zold/txn'
-require 'zold/id'
 require 'zold/amount'
+require 'zold/id'
 require 'zold/json_page'
+require 'zold/txn'
 
-# General ledger.
-# Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018 Yegor Bugayenko
-# License:: MIT
 class WTS::Gl
   INSERT = [
     'INSERT INTO txn (id, source, date, amount, target, prefix, details)',
@@ -43,13 +41,13 @@ class WTS::Gl
             t['details']
           ]
         )
-        yield map(row[0]) if !row.empty? && block_given?
+        yield(map(row[0])) if !row.empty? && block_given?
       end
     end
   end
 
   def fetch(since: Time.now, limit: 50, query: '')
-    raise 'Since has to be of time Time' unless since.is_a?(Time)
+    raise(RuntimeError, 'Since has to be of time Time') unless since.is_a?(Time)
     q = [
       'SELECT * FROM txn WHERE date <= $1',
       'AND ($3 = \'\' OR source = $3 OR target = $3 OR details LIKE $3)',
@@ -62,21 +60,17 @@ class WTS::Gl
 
   def volume(hours = 24)
     Zold::Amount.new(
-      zents: @pgsql.exec(
-        "SELECT SUM(amount) FROM txn WHERE date > NOW() - INTERVAL '#{hours} HOURS'"
-      )[0]['sum'].to_i
+      zents: @pgsql.exec("SELECT SUM(amount) FROM txn WHERE date > NOW() - INTERVAL '#{hours} HOURS'")[0]['sum'].to_i
     )
   end
 
   def count(hours = 24)
-    @pgsql.exec(
-      "SELECT COUNT(*) FROM txn WHERE date > NOW() - INTERVAL '#{hours} HOURS'"
-    )[0]['count'].to_i
+    @pgsql.exec("SELECT COUNT(*) FROM txn WHERE date > NOW() - INTERVAL '#{hours} HOURS'")[0]['count'].to_i
   end
 
   def txn(source, id)
     row = @pgsql.exec('SELECT * FROM txn WHERE source = $1 AND id = $2', [source, id])[0]
-    raise WTS::UserError, "E192: Transaction #{source}:#{id} not found in GL" if row.nil?
+    raise(WTS::UserError, "E192: Transaction #{source}:#{id} not found in GL") if row.nil?
     map(row)
   end
 

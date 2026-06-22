@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
@@ -15,8 +17,8 @@ unless SimpleCov.running || ENV['PICKS']
       SimpleCov::Formatter::CoberturaFormatter
     ]
   )
-  SimpleCov.minimum_coverage 85
-  SimpleCov.minimum_coverage_by_file 50
+  SimpleCov.minimum_coverage(85)
+  SimpleCov.minimum_coverage_by_file(50)
   SimpleCov.start do
     add_filter 'test/'
     add_filter 'vendor/'
@@ -33,26 +35,22 @@ require 'minitest/autorun'
 require 'minitest/reporters'
 require 'rack/test'
 require 'webmock/minitest'
-Minitest::Reporters.use! [Minitest::Reporters::SpecReporter.new]
-Minitest.load :minitest_reporter
+Minitest::Reporters.use!([Minitest::Reporters::SpecReporter.new])
+Minitest.load(:minitest_reporter)
 
-require 'yaml'
 require 'pgtk/pool'
+require 'yaml'
 module Minitest
   class Test
     def t_log
-      require 'loog'
+      require('loog')
       @t_log ||= ENV['TEST_QUIET_LOG'] == 'true' ? Loog::NULL : Loog::VERBOSE
     end
 
     def t_pgsql
-      # rubocop:disable Style/ClassVars
       @@t_pgsql ||=
         begin
-          x = Pgtk::Pool.new(
-            Pgtk::Wire::Yaml.new(File.join(__dir__, '../target/pgsql-config.yml')),
-            log: t_log
-          )
+          x = Pgtk::Pool.new(Pgtk::Wire::Yaml.new(File.join(__dir__, '../target/pgsql-config.yml')), log: t_log)
           x.start!
           x
         end

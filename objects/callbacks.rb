@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
@@ -6,12 +8,7 @@ require 'zold/http'
 require 'zold/id'
 require_relative 'user_error'
 
-# Callbacks.
-# Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018 Yegor Bugayenko
-# License:: MIT
 class WTS::Callbacks
-  # How many per one user
   MAX = 1024
 
   def initialize(pgsql, log: Loog::NULL)
@@ -19,15 +16,16 @@ class WTS::Callbacks
     @log = log
   end
 
-  # Adds a new callback
   def add(login, wallet, prefix, regexp, uri, token = 'none', repeat: false, forever: false)
     total = @pgsql.exec('SELECT COUNT(*) FROM callback WHERE login = $1', [login])[0]['count'].to_i
-    raise WTS::UserError, "EYou have too many of them already: #{total}" if total >= MAX
+    raise(WTS::UserError, "EYou have too many of them already: #{total}") if total >= MAX
     found = @pgsql.exec(
       'SELECT id FROM callback WHERE login = $1 AND wallet = $2 AND prefix = $3 AND regexp = $4 AND uri = $5',
       [login, wallet, prefix, regexp, uri]
     )[0]
-    raise WTS::UserError, "You already have a callback ##{found['id']} registered with similar params" unless found.nil?
+    unless found.nil?
+      raise(WTS::UserError, "You already have a callback ##{found['id']} registered with similar params")
+    end
     cid = @pgsql.exec(
       [
         'INSERT INTO callback (login, wallet, prefix, regexp, uri, token, repeat, forever)',
@@ -36,8 +34,10 @@ class WTS::Callbacks
       ].join(' '),
       [login, wallet, prefix, regexp, uri, token, repeat, forever]
     )[0]['id'].to_i
-    @log.debug("New callback ##{cid} registered by #{login} for wallet #{wallet}, \
-prefix \"#{prefix}\", regexp #{regexp}, and URI: #{uri}")
+    @log.debug(
+      "New callback ##{cid} registered by #{login} for wallet #{wallet}, " \
+      "prefix \"#{prefix}\", regexp #{regexp}, and URI: #{uri}"
+    )
     cid
   end
 
@@ -45,7 +45,6 @@ prefix \"#{prefix}\", regexp #{regexp}, and URI: #{uri}")
     @pgsql.exec('UPDATE match SET failure = NULL WHERE callback=$1', [id])
   end
 
-  # Returns the list of IDs of matches found
   def match(tid, wallet, prefix, details)
     found = []
     @pgsql.exec('SELECT * FROM callback WHERE wallet = $1 AND prefix = $2', [wallet, prefix]).each do |r|
@@ -75,7 +74,6 @@ prefix \"#{prefix}\", regexp #{regexp}, and URI: #{uri}")
     ).map { |r| map(r) }
   end
 
-  # Ping them all.
   def ping
     q = [
       'SELECT callback.*, match.id AS mid',
@@ -100,19 +98,14 @@ prefix \"#{prefix}\", regexp #{regexp}, and URI: #{uri}")
           details: t.details,
           token: r['token']
         }
-        uri = r['uri'] + '?' + args.map { |k, v| "#{k}=#{CGI.escape(v.to_s)}" }.join('&')
-        res = Zold::Http.new(uri: uri).get
-        f = failure(res, uri)
-        @pgsql.exec(
-          'UPDATE match SET failure = $1 WHERE id = $2',
-          [f, r['mid'].to_i]
-        )
+        uri = "#{r['uri']}?#{args.map { |k, v| "#{k}=#{CGI.escape(v.to_s)}" }.join('&')}"
+        f = failure(Zold::Http.new(uri: uri).get, uri)
+        @pgsql.exec('UPDATE match SET failure = $1 WHERE id = $2', [f, r['mid'].to_i])
         @log.info("Callback ##{cid} pinged: #{f.inspect}")
       end
     end
   end
 
-  # Repeat all succeeded callbacks.
   def repeat_succeeded
     q = [
       'SELECT match.id FROM callback',
@@ -121,11 +114,10 @@ prefix \"#{prefix}\", regexp #{regexp}, and URI: #{uri}")
     ].join(' ')
     @pgsql.exec(q).each do |r|
       @pgsql.exec('DELETE FROM match WHERE id = $1', [r['id'].to_i])
-      yield c if block_given?
+      yield(c) if block_given?
     end
   end
 
-  # Delete all succeeded callbacks.
   def delete_succeeded
     q = [
       'SELECT callback.* FROM callback',
@@ -135,16 +127,15 @@ prefix \"#{prefix}\", regexp #{regexp}, and URI: #{uri}")
     @pgsql.exec(q).each do |r|
       c = map(r)
       @pgsql.exec('DELETE FROM callback WHERE id = $1', [c[:id]])
-      yield c if block_given?
+      yield(c) if block_given?
     end
   end
 
-  # Delete all expired callbacks.
   def delete_expired
     @pgsql.exec('SELECT * FROM callback WHERE created < NOW() - INTERVAL \'24 HOURS\' AND forever = false').each do |r|
       c = map(r)
       @pgsql.exec('DELETE FROM callback WHERE id = $1', [c[:id]])
-      yield c if block_given?
+      yield(c) if block_given?
     end
   end
 
@@ -157,7 +148,7 @@ prefix \"#{prefix}\", regexp #{regexp}, and URI: #{uri}")
     @pgsql.exec(q).each do |r|
       c = map(r)
       @pgsql.exec('DELETE FROM callback WHERE id = $1', [c[:id]])
-      yield c if block_given?
+      yield(c) if block_given?
     end
   end
 
@@ -165,11 +156,11 @@ prefix \"#{prefix}\", regexp #{regexp}, and URI: #{uri}")
 
   def failure(res, uri)
     if res.code != 200
-      "#{Time.now.utc.iso8601}: HTTP response code at #{uri} was #{res.code} \
-instead of 200: #{res.status_line.inspect}"
+      "#{Time.now.utc.iso8601}: HTTP response code at #{uri} was #{res.code} " \
+        "instead of 200: #{res.status_line.inspect}"
     elsif res.body != 'OK'
-      "#{Time.now.utc.iso8601}: HTTP response body at #{uri} was not equal to 'OK' \
-even though response code was 200: #{res.body.inspect}"
+      "#{Time.now.utc.iso8601}: HTTP response body at #{uri} was not equal to 'OK' " \
+        "even though response code was 200: #{res.body.inspect}"
     else
       ''
     end

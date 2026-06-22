@@ -1,17 +1,16 @@
+# frozen_string_literal: true
+
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require 'zold/key'
-require 'zold/id'
 require 'loog'
-require_relative 'wts'
+require 'zold/id'
+require 'zold/key'
 require_relative 'keygap'
 require_relative 'tags'
 require_relative 'user_error'
+require_relative 'wts'
 
-#
-# Item in database.
-#
 class WTS::Item
   attr_reader :login
 
@@ -21,7 +20,6 @@ class WTS::Item
     @log = log
   end
 
-  # Tags.
   def tags
     WTS::Tags.new(@login, @pgsql, log: @log)
   end
@@ -30,10 +28,6 @@ class WTS::Item
     !@pgsql.exec('SELECT * FROM item WHERE login = $1', [login]).empty?
   end
 
-  # Creates a record in the database and generates a unique keygap.
-  # +id+:: Wallet iD
-  # +key+:: Private RSA key
-  # +length+:: Length of keygap to use (don't change it without a necessity)
   def create(id, key, length: 16)
     pem, keygap = WTS::Keygap.new.extract(key.to_s, length)
     @pgsql.transaction do |t|
@@ -52,57 +46,45 @@ class WTS::Item
         [@login, keygap]
       )
     end
-    @log.info("New user #{@login} created, wallet ID is #{id}, \
-keygap is '#{keygap[0, 2]}#{'.' * (keygap.length - 2)}'")
+    @log.info("New user #{@login} created, wallet ID is #{id}, keygap is '#{keygap[0, 2]}#{'.' * (keygap.length - 2)}'")
     keygap
   end
 
-  # This is used during migration to a new wallet.
   def replace_id(id)
     @pgsql.exec('UPDATE item SET id = $1 WHERE login = $2', [id, @login])
   end
 
-  # Return private key as Zold::Key
   def key(keygap)
-    key = WTS::Keygap.new.merge(raw_key, keygap)
+    key = WTS::Keygap.new.merge(pem, keygap)
     @log.debug("The private key of #{@login} reassembled: #{key.to_s.length} chars")
     key
   end
 
-  # Return private key as text
-  def raw_key
+  def pem
     @pgsql.exec('SELECT pem FROM item WHERE login = $1', [@login])[0]['pem']
   end
 
-  # Return Wallet ID as Zold::Id
   def id
     row = @pgsql.exec('SELECT id FROM item WHERE login = $1', [@login])[0]
-    raise "User #{@login} is not yet registered" if row.nil?
+    raise(RuntimeError, "User #{@login} is not yet registered") if row.nil?
     Zold::Id.new(row['id'])
   end
 
-  # Returns user Keygap temporarily stored in the database. We should not
-  # keep it here for too long. Once the user confirms that the keygap has
-  # been stored safely, we should call wipe(), which will remove the
-  # keygap from the database.
   def keygap
     row = @pgsql.exec('SELECT keygap FROM keygap WHERE login = $1', [@login])[0]
-    raise "The user #{@login} doesn't have a keygap anymore" if row.nil?
-    keygap = row['keygap']
+    raise(RuntimeError, "The user #{@login} doesn't have a keygap anymore") if row.nil?
     @log.debug("The keygap of #{@login} retrieved")
-    keygap
+    row['keygap']
   end
 
-  # Returns TRUE if the keygap is absent in the item
   def wiped?
     @pgsql.exec('SELECT keygap FROM keygap WHERE login = $1', [@login]).empty?
   end
 
-  # Remove the keygap from DynamoDB
   def wipe(keygap)
     before = keygap
     if keygap != before
-      raise "Keygap '#{keygap}' of #{@login} doesn't match '#{before[0, 2]}#{'.' * (before.length - 2)}'"
+      raise(RuntimeError, "Keygap '#{keygap}' of #{@login} doesn't match '#{before[0, 2]}#{'.' * (before.length - 2)}'")
     end
     @pgsql.exec('DELETE FROM keygap WHERE login = $1', [@login])
     @log.debug("The keygap of #{@login} was destroyed")
@@ -112,8 +94,6 @@ keygap is '#{keygap[0, 2]}#{'.' * (keygap.length - 2)}'")
     @pgsql.exec('UPDATE item SET touched = NOW() WHERE login = $1', [@login])
   end
 
-  # Rename this item, changing its login.
-  # +to+:: New login
   def rename(to)
     @pgsql.exec('UPDATE item SET login = $1 WHERE login = $2', [to, @login])
     @login = to

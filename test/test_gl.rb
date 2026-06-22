@@ -1,14 +1,16 @@
+# frozen_string_literal: true
+
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
 require 'zold/remotes'
-require_relative 'test__helper'
 require_relative '../objects/gl'
+require_relative 'test__helper'
 
 class WTS::GlTest < Minitest::Test
   def test_scan_and_fetch
     WebMock.allow_net_connect!
-    Dir.mktmpdir 'test' do |dir|
+    Dir.mktmpdir('test') do |dir|
       remotes = Zold::Remotes.new(file: File.join(dir, 'remotes.csv'))
       remotes.clean
       id = rand(1000)
@@ -54,7 +56,6 @@ class WTS::GlTest < Minitest::Test
   end
 
   def test_calc_volume
-    gl = WTS::Gl.new(t_pgsql, log: t_log)
-    refute_nil(gl.volume(4))
+    refute_nil(WTS::Gl.new(t_pgsql, log: t_log).volume(4))
   end
 end

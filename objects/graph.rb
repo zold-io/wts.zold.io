@@ -1,19 +1,15 @@
+# frozen_string_literal: true
+
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require 'loog'
-require 'SVG/Graph/Line'
 require 'SVG/Graph/DataPoint'
-require_relative 'wts'
+require 'SVG/Graph/Line'
+require 'loog'
 require_relative 'user_error'
+require_relative 'wts'
 
-#
-# Graph in SVG.
-#
-# See: https://github.com/lumean/svg-graph2/blob/master/lib/SVG/Graph/Graph.rb
-#
 class WTS::Graph
-  # How many total X-steps on the graph
   STEPS = 12
   private_constant :STEPS
 
@@ -23,7 +19,7 @@ class WTS::Graph
   end
 
   def svg(keys, div, digits, title: '')
-    validate_digits(digits)
+    validate(digits)
     sets = {}
     min = Time.now
     max = Time.now + (STEPS * 24 * 60 * 60)
@@ -35,9 +31,9 @@ class WTS::Graph
         max = t[:created] if max < t[:created]
       end
     end
-    raise WTS::UserError, 'E221: There are no ticks, sorry' if sets.empty?
+    raise(WTS::UserError, 'E221: There are no ticks, sorry') if sets.empty?
     step = (max - min) / STEPS
-    raise WTS::UserError, 'E222: Step is too small, can\'t render, sorry' if step.zero?
+    raise(WTS::UserError, 'E222: Step is too small, can\'t render, sorry') if step.zero?
     params = {
       width: 400, height: 200,
       show_x_guidelines: true, show_y_guidelines: true,
@@ -66,7 +62,7 @@ class WTS::Graph
 
   private
 
-  def validate_digits(digits)
-    raise WTS::UserError, "E224: Digits must be non-negative, got #{digits}" if digits.negative?
+  def validate(digits)
+    raise(WTS::UserError, "E224: Digits must be non-negative, got #{digits}") if digits.negative?
   end
 end

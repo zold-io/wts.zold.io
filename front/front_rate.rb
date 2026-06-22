@@ -1,12 +1,14 @@
+# frozen_string_literal: true
+
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
 require 'json'
 require 'octokit'
 require 'zold/amount'
-require 'zold/id'
 require 'zold/commands/pull'
 require 'zold/commands/remote'
+require 'zold/id'
 require_relative '../objects/graph'
 require_relative '../objects/ticks'
 
@@ -71,15 +73,15 @@ get '/rate' do
       settings.zache.remove_by { |k| k.to_s.start_with?('http', '/') }
       unless settings.ticks.exists?('Fund')
         settings.ticks.add(
-          'Fund' => (hash[:bank] * 100_000_000).to_i, # in satoshi
-          'Emission' => hash[:root].to_i, # in zents
-          'Office' => hash[:boss].to_i, # in zents
-          'Rate' => (WTS::Rate.new(settings.toggles).to_f * 100_000_000).to_i, # satoshi per ZLD
-          'Coverage' => (hash[:rate] * 100_000_000).to_i, # satoshi per ZLD
-          'Deficit' => (hash[:deficit] * 100_000_000).to_i, # in satoshi
-          'Price' => (hash[:price] * 100).to_i, # US cents per BTC
-          'Value' => (hash[:usd_rate] * 100).to_i, # US cents per ZLD
-          'Pledge' => (hash[:price] * hash[:rate] * 100).to_i # US cents per ZLD, covered
+          'Fund' => (hash[:bank] * 100_000_000).to_i,
+          'Emission' => hash[:root].to_i,
+          'Office' => hash[:boss].to_i,
+          'Rate' => (WTS::Rate.new(settings.toggles).to_f * 100_000_000).to_i,
+          'Coverage' => (hash[:rate] * 100_000_000).to_i,
+          'Deficit' => (hash[:deficit] * 100_000_000).to_i,
+          'Price' => (hash[:price] * 100).to_i,
+          'Value' => (hash[:usd_rate] * 100).to_i,
+          'Pledge' => (hash[:price] * hash[:rate] * 100).to_i
         )
       end
     end
@@ -109,11 +111,7 @@ get '/rate.json' do
       usd_rate: hash[:usd_rate].round(4)
     )
   else
-    JSON.pretty_generate(
-      valid: false,
-      effective_rate: WTS::Rate.new(settings.toggles).to_f,
-      usd_rate: 0.0 # just for testing
-    )
+    JSON.pretty_generate(valid: false, effective_rate: WTS::Rate.new(settings.toggles).to_f, usd_rate: 0.0)
   end
 end
 

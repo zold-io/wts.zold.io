@@ -1,8 +1,10 @@
+# frozen_string_literal: true
+
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require_relative 'test__helper'
 require_relative '../objects/jobs'
+require_relative 'test__helper'
 
 class WTS::JobsTest < Minitest::Test
   def test_saves_and_reads

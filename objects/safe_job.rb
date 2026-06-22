@@ -1,14 +1,13 @@
+# frozen_string_literal: true
+
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require 'raven'
 require 'backtrace'
 require 'loog'
+require 'raven'
 require_relative 'user_error'
 
-#
-# Job that log exceptions.
-#
 class WTS::SafeJob
   def initialize(job, log: Loog::NULL, telepost: Telepost::Fake.new)
     @log = log

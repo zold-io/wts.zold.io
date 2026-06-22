@@ -1,8 +1,10 @@
+# frozen_string_literal: true
+
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require_relative 'test__helper'
 require_relative '../objects/toggles'
+require_relative 'test__helper'
 
 class WTS::TogglesTest < Minitest::Test
   def test_sets_and_gets

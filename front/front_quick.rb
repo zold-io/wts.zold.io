@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
@@ -21,9 +23,5 @@ get '/quick' do
   end
   body.force_encoding('utf-8')
   html = Haml::Engine.new(body).render(self)
-  haml :quick, layout: :layout, locals: merged(
-    page_title: 'Zold: Quick Start',
-    header_off: true,
-    html: html
-  )
+  haml :quick, layout: :layout, locals: merged(page_title: 'Zold: Quick Start', header_off: true, html: html)
 end

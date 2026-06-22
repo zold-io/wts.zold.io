@@ -1,8 +1,10 @@
+# frozen_string_literal: true
+
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require_relative 'test__helper'
 require_relative '../objects/daemons'
+require_relative 'test__helper'
 
 class WTS::DaemonsTest < Minitest::Test
   def test_start_and_stop
@@ -12,7 +14,7 @@ class WTS::DaemonsTest < Minitest::Test
     daemons.start('test', 0, pause: 0) do
       started = true
     end
-    sleep 0.1
+    sleep(0.1)
     assert(started)
   end
 
@@ -22,9 +24,9 @@ class WTS::DaemonsTest < Minitest::Test
     stepped = 0
     daemons.start('test-errors', 0, pause: 0) do
       stepped += 1
-      raise StandardError, 'Intended' if stepped == 1
+      raise(StandardError, 'Intended') if stepped == 1
     end
-    sleep 0.1
+    sleep(0.1)
     assert_operator(stepped, :>, 1)
   end
 end

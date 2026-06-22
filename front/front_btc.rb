@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
@@ -24,14 +26,7 @@ require_relative '../objects/user_error'
 set :codec, GLogin::Codec.new(settings.config['pkey_secret'], base64: true)
 
 def assets(log: settings.log)
-  SyncEm.new(
-    WTS::Assets.new(
-      settings.pgsql,
-      log: log,
-      codec: settings.codec,
-      sibit: sibit(log: log)
-    )
-  )
+  SyncEm.new(WTS::Assets.new(settings.pgsql, log: log, codec: settings.codec, sibit: sibit(log: log)))
 end
 
 def coinbase(log: settings.log)
@@ -57,7 +52,7 @@ unless ENV['RACK_ENV'] == 'test'
   settings.daemons.start('btc-reconcile', 12 * 60 * 60) do
     assets.reconcile do |address, before, after, hot|
       diff = after - before
-      if diff.abs > 10 # smaller changes we just ignore
+      if diff.abs > 10
         settings.telepost.spam(
           diff.positive? ? '📥' : '⚠️',
           "The balance at #{hot ? 'hot' : 'cold'}",
@@ -86,79 +81,80 @@ unless ENV['RACK_ENV'] == 'test'
   end
   settings.daemons.start('btc-monitor', 5 * 60) do
     seen = settings.toggles.get('latestblock', '')
-    seen = assets.monitor(seen, max: 8) do |address, hash, satoshi|
-      bitcoin = (satoshi.to_f / 100_000_000).round(8)
-      if assets.owned?(address)
-        rate = WTS::Rate.new(settings.toggles).to_f
-        zld = Zold::Amount.new(zld: bitcoin / rate)
-        bnf = user(assets.owner(address))
-        boss = user(settings.config['exchange']['login'])
-        settings.log.info("Accepting #{bitcoin} bitcoins from #{address} for #{bnf.item.id}...")
-        ops(boss, log: settings.log).pull
-        begin
-          ops(bnf, log: settings.log).pull
-          ops(boss, log: settings.log).pay(
-            settings.config['exchange']['keygap'],
-            bnf.item.id, zld,
-            "BTC exchange of #{bitcoin} at #{hash}, rate is #{rate}"
-          )
-          if referrals.exists?(bnf.login)
-            fee = settings.toggles.get('referral-fee', '0.04').to_f
+    seen =
+      assets.monitor(seen, max: 8) do |address, hash, satoshi|
+        bitcoin = (satoshi.to_f / 100_000_000).round(8)
+        if assets.owned?(address)
+          rate = WTS::Rate.new(settings.toggles).to_f
+          zld = Zold::Amount.new(zld: bitcoin / rate)
+          bnf = user(assets.owner(address))
+          boss = user(settings.config['exchange']['login'])
+          settings.log.info("Accepting #{bitcoin} bitcoins from #{address} for #{bnf.item.id}...")
+          ops(boss, log: settings.log).pull
+          begin
+            ops(bnf, log: settings.log).pull
             ops(boss, log: settings.log).pay(
               settings.config['exchange']['keygap'],
-              user(referrals.ref(bnf.login)).item.id,
-              zld * fee, "#{(fee * 100).round(2)} referral fee for BTC exchange"
+              bnf.item.id, zld,
+              "BTC exchange of #{bitcoin} at #{hash}, rate is #{rate}"
+            )
+            if referrals.exists?(bnf.login)
+              fee = settings.toggles.get('referral-fee', '0.04').to_f
+              ops(boss, log: settings.log).pay(
+                settings.config['exchange']['keygap'],
+                user(referrals.ref(bnf.login)).item.id,
+                zld * fee, "#{(fee * 100).round(2)} referral fee for BTC exchange"
+              )
+            end
+            ops(boss, log: settings.log).push
+            settings.telepost.spam(
+              "👍 In: #{format('%.06f', bitcoin)} BTC (#{WTS::Dollars.new(price * bitcoin)})",
+              "[exchanged](https://blog.zold.io/2018/12/09/btc-to-zld.html) to **#{zld}**",
+              "by #{title_md(bnf)}",
+              "in [#{hash}](https://www.blockchain.com/btc/tx/#{hash.gsub(/:[0-9]+$/, '')})",
+              "via [#{address}](https://www.blockchain.com/btc/address/#{address}),",
+              "to the wallet [#{bnf.item.id}](http://www.zold.io/ledger.html?wallet=#{bnf.item.id})",
+              "with the balance of #{bnf.wallet(&:balance)};",
+              "BTC price at the moment of exchange was [#{WTS::Dollars.new(price)}](https://blockchain.info/ticker);",
+              "the payer is #{title_md(boss)} with the wallet",
+              "[#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id}),",
+              "the remaining balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t);",
+              "our bitcoin assets still have [#{assets.balance.round(4)} BTC](https://wts.zold.io/assets)",
+              "(#{WTS::Dollars.new(price * assets.balance)})"
+            )
+          rescue WTS::UserError => e
+            raise(e) unless e.message.start_with?('E186:')
+            settings.telepost.spam(
+              "👍 Oops: #{format('%.06f', bitcoin)} BTC (#{WTS::Dollars.new(price * bitcoin)})",
+              "arrived for #{title_md(bnf)}",
+              "in [#{hash}](https://www.blockchain.com/btc/tx/#{hash.gsub(/:[0-9]+$/, '')})",
+              "via [#{address}](https://www.blockchain.com/btc/address/#{address}),",
+              "to the wallet [#{bnf.item.id}](http://www.zold.io/ledger.html?wallet=#{bnf.item.id})",
+              "but the wallet is gone: #{e.message}"
             )
           end
-          ops(boss, log: settings.log).push
+        elsif assets.cold?(address)
           settings.telepost.spam(
-            "👍 In: #{format('%.06f', bitcoin)} BTC (#{WTS::Dollars.new(price * bitcoin)})",
-            "[exchanged](https://blog.zold.io/2018/12/09/btc-to-zld.html) to **#{zld}**",
-            "by #{title_md(bnf)}",
-            "in [#{hash}](https://www.blockchain.com/btc/tx/#{hash.gsub(/:[0-9]+$/, '')})",
-            "via [#{address}](https://www.blockchain.com/btc/address/#{address}),",
-            "to the wallet [#{bnf.item.id}](http://www.zold.io/ledger.html?wallet=#{bnf.item.id})",
-            "with the balance of #{bnf.wallet(&:balance)};",
-            "BTC price at the moment of exchange was [#{WTS::Dollars.new(price)}](https://blockchain.info/ticker);",
-            "the payer is #{title_md(boss)} with the wallet",
-            "[#{boss.item.id}](http://www.zold.io/ledger.html?wallet=#{boss.item.id}),",
-            "the remaining balance is #{boss.wallet(&:balance)} (#{boss.wallet(&:txns).count}t);",
+            "👍 In: #{format('%.06f', bitcoin)} BTC (#{WTS::Dollars.new(price * bitcoin)}) arrived to",
+            "[#{address}](https://www.blockchain.com/btc/address/#{address})",
+            "which doesn't belong to anyone,",
+            "tx hash was [#{hash}](https://www.blockchain.com/btc/tx/#{hash.gsub(/:[0-9]+$/, '')});",
+            'deposited to our fund; many thanks to whoever it was;',
             "our bitcoin assets still have [#{assets.balance.round(4)} BTC](https://wts.zold.io/assets)",
             "(#{WTS::Dollars.new(price * assets.balance)})"
           )
-        rescue WTS::UserError => e
-          raise e unless e.message.start_with?('E186:')
+        else
           settings.telepost.spam(
-            "👍 Oops: #{format('%.06f', bitcoin)} BTC (#{WTS::Dollars.new(price * bitcoin)})",
-            "arrived for #{title_md(bnf)}",
-            "in [#{hash}](https://www.blockchain.com/btc/tx/#{hash.gsub(/:[0-9]+$/, '')})",
-            "via [#{address}](https://www.blockchain.com/btc/address/#{address}),",
-            "to the wallet [#{bnf.item.id}](http://www.zold.io/ledger.html?wallet=#{bnf.item.id})",
-            "but the wallet is gone: #{e.message}"
+            "📥 #{format('%.06f', bitcoin)} BTC (#{WTS::Dollars.new(price * bitcoin)}) returned back to",
+            "[#{address}](https://www.blockchain.com/btc/address/#{address})",
+            'as a change from the previous payment,',
+            "tx hash is [#{hash}](https://www.blockchain.com/btc/tx/#{hash.gsub(/:[0-9]+$/, '')})",
+            "our bitcoin assets still have [#{assets.balance.round(4)} BTC](https://wts.zold.io/assets)",
+            "(#{WTS::Dollars.new(price * assets.balance)})"
           )
         end
-      elsif assets.cold?(address)
-        settings.telepost.spam(
-          "👍 In: #{format('%.06f', bitcoin)} BTC (#{WTS::Dollars.new(price * bitcoin)}) arrived to",
-          "[#{address}](https://www.blockchain.com/btc/address/#{address})",
-          "which doesn't belong to anyone,",
-          "tx hash was [#{hash}](https://www.blockchain.com/btc/tx/#{hash.gsub(/:[0-9]+$/, '')});",
-          'deposited to our fund; many thanks to whoever it was;',
-          "our bitcoin assets still have [#{assets.balance.round(4)} BTC](https://wts.zold.io/assets)",
-          "(#{WTS::Dollars.new(price * assets.balance)})"
-        )
-      else
-        settings.telepost.spam(
-          "📥 #{format('%.06f', bitcoin)} BTC (#{WTS::Dollars.new(price * bitcoin)}) returned back to",
-          "[#{address}](https://www.blockchain.com/btc/address/#{address})",
-          'as a change from the previous payment,',
-          "tx hash is [#{hash}](https://www.blockchain.com/btc/tx/#{hash.gsub(/:[0-9]+$/, '')})",
-          "our bitcoin assets still have [#{assets.balance.round(4)} BTC](https://wts.zold.io/assets)",
-          "(#{WTS::Dollars.new(price * assets.balance)})"
-        )
+        assets.see(address, hash)
       end
-      assets.see(address, hash)
-    end
     raise Error, "Invalid block hash #{seen.inspect}" unless /^[0-9a-f]{64}$/.match?(seen)
     settings.toggles.set('latestblock', seen)
     settings.log.info("We've scanned the entire Blockchain, the latest block is #{seen}")
@@ -300,13 +296,14 @@ end
 
 get '/btc-to-zld' do
   features('btc', 'buy-btc')
-  address = assets.acquire(confirmed_user.login) do |u, a, k|
-    settings.telepost.spam(
-      "✍️ A new Bitcoin address [#{a}](https://www.blockchain.com/btc/address/#{a}) generated",
-      u.nil? ? 'as a storage for change' : 'by a user',
-      "with this private key (it is encrypted):\n\n```\n#{k.scan(/.{20}/).join("\n")}\n```"
-    )
-  end
+  address =
+    assets.acquire(confirmed_user.login) do |u, a, k|
+      settings.telepost.spam(
+        "✍️ A new Bitcoin address [#{a}](https://www.blockchain.com/btc/address/#{a}) generated",
+        u.nil? ? 'as a storage for change' : 'by a user',
+        "with this private key (it is encrypted):\n\n```\n#{k.scan(/.{20}/).join("\n")}\n```"
+      )
+    end
   headers['X-Zold-BtcAddress'] = address
   haml :btc_to_zld, layout: :layout, locals: merged(
     page_title: title('buy'),
@@ -410,9 +407,9 @@ try to contact us in our Telegram group and notify the admin"
     log.info("Bitcoin transaction hash is #{tx}")
     settings.payouts.add(
       user.login, user.item.id, amount,
-      "#{bitcoin} BTC sent to #{address} in tx hash #{tx}; \
-the price was #{WTS::Dollars.new(price)}/BTC; the fee was #{(f * 100).round(2)}%, \
-bitcoin assets still have #{assets.balance.round(4)} BTC"
+      "#{bitcoin} BTC sent to #{address} in tx hash #{tx}; " \
+      "the price was #{WTS::Dollars.new(price)}/BTC; the fee was #{(f * 100).round(2)}%, " \
+      "bitcoin assets still have #{assets.balance.round(4)} BTC"
     )
     settings.telepost.spam(
       "😢 Out: #{amount} [exchanged](https://blog.zold.io/2018/12/09/btc-to-zld.html) to #{bitcoin} BTC",
@@ -454,13 +451,7 @@ post '/cold-to-hot' do
   job(exclusive: true) do |jid, log|
     log.info("Sending cold #{btc} BTC from #{address} to a random hot one...")
     hot = assets(log: log).acquire
-    tx = sibit(log: log).pay(
-      (btc * 100_000_000).round,
-      '-XL',
-      { address => params[:pkey].strip },
-      hot,
-      address
-    )
+    tx = sibit(log: log).pay((btc * 100_000_000).round, '-XL', { address => params[:pkey].strip }, hot, address)
     assets(log: log).set(address, 0)
     settings.telepost.spam(
       "🛠 Transfer: #{format('%.04f', btc)} BTC (#{WTS::Dollars.new(btc * price)}) transferred from a cold address",
@@ -485,13 +476,7 @@ post '/cold-out' do
   target = params[:target].strip
   job(exclusive: true) do |jid, log|
     log.info("Sending cold #{btc} BTC from #{address} to #{target}...")
-    tx = sibit(log: log).pay(
-      (btc * 100_000_000).round,
-      'L',
-      { address => params[:pkey].strip },
-      target,
-      address
-    )
+    tx = sibit(log: log).pay((btc * 100_000_000).round, 'L', { address => params[:pkey].strip }, target, address)
     assets(log: log).set(address, 0)
     settings.telepost.spam(
       "Out: #{format('%.04f', btc)} BTC (#{WTS::Dollars.new(btc * price)}) was sent from a cold address",
@@ -557,24 +542,25 @@ def sibit(log: settings.log)
   api = [Sibit::Fake.new]
   if ENV['RACK_ENV'] != 'test'
     http = Sibit::Http.new
-    api = settings.toggles.get('sibit:api', 'blockchain').split(',').map do |a|
-      case a
-      when 'cryptoapis'
-        Sibit::Cryptoapis.new(settings.config['cryptoapis_key'], log: log, http: http)
-      when 'blockchair'
-        Sibit::Blockchair.new(key: settings.config['blockchair_key'], log: log, http: http)
-      when 'bitcoinchain'
-        Sibit::Bitcoinchain.new(log: log, http: http)
-      when 'btc'
-        Sibit::Btc.new(log: log, http: http)
-      when 'cex'
-        Sibit::Cex.new(log: log, http: http)
-      when 'blockchain'
-        Sibit::Blockchain.new(log: log, http: http)
-      else
-        raise "Unknown API #{a}"
+    api =
+      settings.toggles.get('sibit:api', 'blockchain').split(',').map do |a|
+        case a
+        when 'cryptoapis'
+          Sibit::Cryptoapis.new(settings.config['cryptoapis_key'], log: log, http: http)
+        when 'blockchair'
+          Sibit::Blockchair.new(key: settings.config['blockchair_key'], log: log, http: http)
+        when 'bitcoinchain'
+          Sibit::Bitcoinchain.new(log: log, http: http)
+        when 'btc'
+          Sibit::Btc.new(log: log, http: http)
+        when 'cex'
+          Sibit::Cex.new(log: log, http: http)
+        when 'blockchain'
+          Sibit::Blockchain.new(log: log, http: http)
+        else
+          raise(RuntimeError, "Unknown API #{a}")
+        end
       end
-    end
     api = api.map { |a| RetriableProxy.for_object(a, on: Sibit::Error) }
   end
   Obk.new(Sibit.new(log: log, api: Sibit::BestOf.new(api, log: log)), pause: 2 * 1000)

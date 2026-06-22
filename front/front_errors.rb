@@ -1,12 +1,12 @@
+# frozen_string_literal: true
+
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
 not_found do
   status 404
   content_type 'text/html', charset: 'utf-8'
-  haml :not_found, layout: :layout, locals: merged(
-    page_title: 'Page not found'
-  )
+  haml :not_found, layout: :layout, locals: merged(page_title: 'Page not found')
 end
 
 error do
@@ -26,9 +26,6 @@ error do
   if params[:noredirect]
     Backtrace.new(e).to_s
   else
-    haml :error, layout: :layout, locals: merged(
-      page_title: 'Error',
-      error: Backtrace.new(e).to_s
-    )
+    haml :error, layout: :layout, locals: merged(page_title: 'Error', error: Backtrace.new(e).to_s)
   end
 end

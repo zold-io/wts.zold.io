@@ -1,11 +1,13 @@
+# frozen_string_literal: true
+
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
 require 'aws-sdk-sns'
 require 'glogin'
 require_relative '../objects/mcodes'
-require_relative '../objects/tokens'
 require_relative '../objects/smss'
+require_relative '../objects/tokens'
 require_relative '../objects/user_error'
 
 set :tokens, WTS::Tokens.new(settings.pgsql, log: settings.log)
@@ -86,9 +88,12 @@ get '/github-callback' do
   unless known?(c.login) || vip?(c.login)
     allowed = settings.toggles.get('allow').strip.split(',')
     unless allowed.include?(c.login.downcase)
-      raise WTS::UserError, "E103: #{c.login.inspect} doesn't work in Zerocracy, can't login via GitHub, \
-use mobile phone (see KYC section in our Terms of Use); this may also be a temporary network problem, \
-which you may solve by just trying again in a few minutes"
+      raise(
+        WTS::UserError,
+        "E103: #{c.login.inspect} doesn't work in Zerocracy, can't login via GitHub, " \
+        'use mobile phone (see KYC section in our Terms of Use); this may also be a temporary network problem, ' \
+        'which you may solve by just trying again in a few minutes'
+      )
     end
   end
   cookies[:glogin] = c.to_s
@@ -114,24 +119,17 @@ end
 
 get '/mobile_send' do
   redirect '/home' if @locals[:guser]
-  haml :mobile_send, layout: :layout, locals: merged(
-    page_title: '/mobile'
-  )
+  haml :mobile_send, layout: :layout, locals: merged(page_title: '/mobile')
 end
 
 get '/mobile_token' do
   redirect '/home' if @locals[:guser]
-  haml :mobile_token, layout: :layout, locals: merged(
-    page_title: '/token',
-    phone: params[:phone]
-  )
+  haml :mobile_token, layout: :layout, locals: merged(page_title: '/token', phone: params[:phone])
 end
 
 get '/confirm' do
   raise WTS::UserError, 'E106: You have done this already, your keygap has been generated' if user.confirmed?
-  haml :confirm, layout: :layout, locals: merged(
-    page_title: title('keygap')
-  )
+  haml :confirm, layout: :layout, locals: merged(page_title: title('keygap'))
 end
 
 get '/confirmed' do

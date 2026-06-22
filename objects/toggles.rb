@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
@@ -5,9 +7,6 @@ require 'loog'
 require 'time'
 require_relative 'user_error'
 
-#
-# Feature toggles.
-#
 class WTS::Toggles
   def initialize(pgsql, log: Loog::NULL)
     @pgsql = pgsql

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
@@ -13,17 +15,15 @@ require_relative 'test__helper'
 class WTS::UserTest < Minitest::Test
   def test_creates
     WebMock.allow_net_connect!
-    Dir.mktmpdir 'test' do |dir|
-      wallets = Zold::Wallets.new(File.join(dir, 'wallets'))
+    Dir.mktmpdir('test') do |dir|
       login = 'jeffrey08'
       user = WTS::User.new(
         login, WTS::Item.new(login, t_pgsql, log: t_log),
-        wallets, log: t_log
+        Zold::Wallets.new(File.join(dir, 'wallets')), log: t_log
       )
       user.create
       refute_predicate(user, :confirmed?)
-      keygap = user.keygap
-      user.confirm(keygap)
+      user.confirm(user.keygap)
       assert_predicate(user, :confirmed?)
     end
   end

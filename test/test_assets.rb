@@ -1,19 +1,58 @@
+# frozen_string_literal: true
+
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require 'zold'
 require 'glogin'
-require_relative 'test__helper'
-require_relative '../objects/wts'
+require 'zold'
 require_relative '../objects/assets'
 require_relative '../objects/item'
+require_relative '../objects/wts'
+require_relative 'test__helper'
+
+class FakeMonitor
+  def acquired(addr)
+    @addr = addr
+  end
+
+  def latest
+    'x1'
+  end
+
+  def balance(_)
+    500
+  end
+
+  def next_of(_)
+    '0000000000000000000c41262afa6c0e82c47c89dd5fe8c692f33788077ec5b8'
+  end
+
+  def block(_)
+    {
+      hash: 'x',
+      orphan: false,
+      next: 'x',
+      previous: 'x',
+      txns: [
+        {
+          hash: 'x',
+          outputs: [
+            {
+              address: @addr,
+              value: 1000
+            }
+          ]
+        }
+      ]
+    }
+  end
+end
 
 class WTS::AssetsTest < Minitest::Test
   def test_acquire_address
     WebMock.allow_net_connect!
     login = "jeff#{rand(999)}"
-    item = WTS::Item.new(login, t_pgsql, log: t_log)
-    item.create(Zold::Id.new, Zold::Key.new(text: OpenSSL::PKey::RSA.new(2048).to_pem))
+    WTS::Item.new(login, t_pgsql, log: t_log).create(Zold::Id.new, Zold::Key.new(text: OpenSSL::PKey::RSA.new(2048).to_pem))
     assets = WTS::Assets.new(t_pgsql, log: t_log)
     address = assets.acquire(login)
     refute_nil(address)
@@ -51,46 +90,10 @@ class WTS::AssetsTest < Minitest::Test
 
   def test_monitors_blockchain
     login = "jeff#{rand(999)}"
-    item = WTS::Item.new(login, t_pgsql, log: t_log)
-    item.create(Zold::Id.new, Zold::Key.new(text: OpenSSL::PKey::RSA.new(2048).to_pem))
-    api = Object.new
-    def api.acquired(a)
-      @addr = a
-    end
+    WTS::Item.new(login, t_pgsql, log: t_log).create(Zold::Id.new, Zold::Key.new(text: OpenSSL::PKey::RSA.new(2048).to_pem))
+    api = FakeMonitor.new
     assets = WTS::Assets.new(t_pgsql, log: t_log, sibit: Sibit.new(api: api))
-    addr = assets.acquire(login)
-    api.acquired(addr)
-    def api.latest
-      'x1'
-    end
-
-    def api.balance(_)
-      500
-    end
-
-    def api.next_of(_)
-      '0000000000000000000c41262afa6c0e82c47c89dd5fe8c692f33788077ec5b8'
-    end
-
-    def api.block(_)
-      {
-        hash: 'x',
-        orphan: false,
-        next: 'x',
-        previous: 'x',
-        txns: [
-          {
-            hash: 'x',
-            outputs: [
-              {
-                address: @addr,
-                value: 1000
-              }
-            ]
-          }
-        ]
-      }
-    end
+    api.acquired(assets.acquire(login))
     found = false
     before = '0000000000000000000c41262afa6c0e82c47c89dd5fe8c692f33788077ec5b8'
     assets.monitor(before, max: 2) do |a, hsh, satoshi|
@@ -111,8 +114,7 @@ class WTS::AssetsTest < Minitest::Test
       codec: GLogin::Codec.new('some secret')
     )
     ["jeff#{rand(999)}", "johnny#{rand(999)}"].each do |login|
-      item = WTS::Item.new(login, t_pgsql, log: t_log)
-      item.create(Zold::Id.new, Zold::Key.new(text: OpenSSL::PKey::RSA.new(2048).to_pem))
+      WTS::Item.new(login, t_pgsql, log: t_log).create(Zold::Id.new, Zold::Key.new(text: OpenSSL::PKey::RSA.new(2048).to_pem))
       assets.set(assets.acquire(login), 70)
     end
     assert_raises(Sibit::Error) do
@@ -129,8 +131,8 @@ class WTS::AssetsTest < Minitest::Test
     assets.see(address, hash)
     assets.see(address, hash)
     assert(assets.seen?(hash))
-    hash2 = "5de641d3867eb8fec3eb1a5ef2b44df39b54e0b3bb664ab520f2ae26a5b19#{rand(999)}"
-    assets.see(address, hash2)
-    assert(assets.seen?(hash2))
+    other = "5de641d3867eb8fec3eb1a5ef2b44df39b54e0b3bb664ab520f2ae26a5b19#{rand(999)}"
+    assets.see(address, other)
+    assert(assets.seen?(other))
   end
 end

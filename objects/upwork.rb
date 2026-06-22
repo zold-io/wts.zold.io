@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
@@ -5,12 +7,9 @@ require 'backtrace'
 require 'loog'
 require 'upwork/api'
 require 'upwork/api/routers/payments'
-require_relative 'wts'
 require_relative 'user_error'
+require_relative 'wts'
 
-#
-# UpWork sending out gateway.
-#
 class WTS::Upwork
   def initialize(config, team, log: Loog::NULL)
     @config = config
@@ -18,7 +17,6 @@ class WTS::Upwork
     @log = log
   end
 
-  # Send to one contract
   def pay(contract, usd, details)
     client = Upwork::Api::Client.new(Upwork::Api::Config.new(@config))
     begin
@@ -28,11 +26,14 @@ class WTS::Upwork
         'comments' => details,
         'charge_amount' => usd
       )
-      raise res['error']['message'] if res['error']
+      raise(res['error']['message']) if res['error']
       res['reference']
     rescue StandardError => e
       @log.error(Backtrace.new(e))
-      raise "Failed to send $#{usd} to UpWork #{contract} with details of #{details.inspect}: #{e.message}"
+      raise(
+        RuntimeError,
+        "Failed to send $#{usd} to UpWork #{contract} with details of #{details.inspect}: #{e.message}"
+      )
     end
   end
 end

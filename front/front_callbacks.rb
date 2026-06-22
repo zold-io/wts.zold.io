@@ -1,10 +1,12 @@
+# frozen_string_literal: true
+
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
 require 'zold'
+require_relative '../objects/callbacks'
 require_relative '../objects/gl'
 require_relative '../objects/payables'
-require_relative '../objects/callbacks'
 require_relative '../objects/user_error'
 
 set :gl, WTS::Gl.new(settings.pgsql, log: settings.log)
@@ -13,9 +15,11 @@ set :callbacks, WTS::Callbacks.new(settings.pgsql, log: settings.log)
 
 settings.daemons.start('scan-general-ledger') do
   settings.gl.scan(settings.remotes) do |t|
-    settings.log.info("A new transaction #{t[:tid]} added to the General Ledger \
-for #{t[:amount].to_zld(6)} from #{t[:source]} to #{t[:target]} with details #{t[:details].inspect} \
-and dated #{t[:date].utc.iso8601}")
+    settings.log.info(
+      "A new transaction #{t[:tid]} added to the General Ledger " \
+      "for #{t[:amount].to_zld(6)} from #{t[:source]} to #{t[:target]} with details #{t[:details].inspect} " \
+      "and dated #{t[:date].utc.iso8601}"
+    )
     settings.callbacks.match(t[:tid], t[:target], t[:prefix], t[:details]) do |c, mid|
       settings.telepost.spam(
         "The callback no.#{c[:id]} owned by #{title_md(user(c[:login]))} just matched",
@@ -79,10 +83,7 @@ end
 
 get '/callbacks' do
   features('api')
-  haml :callbacks, layout: :layout, locals: merged(
-    page_title: title('callbacks'),
-    callbacks: settings.callbacks
-  )
+  haml :callbacks, layout: :layout, locals: merged(page_title: title('callbacks'), callbacks: settings.callbacks)
 end
 
 get '/callback-restart' do
@@ -105,7 +106,7 @@ get '/wait-for' do
   begin
     regexp = Regexp.new(params[:regexp]) if params[:regexp]
   rescue RegexpError => e
-    raise WTS::UserError, "E205: Regular expression #{params[:regexp].inspect} is not valid: #{e.message}"
+    raise(WTS::UserError, "E205: Regular expression #{params[:regexp].inspect} is not valid: #{e.message}")
   end
   uri = URI(params[:uri])
   raise WTS::UserError, 'E121: The parameter "uri" is mandatory' if uri.nil?
@@ -135,12 +136,14 @@ get '/payables' do
 end
 
 get '/gl' do
-  haml :gl, layout: :layout, locals: merged(
-    page_title: 'General Ledger',
-    gl: settings.gl,
-    query: (params[:query] || '').strip,
-    since: params[:since] ? Zold::Txn.parse_time(params[:since]) : nil
+  haml(
+    :gl, layout: :layout, locals: merged(
+      page_title: 'General Ledger',
+      gl: settings.gl,
+      query: (params[:query] || '').strip,
+      since: params[:since] ? Zold::Txn.parse_time(params[:since]) : nil
+    )
   )
 rescue Zold::Txn::CantParseTime => e
-  raise WTS::UserError, e.message
+  raise(WTS::UserError, e.message)
 end

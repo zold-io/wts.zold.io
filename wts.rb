@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
@@ -5,12 +7,13 @@ $stdout.sync = true
 
 require 'backtrace'
 require 'concurrent'
-require 'get_process_mem'
 require 'geoplugin'
+require 'get_process_mem'
 require 'glogin'
 require 'haml'
 require 'iri'
 require 'json'
+require 'loog'
 require 'pgtk/pool'
 require 'rack/ssl'
 require 'raven'
@@ -30,18 +33,17 @@ require 'zold/amount'
 require 'zold/cached_wallets'
 require 'zold/hands'
 require 'zold/json_page'
-require 'loog'
 require 'zold/remotes'
 require 'zold/sync_wallets'
 require_relative 'objects/daemons'
+require_relative 'objects/dollars'
 require_relative 'objects/item'
 require_relative 'objects/ops'
 require_relative 'objects/payouts'
+require_relative 'objects/rate'
 require_relative 'objects/tokens'
 require_relative 'objects/user'
 require_relative 'objects/wts'
-require_relative 'objects/dollars'
-require_relative 'objects/rate'
 require_relative 'version'
 
 if ENV['RACK_ENV'] != 'test'
@@ -49,52 +51,50 @@ if ENV['RACK_ENV'] != 'test'
   use Rack::SSL
 end
 
-# See https://github.com/baldowl/rack_csrf
 require 'rack/csrf'
 use Rack::Session::Cookie
-use Rack::Csrf, raise: true, skip_if: lambda { |request|
-  request.env.key?('HTTP_X_ZOLD_WTS')
-}
+use Rack::Csrf, raise: true, skip_if: ->(request) { request.env.key?('HTTP_X_ZOLD_WTS') }
 
 configure do
   Zold::Hands.start
   Haml::Options.defaults[:format] = :xhtml
-  config = if ENV['RACK_ENV'] == 'test'
-    {
-      'kyc' => [],
-      'pkey_secret' => 'fake',
-      'geoplugin_token' => '?',
-      'rewards' => {
-        'login' => 'zonuses',
-        'keygap' => '?'
-      },
-      'exchange' => {
-        'login' => 'zoldwts',
-        'keygap' => '?'
-      },
-      'zerocrat' => {
-        'login' => '0crat',
-        'keygap' => '?'
-      },
-      'paypal' => {
-        'id' => '?',
-        'secret' => '?'
-      },
-      'github' => {
-        'client_id' => '?',
-        'client_secret' => '?',
-        'encryption_secret' => ''
-      },
-      'api_secret' => 'test',
-      'sentry' => '',
-      'telegram' => {
-        'token' => '',
-        'chat' => '111'
+  config =
+    if ENV['RACK_ENV'] == 'test'
+      {
+        'kyc' => [],
+        'pkey_secret' => 'fake',
+        'geoplugin_token' => '?',
+        'rewards' => {
+          'login' => 'zonuses',
+          'keygap' => '?'
+        },
+        'exchange' => {
+          'login' => 'zoldwts',
+          'keygap' => '?'
+        },
+        'zerocrat' => {
+          'login' => '0crat',
+          'keygap' => '?'
+        },
+        'paypal' => {
+          'id' => '?',
+          'secret' => '?'
+        },
+        'github' => {
+          'client_id' => '?',
+          'client_secret' => '?',
+          'encryption_secret' => ''
+        },
+        'api_secret' => 'test',
+        'sentry' => '',
+        'telegram' => {
+          'token' => '',
+          'chat' => '111'
+        }
       }
-    }
-  else
-    YAML.safe_load(File.open(File.join(File.dirname(__FILE__), 'config.yml')))
-  end
+    else
+      YAML.safe_load(File.open(File.join(File.dirname(__FILE__), 'config.yml')))
+    end
   if ENV['RACK_ENV'] != 'test'
     Raven.configure do |c|
       c.dsn = config['sentry']
@@ -133,10 +133,7 @@ configure do
       max: 4, log: settings.log
     )
   else
-    set :pgsql, Pgtk::Pool.new(
-      Pgtk::Wire::Env.new('DATABASE_URL'),
-      max: 4, log: settings.log
-    )
+    set :pgsql, Pgtk::Pool.new(Pgtk::Wire::Env.new('DATABASE_URL'), max: 4, log: settings.log)
   end
   settings.pgsql.start!
   set :copies, File.join(settings.root, '.zold-wts/copies')
@@ -148,10 +145,7 @@ configure do
     set :telepost, Telepost::Fake.new
   else
     chat = '@zold_wts'
-    set :telepost, Telepost.new(
-      settings.config['telegram']['token'],
-      chats: [chat]
-    )
+    set :telepost, Telepost.new(settings.config['telegram']['token'], chats: [chat])
     settings.daemons.start('telepost') do
       settings.log.info("Starting Telegram chatbot at #{chat}...")
       settings.telepost.run do |cht, _msg|
@@ -182,18 +176,13 @@ end
 
 get '/' do
   redirect '/home' if @locals[:guser]
-  haml :index, layout: :layout, locals: merged(
-    page_title: 'wts',
-    rate: WTS::Rate.new(settings.toggles).to_f
-  )
+  haml :index, layout: :layout, locals: merged(page_title: 'wts', rate: WTS::Rate.new(settings.toggles).to_f)
 end
 
 get '/home' do
   unless user.item.exists?
     flash('/create', 'Time to create your wallet') unless File.exist?(latch(user.login))
-    return haml :busy, layout: :layout, locals: merged(
-      page_title: title('busy')
-    )
+    return haml(:busy, layout: :layout, locals: merged(page_title: title('busy')))
   end
   flash('/confirm', 'Time to save your keygap') unless user.confirmed?
   haml :home, layout: :layout, locals: merged(
@@ -204,9 +193,7 @@ get '/home' do
 end
 
 get '/key' do
-  haml :key, layout: :layout, locals: merged(
-    page_title: title('key')
-  )
+  haml :key, layout: :layout, locals: merged(page_title: title('key'))
 end
 
 get '/id' do
@@ -286,14 +273,15 @@ end
 get '/download' do
   wid = confirmed_user.item.id
   pem = confirmed_user.item.key(keygap).to_s
-  zip = Zip::OutputStream.write_buffer do |zos|
-    confirmed_user.wallet do |w|
-      zos.put_next_entry("#{wid}#{Zold::Wallet::EXT}")
-      zos.write(File.read(w.path))
+  zip =
+    Zip::OutputStream.write_buffer do |zos|
+      confirmed_user.wallet do |w|
+        zos.put_next_entry("#{wid}#{Zold::Wallet::EXT}")
+        zos.write(File.read(w.path))
+      end
+      zos.put_next_entry('id_rsa')
+      zos.write(pem)
     end
-    zos.put_next_entry('id_rsa')
-    zos.write(pem)
-  end
   response.headers['Content-Type'] = 'application/zip'
   response.headers['Content-Disposition'] = "attachment; filename=#{wid}.zip"
   zip.string
@@ -310,17 +298,12 @@ end
 get '/api-reset' do
   features('api')
   settings.tokens.reset(confirmed_user.login)
-  settings.telepost.spam(
-    "API token has been reset by #{title_md}",
-    "from #{anon_ip}"
-  )
+  settings.telepost.spam("API token has been reset by #{title_md}", "from #{anon_ip}")
   flash('/api', 'You got a new API token')
 end
 
 get '/invoice' do
-  haml :invoice, layout: :layout, locals: merged(
-    page_title: title('invoice')
-  )
+  haml :invoice, layout: :layout, locals: merged(page_title: title('invoice'))
 end
 
 get '/invoice.json' do
@@ -353,9 +336,7 @@ end
 
 get '/buy-sell' do
   features('buy-sell')
-  haml :buy_sell, layout: :layout, locals: merged(
-    page_title: title('buy/sell')
-  )
+  haml :buy_sell, layout: :layout, locals: merged(page_title: title('buy/sell'))
 end
 
 get '/log' do
@@ -371,9 +352,7 @@ get '/log' do
 end
 
 get '/remotes' do
-  haml :remotes, layout: :layout, locals: merged(
-    page_title: '/remotes'
-  )
+  haml :remotes, layout: :layout, locals: merged(page_title: '/remotes')
 end
 
 def exfee
@@ -382,7 +361,7 @@ end
 
 def title(suffix = '')
   return 'SANDBOX' if user.fake?
-  (user.mobile? ? "+#{user.login}" : "@#{user.login}") + (suffix.empty? ? '' : '/' + suffix)
+  (user.mobile? ? "+#{user.login}" : "@#{user.login}") + (suffix.empty? ? '' : "/#{suffix}")
 end
 
 def title_md(u = user)
@@ -434,7 +413,7 @@ def user_log(u = user.login)
 end
 
 def user(login = @locals[:guser])
-  raise WTS::UserError, 'E173: You have to login first' unless login
+  raise(WTS::UserError, 'E173: You have to login first') unless login
   WTS::User.new(
     login, WTS::Item.new(login, settings.pgsql, log: user_log(login)),
     settings.wallets, log: user_log(login)
@@ -443,11 +422,10 @@ end
 
 def confirmed_user(login = @locals[:guser])
   u = user(login)
-  raise WTS::UserError, "E174: You, #{login}, have to confirm your keygap first" unless u.confirmed?
+  raise(WTS::UserError, "E174: You, #{login}, have to confirm your keygap first") unless u.confirmed?
   u
 end
 
-# This user is known as Zerocracy contributor.
 def known?(login = @locals[:guser])
   return false unless login
   return true if %w[yegor256 davvd].include?(login)
@@ -465,12 +443,11 @@ def known?(login = @locals[:guser])
     when 404
       false
     else
-      raise WTS::UserError, "E226: Something is wrong with 0crat.com, HTTP code is #{code}"
+      raise(WTS::UserError, "E226: Something is wrong with 0crat.com, HTTP code is #{code}")
     end
   end
 end
 
-# This user is identified in Zerocracy.
 def kyc?(login = @locals[:guser])
   return false unless login
   return true if ENV['RACK_ENV'] == 'test'
@@ -478,20 +455,18 @@ def kyc?(login = @locals[:guser])
   return true if login == settings.config['exchange']['login']
   return true if settings.config['kyc'].include?(login)
   settings.zache.get("#{login}_kyc?", lifetime: 5 * 60) do
-    res = Zold::Http.new(
-      uri: Iri.new('https://www.0crat.com/known/').append(login.downcase).to_s
-    ).get(timeout: 16)
+    res = Zold::Http.new(uri: Iri.new('https://www.0crat.com/known/').append(login.downcase).to_s).get(timeout: 16)
     res.code == 200 && Zold::JsonPage.new(res.body).to_hash['identified']
   end
 end
 
 def keygap
   gap = params[:keygap]
-  raise WTS::UserError, 'E175: Keygap is required' if gap.nil?
+  raise(WTS::UserError, 'E175: Keygap is required') if gap.nil?
   begin
     confirmed_user.item.key(gap).to_s
   rescue StandardError => e
-    raise WTS::UserError, "E176: This doesn't seem to be a valid keygap: '#{'*' * gap.length}' (#{e.class.name})"
+    raise(WTS::UserError, "E176: This doesn't seem to be a valid keygap: '#{'*' * gap.length}' (#{e.class.name})")
   end
   gap
 end
@@ -505,25 +480,14 @@ def network
 end
 
 def ops(u = user, log: user_log(u.login))
-  WTS::Ops.new(
-    u.item,
-    u,
-    settings.wallets,
-    settings.remotes,
-    settings.copies,
-    log: log,
-    network: network
-  )
+  WTS::Ops.new(u.item, u, settings.wallets, settings.remotes, settings.copies, log: log, network: network)
 end
 
-# Make sure these features are enabled and let the execution
-# continue. If at least one of them is prohibited in the Toggles,
-# an exception will be raised.
 def features(*list)
   return if @locals[:guser] && vip?
   list.each do |f|
     next unless settings.toggles.get("stop:#{f}", 'no') == 'yes'
-    raise WTS::UserError, "E177: This feature \"#{f}\" is temporarily disabled, sorry"
+    raise(WTS::UserError, "E177: This feature \"#{f}\" is temporarily disabled, sorry")
   end
 end
 
@@ -541,10 +505,10 @@ def job_link(jid)
   "the full log is [here](https://wts.zold.io/output?id=#{jid})"
 end
 
+require_relative 'front/front_admin'
 require_relative 'front/front_auto_pull'
 require_relative 'front/front_bonuses'
 require_relative 'front/front_btc'
-require_relative 'front/front_admin'
 require_relative 'front/front_callbacks'
 require_relative 'front/front_errors'
 require_relative 'front/front_jobs'

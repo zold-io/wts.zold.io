@@ -1,16 +1,17 @@
+# frozen_string_literal: true
+
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require_relative 'test__helper'
 require_relative '../objects/tokens'
+require_relative 'test__helper'
 
 class WTS::TokensTest < Minitest::Test
   def test_sets_and_resets
     WebMock.allow_net_connect!
     tokens = WTS::Tokens.new(t_pgsql, log: t_log)
     login = "jeff#{rand(999)}"
-    item = WTS::Item.new(login, t_pgsql, log: t_log)
-    item.create(Zold::Id.new, Zold::Key.new(text: OpenSSL::PKey::RSA.new(2048).to_pem))
+    WTS::Item.new(login, t_pgsql, log: t_log).create(Zold::Id.new, Zold::Key.new(text: OpenSSL::PKey::RSA.new(2048).to_pem))
     before = tokens.get(login)
     refute_nil(before)
     assert_equal(before, tokens.get(login))

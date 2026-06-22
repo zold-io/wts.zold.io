@@ -1,8 +1,10 @@
+# frozen_string_literal: true
+
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require_relative 'test__helper'
 require_relative '../objects/mcodes'
+require_relative 'test__helper'
 
 class WTS::McodesTest < Minitest::Test
   def test_saves_and_gets
@@ -14,7 +16,7 @@ class WTS::McodesTest < Minitest::Test
     assert(mcodes.exists?(phone))
     assert_equal(1234, mcodes.get(phone))
     mcodes.remove(phone)
-    assert_raises WTS::UserError do
+    assert_raises(WTS::UserError) do
       mcodes.get(phone)
     end
   end

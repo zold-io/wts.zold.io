@@ -1,8 +1,10 @@
+# frozen_string_literal: true
+
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require 'zold'
 require 'syncem'
+require 'zold'
 require_relative '../objects/paypal'
 require_relative '../objects/user_error'
 
@@ -103,15 +105,11 @@ users of WTS, while our limits are #{limits} (daily/weekly/monthly), sorry about
       "Fee for exchange of #{usd} PayPal, rate is #{rate}, fee is #{f}"
     )
     ops(log: log).push
-    paypal(log: log).pay(
-      email,
-      (usd * (1.0 - f)).round(2),
-      "Zerocracy development, TID #{user.item.id}:#{txn.id}"
-    )
+    paypal(log: log).pay(email, (usd * (1.0 - f)).round(2), "Zerocracy development, TID #{user.item.id}:#{txn.id}")
     settings.payouts.add(
       user.login, user.item.id, amount,
-      "PayPal #{WTS::Dollars.new(usd)} sent to #{email}, \
-the price was #{WTS::Dollars.new(price)}/BTC, the fee was #{(f * 100).round(2)}%"
+      "PayPal #{WTS::Dollars.new(usd)} sent to #{email}, " \
+      "the price was #{WTS::Dollars.new(price)}/BTC, the fee was #{(f * 100).round(2)}%"
     )
     settings.telepost.spam(
       "😢 Out: **#{amount}** [exchanged](https://blog.zold.io/2018/12/09/btc-to-zld.html)",

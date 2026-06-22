@@ -1,18 +1,16 @@
+# frozen_string_literal: true
+
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
 require 'time'
-require 'zold/http'
-require 'zold/amount'
-require 'zold/id'
 require 'zold/age'
+require 'zold/amount'
+require 'zold/http'
+require 'zold/id'
 require 'zold/json_page'
 require_relative 'user_error'
 
-# Payables.
-# Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2018 Yegor Bugayenko
-# License:: MIT
 class WTS::Payables
   def initialize(pgsql, remotes, log: Loog::NULL)
     @pgsql = pgsql
@@ -20,7 +18,6 @@ class WTS::Payables
     @log = log
   end
 
-  # Discover
   def discover
     start = Time.now
     seen = []
@@ -32,10 +29,7 @@ class WTS::Payables
       r.assert_code(200, res)
       ids = res.body.strip.split("\n").compact.grep(/^[a-f0-9]{16}$/)
       ids.each do |id|
-        @pgsql.exec(
-          'INSERT INTO payable (id, node) VALUES ($1, $2) ON CONFLICT (id) DO NOTHING',
-          [id, r.to_mnemo]
-        )
+        @pgsql.exec('INSERT INTO payable (id, node) VALUES ($1, $2) ON CONFLICT (id) DO NOTHING', [id, r.to_mnemo])
       end
       total += ids.count
       @log.debug("Payables: #{ids.count} wallets found at #{r} in #{Zold::Age.new(start)}")
@@ -43,7 +37,6 @@ class WTS::Payables
     @log.debug("Payables: #{seen.count} master nodes checked, #{total} wallets found: #{seen.join(', ')}")
   end
 
-  # Fetch some balances
   def update(max: 400)
     if @remotes.all.empty?
       @log.debug('The list of remote nodes is empty, can\'t update payables')
@@ -79,21 +72,23 @@ class WTS::Payables
       end
     end
     if total < max
-      @log.error("For some reason not enough wallet balances were updated, \
-just #{total} instead of #{max}, while #{selected} were selected and there were \
-#{seen.count} master nodes seen: #{seen.join(', ')}")
+      @log.error(
+        'For some reason not enough wallet balances were updated, ' \
+        "just #{total} instead of #{max}, while #{selected} were selected and there were " \
+        "#{seen.count} master nodes seen: #{seen.join(', ')}"
+      )
     else
-      @log.debug("Payables: #{total} wallet balances updated from #{seen.count} remote master \
-in #{Zold::Age.new(start)}: #{seen.join(', ')}")
+      @log.debug(
+        "Payables: #{total} wallet balances updated from #{seen.count} remote master " \
+        "in #{Zold::Age.new(start)}: #{seen.join(', ')}"
+      )
     end
   end
 
-  # Remove old wallets
   def remove_old
     @pgsql.exec('DELETE FROM payable WHERE updated < NOW() - INTERVAL \'24 HOURS\'')
   end
 
-  # Remove those, which are banned.
   def remove_banned
     Zold::Id::BANNED.each do |id|
       @pgsql.exec('DELETE FROM payable WHERE id = $1', [id])
@@ -121,17 +116,14 @@ in #{Zold::Age.new(start)}: #{seen.join(', ')}")
     end
   end
 
-  # Total visible balance
   def balance
     Zold::Amount.new(zents: @pgsql.exec('SELECT SUM(balance) FROM payable WHERE balance > 0')[0]['sum'].to_i)
   end
 
-  # Total visible wallets.
   def total
     @pgsql.exec('SELECT COUNT(*) FROM payable')[0]['count'].to_i
   end
 
-  # Total visible transactions.
   def txns
     @pgsql.exec('SELECT SUM(txns) FROM payable')[0]['sum'].to_i
   end

@@ -1,13 +1,11 @@
+# frozen_string_literal: true
+
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
 require 'zold/key'
 
-#
-# Keygap code.
-#
 class WTS::Keygap
-  # Extracts a random keygap and returns an array of [pem, keygap]
   def extract(key, length = 16)
     pem = key.to_s
     keygap = ''
@@ -18,7 +16,6 @@ class WTS::Keygap
     [pem.sub(keygap, '*' * length), keygap]
   end
 
-  # Returns Zold::Key
   def merge(pem, keygap)
     Zold::Key.new(text: pem.sub('*' * keygap.length, keygap))
   end

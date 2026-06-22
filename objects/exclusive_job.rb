@@ -1,11 +1,10 @@
+# frozen_string_literal: true
+
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
 require 'futex'
 
-#
-# Exclusive job.
-#
 class WTS::ExclusiveJob
   def initialize(job, lock, log: Loog::NULL)
     @job = job

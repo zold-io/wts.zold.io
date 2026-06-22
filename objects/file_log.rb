@@ -1,9 +1,8 @@
+# frozen_string_literal: true
+
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
-#
-# File log.
-#
 class WTS::FileLog
   def initialize(file)
     @file = file
@@ -18,9 +17,7 @@ class WTS::FileLog
     end
   end
 
-  def debug(msg)
-    # nothing
-  end
+  def debug(msg); end
 
   def debug?
     false

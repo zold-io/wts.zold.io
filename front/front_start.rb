@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
@@ -70,21 +72,20 @@ get '/keygap' do
 end
 
 get '/pull' do
-  headers['X-Zold-Job'] = job do |_jid, log|
-    if user.wallet_exists? && !params[:force]
-      log.info("We won't pull the wallet #{user.item.id} since it already exists")
-    else
-      log.info("Pulling wallet #{user.item.id} via /pull...")
-      ops(log: log).remove
-      ops(log: log).pull
+  headers['X-Zold-Job'] =
+    job do |_jid, log|
+      if user.wallet_exists? && !params[:force]
+        log.info("We won't pull the wallet #{user.item.id} since it already exists")
+      else
+        log.info("Pulling wallet #{user.item.id} via /pull...")
+        ops(log: log).remove
+        ops(log: log).pull
+      end
     end
-  end
   flash('/', "Your wallet #{user.item.id} will be pulled soon")
 end
 
 get '/restart' do
   features('restart')
-  haml :restart, layout: :layout, locals: merged(
-    page_title: title('restart')
-  )
+  haml :restart, layout: :layout, locals: merged(page_title: title('restart'))
 end

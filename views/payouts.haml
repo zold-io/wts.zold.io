@@ -88,7 +88,7 @@
         %th
           Details
     %tbody
-      - payouts.fetch_all.each do |p|
+      - payouts.all.each do |p|
         %tr
           %td
             = p[:login]

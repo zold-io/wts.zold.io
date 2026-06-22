@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
@@ -37,6 +39,7 @@ gem 'rerun', '~>0.14', require: false
 gem 'retriable', '~>3.1'
 gem 'retriable_proxy', '~>1.0'
 gem 'rubocop', '~>1.82', require: false
+gem 'rubocop-elegant', '~>0.6', require: false
 gem 'rubocop-minitest', '~>0.38', require: false
 gem 'rubocop-performance', '~>1.26', require: false
 gem 'rubocop-rake', '~>0.7', require: false

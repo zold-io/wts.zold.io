@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
@@ -5,23 +7,18 @@ require 'loog'
 require 'securerandom'
 require_relative 'user_error'
 
-#
-# Tokens of users.
-#
 class WTS::Tokens
   def initialize(pgsql, log: Loog::NULL)
     @pgsql = pgsql
     @log = log
   end
 
-  # API token, if exists. Otherwise, resets it.
   def get(login)
     row = @pgsql.exec('SELECT token FROM token WHERE login = $1', [login])[0]
     return row['token'] unless row.nil?
     reset(login)
   end
 
-  # Sets a new API token to the user.
   def reset(login)
     token = SecureRandom.uuid.gsub(/[^a-f0-9]/, '')
     @pgsql.exec(

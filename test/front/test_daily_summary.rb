@@ -1,14 +1,16 @@
+# frozen_string_literal: true
+
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
 require 'loog'
 require 'sibit'
-require_relative '../test__helper'
 require_relative '../../front/daily_summary'
-require_relative '../../objects/payables'
-require_relative '../../objects/gl'
-require_relative '../../objects/toggles'
 require_relative '../../objects/assets'
+require_relative '../../objects/gl'
+require_relative '../../objects/payables'
+require_relative '../../objects/toggles'
+require_relative '../test__helper'
 
 class WTS::DailySummaryTest < Minitest::Test
   def test_builds_report
@@ -52,8 +54,6 @@ class WTS::DailySummaryTest < Minitest::Test
   end
 
   # @todo #283:30min The test is skipped because it fails time to time.
-  #  I suspect that the problem is on their side, at hitsofcode.com. We
-  #  should investigate and maybe ask them to fix something.
   def test_reads_hoc
     skip
     WebMock.allow_net_connect!

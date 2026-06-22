@@ -14,51 +14,58 @@ plugins:
   - rubocop-performance
   - rubocop-minitest
   - rubocop-rake
-Minitest/EmptyLineBeforeAssertionMethods:
+  - rubocop-elegant
+Lint/NumberConversion:
+  Enabled: false
+Style/TopLevelMethodDefinition:
+  Enabled: false
+Lint/RescueException:
   Enabled: false
 Minitest/MultipleAssertions:
   Enabled: false
 Minitest/SkipWithoutReason:
   Enabled: false
-Style/ClassAndModuleChildren:
-  Enabled: false
 Naming/MethodParameterName:
   MinNameLength: 1
-Style/CommandLiteral:
-  Enabled: false
-Style/FrozenStringLiteralComment:
-  Enabled: false
-Layout/IndentationWidth:
-  Enabled: false
-Layout/ElseAlignment:
-  Enabled: false
-Layout/EndAlignment:
-  Enabled: false
-Lint/RescueException:
-  Enabled: false
-Metrics/MethodLength:
-  Max: 100
-Metrics/ClassLength:
-  Max: 300
 Metrics/AbcSize:
   Max: 130
 Metrics/BlockLength:
   Max: 350
 Metrics/BlockNesting:
   Max: 4
-Layout/MultilineMethodCallIndentation:
-  Enabled: false
-Metrics/CyclomaticComplexity:
-  Max: 15
-Metrics/PerceivedComplexity:
-  Max: 15
-Layout/LineLength:
-  Max: 120
-Metrics/ParameterLists:
-  Max: 10
-Layout/EmptyLineAfterGuardClause:
-  Enabled: false
-Style/StringConcatenation:
-  Enabled: false
-Style/CaseLikeIf:
-  Enabled: false
+Elegant/GoodMethodName:
+  AllowedNames:
+    - add_cold
+    - anon_ip
+    - confirmed_user
+    - default_env
+    - delete_expired
+    - delete_failed
+    - delete_succeeded
+    - job_link
+    - next_of
+    - parsed_amount
+    - pay_hosting_bonuses
+    - pay_taxes
+    - register_referral
+    - remove_banned
+    - remove_old
+    - repeat_succeeded
+    - replace_id
+    - safe_md
+    - send_payouts_api
+    - system_consumed
+    - t_log
+    - t_pgsql
+    - test_200_user_pages
+    - test_302_user_pages
+    - title_md
+    - user_log
+    - wallet_exists?
+Elegant/GoodVariableName:
+  AllowedNames:
+    - '@@t_pgsql'
+    - '@t_log'
+    - daily_limit
+    - monthly_limit
+    - weekly_limit

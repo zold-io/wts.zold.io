@@ -1,16 +1,15 @@
+# frozen_string_literal: true
+
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
-require 'futex'
-require 'fileutils'
 require 'backtrace'
+require 'fileutils'
+require 'futex'
 require 'loog'
 require 'zold/age'
 require_relative 'user_error'
 
-#
-# Job async.
-#
 class WTS::AsyncJob
   def initialize(job, pool, lock, log: Loog::NULL)
     @job = job
