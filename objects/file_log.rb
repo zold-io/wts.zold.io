@@ -3,6 +3,8 @@
 # SPDX-FileCopyrightText: Copyright (c) 2018-2026 Zerocracy
 # SPDX-License-Identifier: MIT
 
+require 'fileutils'
+
 class WTS::FileLog
   def initialize(file)
     @file = file
