@@ -34,7 +34,7 @@ gem 'rack-ssl', '~>1.4'
 gem 'rack-test', '~>2.2'
 gem 'rake', '13.3.1', require: false
 gem 'random-port', '~>0.7', require: false
-gem 'rdoc', '~>6.10', require: false
+gem 'rdoc', '~>8.0', require: false
 gem 'rerun', '~>0.14', require: false
 gem 'retriable', '~>3.1'
 gem 'retriable_proxy', '~>1.0'
