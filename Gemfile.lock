@@ -70,6 +70,7 @@ GEM
       ffi
       scrypt
     builder (3.3.0)
+    cgi (0.5.2)
     coercible (1.0.0)
       descendants_tracker (~> 0.0.1)
     coinbase (4.2.3)
@@ -234,8 +235,8 @@ GEM
     pg (1.6.3-arm64-darwin)
     pg (1.6.3-x86_64-darwin)
     pg (1.6.3-x86_64-linux)
-    pgtk (0.32.5)
-      backtrace (~> 0.4)
+    pgtk (0.32.8)
+      cgi (~> 0.0)
       concurrent-ruby (~> 1.3)
       donce (~> 0.0)
       ellipsized (~> 0.3)
