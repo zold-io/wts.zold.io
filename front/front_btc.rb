@@ -159,24 +159,6 @@ unless ENV['RACK_ENV'] == 'test'
     settings.toggles.set('latestblock', seen)
     settings.log.info("We've scanned the entire Blockchain, the latest block is #{seen}")
   end
-  settings.daemons.start('btc-from-coinbase', 60 * 60) do
-    btc = coinbase.balance
-    if btc > 0.01
-      address = assets.all(show_empty: true).reject { |a| a[:hot] }.sample[:address]
-      amount = [btc * 0.95, 0.1].min.floor(4)
-      cid = coinbase.pay(address, amount, 'Going home')
-      settings.telepost.spam(
-        "📤 Transfer: #{format('%.04f', amount)} BTC was sent from our Coinbase account",
-        "to our cold address [#{address}](https://www.blockchain.com/btc/address/#{address});",
-        "Coinbase payment ID is #{cid};",
-        "our bitcoin assets still have [#{assets.balance.round(4)} BTC](https://wts.zold.io/assets)"
-      )
-    else
-      settings.log.info("We've got just #{btc} BTC in Coinbase, no need to transfer")
-    end
-  rescue WTS::Coinbase::TryLater => e
-    settings.log.debug("Can't send #{btc} BTC from Coinbase, will try later: #{e.message}")
-  end
   settings.daemons.start('btc-transfer-to-cold', 60 * 60) do
     hot = assets.all.select { |a| a[:hot] }.sum { |a| a[:value] }.to_f / 100_000_000
     usd = (hot * price).round
