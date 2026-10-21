@@ -247,6 +247,12 @@ class WTS::AppTest < Minitest::Test
     assert_equal(200, last_response.status, last_response.body)
   end
 
+  def test_enters_sandbox_mode
+    WebMock.allow_net_connect!
+    get('/sandbox')
+    assert_equal(302, last_response.status, 'sandbox mode does not redirect after login')
+  end
+
   def test_create_and_render_receipt
     WebMock.allow_net_connect!
     header('X-Zold-WTS', '0000000000000000-b416493aefae4ca487c4739050aaec15')
