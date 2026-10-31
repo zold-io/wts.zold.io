@@ -11,7 +11,7 @@ class WTS::Dollars
   end
 
   def to_s
-    format('%.02f', @usd) if @usd < 100
-    "$#{@usd.round.to_s.reverse.gsub(/(\d{3})(?=\d)/, '\\1,').reverse}"
+    whole, cents = format('%.02f', @usd).split('.')
+    "$#{whole.reverse.gsub(/(\d{3})(?=\d)/, '\\1,').reverse}.#{cents}"
   end
 end
