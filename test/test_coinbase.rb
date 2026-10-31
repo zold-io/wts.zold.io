@@ -14,7 +14,7 @@ class WTS::CoinbaseTest < Minitest::Test
     WTS::Coinbase.new('key', 'secret', 'account', log: t_log).pay('1N1R2HP9JD4LvAtp7rTkpRqF19GH7PH2ZF', 1.0, 'test')
   end
 
-  # @todo #91:30min This unit test doesn't work for some reason. I can't
+  # @todo #91:30min This test fails for an unknown reason, yet the code works with the real API, so let us find out why.
   def test_checks_balance
     skip
     WebMock.disable_net_connect!
