@@ -95,7 +95,7 @@ class WTS::Ops
     unless @wallets.acq(id, &:exists?)
       raise(
         WTS::UserError,
-        "EThe wallet #{id} of #{@user.login} is absent, can't PUSH; " \
+        "E228: The wallet #{id} of #{@user.login} is absent, can't PUSH; " \
         'most probably you just have to RESTART your wallet'
       )
     end
