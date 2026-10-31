@@ -26,4 +26,19 @@ class WTS::OpsTest < Minitest::Test
       WTS::User.new('friend033', WTS::Item.new('friend033', t_pgsql, log: t_log), wallets, log: t_log).create
     end
   end
+
+  def test_codes_push_error
+    Dir.mktmpdir('test') do |dir|
+      remotes = Zold::Remotes.new(file: File.join(dir, 'remotes.csv'))
+      remotes.add('localhost', 4096)
+      ops = WTS::Ops.new(
+        Struct.new(:id).new(Zold::Id.new),
+        Struct.new(:login, :fake?).new('absentee742', false),
+        Zold::Wallets.new(File.join(dir, 'wallets')),
+        remotes,
+        File.join(dir, 'copies')
+      )
+      assert_match(/\AE\d{3}: /, assert_raises(WTS::UserError) { ops.push }.message, 'error code is missing')
+    end
+  end
 end
