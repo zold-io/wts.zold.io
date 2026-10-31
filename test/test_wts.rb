@@ -152,6 +152,23 @@ class WTS::AppTest < Minitest::Test
     end
   end
 
+  def test_explains_value_and_pledge_on_rate_page
+    WebMock.allow_net_connect!
+    login('ivan')
+    Sinatra::Application.settings.zache.put(
+      :rate,
+      {
+        bank: 1.5, boss: 100, root: 900, boss_wallet: '0000000000000000',
+        rate: 0.0019, deficit: 0.0, price: 7000.0, usd_rate: 12.5
+      },
+      lifetime: 600
+    )
+    get('/rate')
+    assert_includes(last_response.body, 'P &times; R', 'Value and Pledge are not explained on the rate page')
+  ensure
+    Sinatra::Application.settings.zache.remove(:rate)
+  end
+
   def test_api_code
     WebMock.allow_net_connect!
     login('poly')
