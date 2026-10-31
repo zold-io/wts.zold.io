@@ -36,7 +36,7 @@ gem 'rake', '13.3.1', require: false
 gem 'random-port', '~>0.7', require: false
 gem 'rdoc', '~>8.0', require: false
 gem 'rerun', '~>0.14', require: false
-gem 'retriable', '~>3.1'
+gem 'retriable', '~>5.0'
 gem 'retriable_proxy', '~>1.0'
 gem 'rubocop', '~>1.82', require: false
 gem 'rubocop-elegant', '~>0.6', require: false
