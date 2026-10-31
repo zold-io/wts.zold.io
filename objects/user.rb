@@ -28,8 +28,7 @@ class WTS::User
     /^[0-9]+$/.match?(@login)
   end
 
-  # rubocop:disable Naming/PredicateMethod
-  def create(remotes = Zold::Remotes::Empty.new)
+  def create(remotes = Zold::Remotes::Empty.new) # rubocop:disable Naming/PredicateMethod
     rsa = OpenSSL::PKey::RSA.new(2048)
     wallet =
       Tempfile.open do |f|
@@ -41,7 +40,6 @@ class WTS::User
     @log.info("Wallet #{wallet} created successfully\n")
     true
   end
-  # rubocop:enable Naming/PredicateMethod
 
   def invoice
     require('zold/commands/invoice')
