@@ -42,7 +42,7 @@
     by the office out of the total emission.
 
 %p
-  Coverage:
+  Coverage (C):
   %code
     = format('%0.8f', formula[:rate])
   BTC per ZLD
@@ -53,7 +53,7 @@
     %em F / (E - Z)
 
 %p
-  Exchange Rate:
+  Exchange Rate (R):
   %code
     = format('%0.8f', rate)
   - if defined? guser
@@ -66,6 +66,21 @@
     This rate is used in all
     %a{href: 'https://blog.zold.io/2018/12/09/btc-to-zld.html'} ZLD-to-BTC exchange
     operations.
+
+%p
+  Value / Pledge:
+  %code
+    = format('$%0.2f / $%0.2f', formula[:usd_rate], formula[:price] * formula[:rate])
+  per ZLD
+  %br
+  %span.smaller.gray
+    The value is what one ZLD costs at the exchange rate, equal to
+    %em P &times; R
+    and the pledge is how many dollars in the fund back one ZLD, equal to
+    %em P &times; C
+    where P is the
+    %a{href: 'https://blockchain.info/ticker'} market price
+    of one BTC in USD.
 
 %p
   Exchange fee:
