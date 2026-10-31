@@ -32,4 +32,18 @@ class WTS::CallbacksTest < Minitest::Test
     callbacks.delete_expired
     assert_requested(stub_request(:get, /localhost:888/).to_return(body: 'OK'), times: 1)
   end
+
+  def test_yields_repeated_callback_after_success
+    callbacks = WTS::Callbacks.new(t_pgsql, log: t_log)
+    id = Zold::Id.new
+    login = "u#{rand(99_999)}"
+    callbacks.add(login, id.to_s, 'REPEATPFX', /coffee/, 'http://localhost:889/', repeat: true)
+    t_pgsql.exec(
+      'UPDATE match SET failure = $1 WHERE id = $2',
+      ['', callbacks.match("#{id}:7", id.to_s, 'REPEATPFX', 'for coffee').first]
+    )
+    seen = []
+    callbacks.repeat_succeeded { |c| seen << c[:login] }
+    assert_includes(seen, login, 'repeated callback was not yielded')
+  end
 end
