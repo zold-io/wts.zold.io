@@ -48,7 +48,7 @@ gem 'sass', '~>3.7'
 gem 'sentry-raven', '~>3.1'
 gem 'sibit', '~>0.27'
 gem 'simplecov', '~>0.22', require: false
-gem 'simplecov-cobertura', '~>3.1', require: false
+gem 'simplecov-cobertura', '~>4.0', require: false
 gem 'sinatra', '~>3.2'
 gem 'sinatra-contrib', '~>3.2'
 gem 'svg-graph', '~>2.2'
