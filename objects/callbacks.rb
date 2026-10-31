@@ -24,7 +24,7 @@ class WTS::Callbacks
       [login, wallet, prefix, regexp, uri]
     )[0]
     unless found.nil?
-      raise(WTS::UserError, "You already have a callback ##{found['id']} registered with similar params")
+      raise(WTS::UserError, "E227: You already have a callback ##{found['id']} registered with similar params")
     end
     cid = @pgsql.exec(
       [

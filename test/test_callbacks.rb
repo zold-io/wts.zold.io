@@ -46,4 +46,18 @@ class WTS::CallbacksTest < Minitest::Test
     callbacks.repeat_succeeded { |c| seen << c[:login] }
     assert_includes(seen, login, 'repeated callback was not yielded')
   end
+
+  def test_rejects_duplicate_callback_with_coded_error
+    callbacks = WTS::Callbacks.new(t_pgsql, log: t_log)
+    id = Zold::Id.new
+    login = "d#{rand(99_999)}"
+    callbacks.add(login, id.to_s, 'DUPPFX', /tea/, 'http://localhost:887/')
+    assert_match(
+      /\AE\d{3}: /,
+      assert_raises(WTS::UserError) do
+        callbacks.add(login, id.to_s, 'DUPPFX', /tea/, 'http://localhost:887/')
+      end.message,
+      'duplicate callback error does not start with an E### code'
+    )
+  end
 end
