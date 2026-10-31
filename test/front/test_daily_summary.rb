@@ -53,7 +53,7 @@ class WTS::DailySummaryTest < Minitest::Test
     assert_includes(md, 'Deficit: ', md)
   end
 
-  # @todo #283:30min The test is skipped because it fails time to time.
+  # @todo #283:30min The test is skipped as it fails at times, maybe due to hitsofcode.com, so look into it and fix it.
   def test_reads_hoc
     skip
     WebMock.allow_net_connect!
