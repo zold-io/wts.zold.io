@@ -34,7 +34,7 @@ gem 'rack-ssl', '~>1.4'
 gem 'rack-test', '~>2.2'
 gem 'rake', '13.3.1', require: false
 gem 'random-port', '~>0.7', require: false
-gem 'rdoc', '~>6.10', require: false
+gem 'rdoc', '~>8.0', require: false
 gem 'rerun', '~>0.14', require: false
 gem 'retriable', '~>3.1'
 gem 'retriable_proxy', '~>1.0'
@@ -43,7 +43,7 @@ gem 'rubocop-elegant', '~>0.6', require: false
 gem 'rubocop-minitest', '~>0.38', require: false
 gem 'rubocop-performance', '~>1.26', require: false
 gem 'rubocop-rake', '~>0.7', require: false
-gem 'rubyzip', '~>2.4'
+gem 'rubyzip', '~>3.0'
 gem 'sass', '~>3.7'
 gem 'sentry-raven', '~>3.1'
 gem 'sibit', '~>0.27'
