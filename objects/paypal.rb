@@ -27,6 +27,7 @@ class WTS::PayPal
       appid: @config[:appid]
     ).setup_purchase(
       action_type: 'PAY',
+      fees_payer: 'SENDER',
       sender_email: @config[:email],
       return_url: 'https://wts.zold.io/terms',
       cancel_url: 'https://wts.zold.io/terms',
