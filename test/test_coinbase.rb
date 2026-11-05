@@ -14,12 +14,10 @@ class WTS::CoinbaseTest < Minitest::Test
     WTS::Coinbase.new('key', 'secret', 'account', log: t_log).pay('1N1R2HP9JD4LvAtp7rTkpRqF19GH7PH2ZF', 1.0, 'test')
   end
 
-  # @todo #91:30min This test fails for an unknown reason, yet the code works with the real API, so let us find out why.
   def test_checks_balance
-    skip
     WebMock.disable_net_connect!
     stub_request(:get, 'https://api.coinbase.com/v2/accounts/account').to_return(
-      body: '{"balance": {"amount": "1.0", "currency": "BTC"}}'
+      body: '{"data": {"balance": {"amount": "1.0", "currency": "BTC"}}}'
     )
     assert_in_delta(1.0, WTS::Coinbase.new('key', 'secret', 'account', log: t_log).balance)
   end
