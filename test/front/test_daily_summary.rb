@@ -53,15 +53,12 @@ class WTS::DailySummaryTest < Minitest::Test
     assert_includes(md, 'Deficit: ', md)
   end
 
-  # @todo #283:30min The test is skipped as it fails at times, maybe due to hitsofcode.com, so look into it and fix it.
   def test_reads_hoc
-    skip
-    WebMock.allow_net_connect!
-    2.times do
-      ['papers', 'blog.zold.io', 'zold', 'wts.zold.io', 'zold-ruby-sdk'].each do |r|
-        refute_predicate(WTS::DailySummary::HoC.new("zold-io/#{r}", log: t_log).hoc, :zero?)
-        refute_predicate(WTS::DailySummary::HoC.new("zold-io/#{r}", log: t_log).commits, :zero?)
-      end
-    end
+    stub_request(:get, 'https://hitsofcode.com/github/zold-io/zold/json').to_return(
+      body: '{"count": 42, "commits": 7}',
+      headers: { 'Content-type': 'application/json' }
+    )
+    hoc = WTS::DailySummary::HoC.new('zold-io/zold', log: t_log)
+    assert_equal([42, 7], [hoc.hoc, hoc.commits], 'Wrong hits of code or commits')
   end
 end
