@@ -318,6 +318,11 @@ post '/do-zld-to-btc' do
   address = params[:btc].strip
   raise WTS::UserError, "E144: Bitcoin address is not valid: #{address.inspect}" unless /^[a-zA-Z0-9]+$/.match?(address)
   raise WTS::UserError, 'E145: Bitcoin address must start with 1, 3 or bc1' unless /^(1|3|bc1)/.match?(address)
+  begin
+    Sibit::Tx::Output.new(0, address).script
+  rescue Sibit::Error => e
+    raise(WTS::UserError, "E229: Bitcoin address #{address.inspect} is not valid: #{e.message}")
+  end
   balance = confirmed_user.wallet(&:balance)
   raise WTS::UserError, "E146: You don't have enough to send #{amount}" if balance < amount
   maxout = settings.toggles.get('maxout', '1.0').to_f
