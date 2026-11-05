@@ -46,7 +46,7 @@ gem 'rubocop-rake', '~>0.7', require: false
 gem 'rubyzip', '~>3.0'
 gem 'sass', '~>3.7'
 gem 'sentry-raven', '~>3.1'
-gem 'sibit', '~>0.27'
+gem 'sibit', '~>0.34'
 gem 'simplecov', '~>0.22', require: false
 gem 'simplecov-cobertura', '~>3.1', require: false
 gem 'sinatra', '~>3.2'

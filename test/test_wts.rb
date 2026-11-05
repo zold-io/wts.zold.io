@@ -235,6 +235,39 @@ class WTS::AppTest < Minitest::Test
     assert_equal(302, last_response.status, last_response.body)
   end
 
+  def test_rejects_bad_address
+    WebMock.allow_net_connect!
+    name = 'jeff404'
+    login(name)
+    WTS::User.new(
+      '0crat', WTS::Item.new('0crat', t_pgsql, log: t_log),
+      Sinatra::Application.settings.wallets, log: t_log
+    ).create
+    user = WTS::User.new(
+      name, WTS::Item.new(name, t_pgsql, log: t_log),
+      Sinatra::Application.settings.wallets, log: t_log
+    )
+    user.create
+    keygap = user.keygap
+    user.confirm(keygap)
+    Sinatra::Application.settings.wallets.acq(user.item.id) do |w|
+      w.add(Zold::Txn.new(1, Time.now, Zold::Amount.new(zld: 1.0), 'NOPREFIX', Zold::Id.new, '-'))
+    end
+    assets = WTS::Assets.new(t_pgsql, log: t_log)
+    assets.set(assets.acquire(user.login), 10_000_000)
+    get('/zld-to-btc')
+    post(
+      '/do-zld-to-btc',
+      form(
+        amount: '1',
+        btc: '35ZYqrGiMej3nD6UxNX85Cf6U3NnwAdgnn',
+        keygap: keygap,
+        _csrf: Nokogiri.HTML(last_response.body).xpath('//input[@name="_csrf"]/@value')
+      )
+    )
+    assert_equal(303, last_response.status, 'The address with a wrong checksum was accepted')
+  end
+
   def test_pay_for_pizza
     skip
     WebMock.allow_net_connect!
