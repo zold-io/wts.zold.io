@@ -115,6 +115,31 @@ class WTS::AppTest < Minitest::Test
     end
   end
 
+  def test_txns_json_keeps_order_between_requests
+    WebMock.allow_net_connect!
+    name = 'txns_order'
+    login(name)
+    user = WTS::User.new(
+      name, WTS::Item.new(name, t_pgsql, log: t_log),
+      Sinatra::Application.settings.wallets, log: t_log
+    )
+    user.wallet do |wallet|
+      [1, 2, 3].each do |id|
+        wallet.add(
+          Zold::Txn.new(
+            id, Time.now - (id * 3600), Zold::Amount.new(zents: -id), 'NOPREFIX', Zold::Id.new, "t#{id}"
+          )
+        )
+      end
+    end
+    bodies =
+      Array.new(2) do
+        get('/txns.json?sort=desc')
+        last_response.body
+      end
+    assert_equal(bodies.first, bodies.last, 'the order of txns.json changes between requests')
+  end
+
   def test_download_returns_zip_with_wallet_and_key
     WebMock.allow_net_connect!
     name = 'zip_dl'
