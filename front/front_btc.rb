@@ -8,15 +8,15 @@ require 'obk'
 require 'retriable_proxy'
 require 'sibit'
 require 'sibit/bestof'
-require 'sibit/bitcoinchain'
 require 'sibit/blockchain'
 require 'sibit/blockchair'
-require 'sibit/btc'
 require 'sibit/cex'
 require 'sibit/cryptoapis'
 require 'sibit/fake'
 require 'sibit/http'
 require 'sibit/json'
+require 'sibit/mempool'
+require 'sibit/sochain'
 require 'syncem'
 require_relative '../objects/assets'
 require_relative '../objects/coinbase'
@@ -536,10 +536,10 @@ def sibit(log: settings.log)
           Sibit::Cryptoapis.new(settings.config['cryptoapis_key'], log: log, http: http)
         when 'blockchair'
           Sibit::Blockchair.new(key: settings.config['blockchair_key'], log: log, http: http)
-        when 'bitcoinchain'
-          Sibit::Bitcoinchain.new(log: log, http: http)
-        when 'btc'
-          Sibit::Btc.new(log: log, http: http)
+        when 'mempool'
+          Sibit::Mempool.new(log: log, http: http)
+        when 'sochain'
+          Sibit::Sochain.new(key: settings.config['sochain_key'], log: log, http: http)
         when 'cex'
           Sibit::Cex.new(log: log, http: http)
         when 'blockchain'
