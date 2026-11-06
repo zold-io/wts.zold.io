@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: MIT
 
 source 'https://rubygems.org'
+ruby '~> 3.3'
 
 gem 'active_paypal_adaptive_payment', '~>0.3'
 gem 'aws-sdk-s3', '~>1.209'
