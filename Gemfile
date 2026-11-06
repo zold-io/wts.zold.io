@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: MIT
 
 source 'https://rubygems.org'
+ruby '~> 3.3'
 
 gem 'active_paypal_adaptive_payment', '~>0.3'
 gem 'aws-sdk-s3', '~>1.209'
@@ -47,7 +48,7 @@ gem 'rubocop-rake', '~>0.7', require: false
 gem 'rubyzip', '~>3.0'
 gem 'sass', '~>3.7'
 gem 'sentry-raven', '~>3.1'
-gem 'sibit', '~>0.34'
+gem 'sibit', '~>0.35'
 gem 'simplecov', '~>0.22', require: false
 gem 'simplecov-cobertura', '~>3.1', require: false
 gem 'sinatra', '~>3.2'
