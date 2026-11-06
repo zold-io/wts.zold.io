@@ -9,6 +9,7 @@ require 'stringio'
 require 'zip'
 require_relative '../wts'
 require_relative 'test__helper'
+require 'minitest/mock'
 
 module Rack
   module Test
