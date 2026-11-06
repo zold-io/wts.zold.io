@@ -72,9 +72,10 @@ get '/keygap' do
 end
 
 get '/pull' do
+  skip = user.wallet_exists? && !params[:force]
   headers['X-Zold-Job'] =
-    job do |_jid, log|
-      if user.wallet_exists? && !params[:force]
+    job(async: !skip) do |_jid, log|
+      if skip
         log.info("We won't pull the wallet #{user.item.id} since it already exists")
       else
         log.info("Pulling wallet #{user.item.id} via /pull...")

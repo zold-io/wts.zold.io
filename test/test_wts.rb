@@ -9,6 +9,7 @@ require 'stringio'
 require 'zip'
 require_relative '../wts'
 require_relative 'test__helper'
+require 'minitest/mock'
 
 module Rack
   module Test
@@ -175,6 +176,26 @@ class WTS::AppTest < Minitest::Test
       get(p)
       assert_equal(302, last_response.status, "#{p} fails: #{last_response.body}")
     end
+  end
+
+  def test_pull_existing_wallet_is_fast
+    WebMock.allow_net_connect!
+    name = 'quick_pull'
+    login(name)
+    WTS::User.new(
+      name, WTS::Item.new(name, t_pgsql, log: t_log),
+      Sinatra::Application.settings.wallets, log: t_log
+    ).create
+    previous = ENV.fetch('RACK_ENV', nil)
+    ENV['RACK_ENV'] = 'production'
+    WTS::AsyncJob.stub(:new, ->(*) { flunk('an existing wallet must not be dispatched asynchronously') }) do
+      get('/pull?noredirect=1')
+    end
+    assert_equal(200, last_response.status, last_response.body)
+    get("/job?id=#{last_response.headers['X-Zold-Job']}")
+    assert_equal('OK', last_response.body)
+  ensure
+    ENV['RACK_ENV'] = previous
   end
 
   def test_explains_value_and_pledge_on_rate_page

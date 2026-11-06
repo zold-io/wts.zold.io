@@ -23,6 +23,7 @@ gem 'glogin', '~>0.17'
 gem 'haml', '~>5.2'
 gem 'iri', '~>0.11'
 gem 'minitest', '~>6.0', require: false
+gem 'minitest-mock', '~>5.25', require: false
 gem 'minitest-reporters', '~>1.7', require: false
 gem 'obk', '~>0.3'
 gem 'octokit', '~>10.0'
