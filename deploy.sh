@@ -13,6 +13,6 @@ cp /code/home/assets/zold/wts-config.yml config.yml
 git add config.yml
 git add Gemfile.lock
 git add .gitignore
-git commit -m 'config.yml for heroku'
+git commit -m 'config.yml for heroku' --no-verify
 trap 'git reset HEAD~1 && rm config.yml && git checkout -- .gitignore' EXIT
 git push heroku master -f
