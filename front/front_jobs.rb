@@ -17,7 +17,7 @@ require_relative '../objects/user_error'
 set :pool, Concurrent::FixedThreadPool.new(4, max_queue: 1024, fallback_policy: :abort)
 set :jobs, WTS::Jobs.new(settings.pgsql, log: settings.log)
 
-def job(u = user, exclusive: false)
+def job(u = user, exclusive: false, async: true)
   settings.jobs.gc
   jid = settings.jobs.start(u.login)
   log = WTS::TeeLog.new(user_log(u.login), WTS::DbLog.new(settings.pgsql, jid))
@@ -43,7 +43,7 @@ def job(u = user, exclusive: false)
     telepost: settings.telepost
   )
   job = WTS::ExclusiveJob.new(job, File.join(settings.root, 'exclusive-job'), log: log) if exclusive
-  job = WTS::AsyncJob.new(job, settings.pool, latch(u.login)) unless ENV['RACK_ENV'] == 'test'
+  job = WTS::AsyncJob.new(job, settings.pool, latch(u.login)) if async && ENV['RACK_ENV'] != 'test'
   job.call(jid)
   jid
 end
