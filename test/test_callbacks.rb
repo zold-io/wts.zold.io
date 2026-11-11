@@ -60,4 +60,18 @@ class WTS::CallbacksTest < Minitest::Test
       'duplicate callback error does not start with an E### code'
     )
   end
+
+  def test_matches_every_callback_once_per_transaction
+    callbacks = WTS::Callbacks.new(t_pgsql, log: t_log)
+    id = Zold::Id.new
+    login = "m#{rand(99_999)}"
+    callbacks.add(login, id.to_s, 'MULTIPFX', /pizza/, 'http://localhost:886/a')
+    callbacks.add(login, id.to_s, 'MULTIPFX', /pizza/, 'http://localhost:886/b')
+    tid = "#{id}:4"
+    assert_equal(
+      [2, 0],
+      Array.new(2) { callbacks.match(tid, id.to_s, 'MULTIPFX', 'for pizza').size },
+      'matched fewer callbacks than registered, or matched twice'
+    )
+  end
 end
