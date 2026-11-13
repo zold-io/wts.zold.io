@@ -50,7 +50,7 @@ class WTS::Callbacks
     @pgsql.exec('SELECT * FROM callback WHERE wallet = $1 AND prefix = $2', [wallet, prefix]).each do |r|
       next unless Regexp.new(r['regexp']).match?(details)
       id = @pgsql.exec(
-        'INSERT INTO match (callback, tid) VALUES ($1, $2) ON CONFLICT(tid) DO NOTHING RETURNING id',
+        'INSERT INTO match (callback, tid) VALUES ($1, $2) ON CONFLICT(callback, tid) DO NOTHING RETURNING id',
         [r['id'].to_i, tid]
       )
       next if id.empty?
