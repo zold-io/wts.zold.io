@@ -35,7 +35,9 @@ class WTS::Referrals
     end
 
     def decode(text)
-      text[2..].tr(ENCODINGS[text[0..1].to_i], ALPHABET)
+      pos = text[0..1].to_i
+      return text if text.length < 2 || pos >= ENCODINGS.count
+      text[2..].tr(ENCODINGS[pos], ALPHABET)
     end
   end
 
