@@ -24,10 +24,16 @@
     %meta{name: 'twitter:card', content: 'summary'}
     %meta{name: 'twitter:image:alt', content: 'Zold'}
     %script{src: 'https://code.jquery.com/jquery-3.3.1.min.js'}
-    %script{src: 'https://browser.sentry-cdn.com/5.4.3/bundle.min.js'}
+    %script{src: 'https://browser.sentry-cdn.com/10.78.0/bundle.min.js', crossorigin: 'anonymous'}
     :javascript
-      $(function() {
-        Sentry.init({ dsn: '#{sentry}' });
+      Sentry.init({
+        dsn: '#{sentry}',
+        // Keep error reporting without adding automatic session tracking.
+        integrations: function(integrations) {
+          return integrations.filter(function(integration) {
+            return integration.name !== 'BrowserSession';
+          });
+        }
       });
   %body
     %section
